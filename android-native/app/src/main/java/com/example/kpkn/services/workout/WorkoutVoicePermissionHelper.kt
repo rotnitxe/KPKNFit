@@ -69,8 +69,9 @@ object WorkoutVoicePermissionHelper {
     }
 
     /**
-     * BLUETOOTH_CONNECT y POST_NOTIFICATIONS son opcionales: su denegación nunca
-     * bloquea Vosk con el micrófono del teléfono.
+     * BLUETOOTH_CONNECT se solicita para seleccionar el micrófono Bluetooth.
+     * Si se deniega, Vosk sigue usable con el micrófono del teléfono.
+     * POST_NOTIFICATIONS es independiente de la captura.
      */
     fun permissionsToRequestForVoiceEnable(
         context: Context,

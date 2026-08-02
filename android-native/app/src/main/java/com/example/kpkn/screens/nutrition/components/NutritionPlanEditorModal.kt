@@ -93,6 +93,7 @@ import com.example.kpkn.domain.nutrition.RiskSeverity
 import com.example.kpkn.domain.nutrition.buildNutritionRiskFlags
 import com.example.kpkn.domain.nutrition.calculateBMR
 import com.example.kpkn.domain.nutrition.calculateTDEE
+import com.example.kpkn.domain.nutrition.caloriesFromMacros
 import com.example.kpkn.domain.nutrition.estimatePlanEndDate
 import com.example.kpkn.domain.nutrition.recommendPlanMacros
 import com.example.kpkn.domain.nutrition.weeklyChangeFromCalories
@@ -143,6 +144,7 @@ private data class EditorState(
     val proteinG: String,
     val carbsG: String,
     val fatsG: String,
+    val calorieTarget: String,
     val weightUnit: WeightUnit,
     val lastMacroTouched: String,
     val targetBodyFat: String,
@@ -201,6 +203,7 @@ fun NutritionPlanEditorModal(
     var showValidationError by remember { mutableStateOf(false) }
     var showStep1ValidationError by remember { mutableStateOf(false) }
     var macrosValidationError by remember { mutableStateOf(false) }
+    var calorieTargetError by remember { mutableStateOf(false) }
     // Tracks last goal to reset macros when goal changes in MACROS step
     var lastSyncedGoal by remember { mutableStateOf<CalorieGoal?>(null) }
 
@@ -273,10 +276,18 @@ fun NutritionPlanEditorModal(
     }
     val autoFats = recommended?.fatsG ?: autoFatsMin
     val autoCarbs = recommended?.carbsG ?: 40
-    val targetKcalCurrent = recommended?.calories ?: (tdee ?: 2000)
+    val recommendedCalories = recommended?.calories ?: (tdee ?: 2000)
 
     val proteinGoal = proteinD.roundToInt()
-    val macroCalories = (proteinGoal * 4) + carbsD.roundToInt() * 4 + fatsD.roundToInt() * 9
+    val macroCaloriesFromMacros = caloriesFromMacros(
+        proteinG = proteinGoal,
+        carbsG = carbsD.roundToInt(),
+        fatsG = fatsD.roundToInt(),
+    )
+    // The explicit target is the source of truth. Macro sliders update it, but
+    // the summary and persistence must never silently replace it with a new sum.
+    val macroCalories = state.calorieTarget.toIntOrNull()?.takeIf { it > 0 }
+        ?: macroCaloriesFromMacros
     val weeklyTrendKg = tdee?.takeIf { it > 0 }?.let { weeklyChangeFromCalories(macroCalories, it) }
 
     val weeklyRateStatus = when {
@@ -318,7 +329,7 @@ fun NutritionPlanEditorModal(
         buildNutritionRiskFlags(
             RiskInput(
                 settings = nutritionInput,
-                calorieTarget = macroCalories,
+                calorieTarget = state.calorieTarget.toIntOrNull() ?: macroCalories,
                 goalMetric = state.goalMetric,
                 goalValue = goalValueKg,
                 weeklyChangeKg = effectiveWeeklyChangeKg,
@@ -339,7 +350,13 @@ fun NutritionPlanEditorModal(
             val p = kotlin.math.round(newKcal * 0.30 / 4).toInt()
             val f = kotlin.math.round(newKcal * 0.30 / 9).toInt()
             val c = kotlin.math.round((newKcal - p * 4 - f * 9) / 4.0).toInt().coerceAtLeast(40)
-            state = state.copy(proteinG = p.toString(), fatsG = f.toString(), carbsG = c.toString())
+            state = state.copy(
+                proteinG = p.toString(),
+                fatsG = f.toString(),
+                carbsG = c.toString(),
+                calorieTarget = newKcal.toString(),
+                lastMacroTouched = "calories",
+            )
         } else {
             val pRatio = (proteinD * 4) / totalFrom
             val cRatio = (carbsD * 4) / totalFrom
@@ -347,8 +364,24 @@ fun NutritionPlanEditorModal(
             val newP = kotlin.math.round(newKcal * pRatio / 4).toInt().coerceAtLeast(20)
             val newF = kotlin.math.round(newKcal * fRatio / 9).toInt().coerceAtLeast(10)
             val newC = kotlin.math.round((newKcal - newP * 4 - newF * 9) / 4.0).toInt().coerceAtLeast(40)
-            state = state.copy(proteinG = newP.toString(), fatsG = newF.toString(), carbsG = newC.toString())
+            state = state.copy(
+                proteinG = newP.toString(),
+                fatsG = newF.toString(),
+                carbsG = newC.toString(),
+                calorieTarget = newKcal.toString(),
+                lastMacroTouched = "calories",
+            )
         }
+    }
+
+    fun updateMacros(protein: Int = proteinGoal, carbs: Int = carbsD.roundToInt(), fats: Int = fatsD.roundToInt(), touched: String) {
+        state = state.copy(
+            proteinG = protein.toString(),
+            carbsG = carbs.toString(),
+            fatsG = fats.toString(),
+            calorieTarget = caloriesFromMacros(protein, carbs, fats).toString(),
+            lastMacroTouched = touched,
+        )
     }
 
     fun requestDismiss() {
@@ -365,6 +398,7 @@ fun NutritionPlanEditorModal(
                     proteinG = macros.proteinG.toString(),
                     fatsG = macros.fatsG.toString(),
                     carbsG = macros.carbsG.toString(),
+                    calorieTarget = macros.calories.toString(),
                     lastMacroTouched = "",
                 )
             }
@@ -863,6 +897,7 @@ fun NutritionPlanEditorModal(
                                         proteinG = macros.proteinG.toString(),
                                         fatsG = macros.fatsG.toString(),
                                         carbsG = macros.carbsG.toString(),
+                                        calorieTarget = macros.calories.toString(),
                                         lastMacroTouched = "",
                                     )
                                 } else {
@@ -948,16 +983,43 @@ fun NutritionPlanEditorModal(
 
                                 Spacer(Modifier.height(4.dp))
                                 SectionTitle("Ajuste de macronutrientes")
+                                SectionTitle("Presupuesto calórico")
+                                LabeledField(
+                                    label = "Calorías diarias (kcal) *",
+                                    value = state.calorieTarget,
+                                    onValueChange = { rawValue ->
+                                        val sanitized = sanitizeInt(rawValue)
+                                        val entered = sanitized.toIntOrNull()
+                                        calorieTargetError = entered == null || entered <= 0
+                                        state = state.copy(
+                                            calorieTarget = sanitized,
+                                            lastMacroTouched = "calories",
+                                        )
+                                        // Avoid reshaping macros while the user is
+                                        // still typing a multi-digit value.
+                                        if (entered != null && entered >= 800) {
+                                            syncMacrosFromCalories(entered)
+                                        }
+                                    },
+                                    keyboardType = KeyboardType.Number,
+                                    placeholderText = recommendedCalories.toString(),
+                                    error = calorieTargetError,
+                                )
+                                Text(
+                                    "Recomendación actual: $recommendedCalories kcal. Si cambias un macro, el presupuesto se actualizará con esos gramos.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = PANEL_MUTED,
+                                )
 
                                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                     MacroSliderRow("Proteína", proteinGoal, "g", PROTEIN_COLOR, (autoProtein - 60).coerceAtLeast(40)..(autoProtein + 60).coerceAtLeast(80)) { p ->
-                                        state = state.copy(proteinG = p.toString(), lastMacroTouched = "proteinG")
+                                        updateMacros(protein = p, touched = "proteinG")
                                     }
                                     MacroSliderRow("Carbohidratos", carbsD.roundToInt(), "g", CARBS_COLOR, (autoCarbs - 100).coerceAtLeast(60)..(autoCarbs + 100).coerceAtLeast(120)) { c ->
-                                        state = state.copy(carbsG = c.toString(), lastMacroTouched = "carbsG")
+                                        updateMacros(carbs = c, touched = "carbsG")
                                     }
                                     MacroSliderRow("Grasas", fatsD.roundToInt(), "g", FATS_COLOR, (autoFats - 30).coerceAtLeast(20)..(autoFats + 30).coerceAtLeast(40)) { f ->
-                                        state = state.copy(fatsG = f.toString(), lastMacroTouched = "fatsG")
+                                        updateMacros(fats = f, touched = "fatsG")
                                     }
                                 }
 
@@ -1307,6 +1369,7 @@ fun NutritionPlanEditorModal(
                                         proteinG = macros.proteinG.toString(),
                                         fatsG = macros.fatsG.toString(),
                                         carbsG = macros.carbsG.toString(),
+                                        calorieTarget = macros.calories.toString(),
                                         lastMacroTouched = "",
                                     )
                                 } else {
@@ -1440,15 +1503,42 @@ fun NutritionPlanEditorModal(
                                         HorizontalDivider(color = Color.White.copy(alpha = 0.06f))
 
                                         SectionTitle("Ajustar macronutrientes")
+                                        SectionTitle("Presupuesto calórico")
+                                        LabeledField(
+                                            label = "Calorías diarias (kcal) *",
+                                            value = state.calorieTarget,
+                                            onValueChange = { rawValue ->
+                                                val sanitized = sanitizeInt(rawValue)
+                                                val entered = sanitized.toIntOrNull()
+                                                calorieTargetError = entered == null || entered <= 0
+                                                state = state.copy(
+                                                    calorieTarget = sanitized,
+                                                    lastMacroTouched = "calories",
+                                                )
+                                                // Avoid reshaping macros while the user is
+                                                // still typing a multi-digit value.
+                                                if (entered != null && entered >= 800) {
+                                                    syncMacrosFromCalories(entered)
+                                                }
+                                            },
+                                            keyboardType = KeyboardType.Number,
+                                            placeholderText = recommendedCalories.toString(),
+                                            error = calorieTargetError,
+                                        )
+                                        Text(
+                                            "Recomendación actual: $recommendedCalories kcal. Si cambias un macro, el presupuesto se actualizará con esos gramos.",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = PANEL_MUTED,
+                                        )
                                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                             MacroSliderRow("Proteína", proteinGoal, "g", PROTEIN_COLOR, (autoProtein - 60).coerceAtLeast(40)..(autoProtein + 60).coerceAtLeast(80)) { p ->
-                                                state = state.copy(proteinG = p.toString(), lastMacroTouched = "proteinG")
+                                                updateMacros(protein = p, touched = "proteinG")
                                             }
                                             MacroSliderRow("Carbohidratos", carbsD.roundToInt(), "g", CARBS_COLOR, (autoCarbs - 100).coerceAtLeast(60)..(autoCarbs + 100).coerceAtLeast(120)) { c ->
-                                                state = state.copy(carbsG = c.toString(), lastMacroTouched = "carbsG")
+                                                updateMacros(carbs = c, touched = "carbsG")
                                             }
                                             MacroSliderRow("Grasas", fatsD.roundToInt(), "g", FATS_COLOR, (autoFats - 30).coerceAtLeast(20)..(autoFats + 30).coerceAtLeast(40)) { f ->
-                                                state = state.copy(fatsG = f.toString(), lastMacroTouched = "fatsG")
+                                                updateMacros(fats = f, touched = "fatsG")
                                             }
                                         }
 
@@ -1826,9 +1916,12 @@ fun NutritionPlanEditorModal(
                                     }
                                 }
 
+                                val kcalVal = state.calorieTarget.toIntOrNull()
+                                if (kcalVal == null || kcalVal <= 0) calorieTargetError = true
+
                                 if (blocksSave) return@Button
 
-                                if (!heightError && !weightError && !ageError && !showStep1ValidationError && !macrosValidationError) {
+                                if (!heightError && !weightError && !ageError && !showStep1ValidationError && !macrosValidationError && !calorieTargetError) {
                                     coroutineScope.launch {
                                         com.example.kpkn.data.repository.ProgramRepository.getInstance().updateSettings { s ->
                                             s.copy(
@@ -1867,7 +1960,7 @@ fun NutritionPlanEditorModal(
                                             name = activePlan?.name ?: "Plan de alimentación",
                                             goalType = state.goalMetric,
                                             goalValue = finalGoalValue,
-                                            calorieTarget = macroCalories,
+                                            calorieTarget = state.calorieTarget.toIntOrNull() ?: macroCalories,
                                             proteinGoal = proteinGoal,
                                             carbGoal = carbsD.roundToInt(),
                                             fatGoal = fatsD.roundToInt(),
@@ -1937,6 +2030,8 @@ fun NutritionPlanEditorModal(
                                                 proteinG = autoProtein.toString(),
                                                 carbsG = autoCarbs.toString(),
                                                 fatsG = autoFats.toString(),
+                                                calorieTarget = recommendedCalories.toString(),
+                                                lastMacroTouched = "",
                                             )
                                             currentStep = EditorStep.MACROS
                                         } else {
@@ -1947,11 +2042,14 @@ fun NutritionPlanEditorModal(
                                         val pVal = state.proteinG.toDoubleOrNull()
                                         val cVal = state.carbsG.toDoubleOrNull()
                                         val fVal = state.fatsG.toDoubleOrNull()
-                                        if (pVal != null && pVal > 0 && cVal != null && cVal > 0 && fVal != null && fVal > 0) {
+                                        val kcalVal = state.calorieTarget.toIntOrNull()
+                                         if (pVal != null && pVal > 0 && cVal != null && cVal > 0 && fVal != null && fVal > 0 && kcalVal != null && kcalVal > 0) {
                                             macrosValidationError = false
+                                            calorieTargetError = false
                                             currentStep = EditorStep.SUMMARY
                                         } else {
                                             macrosValidationError = true
+                                            if (kcalVal == null || kcalVal <= 0) calorieTargetError = true
                                         }
                                     }
                                     else -> {}
@@ -2165,6 +2263,7 @@ private fun buildInitialState(currentSettings: Settings, activePlan: NutritionPl
         proteinG = (activePlan?.proteinGoal ?: currentSettings.dailyProteinGoal ?: 150).toString(),
         carbsG = (activePlan?.carbGoal ?: currentSettings.dailyCarbGoal ?: 220).toString(),
         fatsG = (activePlan?.fatGoal ?: currentSettings.dailyFatGoal ?: 70).toString(),
+        calorieTarget = activePlan?.calorieTarget?.takeIf { it > 0 }?.toString().orEmpty(),
         weightUnit = wUnit,
         lastMacroTouched = "",
         targetBodyFat = activePlan?.targetBodyFat?.let(::formatGoalFieldValue).orEmpty(),

@@ -44,9 +44,13 @@ import com.example.kpkn.domain.nutrition.CookingStateResolver
 import com.example.kpkn.domain.nutrition.scaleFoodByPortion
 import com.example.kpkn.domain.nutrition.createLoggedFood
 import com.example.kpkn.domain.nutrition.parseMealDescription
+import com.example.kpkn.domain.nutrition.reconcileParsedFoodItems
 import com.example.kpkn.domain.nutrition.FoodCombinationParser
 import com.example.kpkn.domain.nutrition.round1
 import com.example.kpkn.domain.nutrition.ContextDetector
+import com.example.kpkn.domain.nutrition.FoodIdentity
+import com.example.kpkn.domain.nutrition.FoodResolutionStatus
+import com.example.kpkn.domain.nutrition.NutritionSourceKind
 import com.example.kpkn.domain.nutrition.getContextualDefaultServingSize
 import com.example.kpkn.domain.nutrition.COOKING_FACTORS
 import com.example.kpkn.domain.nutrition.SemanticPortionRetriever
@@ -483,7 +487,7 @@ fun FoodLoggerDrawer(
                     }
                     result.fold(
                         onSuccess = { aiResult ->
-                            val items = aiResult.items.map { item ->
+                            val rawItems = aiResult.items.map { item ->
                                 ParsedMealItem(
                                     tag = item.canonicalName.ifBlank { item.rawText },
                                     quantity = item.quantity?.toDouble() ?: 1.0,
@@ -514,12 +518,15 @@ fun FoodLoggerDrawer(
                                     amountIntent = if (item.grams != null) AmountIntent.EXPLICIT_MASS else AmountIntent.UNSPECIFIED,
                                 )
                             }
+                            val items = reconcileParsedFoodItems(rawItems)
                             ParsedMealDescription(
                                 items = items,
                                 rawDescription = description,
                                 overallConfidence = aiResult.overallConfidence,
                                 analysisEngine = if (aiResult.usedModel) "external-api" else "deterministic",
                                 modelVersion = aiResult.modelVersion,
+                                containsEstimatedItems = true,
+                                requiresReview = items.any { it.reviewRequired },
                             )
                         },
                         onFailure = { error ->
@@ -598,9 +605,6 @@ fun FoodLoggerDrawer(
         val proteinB = detectedContext?.proteinAdjustment ?: 0.0
         tags = tags.map { tag ->
             if (tag.id == tagId) {
-                if (tag.analysisSource == AnalysisSource.LOCAL_AI_ESTIMATE || tag.analysisSource == AnalysisSource.EXTERNAL_API_ESTIMATE) {
-                    return@map tag.copy(foodItem = food, isFuzzyMatch = false)
-                }
                 val (adj, boost) = scalingForIntent(tag.amountIntent, portionAdj, proteinB)
                 val usePrepared = CookingStateResolver.isAlreadyPreparedForMethod(food, tag.cookingMethod)
                 val scaleMethod = if (usePrepared) null else tag.cookingMethod
@@ -630,11 +634,29 @@ fun FoodLoggerDrawer(
                     oilApplied = applyOil,
                     needsCookingClarification = false,
                     clarificationKind = CookingStateResolver.ClarificationKind.NONE,
+                    canonicalFamily = FoodIdentity.familyFor(food),
+                    foodState = FoodIdentity.stateFor(food),
+                    resolutionStatus = FoodResolutionStatus.AUTO,
+                    nutritionSource = NutritionSourceKind.CURATED_LOCAL,
+                    resolutionConfidence = 1.0,
                 )
             } else tag
         }
     }
 
+    fun confirmEstimate(tagId: String) {
+        tags = tags.map { tag ->
+            if (tag.id == tagId && tag.loggedFood != null) {
+                tag.copy(
+                    isResolved = true,
+                    resolutionStatus = FoodResolutionStatus.CONFIRMED_ESTIMATE,
+                    statusText = "Estimación confirmada por ti.",
+                    hasManualEdits = true,
+                )
+            } else tag
+        }
+        reviewRequired = tags.any { !it.isExcluded && !it.isResolved }
+    }
     fun updateTagPortion(tagId: String, portion: PortionPreset) {
         val portionAdj = detectedContext?.portionAdjustment ?: 1.0
         val proteinB = detectedContext?.proteinAdjustment ?: 0.0
@@ -793,13 +815,15 @@ fun FoodLoggerDrawer(
             val method = if (wantCooked) CookingMethod.COCIDO else CookingMethod.CRUDO
             val variant = CookingStateResolver.findDryOrCookedVariant(tag.tag, wantCooked)
                 ?: tag.foodItem
-            val food = variant ?: return@map tag.copy(
+            val food = variant ?: tag.foodItem
+            if (food == null) return@map tag.copy(
                 cookingMethod = method,
                 needsCookingClarification = false,
                 clarificationKind = CookingStateResolver.ClarificationKind.NONE,
                 statusText = "",
                 hasManualEdits = true,
             )
+            nutritionRepo.recordFoodSelection(tag.tag, food)
             val (adj, boost) = scalingForIntent(tag.amountIntent, portionAdj, proteinB)
             val usePrepared = CookingStateResolver.isAlreadyPreparedForMethod(food, method)
             val scaleMethod = if (usePrepared) null else method
@@ -823,6 +847,11 @@ fun FoodLoggerDrawer(
                 clarificationKind = CookingStateResolver.ClarificationKind.NONE,
                 hasManualEdits = true,
                 oilApplied = false,
+                canonicalFamily = FoodIdentity.familyFor(food),
+                foodState = FoodIdentity.stateFor(food),
+                resolutionStatus = FoodResolutionStatus.AUTO,
+                nutritionSource = NutritionSourceKind.CURATED_LOCAL,
+                resolutionConfidence = 1.0,
             )
         }
         reviewRequired = tags.any { !it.isExcluded && !it.isResolved }
@@ -1313,6 +1342,7 @@ fun FoodLoggerDrawer(
                             onCookingClarification = { wantCooked ->
                                 updateTagCookingClarification(tag.id, wantCooked)
                             },
+                            onConfirmEstimate = { confirmEstimate(tag.id) },
                         )
                     }
                 }
@@ -1765,6 +1795,7 @@ private fun TagCard(
     onResolve: (FoodItem) -> Unit,
     onOilLevelChange: (String) -> Unit,
     onCookingClarification: (Boolean) -> Unit,
+    onConfirmEstimate: () -> Unit,
 ) {
     val logged = tag.loggedFood
 
@@ -1799,6 +1830,13 @@ private fun TagCard(
                             text = "${kotlin.math.round(logged.calories).toInt()} kcal · P ${kotlin.math.round(logged.protein).toInt()}g · C ${kotlin.math.round(logged.carbs).toInt()}g · G ${kotlin.math.round(logged.fats).toInt()}g",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    if (tag.statusText.isNotBlank()) {
+                        Text(
+                            text = tag.statusText,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (tag.isResolved) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error,
                         )
                     }
                 }
@@ -1874,6 +1912,16 @@ private fun TagCard(
                         )
                     }
 
+                    if (tag.resolutionStatus == FoodResolutionStatus.NEEDS_CONFIRMATION && logged != null) {
+                        Text(
+                            "Macros estimados: confirma antes de guardar.",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                        Button(onClick = onConfirmEstimate, modifier = Modifier.fillMaxWidth()) {
+                            Text("Confirmar estimación")
+                        }
+                    }
                     if (tag.needsCookingClarification) {
                         Surface(
                             shape = RoundedCornerShape(12.dp),
@@ -1987,7 +2035,7 @@ private fun TagCard(
                         }
                     }
 
-                    if (tag.reviewCandidates.isNotEmpty()) {
+                    if (!tag.needsCookingClarification && tag.reviewCandidates.isNotEmpty()) {
                         // R1: candidatos del resolver con su scoring ("¿Cuál de estos?")
                         Text("¿Cuál de estos?", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold)
                         Row(
@@ -2020,7 +2068,7 @@ private fun TagCard(
                                 }
                             }
                         }
-                    } else if (!tag.isResolved) {
+                    } else if (!tag.needsCookingClarification && !tag.isResolved) {
                         Text("Resoluciones sugeridas:", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold)
                         val unresolvedQuery = tag.tag
                         var suggestions by remember(unresolvedQuery, foodDatabase.size) { mutableStateOf<List<FoodCandidate>>(emptyList()) }

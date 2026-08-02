@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.nutrition
 
 import com.example.kpkn.data.food.findFoodByNormalized
+import com.example.kpkn.data.food.findFoodExactByNormalized
 import com.example.kpkn.data.models.CookingMethod
 import com.example.kpkn.data.models.FoodItem
 
@@ -30,7 +31,7 @@ object CookingStateResolver {
         val blob = (food.name + " " + food.searchAliases.joinToString(" ")).lowercase()
         return blob.contains("(crudo)") || blob.contains("cruda") || blob.contains("crudo") ||
             blob.contains("(seca)") || blob.contains("(seco)") ||
-            Regex("""\bsec[oa]\b""").containsMatchIn(blob) ||
+            Regex("""\bsec(?:o|a|os|as)\b""").containsMatchIn(blob) ||
             blob.contains("deshidratad")
     }
 
@@ -106,6 +107,26 @@ object CookingStateResolver {
 
     fun findDryOrCookedVariant(tag: String, wantCooked: Boolean): FoodItem? {
         val lower = tag.lowercase()
+        if (FoodIdentity.familyFor(tag) == "pasta") {
+            val pastaQueries = if (wantCooked) {
+                listOf(
+                    "pasta cocida",
+                    "pasta (hidratada/cocida)",
+                    "fideos cocidos",
+                    "tallarines cocidos",
+                )
+            } else {
+                listOf(
+                    "pasta cruda",
+                    "pasta (cruda)",
+                    "fideos secos",
+                    "tallarines secos",
+                )
+            }
+            pastaQueries.forEach { query ->
+                findFoodExactByNormalized(query)?.let { return it }
+            }
+        }
         return if (wantCooked) {
             findFoodByNormalized("$lower cocido")
                 ?: findFoodByNormalized("$lower hidratada")
@@ -135,7 +156,7 @@ object CookingStateResolver {
                     food.name.lowercase().contains("crudo") || food.name.lowercase().contains("cocid") ||
                     food.name.lowercase().contains("hidratad"))
             // Still ask when user said only "arroz" / "soya" without state words in the tag
-            val tagHasState = Regex("""\b(sec[oa]|crudo|cruda|cocid[oa]|hidratad[oa])\b""")
+            val tagHasState = Regex("""\b(sec(?:o|a|os|as)|crudo[s]?|cocid(?:o|a|os|as)|hidratad(?:o|a|os|as))\b""")
                 .containsMatchIn(tag.lowercase())
             if (!tagHasState) return ClarificationKind.DRY_VS_COOKED
             if (!known) return ClarificationKind.DRY_VS_COOKED

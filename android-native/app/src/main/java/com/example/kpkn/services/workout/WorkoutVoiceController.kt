@@ -800,7 +800,11 @@ class WorkoutVoiceController(
                 _state.update { it.copy(activeRouteLabel = route) }
                 if (route != lastRoute) {
                     lastRoute = route
-                    WorkoutVoiceDiagnosticLogger.event("audio_route_changed", mapOf("route" to route))
+                    WorkoutVoiceDiagnosticLogger.event(
+                        "audio_route_changed",
+                        mapOf("route" to route) +
+                            WorkoutVoiceDiagnosticLogger.runtimeStateFields(context),
+                    )
                 }
             }
         }
@@ -890,6 +894,10 @@ class WorkoutVoiceController(
         )
 
         idleMonitorJob?.cancel()
+        if (!isPushToTalkMode()) {
+            idleMonitorJob = null
+            return
+        }
         idleMonitorJob = scope.launch {
             while (isActive) {
                 delay(WorkoutVoiceSessionGate.IDLE_CHECK_INTERVAL_MS)
@@ -1043,7 +1051,7 @@ class WorkoutVoiceController(
                 "nativeFallback" to s.usingNativeFallback,
                 "route" to s.activeRouteLabel,
                 "stage" to s.stage.name,
-            ),
+            ) + WorkoutVoiceDiagnosticLogger.runtimeStateFields(context),
         )
         if (!WorkoutVoiceSessionGate.shouldAcceptFinalResult(s.stage)) return
 
@@ -1203,7 +1211,7 @@ class WorkoutVoiceController(
                 "unitMode" to exerciseInfo?.unitMode?.name,
                 "loadMode" to exerciseInfo?.loadMode?.name,
                 "trackRom" to exerciseInfo?.trackRom,
-            ),
+            ) + WorkoutVoiceDiagnosticLogger.runtimeStateFields(context),
         )
 
         publishHeardSummary(command)
@@ -1543,7 +1551,7 @@ class WorkoutVoiceController(
             mapOf(
                 "transcript" to text,
                 "stage" to _state.value.stage.name,
-            ),
+            ) + WorkoutVoiceDiagnosticLogger.runtimeStateFields(context),
         )
         if (_state.value.pendingAddSetPersistence) {
             handleAddSetPersistenceInput(text)
@@ -1951,6 +1959,8 @@ class WorkoutVoiceController(
     private fun cancelAllJobs() {
         engineCollectJob?.cancel()
         engineCollectJob = null
+        idleMonitorJob?.cancel()
+        idleMonitorJob = null
         partialCollectJob?.cancel()
         partialCollectJob = null
         errorCollectJob?.cancel()

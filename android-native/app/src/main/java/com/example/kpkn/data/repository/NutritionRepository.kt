@@ -3,10 +3,12 @@ package com.example.kpkn.data.repository
 import android.content.Context
 import com.example.kpkn.data.db.*
 import com.example.kpkn.data.food.DatasetKnowledgeStore
+import com.example.kpkn.data.food.FOOD_ALIASES
 import com.example.kpkn.data.food.buildFoodDatabase
 import com.example.kpkn.data.food.findFoodByNormalized
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.nutrition.FoodIndex
+import com.example.kpkn.domain.nutrition.FoodIdentity
 import com.example.kpkn.domain.nutrition.SemanticPortionRetriever
 import com.example.kpkn.domain.nutrition.SmartFoodResolver
 import com.example.kpkn.services.nutrition.NutritionNotificationManager
@@ -180,9 +182,23 @@ class NutritionRepository private constructor(
         }.getOrDefault(emptyList())
 
         val merged = (localFoods + customMatches + normalizedGlobal + ftsGlobal + fallbackGlobal)
-            .associateBy { it.id.ifBlank { "${it.normalizedName}|${it.normalizedBrand}|${it.sourcePriority}" } }
+            .groupBy { food ->
+                val brandKey = food.normalizedBrand
+                    ?.takeIf { normalizedQuery.contains(it) }
+                    .orEmpty()
+                "${FoodIdentity.canonicalKey(food)}|$brandKey"
+            }
             .values
-            .toList()
+            .mapNotNull { group ->
+                group.maxWithOrNull(
+                    compareBy<FoodItem> {
+                        if (findFoodByNormalized(it.name)?.id == it.id) 4 else 0
+                    }.thenBy { it.isCustom }
+                        .thenBy { it.verifiedScore }
+                        .thenBy { it.sourcePriority }
+                        .thenBy { it.usageCount },
+                )
+            }
 
         val learned = _foodQueryLearning.value
 
@@ -425,7 +441,7 @@ class NutritionRepository private constructor(
             }
             android.util.Log.i("NutritionRepository", "Building FoodIndex with ${globalFoods.size} global + ${_foodDatabase.value.size} static foods")
             synchronized(foodIndexLock) {
-                foodIndex.build(globalFoods, _foodDatabase.value)
+                foodIndex.build(globalFoods, _foodDatabase.value, FOOD_ALIASES)
             }
             android.util.Log.i("NutritionRepository", "FoodIndex built: ${foodIndex.size()} foods indexed")
         } catch (e: Exception) {
@@ -829,11 +845,11 @@ class NutritionRepository private constructor(
         val payload = runCatching {
             Json.encodeToString(_foodQueryLearning.value.values.toList())
         }.getOrDefault("[]")
-        foodPrefs.edit().putString("food_query_learning", payload).apply()
+        foodPrefs.edit().putString("food_query_learning_v2", payload).apply()
     }
 
     private fun loadFoodLearning(): Map<String, FoodQueryLearningEntry> {
-        val payload = foodPrefs.getString("food_query_learning", "[]") ?: "[]"
+        val payload = foodPrefs.getString("food_query_learning_v2", "[]") ?: "[]"
         val list = runCatching {
             Json.decodeFromString<List<FoodQueryLearningEntry>>(payload)
         }.getOrDefault(emptyList())

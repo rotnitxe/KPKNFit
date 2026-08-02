@@ -2,6 +2,7 @@ package com.example.kpkn.domain.nutrition
 
 import com.example.kpkn.data.food.findFoodByNormalized
 import com.example.kpkn.data.food.getGramsForReference
+import com.example.kpkn.data.food.staticFoodPhrases
 import com.example.kpkn.data.models.*
 
 /**
@@ -140,9 +141,13 @@ private val PORTION_PREFIX_PATTERN = Regex("^(?:platos?|porciones?|porción|taza
 private val ARTICLE_PORTION_PREFIX_PATTERN = Regex("^(?:un|una|unos|unas)\\s+(?:platos?|porciones?|porción|tazas?|vasos?|boles?|bowls?|fuentes?)\\s+de\\s+")
 private val TRAILING_DE_PATTERN = Regex("\\s+de\\s+$")
 
+private val PROTECTED_ENTITY_PHRASES = (PROTECTED_ENTITIES + staticFoodPhrases() + listOf("salsa de tomate"))
+    .distinct()
+    .sortedByDescending { it.length }
+
 private val PROTECTED_ENTITIES_REGEX = Regex(
-    PROTECTED_ENTITIES.joinToString("|") { "\\b${Regex.escape(it)}\\b" },
-    RegexOption.IGNORE_CASE
+    PROTECTED_ENTITY_PHRASES.joinToString("|") { "\\b${Regex.escape(it)}\\b" },
+    RegexOption.IGNORE_CASE,
 )
 
 private val REFERENCE_KEYWORDS_FAST = listOf(

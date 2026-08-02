@@ -40,6 +40,11 @@ data class ResolvedTag(
     val reviewCandidates: List<FoodItem> = emptyList(),
     /** D2: instrucción del ejemplo más similar del dataset ("Entendí: …"). */
     val interpretation: String? = null,
+    val canonicalFamily: String? = null,
+    val foodState: FoodState = FoodState.UNKNOWN,
+    val resolutionStatus: FoodResolutionStatus = FoodResolutionStatus.NO_RESOLVED,
+    val nutritionSource: NutritionSourceKind = NutritionSourceKind.HEURISTIC_ESTIMATE,
+    val resolutionConfidence: Double? = null
 )
 
 /** Acceso a datos del resolver — implementado por el drawer con NutritionRepository. */
@@ -88,10 +93,10 @@ class TagResolver(private val port: FoodResolutionPort) {
             // Exacto estático (alias/nombre) mantiene prioridad sobre candidatos
             // ambiguos; el estático FUZZY ya no le gana al resolver global.
             val food = when {
+                staticIsExact && staticFood != null -> staticFood
                 smartResult.decision == SmartFoodResolver.Decision.AUTO_SELECT && smartCandidate != null -> {
                     port.getFoodById(smartCandidate.foodId) ?: staticFood
                 }
-                staticIsExact && staticFood != null -> staticFood
                 smartResult.decision == SmartFoodResolver.Decision.NEEDS_REVIEW && smartCandidate != null -> {
                     port.getFoodById(smartCandidate.foodId)
                 }
@@ -139,15 +144,45 @@ class TagResolver(private val port: FoodResolutionPort) {
             } else null
 
             val source = item.analysisSource
-            val preferAiLoggedFood = shouldUseAiLoggedFood(item)
+            val localAuthority = effectiveFood != null && (
+                staticIsExact ||
+                    preparedVariant != null ||
+                    (smartResult.decision == SmartFoodResolver.Decision.AUTO_SELECT &&
+                        smartCandidate?.source == "LOCAL")
+                )
+            val preferAiLoggedFood = effectiveFood == null && shouldUseAiLoggedFood(item)
+            val canonicalFamily = FoodIdentity.familyFor(effectiveFood?.name ?: item.tag)
+            val foodState = effectiveFood?.let { FoodIdentity.stateFor(it) }
+                ?: FoodIdentity.stateFor(item.tag)
+            val resolutionConfidence = when {
+                staticIsExact -> 1.0
+                smartCandidate != null -> smartCandidate.score
+                else -> item.analysisConfidence
 
+            }
+            val resolutionStatus = when {
+                needsClarify -> FoodResolutionStatus.NEEDS_STATE
+                localAuthority && !requiresCandidateReview -> FoodResolutionStatus.AUTO
+                effectiveFood != null -> FoodResolutionStatus.NEEDS_CONFIRMATION
+                else -> FoodResolutionStatus.NO_RESOLVED
+            }
+            val nutritionSource = when {
+                localAuthority -> NutritionSourceKind.CURATED_LOCAL
+                item.analysisSource == AnalysisSource.EXTERNAL_API_ESTIMATE -> NutritionSourceKind.EXTERNAL_ESTIMATE
+                effectiveFood != null -> NutritionSourceKind.VERIFIED_GLOBAL
+                else -> NutritionSourceKind.HEURISTIC_ESTIMATE
+            }
             // D2: el ejemplo más similar del dataset como interpretación
             val interpretation = retrievalResult.matches
                 .firstOrNull()
-                ?.takeIf { retrievalResult.confidence >= 0.35 }
+                ?.takeIf {
+                    retrievalResult.confidence >= 0.35 &&
+                        !needsClarify &&
+                        FoodIdentity.familyFor(item.tag) == null
+                }
                 ?.instruction
             // R1: candidatos alternativos cuando hay revisión pendiente
-            val reviewCandidates = if (requiresCandidateReview) {
+            val reviewCandidates = if (requiresCandidateReview && !needsClarify) {
                 smartResult.candidates
                     .drop(1)
                     .mapNotNull { port.getFoodById(it.foodId) }
@@ -208,13 +243,12 @@ class TagResolver(private val port: FoodResolutionPort) {
                 }
 
                 val warningText = listOfNotNull(
-                    validated.warnings.firstOrNull()?.takeIf { it.isNotBlank() },
-                    assumeStatus,
-                    if (requiresCandidateReview) "Coincidencia aproximada: revisa el alimento seleccionado." else null,
+                    validated.warnings.firstOrNull()?.takeIf { it.isNotBlank() && !needsClarify },
+                    if (needsClarify) "Falta el estado: selecciona seco o cocido para calcular los macros." else assumeStatus,
+                    if (requiresCandidateReview && !needsClarify) "Coincidencia aproximada: revisa el alimento seleccionado." else null,
                     interpretation?.let { "Entendí: $it" },
                 ).joinToString(" ")
 
-                port.recordLearned(item.tag, item.brandHint, effectiveFood.id, item.amountGrams, item.cookingMethod?.name)
                 ResolvedTag(
                     tag = item.tag,
                     portion = item.portion,
@@ -222,8 +256,8 @@ class TagResolver(private val port: FoodResolutionPort) {
                     amountGrams = item.amountGrams ?: effectiveGrams,
                     cookingMethod = item.cookingMethod,
                     foodItem = effectiveFood,
-                    loggedFood = oiled,
-                    isResolved = !requiresCandidateReview,
+                    loggedFood = oiled.takeUnless { needsClarify },
+                    isResolved = resolutionStatus == FoodResolutionStatus.AUTO,
                     isFuzzyMatch = isSmartMatch && smartCandidate?.confidence != SmartFoodResolver.Confidence.HIGH,
                     analysisSource = AnalysisSource.DATABASE,
                     statusText = warningText,
@@ -235,6 +269,11 @@ class TagResolver(private val port: FoodResolutionPort) {
                     oilApplied = applyOil,
                     reviewCandidates = reviewCandidates,
                     interpretation = interpretation,
+                    canonicalFamily = canonicalFamily,
+                    foodState = foodState,
+                    resolutionStatus = resolutionStatus,
+                    nutritionSource = nutritionSource,
+                    resolutionConfidence = resolutionConfidence,
                 )
             } else if (item.amountGrams != null && item.amountGrams > 0) {
                 val mac = item.macroOverrides
@@ -252,6 +291,12 @@ class TagResolver(private val port: FoodResolutionPort) {
                     "LOCAL_HEURISTIC" -> AnalysisSource.LOCAL_HEURISTIC
                     "DATASET_SEMANTIC" -> AnalysisSource.LOCAL_AI_ESTIMATE
                     else -> source
+                }
+                val fallbackNutritionSource = when {
+                    estimatedCandidate?.source == "DATASET_SEMANTIC" -> NutritionSourceKind.DATASET_ESTIMATE
+                    estimatedCandidate?.source == "LOCAL_HEURISTIC" -> NutritionSourceKind.HEURISTIC_ESTIMATE
+                    source == AnalysisSource.EXTERNAL_API_ESTIMATE -> NutritionSourceKind.EXTERNAL_ESTIMATE
+                    else -> NutritionSourceKind.HEURISTIC_ESTIMATE
                 }
                 var logged = createLoggedFood(
                     foodName = item.tag,
@@ -301,13 +346,14 @@ class TagResolver(private val port: FoodResolutionPort) {
                 }
                 val fallbackStatus = listOfNotNull(
                     when {
-                        mac != null -> null
+                        needsClarify -> "Falta el estado: selecciona seco o cocido para calcular los macros."
+                        mac != null -> "Estimación externa: confirma estos macros antes de guardar."
                         estimatedCandidate?.source == "DATASET_SEMANTIC" ->
                             "Prior del dataset (${bestMatch?.sampleCount ?: 0} ejemplos): revisa los macros."
                         else -> "Estimación local: revisa los macros antes de guardar."
                     },
-                    validated.warnings.firstOrNull(),
-                    assumeStatus,
+                    validated.warnings.firstOrNull()?.takeIf { !needsClarify },
+                    if (!needsClarify) assumeStatus else null,
                 ).joinToString(" ")
 
                 ResolvedTag(
@@ -318,7 +364,7 @@ class TagResolver(private val port: FoodResolutionPort) {
                     cookingMethod = item.cookingMethod,
                     foodItem = null,
                     loggedFood = oiled,
-                    isResolved = mac != null,
+                    isResolved = false,
                     isFuzzyMatch = true,
                     analysisSource = fallbackSource,
                     statusText = fallbackStatus,
@@ -329,6 +375,12 @@ class TagResolver(private val port: FoodResolutionPort) {
                     clarificationKind = clarifyKind,
                     oilApplied = applyOilFallback,
                     interpretation = interpretation,
+                    reviewCandidates = if (!needsClarify) {
+                        smartResult.candidates.drop(1).mapNotNull { port.getFoodById(it.foodId) }.take(3)
+                    } else emptyList(),
+                    canonicalFamily = canonicalFamily,
+                    foodState = foodState,
+                    resolutionStatus = if (needsClarify) FoodResolutionStatus.NEEDS_STATE else FoodResolutionStatus.NEEDS_CONFIRMATION,
                 )
             } else {
                 ResolvedTag(
@@ -339,12 +391,17 @@ class TagResolver(private val port: FoodResolutionPort) {
                     loggedFood = null,
                     isResolved = false,
                     analysisSource = source,
-                    statusText = assumeStatus.orEmpty(),
+                    statusText = if (needsClarify) "Falta el estado: selecciona seco o cocido." else assumeStatus.orEmpty(),
                     isExcluded = item.isExcluded,
                     amountIntent = item.amountIntent,
                     needsCookingClarification = needsClarify,
                     clarificationKind = clarifyKind,
                     interpretation = interpretation,
+                    canonicalFamily = canonicalFamily,
+                    foodState = foodState,
+                    resolutionStatus = if (needsClarify) FoodResolutionStatus.NEEDS_STATE else FoodResolutionStatus.NO_RESOLVED,
+                    nutritionSource = nutritionSource,
+                    resolutionConfidence = resolutionConfidence,
                 )
             }
             resolvedTags += resolved

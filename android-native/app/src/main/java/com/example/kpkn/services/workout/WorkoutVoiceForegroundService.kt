@@ -34,6 +34,8 @@ class WorkoutVoiceForegroundService : Service() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private lateinit var engine: WorkoutContinuousVoiceEngine
     private var callback: IWorkoutVoiceEngineCallback? = null
+    private var callbackBinder: IBinder? = null
+    private var callbackDeathRecipient: IBinder.DeathRecipient? = null
     private var clientGeneration = 0L
     private val promptCounter = AtomicLong(0L)
     private val pendingPrompts = ConcurrentHashMap<Long, PromptSpeakRequest>()
@@ -45,7 +47,19 @@ class WorkoutVoiceForegroundService : Service() {
 
     private val binder = object : IWorkoutVoiceEngineService.Stub() {
         override fun registerCallback(cb: IWorkoutVoiceEngineCallback?, generation: Long) {
+            unlinkCallbackDeathRecipient()
             callback = cb
+            cb?.asBinder()?.let { registeredBinder ->
+                val deathRecipient = IBinder.DeathRecipient {
+                    serviceScope.launch {
+                        onCallbackBinderDied(registeredBinder)
+                    }
+                }
+                callbackBinder = registeredBinder
+                callbackDeathRecipient = deathRecipient
+                runCatching { registeredBinder.linkToDeath(deathRecipient, 0) }
+                    .onFailure { onCallbackBinderDied(registeredBinder) }
+            }
             clientGeneration = generation
             startCollectorsOnce()
             publishSnapshot(generation)
@@ -61,7 +75,11 @@ class WorkoutVoiceForegroundService : Service() {
             if (generation != clientGeneration) return
             sessionRequested = true
             WorkoutVoiceDiagnosticLogger.start("voice-process", "generation-$generation")
-            WorkoutVoiceDiagnosticLogger.event("voice_phase", mapOf("phase" to "PREPARING", "state" to "START"))
+            WorkoutVoiceDiagnosticLogger.event(
+                "voice_phase",
+                mapOf("phase" to "PREPARING", "state" to "START") +
+                    WorkoutVoiceDiagnosticLogger.runtimeStateFields(this@WorkoutVoiceForegroundService),
+            )
             val stage = VoicePipelineStage.entries.getOrElse(stageOrdinal) { VoicePipelineStage.LISTENING }
             val profile = VoiceNoiseProfile.entries.getOrElse(noiseProfileOrdinal) { VoiceNoiseProfile.GYM }
             engine.setNoiseProfile(profile)
@@ -172,7 +190,11 @@ class WorkoutVoiceForegroundService : Service() {
                     VoiceCaptureState.FAILED -> VoicePipelineStage.FAILED
                 }
                 WorkoutVoiceDiagnosticLogger.updateProcessState(pipeline, clientGeneration)
-                WorkoutVoiceDiagnosticLogger.event("voice_phase", mapOf("phase" to "CAPTURE", "state" to state.name))
+                WorkoutVoiceDiagnosticLogger.event(
+                    "voice_phase",
+                    mapOf("phase" to "CAPTURE", "state" to state.name) +
+                        WorkoutVoiceDiagnosticLogger.runtimeStateFields(this@WorkoutVoiceForegroundService),
+                )
                 send { onCaptureState(clientGeneration, state.ordinal) }
             }
         }
@@ -201,17 +223,40 @@ class WorkoutVoiceForegroundService : Service() {
 
     private inline fun send(block: IWorkoutVoiceEngineCallback.() -> Unit) {
         val target = callback ?: return
-        runCatching { target.block() }.onFailure { callback = null }
+        runCatching { target.block() }
+            .onFailure { onCallbackBinderDied(target.asBinder()) }
     }
 
-    private fun stopCaptureAndSelf() {
+    private fun unlinkCallbackDeathRecipient() {
+        val binder = callbackBinder
+        val deathRecipient = callbackDeathRecipient
+        if (binder != null && deathRecipient != null) {
+            runCatching { binder.unlinkToDeath(deathRecipient, 0) }
+        }
+        callbackBinder = null
+        callbackDeathRecipient = null
+    }
+    private fun onCallbackBinderDied(deadBinder: IBinder) {
+        if (callbackBinder !== deadBinder) return
+        callback = null
+        unlinkCallbackDeathRecipient()
+        WorkoutVoiceDiagnosticLogger.event(
+            "voice_callback_died",
+            WorkoutVoiceDiagnosticLogger.runtimeStateFields(this) +
+                mapOf("sessionRequested" to sessionRequested),
+        )
+        stopCaptureAndSelf("voice_callback_died")
+    }
+    private fun stopCaptureAndSelf(reason: String = "voice_process_stopped") {
         if (stopping) return
         stopping = true
         sessionRequested = false
         serviceScope.launch {
             engine.stopAndAwait(1_500L)
-            WorkoutVoiceDiagnosticLogger.close("voice_process_stopped")
+            WorkoutVoiceDiagnosticLogger.close(reason)
             send { onStopped(clientGeneration, true) }
+            callback = null
+            unlinkCallbackDeathRecipient()
             pendingPrompts.values.forEach(PromptSpeakRequest::complete)
             pendingPrompts.clear()
             releaseWakeLock()
@@ -287,6 +332,7 @@ class WorkoutVoiceForegroundService : Service() {
         engine.stop()
         pendingPrompts.values.forEach(PromptSpeakRequest::complete)
         pendingPrompts.clear()
+        unlinkCallbackDeathRecipient()
         releaseWakeLock()
         stopForeground(STOP_FOREGROUND_REMOVE)
         serviceScope.cancel()

@@ -26,6 +26,9 @@ class FoodIndex {
         val fiber: Double,
         val sourcePriority: Int,
         val source: String,
+        val normalizedAliases: Set<String> = emptySet(),
+        val canonicalFamily: String? = null,
+        val state: FoodState = FoodState.UNKNOWN,
     )
 
     // Main food storage
@@ -49,12 +52,16 @@ class FoodIndex {
     fun build(
         globalFoods: List<GlobalFoodEntity>,
         staticFoods: List<FoodItem>,
+        staticAliases: Map<String, String> = emptyMap(),
     ) {
         if (built) return
 
         // Index static foods (GENERIC_FOODS + CHILEAN_FOODS)
         for (food in staticFoods) {
-            val indexed = indexStaticFood(food)
+            val aliases = staticAliases
+                .filterValues { normalizeSearch(it) == normalizeSearch(food.name) }
+                .keys
+            val indexed = indexStaticFood(food, aliases)
             addFood(indexed)
         }
 
@@ -105,6 +112,18 @@ class FoodIndex {
 
     fun getAllFoods(): Collection<IndexedFood> = foods.values
 
+    /** Exact phrase lookup used to give curated names priority over fuzzy rows. */
+    fun exactMatches(query: String): List<IndexedFood> {
+        val normalized = normalizeSearch(query)
+        if (normalized.isBlank()) return emptyList()
+        return foods.values
+            .filter { normalized == it.normalizedName || normalized in it.normalizedAliases }
+            .sortedWith(
+                compareByDescending<IndexedFood> { it.source == "LOCAL" }
+                    .thenByDescending { it.sourcePriority },
+            )
+    }
+
     // ─── Internal ──────────────────────────────────────────────────────────
 
     private fun addFood(food: IndexedFood) {
@@ -128,9 +147,12 @@ class FoodIndex {
         }
     }
 
-    private fun indexStaticFood(food: FoodItem): IndexedFood {
+    private fun indexStaticFood(food: FoodItem, catalogAliases: Set<String> = emptySet()): IndexedFood {
+        val searchableNames = (listOf(food.name) + food.searchAliases + FoodIdentity.aliasesForFood(food) + catalogAliases)
+            .distinct()
         val normalizedName = normalizeSearch(food.name)
-        val tokens = tokenize(normalizedName).toSet()
+        val normalizedAliases = searchableNames.map(::normalizeSearch).filter { it.isNotBlank() }.toSet()
+        val tokens = normalizedAliases.flatMapTo(mutableSetOf()) { tokenize(it) }
         val trigrams = tokens.flatMapTo(mutableSetOf()) { generateTrigrams(it) }
         val phoneticTokens = tokens.associateWith { PhoneticEs.encode(it) }
 
@@ -142,6 +164,9 @@ class FoodIndex {
             tokens = tokens,
             trigrams = trigrams,
             phoneticTokens = phoneticTokens,
+            normalizedAliases = normalizedAliases,
+            canonicalFamily = FoodIdentity.familyFor(food),
+            state = FoodIdentity.stateFor(food),
             calories = food.calories,
             protein = food.protein,
             carbs = food.carbs,
@@ -168,6 +193,7 @@ class FoodIndex {
         val tokens = allNames.flatMapTo(mutableSetOf()) { tokenize(it) }
         val trigrams = tokens.flatMapTo(mutableSetOf()) { generateTrigrams(it) }
         val phoneticTokens = tokens.associateWith { PhoneticEs.encode(it) }
+        val normalizedAliases = allNames.map(::normalizeSearch).filter { it.isNotBlank() }.toSet()
 
         return IndexedFood(
             foodId = food.foodId,
@@ -177,6 +203,9 @@ class FoodIndex {
             tokens = tokens,
             trigrams = trigrams,
             phoneticTokens = phoneticTokens,
+            normalizedAliases = normalizedAliases,
+            canonicalFamily = FoodIdentity.familyFor(food.name + " " + allNames.joinToString(" ")),
+            state = FoodIdentity.stateFor(food.name + " " + allNames.joinToString(" ")),
             calories = food.calories,
             protein = food.protein,
             carbs = food.carbs,

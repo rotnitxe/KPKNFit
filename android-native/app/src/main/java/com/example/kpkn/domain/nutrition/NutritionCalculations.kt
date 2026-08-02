@@ -224,6 +224,10 @@ data class PlanMacroTargets(
     val formulaUsed: FormulaType,
 )
 
+/** Calories represented by integer macro targets using the Atwater factors. */
+fun caloriesFromMacros(proteinG: Int, carbsG: Int, fatsG: Int): Int =
+    proteinG * 4 + carbsG * 4 + fatsG * 9
+
 /**
  * Recommended macros for a nutrition plan.
  *
@@ -282,7 +286,7 @@ fun recommendPlanMacros(
         40,
         kotlin.math.round((targetKcal - proteinG * 4 - fatsG * 9) / 4.0).toInt(),
     )
-    val calories = proteinG * 4 + carbsG * 4 + fatsG * 9
+    val calories = caloriesFromMacros(proteinG, carbsG, fatsG)
 
     return PlanMacroTargets(
         calories = calories,

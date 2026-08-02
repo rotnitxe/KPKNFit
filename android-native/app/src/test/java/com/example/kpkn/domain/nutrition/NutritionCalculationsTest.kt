@@ -235,6 +235,12 @@ class NutritionCalculationsTest {
     // ─── Snapshot ──────────────────────────────────────────────────────────
 
     @Test
+    fun `calories from macros is the single Atwater budget`() {
+        assertEquals(2393, caloriesFromMacros(proteinG = 179, carbsG = 246, fatsG = 77))
+        assertEquals(2700, caloriesFromMacros(proteinG = 200, carbsG = 250, fatsG = 100))
+    }
+
+    @Test
     fun `build calculation snapshot`() {
         val input = NutritionInput(75.0, 175.0, 25, Gender.MALE)
         val config = CalorieGoalConfig(goal = CalorieGoal.MAINTAIN)

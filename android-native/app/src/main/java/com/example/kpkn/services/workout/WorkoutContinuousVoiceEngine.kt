@@ -501,7 +501,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
             candidate.platformRecord?.let { platformRecord ->
                 micRouter.applyPreferredDeviceTo(
                     platformRecord,
-                    WorkoutVoiceMicRouter.RouteMode.CONTINUOUS_MUSIC_FIRST,
+                    WorkoutVoiceMicRouter.RouteMode.CONTINUOUS_VOICE_FIRST,
                 )
             }
             try {
@@ -524,6 +524,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
                 scheduleAfterFailure(now)
                 return false
             }
+            candidate.platformRecord?.let(micRouter::observeStartedRecord)
             record = candidate
             activeSessionId = candidate.audioSessionId
             recordOpenedAtMs = now
@@ -657,7 +658,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
                     nextOpenAtMs = clockMs()
                     holdMicRouteAcrossPause = command.holdMicRouteAcrossPause
                     _captureState.value = VoiceCaptureState.STARTING
-                    micRouter.acquire(WorkoutVoiceMicRouter.RouteMode.CONTINUOUS_MUSIC_FIRST)
+                    micRouter.acquire(WorkoutVoiceMicRouter.RouteMode.CONTINUOUS_VOICE_FIRST)
                     registerRecordingCallback()
                     if (model == null || recognizer == null) {
                         launchModelPreparation(actorGeneration)
@@ -701,7 +702,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
                     postTtsGuardUntilMs = clockMs() + POST_TTS_GUARD_MS
                     if (!fallbackInFlight.get()) {
                         captureDesired = true
-                        micRouter.acquire(WorkoutVoiceMicRouter.RouteMode.CONTINUOUS_MUSIC_FIRST)
+                        micRouter.acquire(WorkoutVoiceMicRouter.RouteMode.CONTINUOUS_VOICE_FIRST)
                         runCatching { createRecognizerForCurrentPhase(force = false) }
                         if (record == null) {
                             resetRecovery(clockMs(), immediate = true)
@@ -826,7 +827,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
                     postTtsGuardUntilMs = clockMs() + POST_TTS_GUARD_MS
                     captureDesired = true
                     micBusy = false
-                    micRouter.acquire(WorkoutVoiceMicRouter.RouteMode.CONTINUOUS_MUSIC_FIRST)
+                    micRouter.acquire(WorkoutVoiceMicRouter.RouteMode.CONTINUOUS_VOICE_FIRST)
                     runCatching { createRecognizerForCurrentPhase(force = false) }
                     resetRecovery(clockMs(), immediate = true)
                     _captureState.value = VoiceCaptureState.RECONNECTING

@@ -166,7 +166,7 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     FoodItem(id = "gen021h", name = "Papa (horno)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 93.0, protein = 2.5, carbs = 21.0, fats = 0.1, searchAliases = listOf("papa al horno", "papas al horno")),
     FoodItem(id = "gen021p", name = "Papa (puré)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 110.0, protein = 2.0, carbs = 18.0, fats = 3.5, searchAliases = listOf("pure de papa", "pure")),
     // Pasta
-    FoodItem(id = "gen040c", name = "Pasta (cruda)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 371.0, protein = 13.0, carbs = 75.0, fats = 1.5, cookingWeightFactor = 2.2, searchAliases = listOf("pasta cruda", "fideos crudos")),
+    FoodItem(id = "gen040c", name = "Pasta (cruda)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 371.0, protein = 13.0, carbs = 75.0, fats = 1.5, cookingWeightFactor = 2.2, searchAliases = listOf("pasta cruda", "fideos crudos", "fideos secos", "tallarines secos")),
     // Lentejas
     FoodItem(id = "gen012c", name = "Lentejas (crudas)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 352.0, protein = 25.0, carbs = 60.0, fats = 1.1, cookingWeightFactor = 2.5, searchAliases = listOf("lentejas crudas")),
     // Cerdo
@@ -376,6 +376,8 @@ val FOOD_ALIASES: Map<String, String> = mapOf(
     "smoothie" to "leche entera",
     "ensalada" to "lechuga",
     // Hidratación
+    "fideos secos" to "pasta (cruda)",
+    "tallarines secos" to "pasta (cruda)",
     "lentejas secas" to "lentejas (crudas)",
     "lentejas remojadas" to "lentejas (hidratadas)",
     "garbanzos secos" to "garbanzos (cocidos)",
@@ -449,6 +451,17 @@ val PORTION_REFERENCES: List<PortionRef> = listOf(
 // Cacheado estático para evitar la concatenación repetida de miles de elementos
 private val ALL_FOODS: List<FoodItem> by lazy { GENERIC_FOODS + CHILEAN_FOODS }
 
+/** Multi-word catalog phrases used by the deterministic parser before connectors split them. */
+fun staticFoodPhrases(): List<String> = ALL_FOODS
+    .flatMap { food -> listOf(food.name) + food.searchAliases }
+    .map(String::trim)
+    .filter { it.contains(' ') }
+    .distinctBy { stripAccents(it.lowercase()) }
+
+private val AMBIGUOUS_STATE_ALIASES = setOf(
+    "pasta", "fideo", "fideos", "tallarin", "tallarines",
+)
+
 // ─── Lookup Helpers ──────────────────────────────────────────────────────────
 
 // O(1) HashMap para búsqueda rápida por nombre exacto
@@ -485,6 +498,7 @@ private fun stripAccents(text: String): String =
  */
 fun findFoodExactByNormalized(text: String): FoodItem? {
     val normalized = text.trim().lowercase()
+    if (stripAccents(normalized) in AMBIGUOUS_STATE_ALIASES) return null
     val alias = FOOD_ALIASES[normalized] ?: normalized
     foodByExactName[alias]?.let { return it }
     foodByExactName[normalized]?.let { return it }
@@ -497,6 +511,7 @@ fun findFoodExactByNormalized(text: String): FoodItem? {
 
 fun findFoodByNormalized(text: String): FoodItem? {
     val normalized = text.trim().lowercase()
+    if (stripAccents(normalized) in AMBIGUOUS_STATE_ALIASES) return null
     val alias = FOOD_ALIASES[normalized] ?: normalized
 
     // O(1) exact lookup

@@ -1,9 +1,11 @@
 package com.example.kpkn.services.workout
 
 import android.app.ActivityManager
+import android.app.KeyguardManager
 import android.content.Context
 import android.net.Uri
 import android.os.Build
+import android.os.PowerManager
 import android.os.SystemClock
 import android.util.Log
 import kotlinx.serialization.json.JsonArray
@@ -163,6 +165,21 @@ object WorkoutVoiceDiagnosticLogger {
             )
             false
         }
+    }
+
+    /** Snapshot used to correlate lock-screen and process-state failures. */
+    fun runtimeStateFields(context: Context): Map<String, Any?> {
+        val appContext = context.applicationContext
+        val powerManager = appContext.getSystemService(PowerManager::class.java)
+        val keyguardManager = appContext.getSystemService(KeyguardManager::class.java)
+        val processInfo = ActivityManager.RunningAppProcessInfo()
+        ActivityManager.getMyMemoryState(processInfo)
+        return mapOf(
+            "interactive" to powerManager?.isInteractive,
+            "keyguardLocked" to keyguardManager?.isKeyguardLocked,
+            "powerSaveMode" to powerManager?.isPowerSaveMode,
+            "processImportance" to processInfo.importance,
+        )
     }
 
     fun updateProcessState(stage: VoicePipelineStage, sessionGeneration: Long = 0L) {

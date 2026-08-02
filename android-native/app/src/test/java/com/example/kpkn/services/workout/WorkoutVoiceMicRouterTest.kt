@@ -32,7 +32,7 @@ class WorkoutVoiceMicRouterTest {
     fun continuousPreference_builtinMicIsDeferredNotChosenAsAccessory() {
         // En continuo el mic del teléfono es fallback implícito (null device), no accessory.
         assertEquals(90, WorkoutVoiceMicRouter.continuousPreferenceScore(AudioDeviceInfo.TYPE_BUILTIN_MIC))
-        assertNull(WorkoutVoiceMicRouter.continuousPreferenceScore(AudioDeviceInfo.TYPE_BLUETOOTH_SCO))
+        assertEquals(6, WorkoutVoiceMicRouter.continuousPreferenceScore(AudioDeviceInfo.TYPE_BLUETOOTH_SCO))
     }
 
     @Test

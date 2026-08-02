@@ -36,6 +36,8 @@ class SmartFoodResolver(
         val fats: Double,
         val fiber: Double,
         val trace: List<String>,
+        val canonicalFamily: String? = null,
+        val state: FoodState = FoodState.UNKNOWN,
     )
 
     enum class Confidence { HIGH, MEDIUM, LOW, UNRESOLVED }
@@ -46,6 +48,8 @@ class SmartFoodResolver(
         val decision: Decision,
         val resolvedFoodId: String?,
         val semanticRetrieval: SemanticPortionRetriever.RetrievalResult? = null,
+        val canonicalFamily: String? = null,
+        val state: FoodState = FoodState.UNKNOWN,
     )
 
     enum class Decision { AUTO_SELECT, NEEDS_REVIEW, UNRESOLVED }
@@ -132,18 +136,67 @@ class SmartFoodResolver(
         // Check learned resolutions first
         val learnedKey = buildLearnedKey(normalizedQuery, brandHint)
         val learned = learnedCache[learnedKey]
+        val exactLocalMatches = foodIndex.exactMatches(normalizedQuery)
+            .filter { it.source == "LOCAL" }
+        if (exactLocalMatches.isNotEmpty() && !FoodIdentity.isAmbiguousStateQuery(query)) {
+            val exactCandidates = exactLocalMatches.take(4).map { food ->
+                ResolutionCandidate(
+                    foodId = food.foodId,
+                    name = food.name,
+                    brand = food.brand,
+                    score = 1.0,
+                    confidence = Confidence.HIGH,
+                    source = food.source,
+                    calories = food.calories,
+                    protein = food.protein,
+                    carbs = food.carbs,
+                    fats = food.fats,
+                    fiber = food.fiber,
+                    trace = listOf("exact-local"),
+                    canonicalFamily = food.canonicalFamily,
+                    state = food.state,
+                )
+            }
+            return ResolutionResult(
+                query = query,
+                candidates = exactCandidates,
+                decision = Decision.AUTO_SELECT,
+                resolvedFoodId = exactCandidates.firstOrNull()?.foodId,
+                canonicalFamily = exactLocalMatches.firstOrNull()?.canonicalFamily,
+                state = exactLocalMatches.firstOrNull()?.state ?: FoodState.UNKNOWN,
+            )
+        }
 
         // D6: tokens que el dataset asocia con la descripción completa
+        if (FoodIdentity.isAmbiguousStateQuery(query)) {
+            val stateCandidateIds = foodIndex.getAllFoods()
+                .filter {
+                    it.source == "LOCAL" &&
+                        it.canonicalFamily == "pasta" &&
+                        it.state != FoodState.UNKNOWN &&
+                        FoodIdentity.isPlainPastaVariant(it.name + " " + it.normalizedAliases.joinToString(" "))
+                }
+                .map { it.foodId }
+                .toSet()
+            if (stateCandidateIds.isNotEmpty()) {
+                return scoreAndRank(query, normalizedQuery, queryTokens, stateCandidateIds, brandHint, learned, coTokens = null)
+            }
+        }
         val coTokens = contextHint?.takeIf { it.isNotBlank() }?.let { datasetCoOccurrenceTokens(it) }
 
         // Get candidate food IDs from index
-        val candidateIds = foodIndex.search(normalizedQuery)
+        val queryAliases = FoodIdentity.queryAliases(query)
+        val candidateIds = mutableSetOf<String>().apply {
+            addAll(foodIndex.search(normalizedQuery))
+            queryAliases.forEach { addAll(foodIndex.search(it)) }
+        }
         if (candidateIds.isEmpty()) {
             // Try searching by each token individually
             val expandedIds = mutableSetOf<String>()
             for (token in queryTokens) {
                 foodIndex.search(token).let { expandedIds.addAll(it) }
             }
+            queryAliases.forEach { foodIndex.search(it).let { expandedIds.addAll(it) } }
             if (expandedIds.isEmpty()) {
                 return resolveDatasetOrHeuristicFallback(query, normalizedQuery)
             }
@@ -245,8 +298,9 @@ class SmartFoodResolver(
         learned: LearnedEntry?,
         coTokens: Set<String>? = null,
     ): ResolutionResult {
-        val candidates = candidateIds.mapNotNull { foodId ->
+        val rankedCandidates = candidateIds.mapNotNull { foodId ->
             val food = foodIndex.getFood(foodId) ?: return@mapNotNull null
+            if (!hasPlausibleMacros(food)) return@mapNotNull null
             val score = computeScore(food, normalizedQuery, queryTokens, brandHint, learned, coTokens)
             val trace = buildTrace(food, normalizedQuery, queryTokens, brandHint)
 
@@ -263,8 +317,24 @@ class SmartFoodResolver(
                 fats = food.fats,
                 fiber = food.fiber,
                 trace = trace,
+                canonicalFamily = food.canonicalFamily,
+                state = food.state,
             )
         }.sortedByDescending { it.score }
+
+        val candidates = rankedCandidates
+            .groupBy { candidateIdentityKey(it, brandHint) }
+            .mapNotNull { (_, sameIdentity) ->
+                sameIdentity.maxWithOrNull(
+                    compareBy<ResolutionCandidate> { it.score }
+                        .thenBy { it.source == "LOCAL" }
+                        .thenBy { it.brand != null },
+                )
+            }
+            .sortedWith(
+                compareByDescending<ResolutionCandidate> { it.score }
+                    .thenByDescending { it.source == "LOCAL" },
+            )
 
         val top = candidates.take(4)
         if (top.isEmpty() || top.first().score < 0.25) {
@@ -272,6 +342,7 @@ class SmartFoodResolver(
         }
 
         val decision = when {
+            FoodIdentity.isAmbiguousStateQuery(originalQuery) -> Decision.NEEDS_REVIEW
             learned != null && top.first().score >= LEARNED_AUTO_THRESHOLD -> Decision.AUTO_SELECT
             top.first().score >= HIGH_THRESHOLD && (top.size == 1 || top.first().score - top[1].score >= SAFE_GAP) -> Decision.AUTO_SELECT
             top.first().score >= MEDIUM_THRESHOLD -> Decision.NEEDS_REVIEW
@@ -285,6 +356,8 @@ class SmartFoodResolver(
             candidates = top,
             decision = decision,
             resolvedFoodId = resolvedId,
+            canonicalFamily = top.firstOrNull()?.canonicalFamily,
+            state = top.firstOrNull()?.state ?: FoodState.UNKNOWN,
         )
     }
 
@@ -296,6 +369,7 @@ class SmartFoodResolver(
         val macroRange = semantic.macroRange
         val topSemanticScore = semantic.matches.firstOrNull()?.score ?: 0.0
         if (
+            FoodIdentity.familyFor(query) == null &&
             macroRange != null &&
             macroRange.sampleCount > 0 &&
             semantic.confidence >= DATASET_MIN_CONFIDENCE &&
@@ -365,20 +439,33 @@ class SmartFoodResolver(
         var score = 0.0
         val foodTokens = food.tokens
 
+        val queryFamily = FoodIdentity.familyFor(normalizedQuery)
+        val queryState = FoodIdentity.stateFor(normalizedQuery)
+        val exactAlias = food.normalizedAliases.contains(normalizedQuery)
+        if (queryFamily != null && queryFamily == food.canonicalFamily) {
+            score += 0.22
+            if (food.source == "LOCAL") score += 0.12
+        }
+        if (queryState != FoodState.UNKNOWN && food.state != FoodState.UNKNOWN && food.state != queryState) {
+            score -= 0.35
+        }
         // D6: boost si el candidato co-ocurre con el contexto de la descripción en el dataset
         if (coTokens != null && foodTokens.any { it in coTokens }) {
             score += 0.06
         }
 
         // 1. Exact name match: +0.54
-        if (food.normalizedName == normalizedQuery ||
-            food.name.lowercase() == normalizedQuery) {
-            score += 0.54
-        }
+        val exactNameMatch = food.normalizedName == normalizedQuery ||
+            food.name.lowercase() == normalizedQuery ||
+            exactAlias
+        if (exactNameMatch) score += if (exactAlias && food.normalizedName != normalizedQuery) 0.48 else 0.54
 
         // 2. Substring/phrase match: +0.28 to +0.34
         if (food.normalizedName.contains(normalizedQuery) ||
-            normalizedQuery.contains(food.normalizedName)) {
+            normalizedQuery.contains(food.normalizedName) ||
+            food.normalizedAliases.any { alias ->
+                alias.contains(normalizedQuery) || normalizedQuery.contains(alias)
+            }) {
             score += 0.34
         } else {
             // Check if query is a substring of any token
@@ -455,7 +542,26 @@ class SmartFoodResolver(
         return score.coerceIn(0.0, 1.0)
     }
 
+    private fun candidateIdentityKey(candidate: ResolutionCandidate, brandHint: String?): String {
+        val familyOrName = candidate.canonicalFamily ?: FoodIdentity.normalize(candidate.name)
+        val brandKey = if (brandHint.isNullOrBlank()) {
+            ""
+        } else {
+            FoodIdentity.normalize(candidate.brand.orEmpty())
+        }
+        return "${familyOrName}:${candidate.state.name}:${brandKey}"
+    }
+
+    private fun hasPlausibleMacros(food: FoodIndex.IndexedFood): Boolean {
+        val values = listOf(food.calories, food.protein, food.carbs, food.fats)
+        if (values.any { !it.isFinite() || it < 0.0 }) return false
+        if (food.calories <= 0.0 && values.drop(1).all { it == 0.0 }) return false
+        val macroEnergy = food.protein * 4.0 + food.carbs * 4.0 + food.fats * 9.0
+        if (food.calories <= 0.0 || macroEnergy <= 0.0) return true
+        return kotlin.math.abs(food.calories - macroEnergy) <= maxOf(100.0, food.calories * 0.75)
+    }
     private fun computeFuzzyBonus(
+
         food: FoodIndex.IndexedFood,
         queryTokens: List<String>,
     ): Double {
@@ -603,7 +709,7 @@ class SmartFoodResolver(
     }
 
     private fun buildLearnedKey(normalizedQuery: String, brandHint: String?): String {
-        return if (brandHint.isNullOrBlank()) normalizedQuery else "$normalizedQuery|$brandHint"
+        return if (brandHint.isNullOrBlank()) "v2|$normalizedQuery" else "v2|$normalizedQuery|$brandHint"
     }
 
     companion object {
