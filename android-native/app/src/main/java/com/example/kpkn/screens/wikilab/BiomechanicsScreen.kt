@@ -1,4 +1,4 @@
-﻿package com.example.kpkn.screens.wikilab
+package com.example.kpkn.screens.wikilab
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background

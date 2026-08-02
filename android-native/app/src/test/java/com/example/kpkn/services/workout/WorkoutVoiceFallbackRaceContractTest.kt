@@ -146,11 +146,24 @@ class WorkoutVoiceCaptureGateTest {
     }
 
     @Test
-    fun positivePcmCannotPublishListeningUntilAndroidConfirmsUnsilenced() {
-        assertFalse(WorkoutVoiceCaptureGate.mayPublishListening(null, hasPositivePcm = true))
-        assertFalse(WorkoutVoiceCaptureGate.mayPublishListening(true, hasPositivePcm = true))
-        assertFalse(WorkoutVoiceCaptureGate.mayPublishListening(false, hasPositivePcm = false))
-        assertTrue(WorkoutVoiceCaptureGate.mayPublishListening(false, hasPositivePcm = true))
+    fun publishListening_matrixWithGraceWindow() {
+        // Silencio confirmado: nunca publica.
+        assertFalse(WorkoutVoiceCaptureGate.mayPublishListening(true, true, recordAgeMs = 5_000L))
+        // Confirmado no silenciado: publica con PCM positivo.
+        assertTrue(WorkoutVoiceCaptureGate.mayPublishListening(false, true, recordAgeMs = 10L))
+        assertFalse(WorkoutVoiceCaptureGate.mayPublishListening(false, false, recordAgeMs = 10L))
+        // Callback ausente: dentro de la gracia NO publica; después de la gracia SÍ.
+        assertFalse(WorkoutVoiceCaptureGate.mayPublishListening(null, true, recordAgeMs = 999L))
+        assertTrue(WorkoutVoiceCaptureGate.mayPublishListening(null, true, recordAgeMs = 1_001L))
+        assertFalse(WorkoutVoiceCaptureGate.mayPublishListening(null, false, recordAgeMs = 5_000L))
+    }
+
+    @Test
+    fun assumedUnsilencedByGrace_onlyForNullAfterGrace() {
+        assertFalse(WorkoutVoiceCaptureGate.assumedUnsilencedByGrace(null, 500L))
+        assertTrue(WorkoutVoiceCaptureGate.assumedUnsilencedByGrace(null, 1_500L))
+        assertFalse(WorkoutVoiceCaptureGate.assumedUnsilencedByGrace(false, 1_500L))
+        assertFalse(WorkoutVoiceCaptureGate.assumedUnsilencedByGrace(true, 1_500L))
     }
 }
 

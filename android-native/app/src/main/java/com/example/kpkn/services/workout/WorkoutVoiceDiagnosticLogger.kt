@@ -171,15 +171,33 @@ object WorkoutVoiceDiagnosticLogger {
     /** Snapshot used to correlate lock-screen and process-state failures. */
     fun runtimeStateFields(context: Context): Map<String, Any?> {
         val appContext = context.applicationContext
-        val powerManager = appContext.getSystemService(PowerManager::class.java)
-        val keyguardManager = appContext.getSystemService(KeyguardManager::class.java)
-        val processInfo = ActivityManager.RunningAppProcessInfo()
-        ActivityManager.getMyMemoryState(processInfo)
+        val powerManager = runCatching { appContext.getSystemService(PowerManager::class.java) }.getOrNull()
+        val keyguardManager = runCatching { appContext.getSystemService(KeyguardManager::class.java) }.getOrNull()
+        val importance = runCatching {
+            val processInfo = ActivityManager.RunningAppProcessInfo()
+            ActivityManager.getMyMemoryState(processInfo)
+            processInfo.importance
+        }.getOrNull()
         return mapOf(
-            "interactive" to powerManager?.isInteractive,
-            "keyguardLocked" to keyguardManager?.isKeyguardLocked,
-            "powerSaveMode" to powerManager?.isPowerSaveMode,
-            "processImportance" to processInfo.importance,
+            "interactive" to runCatching { powerManager?.isInteractive }.getOrNull(),
+            "keyguardLocked" to runCatching { keyguardManager?.isKeyguardLocked }.getOrNull(),
+            "powerSaveMode" to runCatching { powerManager?.isPowerSaveMode }.getOrNull(),
+            "processImportance" to importance,
+        )
+    }
+
+    /** Campos de entorno estáticos del dispositivo/sesión; nunca lanzan. */
+    fun environmentFields(context: Context): Map<String, Any?> {
+        val appContext = context.applicationContext
+        val pm = runCatching { appContext.getSystemService(PowerManager::class.java) }.getOrNull()
+        return mapOf(
+            "sdkInt" to Build.VERSION.SDK_INT,
+            "batteryOptimizationIgnored" to runCatching {
+                pm?.isIgnoringBatteryOptimizations(appContext.packageName)
+            }.getOrNull(),
+            "bluetoothConnectGranted" to runCatching {
+                WorkoutVoicePermissionHelper.hasBluetoothConnectPermission(appContext)
+            }.getOrNull(),
         )
     }
 
@@ -232,12 +250,20 @@ object WorkoutVoiceDiagnosticLogger {
                 WorkoutVoiceDiagnosticStorage.appendLine(context, uri, line)
             }
         }
+        KpknDiagnosticLogger.event(
+            namespace = "voice",
+            name = name,
+            fields = fields,
+            traceId = traceId,
+            sessionId = activeSessionKey,
+        )
     }
 
     private fun Any?.toJsonElement(): JsonElement = when (this) {
         null -> JsonNull
         is Boolean -> JsonPrimitive(this)
         is Number -> JsonPrimitive(this)
+        is String -> JsonPrimitive(redactSecrets(this))
         is Iterable<*> -> JsonArray(map { it.toJsonElement() })
         is Array<*> -> JsonArray(map { it.toJsonElement() })
         else -> JsonPrimitive(redactSecrets(toString()).take(MAX_TEXT_LENGTH))
@@ -249,6 +275,11 @@ object WorkoutVoiceDiagnosticLogger {
             "password" in value || "authorization" in value || "cookie" in value
     }
 
+    private fun redactSecrets(value: String): String = value
+        .replace(Regex("(?i)(bearer\\s+)[A-Za-z0-9._-]+"), "$1[REDACTED]")
+        .replace(Regex("(?i)(api[_ -]?key\\s*[:=]\\s*)[^\\s,]+"), "$1[REDACTED]")
+        .replace(Regex("(?i)sk-[A-Za-z0-9_-]{12,}"), "[REDACTED]")
+
     private fun prune(directory: File) {
         val files = directory.listFiles { file -> file.isFile && file.extension == "jsonl" }
             ?.sortedByDescending(File::lastModified)
@@ -256,25 +287,12 @@ object WorkoutVoiceDiagnosticLogger {
             .toMutableList()
         var total = files.sumOf(File::length)
         while (files.size >= MAX_FILES || total > MAX_TOTAL_BYTES) {
-        KpknDiagnosticLogger.event(
-            namespace = "voice",
-            name = name,
-            fields = fields,
-            traceId = traceId,
-            sessionId = activeSessionKey,
-        )
             val oldest = files.removeLastOrNull() ?: break
             total -= oldest.length()
             oldest.delete()
         }
     }
 
-        is String -> JsonPrimitive(redactSecrets(this))
     private val FILE_TIME_FORMAT: DateTimeFormatter =
         DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss").withZone(ZoneOffset.UTC)
 }
-    private fun redactSecrets(value: String): String = value
-        .replace(Regex("(?i)(bearer\\s+)[A-Za-z0-9._-]+"), "$1[REDACTED]")
-        .replace(Regex("(?i)(api[_ -]?key\\s*[:=]\\s*)[^\\s,]+"), "$1[REDACTED]")
-        .replace(Regex("(?i)sk-[A-Za-z0-9_-]{12,}"), "[REDACTED]")
-

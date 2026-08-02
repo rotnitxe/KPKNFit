@@ -13,6 +13,7 @@ import android.os.IBinder
 import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import com.example.kpkn.R
+import com.example.kpkn.data.models.VoiceCaptureMode
 import com.example.kpkn.data.models.VoiceNoiseProfile
 import com.example.kpkn.navigation.KpknDeepLinks
 import java.util.concurrent.ConcurrentHashMap
@@ -52,13 +53,13 @@ class WorkoutVoiceForegroundService : Service() {
             cb?.asBinder()?.let { registeredBinder ->
                 val deathRecipient = IBinder.DeathRecipient {
                     serviceScope.launch {
-                        onCallbackBinderDied(registeredBinder)
+                        onCallbackBinderDied(registeredBinder, "system_death_recipient")
                     }
                 }
                 callbackBinder = registeredBinder
                 callbackDeathRecipient = deathRecipient
                 runCatching { registeredBinder.linkToDeath(deathRecipient, 0) }
-                    .onFailure { onCallbackBinderDied(registeredBinder) }
+                    .onFailure { onCallbackBinderDied(registeredBinder, "callback_link_failure") }
             }
             clientGeneration = generation
             startCollectorsOnce()
@@ -71,10 +72,16 @@ class WorkoutVoiceForegroundService : Service() {
             grammarJson: String?,
             stageOrdinal: Int,
             noiseProfileOrdinal: Int,
+            captureModeOrdinal: Int,
         ) {
             if (generation != clientGeneration) return
             sessionRequested = true
             WorkoutVoiceDiagnosticLogger.start("voice-process", "generation-$generation")
+            WorkoutVoiceDiagnosticLogger.event(
+                "voice_environment",
+                WorkoutVoiceDiagnosticLogger.environmentFields(this@WorkoutVoiceForegroundService) +
+                    WorkoutVoiceDiagnosticLogger.runtimeStateFields(this@WorkoutVoiceForegroundService),
+            )
             WorkoutVoiceDiagnosticLogger.event(
                 "voice_phase",
                 mapOf("phase" to "PREPARING", "state" to "START") +
@@ -83,9 +90,19 @@ class WorkoutVoiceForegroundService : Service() {
             val stage = VoicePipelineStage.entries.getOrElse(stageOrdinal) { VoicePipelineStage.LISTENING }
             val profile = VoiceNoiseProfile.entries.getOrElse(noiseProfileOrdinal) { VoiceNoiseProfile.GYM }
             engine.setNoiseProfile(profile)
+            engine.updateCaptureMode(
+                VoiceCaptureMode.entries.getOrElse(captureModeOrdinal) { VoiceCaptureMode.HANDS_FREE },
+            )
             grammarJson?.let { engine.updateGrammarOverride(it, stage) }
             acquireWakeLock()
             engine.start(serviceScope, holdMicRouteAcrossPause)
+        }
+
+        override fun updateCaptureMode(generation: Long, captureModeOrdinal: Int) {
+            if (generation != clientGeneration) return
+            engine.updateCaptureMode(
+                VoiceCaptureMode.entries.getOrElse(captureModeOrdinal) { VoiceCaptureMode.HANDS_FREE },
+            )
         }
 
         override fun pause(generation: Long, releaseMic: Boolean): Boolean {
@@ -139,6 +156,14 @@ class WorkoutVoiceForegroundService : Service() {
     @Suppress("DEPRECATION")
     override fun onTrimMemory(level: Int) {
         super.onTrimMemory(level)
+        WorkoutVoiceDiagnosticLogger.event(
+            "voice_trim_memory",
+            mapOf(
+                "level" to level,
+                "sessionRequested" to sessionRequested,
+                "engineActive" to engine.isActive,
+            ) + WorkoutVoiceDiagnosticLogger.runtimeStateFields(this),
+        )
         // UI_HIDDEN también ocurre al bloquear la pantalla. No detener una sesión
         // solicitada sólo porque el micrófono está momentáneamente en IDLE/MIC_BUSY:
         // hacerlo pierde el callback y deja los partials sin final ni persistencia.
@@ -224,7 +249,7 @@ class WorkoutVoiceForegroundService : Service() {
     private inline fun send(block: IWorkoutVoiceEngineCallback.() -> Unit) {
         val target = callback ?: return
         runCatching { target.block() }
-            .onFailure { onCallbackBinderDied(target.asBinder()) }
+            .onFailure { onCallbackBinderDied(target.asBinder(), "send_failure") }
     }
 
     private fun unlinkCallbackDeathRecipient() {
@@ -236,14 +261,14 @@ class WorkoutVoiceForegroundService : Service() {
         callbackBinder = null
         callbackDeathRecipient = null
     }
-    private fun onCallbackBinderDied(deadBinder: IBinder) {
+    private fun onCallbackBinderDied(deadBinder: IBinder, origin: String) {
         if (callbackBinder !== deadBinder) return
         callback = null
         unlinkCallbackDeathRecipient()
         WorkoutVoiceDiagnosticLogger.event(
             "voice_callback_died",
             WorkoutVoiceDiagnosticLogger.runtimeStateFields(this) +
-                mapOf("sessionRequested" to sessionRequested),
+                mapOf("sessionRequested" to sessionRequested, "origin" to origin),
         )
         stopCaptureAndSelf("voice_callback_died")
     }
@@ -254,6 +279,8 @@ class WorkoutVoiceForegroundService : Service() {
         serviceScope.launch {
             engine.stopAndAwait(1_500L)
             WorkoutVoiceDiagnosticLogger.close(reason)
+            // send() ya retorna si callback == null (p. ej. binder muerto que
+            // disparó esta parada): nunca se envía a un binder caído.
             send { onStopped(clientGeneration, true) }
             callback = null
             unlinkCallbackDeathRecipient()

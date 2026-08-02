@@ -215,15 +215,17 @@ internal fun parseWorkoutVoiceTranscript(
         UnitModeV2.CUSTOM -> explicitCustom ?: connectorPair?.second
     }
     val metricValue = metricDecimalValue?.toSafeWholeNumber()
+    val highExertion = HIGH_EXERTION_PHRASES.any(normalizedText::contains)
     val intensityValue = when {
         explicitRpe != null -> explicitRpe
         explicitRir != null -> explicitRir
         explicitPercentRm != null -> explicitPercentRm
         explicitFailureMetric != null -> explicitFailureMetric
+        highExertion -> 9.0
         else -> null
     }
     val intensityKind = when {
-        explicitRpe != null -> WorkoutVoiceIntensityKind.RPE
+        explicitRpe != null || highExertion -> WorkoutVoiceIntensityKind.RPE
         explicitRir != null -> WorkoutVoiceIntensityKind.RIR
         explicitPercentRm != null -> WorkoutVoiceIntensityKind.PERCENT_RM
         explicitFailureMetric != null -> WorkoutVoiceIntensityKind.RIR
@@ -268,6 +270,19 @@ internal fun parseWorkoutVoiceTranscript(
         fields = fields,
         isBarWeightOnly = barWeightOnly,
     )
+}
+
+/**
+ * Primer número (palabra compuesta o dígito) del texto normalizado, o null.
+ * Usado por la clarificación guiada para extraer la respuesta numérica del usuario.
+ */
+internal fun extractFirstVoiceNumber(text: String): Double? {
+    val normalized = normalizeWorkoutVoiceTranscriptString(text)
+    val tokens = normalized.split(' ').filter { it.isNotBlank() }
+    val first = tokens.indexOfFirst { it.isVoiceNumberToken() }
+    if (first < 0) return null
+    val last = tokens.indexOfLast { it.isVoiceNumberToken() }
+    return parseVoiceInteger(tokens.subList(first, last + 1))
 }
 
 internal fun workoutVoiceSummary(
@@ -340,6 +355,11 @@ private fun normalizeWorkoutVoiceTranscriptString(transcript: String): String {
         .replace(Regex("\\berre\\s+i\\s+erre\\b"), "rir")
         .replace("repeticiones en reserva", "rir")
         .replace("×", " x ")
+        .replace(Regex("\\bequis\\b"), "x")
+        // RIR verbal: "me quedaron dos en reserva" / "quedaban tres" / "dos en recámara"
+        .replace(Regex("""\bme quedaron (\w+) en (?:reserva|recamara)\b"""), "rir $1")
+        .replace(Regex("""\bquedaban (\w+)(?: en (?:reserva|recamara))?\b"""), "rir $1")
+        .replace(Regex("""\b(\w+) en (?:reserva|recamara)\b"""), "rir $1")
         .replace(Regex("[^a-z0-9.,% ]"), " ")
         .replace(Regex("\\s+"), " ")
         .trim()
@@ -582,7 +602,17 @@ private val RPE_KEYWORDS = setOf("rpe", "esfuerzo", "intensidad")
 private val RIR_KEYWORDS = setOf("rir", "recamara", "recamaras", "reserva", "reservas", "ritmo")
 private val PERCENT_RM_KEYWORDS = setOf("porcentaje", "%", "rm")
 private val FAILURE_KEYWORDS = setOf("fallo", "falla")
-private val FAILURE_PHRASES = setOf("al fallo", "llegue al fallo", "llegar al fallo")
+private val FAILURE_PHRASES = setOf(
+    "al fallo", "llegue al fallo", "llegar al fallo",
+    // Verbal, alta intensidad máxima (D2a):
+    "dandolo todo", "lo di todo", "di todo", "hasta el fallo",
+    "no me quedo nada", "no quedo nada",
+)
+/** Cansancio alto → RPE 9 sin marcar fallo (D2b). */
+private val HIGH_EXERTION_PHRASES = setOf(
+    "quede muy cansado", "quede muy cansada", "muy cansado", "muy cansada",
+    "sin energia", "agotado", "agotada", "quede agotado", "quede agotada",
+)
 private val FAILED_SET_PHRASES = setOf("serie fallida", "no pude completarla", "falle el intento", "intento fallido")
 private val DROP_SET_KEYWORDS = setOf("dropset", "drop-set", "descendente")
 private val REST_PAUSE_KEYWORDS = setOf("rest-pause", "restpause", "pausa-descanso")

@@ -1,13 +1,14 @@
 package com.example.kpkn.services.workout
 
+import com.example.kpkn.data.models.VoiceCaptureMode
 import com.example.kpkn.data.models.VoiceNoiseProfile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
-internal interface WorkoutVoiceEnginePort {
 internal const val REPORT_CAPTURE_REQUEST = "__kpkn_report_capture__"
 
+internal interface WorkoutVoiceEnginePort {
     val partialResults: Flow<String>
     val finalResults: Flow<List<VoiceHypothesis>>
     val errors: Flow<String>
@@ -24,7 +25,8 @@ internal const val REPORT_CAPTURE_REQUEST = "__kpkn_report_capture__"
 
     fun setNoiseProfile(profile: VoiceNoiseProfile)
     fun updateCommandContext(context: VoiceCommandContext?, stage: VoicePipelineStage)
-    fun start(scope: CoroutineScope, holdMicRouteAcrossPause: Boolean = true)
+    fun start(scope: CoroutineScope, holdMicRouteAcrossPause: Boolean = true, captureMode: VoiceCaptureMode = VoiceCaptureMode.HANDS_FREE)
+    fun updateCaptureMode(mode: VoiceCaptureMode)
     fun pause()
     suspend fun pauseAndAwait(releaseMic: Boolean = false, timeoutMs: Long = 1_500L): Boolean
     fun resumeDecoderAfterTts(delayMs: Long = 300L)

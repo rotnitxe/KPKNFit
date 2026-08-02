@@ -4,3 +4,6 @@ nul
 .antigravitycli/
 
 android/app/src/main/assets/models/kpkn-food-fg270m-v1.litertlm
+
+__pycache__/
+*.pyc

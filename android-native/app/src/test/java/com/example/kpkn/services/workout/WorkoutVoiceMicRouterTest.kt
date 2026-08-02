@@ -2,11 +2,30 @@ package com.example.kpkn.services.workout
 
 import android.media.AudioDeviceInfo
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class WorkoutVoiceMicRouterTest {
+
+    @Test
+    fun sinkWithoutMatchingInput_isRejected() {
+        val a2dpOnly = WorkoutVoiceMicRouter.AudioRoutePeer(AudioDeviceInfo.TYPE_BLUETOOTH_A2DP, "AA:BB")
+        val scoSink = WorkoutVoiceMicRouter.AudioRoutePeer(AudioDeviceInfo.TYPE_BLUETOOTH_SCO, "CC:DD")
+        val scoSource = WorkoutVoiceMicRouter.AudioRoutePeer(AudioDeviceInfo.TYPE_BLUETOOTH_SCO, "CC:DD")
+        assertFalse(WorkoutVoiceMicRouter.sinkHasInputSource(a2dpOnly, listOf(scoSource)))
+        assertTrue(WorkoutVoiceMicRouter.sinkHasInputSource(scoSink, listOf(scoSource)))
+    }
+
+    @Test
+    fun sinkWithoutAddress_fallsBackToTypeFamily() {
+        val bleSink = WorkoutVoiceMicRouter.AudioRoutePeer(AudioDeviceInfo.TYPE_BLE_HEADSET, null)
+        val bleSource = WorkoutVoiceMicRouter.AudioRoutePeer(AudioDeviceInfo.TYPE_BLE_HEADSET, null)
+        val builtin = WorkoutVoiceMicRouter.AudioRoutePeer(AudioDeviceInfo.TYPE_BUILTIN_MIC, null)
+        assertTrue(WorkoutVoiceMicRouter.sinkHasInputSource(bleSink, listOf(builtin, bleSource)))
+        assertFalse(WorkoutVoiceMicRouter.sinkHasInputSource(bleSink, listOf(builtin)))
+    }
 
     @Test
     fun preferenceScore_ordersAccessoryMicsAheadOfBluetoothSco() {

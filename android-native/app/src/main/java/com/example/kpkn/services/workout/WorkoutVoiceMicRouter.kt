@@ -36,6 +36,16 @@ class WorkoutVoiceMicRouter(
         FALLBACK_ALLOW_HEADSET,
     }
 
+    /** Descriptor puro para decisiones de ruteo testeables en JVM. */
+    data class AudioRoutePeer(val type: Int, val address: String?)
+
+    /** Resultado observado tras iniciar la captura. */
+    data class ObservedRoute(
+        val label: String,
+        val deviceId: Int,
+        val deviceType: Int,
+    )
+
     private val appContext = context.applicationContext
     private val audioManager: AudioManager? =
         appContext.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
@@ -48,9 +58,20 @@ class WorkoutVoiceMicRouter(
     private var communicationDeviceId: Int? = null
     private var communicationDeviceRequested = false
     private var legacyScoRequested = false
+    private var previousAudioMode: Int? = null
+    private var communicationModeApplied = false
+
+    /**
+     * En modo MÚSICA no se solicita ruta de comunicación: el SCO queda libre y
+     * la música intacta (la captura usa el mic interno con VOICE_RECOGNITION).
+     */
+    var externalRouteEnabled: Boolean = true
 
     private val _activeRouteLabel = MutableStateFlow<String?>(null)
     val activeRouteLabel: StateFlow<String?> = _activeRouteLabel.asStateFlow()
+
+    private val _routeRevoked = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val routeRevoked: kotlinx.coroutines.flow.SharedFlow<Unit> = _routeRevoked
 
     private val deviceCallback = object : AudioDeviceCallback() {
         override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>) {
@@ -65,6 +86,14 @@ class WorkoutVoiceMicRouter(
         override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>) {
             if (!acquired) return
             val removedIds = removedDevices.map { it.id }.toSet()
+            val wasActive = communicationDeviceId in removedIds || lastPreferredId in removedIds
+            WorkoutVoiceDiagnosticLogger.event(
+                "audio_route_revoked",
+                mapOf(
+                    "removedIds" to removedDevices.map { it.id },
+                    "wasActive" to wasActive,
+                ),
+            )
             if (communicationDeviceId in removedIds) {
                 clearCommunicationDeviceIfNeeded()
             }
@@ -73,6 +102,7 @@ class WorkoutVoiceMicRouter(
             }
             requestCommunicationRoute()
             refreshLabelOnly()
+            if (wasActive) _routeRevoked.tryEmit(Unit)
         }
     }
 
@@ -92,6 +122,7 @@ class WorkoutVoiceMicRouter(
         clearCommunicationDeviceIfNeeded()
         unregisterCallbackIfNeeded()
         lastPreferredId = null
+        restoreAudioModeIfNeeded()
         _activeRouteLabel.value = null
     }
 
@@ -112,21 +143,30 @@ class WorkoutVoiceMicRouter(
             return
         }
         val am = audioManager ?: return
-        val devices = inputDevices(am)
-        val preferred = when (routeMode) {
-            RouteMode.CONTINUOUS_VOICE_FIRST,
-            RouteMode.CONTINUOUS_MUSIC_FIRST,
-            -> pickVoiceInput(devices)
-            RouteMode.FALLBACK_ALLOW_HEADSET -> pickFallbackInput(devices)
+        if (!externalRouteEnabled) {
+            runCatching { record.setPreferredDevice(null) }
+            lastPreferredId = null
+            _activeRouteLabel.value = "phone"
+            return
         }
-        val applied = runCatching { record.setPreferredDevice(preferred) }.getOrDefault(false)
-        if (preferred != null && !applied) {
+        val devices = inputDevices(am)
+        // routeMode se conserva por compatibilidad de firma; todos los modos
+        // comparten el ranking headset-first iterado abajo.
+        val ranked = rankedVoiceInputs(devices)
+        var appliedDevice: AudioDeviceInfo? = null
+        for (candidate in ranked) {
+            val applied = runCatching { record.setPreferredDevice(candidate) }.getOrDefault(false)
+            if (applied) {
+                appliedDevice = candidate
+                break
+            }
+        }
+        if (appliedDevice == null) {
             // Do not leave a stale preferred device on a reused AudioRecord.
             runCatching { record.setPreferredDevice(null) }
         }
-        lastPreferredId = preferred?.id?.takeIf { applied }
-        _activeRouteLabel.value = preferred?.let(::labelFor)
-            ?: communicationLabelOrPhone()
+        lastPreferredId = appliedDevice?.id
+        _activeRouteLabel.value = appliedDevice?.let(::labelFor) ?: communicationLabelOrPhone()
     }
 
     /**
@@ -134,7 +174,7 @@ class WorkoutVoiceMicRouter(
      * Calling this from the engine closes the gap between the requested route
      * and the route Android actually selected.
      */
-    fun observeStartedRecord(record: AudioRecord) {
+    fun observeStartedRecord(record: AudioRecord): ObservedRoute? {
         val routed = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             runCatching { record.routedDevice }.getOrNull()
         } else {
@@ -151,9 +191,35 @@ class WorkoutVoiceMicRouter(
                     "recordDeviceId" to routed.id,
                 ) + WorkoutVoiceDiagnosticLogger.runtimeStateFields(appContext),
             )
-        } else {
-            refreshLabelOnly()
+            return ObservedRoute(label = labelFor(routed), deviceId = routed.id, deviceType = routed.type)
         }
+        refreshLabelOnly()
+        return null
+    }
+
+    fun hasExternalRouteRequested(): Boolean = externalRouteEnabled && communicationDeviceRequested
+
+    /**
+     * Espera a que el enlace de comunicación quede efectivamente activo.
+     * setCommunicationDevice()/startBluetoothSco() son asíncronos a nivel AudioPolicy:
+     * abrir el AudioRecord antes de tiempo lo deja sobre el mic interno.
+     */
+    suspend fun awaitCommunicationRoute(timeoutMs: Long = 1_500L): Boolean {
+        val am = audioManager ?: return false
+        if (!communicationDeviceRequested) return false
+        val deadline = android.os.SystemClock.elapsedRealtime() + timeoutMs
+        while (android.os.SystemClock.elapsedRealtime() < deadline) {
+            val ready = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val selected = runCatching { am.communicationDevice }.getOrNull()
+                selected != null && selected.id == communicationDeviceId
+            } else {
+                @Suppress("DEPRECATION")
+                runCatching { am.isBluetoothScoOn }.getOrDefault(false)
+            }
+            if (ready) return true
+            kotlinx.coroutines.delay(50L)
+        }
+        return false
     }
 
     @Suppress("DEPRECATION")
@@ -186,6 +252,15 @@ class WorkoutVoiceMicRouter(
 
     private fun requestCommunicationRoute() {
         val am = audioManager ?: return
+        if (!externalRouteEnabled) {
+            logRouteRequest(
+                requested = null,
+                accepted = true,
+                reason = "music_mode_suppressed",
+            )
+            _activeRouteLabel.value = "phone"
+            return
+        }
         val available = try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 am.availableCommunicationDevices
@@ -204,7 +279,31 @@ class WorkoutVoiceMicRouter(
             )
             return
         }
-        val preferred = pickPreferredCommunicationDevice(available)
+        val inputs = inputDevices(am).map { device ->
+            AudioRoutePeer(device.type, device.addressOrNull())
+        }
+        val unfiltered = pickPreferredCommunicationDevice(available)
+        val preferred = if (unfiltered != null &&
+            !sinkHasInputSource(AudioRoutePeer(unfiltered.type, unfiltered.addressOrNull()), inputs)
+        ) {
+            // Varios OEM listan sinks A2DP-only como "de comunicación"; sin fuente
+            // de entrada emparejable no sirven para captura. Descartarlos del ranking.
+            val filtered = available.filter { device ->
+                sinkHasInputSource(AudioRoutePeer(device.type, device.addressOrNull()), inputs)
+            }
+            val picked = pickPreferredCommunicationDevice(filtered)
+            if (picked?.id != unfiltered.id) {
+                logRouteRequest(
+                    requested = picked,
+                    accepted = true,
+                    reason = "sink_without_input_skipped",
+                    skipped = unfiltered,
+                )
+            }
+            picked
+        } else {
+            unfiltered
+        }
         if (preferred == null) {
             clearCommunicationDeviceIfNeeded()
             logRouteRequest(
@@ -248,6 +347,9 @@ class WorkoutVoiceMicRouter(
             }
             communicationDeviceRequested = accepted
             communicationDeviceId = preferred.id.takeIf { accepted }
+            if (accepted) {
+                applyCommunicationAudioMode()
+            }
             if (!accepted) {
                 _activeRouteLabel.value = "phone"
             }
@@ -276,6 +378,9 @@ class WorkoutVoiceMicRouter(
             legacyScoRequested = accepted
             communicationDeviceRequested = accepted
             communicationDeviceId = preferred.id.takeIf { accepted }
+            if (accepted) {
+                applyCommunicationAudioMode()
+            }
             logRouteRequest(
                 requested = preferred,
                 accepted = accepted,
@@ -291,6 +396,43 @@ class WorkoutVoiceMicRouter(
                 reason = "record_input_route_only",
             )
         }
+    }
+
+    private fun applyCommunicationAudioMode() {
+        val am = audioManager ?: return
+        if (communicationModeApplied) return
+        runCatching {
+            val before = am.mode
+            am.mode = AudioManager.MODE_IN_COMMUNICATION
+            val after = am.mode
+            communicationModeApplied = true
+            if (after != before) {
+                WorkoutVoiceDiagnosticLogger.event(
+                    "audio_mode_changed",
+                    mapOf("previous" to before, "current" to after, "reason" to "external_voice_route"),
+                )
+            }
+        }
+    }
+
+    private fun restoreAudioModeIfNeeded() {
+        val am = audioManager ?: return
+        if (!communicationModeApplied) return
+        runCatching {
+            val previous = am.mode
+            if (previous == AudioManager.MODE_IN_COMMUNICATION) {
+                am.mode = previousAudioMode ?: AudioManager.MODE_NORMAL
+            }
+            val after = am.mode
+            if (after != previous) {
+                WorkoutVoiceDiagnosticLogger.event(
+                    "audio_mode_changed",
+                    mapOf("previous" to previous, "current" to after, "reason" to "route_released"),
+                )
+            }
+        }
+        previousAudioMode = null
+        communicationModeApplied = false
     }
 
     private fun clearCommunicationDeviceIfNeeded() {
@@ -309,6 +451,7 @@ class WorkoutVoiceMicRouter(
         communicationDeviceRequested = false
         communicationDeviceId = null
         legacyScoRequested = false
+        restoreAudioModeIfNeeded()
     }
 
     private fun logRouteRequest(
@@ -316,6 +459,7 @@ class WorkoutVoiceMicRouter(
         accepted: Boolean,
         reason: String,
         exception: Throwable? = null,
+        skipped: AudioDeviceInfo? = null,
     ) {
         WorkoutVoiceDiagnosticLogger.event(
             "audio_route_request",
@@ -325,6 +469,10 @@ class WorkoutVoiceMicRouter(
                 put("requestedDeviceId", requested?.id)
                 put("accepted", accepted)
                 put("reason", reason)
+                skipped?.let {
+                    put("skipped", labelFor(it))
+                    put("skippedId", it.id)
+                }
                 exception?.let {
                     put("exceptionType", it.javaClass.name)
                     put("exceptionMessage", it.message)
@@ -332,6 +480,13 @@ class WorkoutVoiceMicRouter(
             } + WorkoutVoiceDiagnosticLogger.runtimeStateFields(appContext),
         )
     }
+
+    private fun AudioDeviceInfo.addressOrNull(): String? =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            runCatching { address }.getOrNull()
+        } else {
+            null
+        }
 
     private fun inputDevices(am: AudioManager): List<AudioDeviceInfo> =
         runCatching { am.getDevices(AudioManager.GET_DEVICES_INPUTS).toList() }
@@ -365,6 +520,30 @@ class WorkoutVoiceMicRouter(
     }
 
     companion object {
+        /** Un sink de comunicación solo sirve si existe una fuente de entrada emparejable. */
+        fun sinkHasInputSource(sink: AudioRoutePeer, inputs: List<AudioRoutePeer>): Boolean {
+            val byAddress = sink.address?.takeIf { it.isNotBlank() }?.let { sinkAddress ->
+                inputs.any { it.address == sinkAddress }
+            } == true
+            if (byAddress) return true
+            // Fallback por familia cuando el OEM no expone address.
+            return when (sink.type) {
+                AudioDeviceInfo.TYPE_BLUETOOTH_SCO ->
+                    inputs.any { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO }
+                AudioDeviceInfo.TYPE_BLE_HEADSET, AudioDeviceInfo.TYPE_BLE_SPEAKER ->
+                    inputs.any {
+                        it.type == AudioDeviceInfo.TYPE_BLE_HEADSET || it.type == AudioDeviceInfo.TYPE_BLE_SPEAKER
+                    }
+                AudioDeviceInfo.TYPE_WIRED_HEADSET ->
+                    inputs.any { it.type == AudioDeviceInfo.TYPE_WIRED_HEADSET }
+                AudioDeviceInfo.TYPE_USB_HEADSET, AudioDeviceInfo.TYPE_USB_DEVICE ->
+                    inputs.any {
+                        it.type == AudioDeviceInfo.TYPE_USB_HEADSET || it.type == AudioDeviceInfo.TYPE_USB_DEVICE
+                    }
+                else -> false
+            }
+        }
+
         /** Voice capture: prefer an external microphone, including classic BT SCO. */
         fun voicePreferenceScore(type: Int): Int? = when (type) {
             AudioDeviceInfo.TYPE_WIRED_HEADSET -> 0
@@ -389,6 +568,17 @@ class WorkoutVoiceMicRouter(
 
         fun pickVoiceInput(devices: List<AudioDeviceInfo>): AudioDeviceInfo? =
             pickBest(devices, ::voicePreferenceScore, includeBuiltin = false)
+
+        /** Ranking completo de entradas de voz (sin mic interno) en orden de preferencia. */
+        fun rankedVoiceInputs(devices: List<AudioDeviceInfo>): List<AudioDeviceInfo> =
+            devices
+                .mapNotNull { device ->
+                    val score = voicePreferenceScore(device.type) ?: return@mapNotNull null
+                    if (device.type == AudioDeviceInfo.TYPE_BUILTIN_MIC) return@mapNotNull null
+                    score to device
+                }
+                .sortedWith(compareBy<Pair<Int, AudioDeviceInfo>> { it.first }.thenBy { it.second.id })
+                .map { it.second }
 
         /** Compatibility alias; continuous capture is now voice-first. */
         fun pickContinuousInput(devices: List<AudioDeviceInfo>): AudioDeviceInfo? =

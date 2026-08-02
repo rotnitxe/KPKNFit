@@ -16,6 +16,8 @@ object WorkoutVoicePermissionHelper {
         val ttsAvailable: Boolean,
         val canUseVoice: Boolean,
         val blockingReason: String? = null,
+        val bluetoothConnectGranted: Boolean = true,
+        val bluetoothAdvisory: String? = null,
     )
 
     /**
@@ -41,6 +43,8 @@ object WorkoutVoicePermissionHelper {
             ).isNotEmpty()
         }.getOrDefault(false)
 
+        val btGranted = hasBluetoothConnectPermission(context)
+
         return VoiceCapabilityResult(
             hasAudioPermission = hasAudioPermission,
             speechRecognizerAvailable = recognizerAvailable,
@@ -50,6 +54,12 @@ object WorkoutVoicePermissionHelper {
                 null
             } else {
                 "Permiso de micrófono no concedido."
+            },
+            bluetoothConnectGranted = btGranted,
+            bluetoothAdvisory = if (!btGranted) {
+                "Concedé el permiso de Bluetooth para usar el micrófono de tus audífonos."
+            } else {
+                null
             },
         )
     }

@@ -40,7 +40,7 @@ object WorkoutVoiceCommandParser {
     private val SUGGEST_WEIGHT_KEYWORDS = setOf(
         "cuanto peso", "cuánto peso", "carga sugerida", "que peso",
         "qué peso", "cuanto pongo", "cuánto pongo", "peso sugerido",
-        "cuanto levanto", "cuánto levanto",
+        "cuanto levanto", "cuánto levanto", "sugerido",
     )
 
     private val REST_STATUS_KEYWORDS = setOf(
@@ -102,7 +102,33 @@ object WorkoutVoiceCommandParser {
     private val USE_ADAPTIVE_REST_KEYWORDS = setOf(
         "usar sugerido", "descanso dinamico", "descanso dinámico",
         "usar adaptativo", "usar descanso adaptativo", "usar sugerencia",
+        "sugerido",
     ) + WorkoutVoiceGrammarLexicon.adaptiveRestAliases
+
+    private val APPLY_SUGGESTED_LOAD_KEYWORDS = setOf(
+        "sugerencia aplicada", "aplica la sugerencia", "aplicar sugerencia",
+        "usa la sugerencia", "la sugerida",
+    )
+
+    private val MOVE_UP_KEYWORDS = setOf(
+        "sube este ejercicio", "adelanta este ejercicio", "subir este ejercicio",
+        "adelantar este ejercicio", "mueve arriba este ejercicio",
+    )
+
+    private val MOVE_DOWN_KEYWORDS = setOf(
+        "baja este ejercicio", "retrasa este ejercicio", "bajar este ejercicio",
+        "retrasar este ejercicio", "mueve abajo este ejercicio",
+    )
+
+    private val CREATE_SUPERSET_KEYWORDS = setOf(
+        "crea superserie", "crear superserie", "arma superserie",
+        "armar superserie", "haz una superserie", "hacer una superserie",
+    )
+
+    private val DISSOLVE_SUPERSET_KEYWORDS = setOf(
+        "disuelve la superserie", "disolver superserie", "disolver la superserie",
+        "quita la superserie", "rompe la superserie",
+    )
 
     private val UNDO_KEYWORDS = setOf(
         "corregir", "deshacer", "borra eso", "borrar eso", "deshacer serie",
@@ -122,6 +148,23 @@ object WorkoutVoiceCommandParser {
     private val PACE_STATUS_KEYWORDS = setOf(
         "voy atrasado", "como voy de tiempo", "cómo voy de tiempo",
         "voy retrasado", "ritmo de sesion", "ritmo de sesión", "como voy",
+        "cuanto tiempo queda de sesion", "cuánto tiempo queda de sesión",
+        "cuanto llevo de sesion", "cuánto llevo de sesión",
+    )
+
+    private val DRAINAGE_QUERY_KEYWORDS = setOf(
+        "cuanto drenaje llevo", "cuánto drenaje llevo", "drenaje acumulado",
+        "como voy de drenaje", "cómo voy de drenaje", "drenaje",
+    )
+
+    private val CURRENT_SET_QUERY_KEYWORDS = setOf(
+        "que serie voy", "qué serie voy", "en que serie estoy", "en qué serie estoy",
+        "cuantas series quedan", "cuántas series quedan",
+    )
+
+    private val PENDING_SIDE_QUERY_KEYWORDS = setOf(
+        "que lado falta", "qué lado falta", "que lado me falta", "qué lado me falta",
+        "cual lado falta", "cuál lado falta",
     )
 
     private val WEIGHT_REASON_KEYWORDS = setOf(
@@ -157,9 +200,17 @@ object WorkoutVoiceCommandParser {
                 base += ADD_SET_KEYWORDS
                 base += SKIP_REST_KEYWORDS
                 base += USE_ADAPTIVE_REST_KEYWORDS
+                base += APPLY_SUGGESTED_LOAD_KEYWORDS
+                base += MOVE_UP_KEYWORDS
+                base += MOVE_DOWN_KEYWORDS
+                base += CREATE_SUPERSET_KEYWORDS
+                base += DISSOLVE_SUPERSET_KEYWORDS
                 base += UNDO_KEYWORDS
                 base += EDIT_LAST_SET_TRIGGERS
                 base += FATIGUE_KEYWORDS
+                base += DRAINAGE_QUERY_KEYWORDS
+                base += CURRENT_SET_QUERY_KEYWORDS
+                base += PENDING_SIDE_QUERY_KEYWORDS
                 base += PACE_STATUS_KEYWORDS
                 base += WEIGHT_REASON_KEYWORDS
                 base += ADD_SET_SESSION_ONLY_KEYWORDS
@@ -209,7 +260,15 @@ object WorkoutVoiceCommandParser {
             "asistida", "asistidas", "ayudada", "ayudadas", "mancuerna", "mancuernas", "barra",
             "solo la barra", "la barra", "barra sola", "barra vacia",
         ))
-        addAll(setOf("de"))
+        addAll(setOf("de", "equis"))
+        // Vocabulario verbal de intensidad (Fase 2):
+        addAll(setOf(
+            "me quedaron", "quedaban", "en reserva", "en recamara", "en recámara",
+            "dandolo todo", "dándolo todo", "lo di todo", "di todo", "hasta el fallo",
+            "no me quedo nada", "no quedo nada",
+            "quede muy cansado", "quede muy cansada", "muy cansado", "muy cansada",
+            "sin energia", "sin energía", "agotado", "agotada", "quede agotado", "quede agotada",
+        ))
         // No añadir "0".."120" ni abreviaturas (rpe/reps/kg): Vosk small-es las descarta.
     }
 
@@ -263,8 +322,19 @@ object WorkoutVoiceCommandParser {
 
         parseEditLastSet(lower)?.let { return it }
 
-        if (FATIGUE_KEYWORDS.any { lower.contains(normalizeText(it)) }) {
+        // Una frase de fatiga suelta es consejo; si parece registro de serie, se
+        // deja pasar al parseo de la serie ("cincuenta por cinco, quedé muy cansado").
+        if (!looksLikeSetRegistration(lower) && FATIGUE_KEYWORDS.any { lower.contains(normalizeText(it)) }) {
             return VoiceSessionCommand.FatigueAdvice
+        }
+        if (DRAINAGE_QUERY_KEYWORDS.any { lower.contains(it) }) {
+            return VoiceSessionCommand.QueryDrainage
+        }
+        if (CURRENT_SET_QUERY_KEYWORDS.any { lower.contains(it) }) {
+            return VoiceSessionCommand.QueryCurrentSet
+        }
+        if (PENDING_SIDE_QUERY_KEYWORDS.any { lower.contains(it) }) {
+            return VoiceSessionCommand.QueryPendingSide
         }
         if (PACE_STATUS_KEYWORDS.any { lower.contains(normalizeText(it)) }) {
             return VoiceSessionCommand.PaceStatus
@@ -277,7 +347,9 @@ object WorkoutVoiceCommandParser {
             lower.contains("segundo") || lower.contains("segundos") ||
             lower.contains("hora") || lower.contains("horas")
         val isSessionLimitIntent = lower.contains("quiero entrenar") ||
-            lower.contains("limite de sesion") || lower.contains("limite de entrenamiento")
+            lower.contains("limite de sesion") || lower.contains("limite de entrenamiento") ||
+            lower.contains("pon limite de") || lower.contains("poner limite de") ||
+            lower.contains("limite de")
         if ((lower.contains("maximo") && hasTemporalContext) || isSessionLimitIntent) {
             val minutes = extractNumberFromText(lower)?.toInt()
             if (minutes != null && minutes >= 5) {
@@ -323,6 +395,23 @@ object WorkoutVoiceCommandParser {
 
         Regex("(?:ir|ve|cambiar|continuar)\\s+(?:a|con)\\s+(.+)").find(lower)?.groupValues?.getOrNull(1)
             ?.trim()?.takeIf(String::isNotBlank)?.let { return VoiceSessionCommand.GoToExercise(it) }
+
+        if (APPLY_SUGGESTED_LOAD_KEYWORDS.any { lower.contains(it) }) {
+            return VoiceSessionCommand.ApplySuggestedLoad
+        }
+
+        if (MOVE_UP_KEYWORDS.any { lower.contains(it) }) {
+            return VoiceSessionCommand.MoveCurrentExercise(direction = -1)
+        }
+        if (MOVE_DOWN_KEYWORDS.any { lower.contains(it) }) {
+            return VoiceSessionCommand.MoveCurrentExercise(direction = 1)
+        }
+        if (CREATE_SUPERSET_KEYWORDS.any { lower.contains(it) }) {
+            return VoiceSessionCommand.CreateSuperset
+        }
+        if (DISSOLVE_SUPERSET_KEYWORDS.any { lower.contains(it) }) {
+            return VoiceSessionCommand.DissolveSuperset
+        }
 
         if (SUGGEST_WEIGHT_KEYWORDS.any { lower.contains(it) }) {
             return VoiceSessionCommand.SuggestWeight
@@ -435,12 +524,20 @@ object WorkoutVoiceCommandParser {
             intensityKind = com.example.kpkn.screens.workout.WorkoutVoiceIntensityKind.RIR
         }
 
+        // "fue con el lado derecho" / "lado izquierdo"
+        val side = when {
+            lower.contains("lado izquierdo") || lower.contains("lado izquierda") -> "left"
+            lower.contains("lado derecho") || lower.contains("lado derecha") -> "right"
+            else -> null
+        }
+
         val patch = VoiceSetEditPatch(
             weightKg = weightKg,
             weightDeltaKg = weightDeltaKg,
             metricValue = metricValue,
             intensityValue = intensityValue,
             intensityKind = intensityKind,
+            side = side,
         )
         if (!patch.hasAnyField) return null
         return VoiceSessionCommand.EditLastSet(patch)
@@ -450,6 +547,25 @@ object WorkoutVoiceCommandParser {
      * During an active rest timer: "saltar" means skip rest (not the exercise),
      * plus adaptive / adjust / undo commands.
      */
+    /**
+     * Heurística mínima: el transcript parece un registro de serie (peso×reps o
+     * número junto a unidades de peso/reps). Evita que frases de fatiga verbales
+     * ("quedé muy cansado") roben comandos que incluyen números.
+     */
+    fun looksLikeSetRegistration(normalized: String): Boolean {
+        val lower = normalized
+        val hasConnector = Regex(
+            """\b(\w+|\d+(?:[.,]\d+)?)\s+(?:por|x)\s+(\w+|\d+(?:[.,]\d+)?)\b""",
+        ).containsMatchIn(lower)
+        if (hasConnector) return true
+        val hasWeightWord = setOf("kg", "kilo", "kilos", "peso", "carga").any { lower.contains(it) }
+        val hasRepWord = setOf("rep", "reps", "repeticion", "repeticiones").any { lower.contains(it) }
+        if (hasWeightWord && hasRepWord) return true
+        val hasNumber = Regex("""\b\d+\b""").containsMatchIn(lower) ||
+            VOICE_INTEGER_WORDS.keys.any { Regex("""\b${it}\b""").containsMatchIn(lower) }
+        return hasNumber && (hasWeightWord || hasRepWord)
+    }
+
     fun parseRestAwareCommand(normalized: String): VoiceSessionCommand? {
         val lower = normalized
         if (USE_ADAPTIVE_REST_KEYWORDS.any { lower.contains(normalizeText(it)) }) {

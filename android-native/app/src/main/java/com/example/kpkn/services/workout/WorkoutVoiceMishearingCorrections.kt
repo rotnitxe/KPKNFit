@@ -27,6 +27,9 @@ internal object WorkoutVoiceMishearingCorrections {
         "confirmar", "confirmado", "cancelar", "corregir", "deshacer", "dropset",
         "descendente", "rom", "rango", "recorrido", "corporal", "asistida", "asistidas",
         "ayuda", "ayudada", "ayudadas", "izq", "der",
+        // Vocabulario verbal de intensidad (Fase 2) — proteger del Levenshtein:
+        "equis", "quedaron", "quedaban", "recamara", "dandolo", "dándolo", "agotado",
+        "agotada", "cansado", "cansada", "energia", "energía", "tope",
     )
 
     private val TOKEN_CORRECTIONS = mapOf(

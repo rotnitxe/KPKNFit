@@ -10,6 +10,9 @@ object WorkoutVoiceCaptureGate {
     /** Si seguimos en MIC_BUSY (silenciado) demasiado tiempo, forzar reopen. */
     const val MIC_BUSY_RECOVERY_TIMEOUT_MS = 5_000L
 
+    /** Tiempo máximo que se espera al AudioRecordingCallback antes de asumir no silenciado. */
+    const val RECORDING_CONFIG_GRACE_MS = 1_000L
+
     /**
      * Reabrir AudioRecord continuo.
      * [micBusy] **no** bloquea: si la sesión murió hay que poder abrir una nueva.
@@ -64,11 +67,30 @@ object WorkoutVoiceCaptureGate {
     /**
      * Android puede entregar PCM positivo compuesto por silencio sintético.
      * Solo una configuración confirmada como no silenciada permite publicar LISTENING.
+     *
+     * [recordingConfigSilenced] == null significa que el callback de configuración
+     * aún no llegó. Se permite publicar tras la ventana de gracia: si Android
+     * realmente silencia la captura, el callback llegará con silenced=true y el
+     * engine volverá a MIC_BUSY en el siguiente frame. Lo inaceptable es el
+     * estado anterior: null eterno → Vosk nunca recibe PCM y no queda rastro en logs.
      */
     fun mayPublishListening(
         recordingConfigSilenced: Boolean?,
         hasPositivePcm: Boolean,
-    ): Boolean = recordingConfigSilenced == false && hasPositivePcm
+        recordAgeMs: Long,
+        configGraceMs: Long = RECORDING_CONFIG_GRACE_MS,
+    ): Boolean = when (recordingConfigSilenced) {
+        true -> false
+        false -> hasPositivePcm
+        null -> hasPositivePcm && recordAgeMs >= configGraceMs
+    }
+
+    /** Primer frame publicado por gracia (para loguear UNA vez por record). */
+    fun assumedUnsilencedByGrace(
+        recordingConfigSilenced: Boolean?,
+        recordAgeMs: Long,
+        configGraceMs: Long = RECORDING_CONFIG_GRACE_MS,
+    ): Boolean = recordingConfigSilenced == null && recordAgeMs >= configGraceMs
 }
 
 enum class MicBusyRecoveryKind {

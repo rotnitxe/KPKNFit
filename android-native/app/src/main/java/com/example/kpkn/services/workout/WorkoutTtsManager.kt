@@ -188,8 +188,8 @@ class WorkoutTtsManager(context: Context) {
         speak("Diez segundos.", queueFlush = true)
     }
 
-    fun speakRecoveredReady() {
-        speak("Recuperado. Di listo para continuar.", queueFlush = true)
+    fun speakRestSkipped(setIndex: Int, totalSets: Int, exerciseName: String) {
+        speak("Descanso omitido. Serie ${setIndex + 1} de $totalSets, $exerciseName.", queueFlush = true)
     }
 
     fun speakRestRemaining(minutes: Int, seconds: Int) {
@@ -212,9 +212,15 @@ class WorkoutTtsManager(context: Context) {
         speak("Descanso completo. $exerciseName.$weightText", queueFlush = true)
     }
 
-    fun speakCurrentExercise(name: String, setNumber: Int, totalSets: Int, round: Int? = null) {
-        val prefix = if (round != null) "Superserie ronda $round. " else ""
-        speak("$prefix$name, serie $setNumber de $totalSets.", queueFlush = true)
+    fun speakCurrentExercise(
+        name: String,
+        setNumber: Int,
+        totalSets: Int,
+        round: Int? = null,
+        prefix: String = "",
+    ) {
+        val roundPrefix = if (round != null) "Superserie ronda $round. " else ""
+        speak("$prefix$roundPrefix$name, serie $setNumber de $totalSets.", queueFlush = true)
     }
 
     fun speakRestStarted(totalSeconds: Int) {
@@ -244,6 +250,33 @@ class WorkoutTtsManager(context: Context) {
 
     fun speakError(message: String) {
         speak(message, queueFlush = true)
+    }
+
+    // ── Clarificación guiada (Fase 3) ──────────────────────────────────────
+    fun speakAskReps() {
+        speak("¿Cuántas repeticiones hiciste?", queueFlush = true)
+    }
+
+    fun speakAskWeight() {
+        speak("¿Qué carga usaste?", queueFlush = true)
+    }
+
+    fun speakAskPlannedReps(plannedReps: Int) {
+        speak("¿Pudiste hacer las $plannedReps repeticiones que programaste?", queueFlush = true)
+    }
+
+    fun speakAskSuggestedWeight(suggestedWeight: Double, plannedReps: Double?) {
+        val repsText = plannedReps?.let { " por ${it.toInt()} repeticiones" }.orEmpty()
+        speak("¿Usaste los ${formatWeight(suggestedWeight)} kilos$repsText?", queueFlush = true)
+    }
+
+    fun speakSuggestedForSet(suggestedWeight: Double, plannedReps: Double?) {
+        val repsText = plannedReps?.let { " por ${it.toInt()} repeticiones" }.orEmpty()
+        speak(
+            "Para esta serie te recomiendo ${formatWeight(suggestedWeight)} kilos$repsText. " +
+                "Di sugerencia aplicada o dime tus números.",
+            queueFlush = true,
+        )
     }
 
     fun speakVoiceOn() {

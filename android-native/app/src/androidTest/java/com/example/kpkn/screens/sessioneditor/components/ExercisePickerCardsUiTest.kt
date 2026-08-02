@@ -54,7 +54,7 @@ class ExercisePickerCardsUiTest {
                 volumeContribution = 0.5,
             ),
         ),
-        technicalAspects = listOf(
+        catalogOptionAxes = listOf(
             TechnicalAspect(
                 id = "grip",
                 name = "Agarre",

@@ -9,7 +9,7 @@ enum class VoiceAnnouncementKind {
     CRITICAL,
     /** Rest start / adaptive hint / step re-announce after rest. */
     ESSENTIAL,
-    /** Ten-seconds, recovered, pacing. */
+    /** Ten-seconds remaining, pacing. */
     COMPLETE,
 }
 
@@ -29,9 +29,11 @@ data class VoiceSetEditPatch(
     val metricValue: Int? = null,
     val intensityValue: Double? = null,
     val intensityKind: WorkoutVoiceIntensityKind? = null,
+    val side: String? = null,
 ) {
     val hasAnyField: Boolean
-        get() = weightKg != null || weightDeltaKg != null || metricValue != null || intensityValue != null
+        get() = weightKg != null || weightDeltaKg != null || metricValue != null ||
+            intensityValue != null || side != null
 }
 
 data class VoiceUndoPayload(

@@ -96,6 +96,8 @@ class WorkoutVoiceCommandHandler(
         fun coachPaceAlert(): String?
         fun sessionTimeRemainingSeconds(): Int?
         fun suggestedWeightReason(exercise: Exercise, setIdx: Int, side: String?): String?
+        /** Drenaje acumulado en vivo: (SNC%, muscular%, espinal%). */
+        fun liveDrainSummary(): Triple<Int, Int, Int>?
         fun voiceExerciseAliases(): Map<String, String>
         fun enteringExerciseRangeHint(exercise: Exercise): String?
         fun setSessionTimeLimit(minutes: Int, persistToProgram: Boolean)
@@ -104,6 +106,12 @@ class WorkoutVoiceCommandHandler(
         fun markWarmupComplete(exerciseId: String, warmupSetId: String)
         fun markMobilityComplete(exerciseId: String, mobilitySeriesId: String)
         fun setVoiceExerciseQueue(exerciseIds: List<String>)
+        /** Mueve el ejercicio actual ±1 posición (estructura en vivo). */
+        fun moveCurrentExercise(direction: Int)
+        /** Crea superserie en vivo con los miembros indicados. */
+        fun createLiveSuperset(memberIds: List<String>)
+        /** Disuelve la superserie del ejercicio actual. */
+        fun dissolveCurrentSuperset()
     }
 
     private var voiceJob: Job? = null
@@ -284,7 +292,11 @@ class WorkoutVoiceCommandHandler(
             valueText = interpretation.resolvedMetricValue?.toTrimmedNumberString() ?: draft.valueText,
             intensityText = workoutVoiceIntensityText(interpretation, baseIntensityMode).ifBlank { draft.intensityText.orEmpty() },
             selectedSide = resolvedSide,
-            reachedFailure = if (WorkoutVoiceField.FAILURE in interpretation.fields) interpretation.reachedFailure else draft.reachedFailure,
+            reachedFailure = when {
+                interpretation.intensityKind != null -> false
+                WorkoutVoiceField.FAILURE in interpretation.fields -> interpretation.reachedFailure
+                else -> draft.reachedFailure
+            },
             rom = if (tracksRom) interpretation.romPercent ?: draft.rom else null,
             voiceFields = draft.voiceFields + interpretation.fields,
             isDirty = true,
@@ -403,6 +415,8 @@ class WorkoutVoiceCommandHandler(
 
         when (command) {
             is VoiceSessionCommand.RegisterSet -> handleVoiceRegisterSet(command.interpretation)
+            // Se resuelve dentro del controller (necesita la sugerencia del set actual).
+            is VoiceSessionCommand.ApplySuggestedLoad -> Unit
             is VoiceSessionCommand.ApplyTag -> handleVoiceApplyTag(command.tagName)
             is VoiceSessionCommand.ApplyConfirmedTag -> applyVoiceTag(command.tagName)
             is VoiceSessionCommand.Confirm -> handleVoiceConfirmSet()
@@ -474,7 +488,15 @@ class WorkoutVoiceCommandHandler(
             }
             is VoiceSessionCommand.SkipRest -> {
                 ports.stopRestTimer()
-                speakCurrentStepAnnouncementIfEnabled()
+                val restState = getState()
+                val restExercise = ports.visibleExercises(restState).getOrNull(restState.currentExerciseIdx)
+                if (restExercise != null) {
+                    voiceController.speakRestSkippedAnnouncement(
+                        setIndex = restState.currentSetIdx,
+                        totalSets = restExercise.sets.size,
+                        exerciseName = displayWorkoutExerciseName(restExercise),
+                    )
+                }
             }
             is VoiceSessionCommand.UseAdaptiveRest -> {
                 ports.resolvePendingRestSuggestion(useAdaptive = true)
@@ -506,6 +528,30 @@ class WorkoutVoiceCommandHandler(
             }
             is VoiceSessionCommand.SuggestWeightReasoned -> handleVoiceSuggestWeightReasoned()
             is VoiceSessionCommand.FatigueAdvice -> handleVoiceFatigueAdvice()
+            is VoiceSessionCommand.QueryDrainage -> handleVoiceQueryDrainage()
+            is VoiceSessionCommand.QueryCurrentSet -> handleVoiceQueryCurrentSet()
+            is VoiceSessionCommand.QueryPendingSide -> handleVoiceQueryPendingSide()
+            is VoiceSessionCommand.MoveCurrentExercise -> ports.moveCurrentExercise(command.direction)
+            // The controller consumes this command to collect members and ask for confirmation.
+            is VoiceSessionCommand.CreateSuperset -> Unit
+            is VoiceSessionCommand.ConfirmCreateSuperset -> {
+                WorkoutVoiceDiagnosticLogger.event(
+                    "voice_structure_action",
+                    mapOf("type" to "create_superset", "members" to command.members.size),
+                )
+                ports.createLiveSuperset(command.members)
+                voiceController.speakFeedbackUpdated(
+                    "Superserie creada con ${command.exerciseNames.joinToString(", ")}.",
+                )
+            }
+            is VoiceSessionCommand.DissolveSuperset -> {
+                WorkoutVoiceDiagnosticLogger.event(
+                    "voice_structure_action",
+                    mapOf("type" to "dissolve_superset"),
+                )
+                ports.dissolveCurrentSuperset()
+                voiceController.speakFeedbackUpdated("Superserie disuelta.")
+            }
             is VoiceSessionCommand.PaceStatus -> handleVoicePaceStatus()
             is VoiceSessionCommand.SetSessionTimeLimit -> {
                 ports.setSessionTimeLimit(command.minutes, command.persistToProgram)
@@ -615,7 +661,7 @@ class WorkoutVoiceCommandHandler(
         speakCurrentStepAnnouncementIfEnabled()
     }
 
-    fun speakCurrentStepAnnouncementIfEnabled() {
+    fun speakCurrentStepAnnouncementIfEnabled(prefix: String? = null) {
         if (voiceController.isEnabled() && !getState().isRestTimerRunning) {
             val updatedState = getState()
             val exercises = ports.visibleExercises(updatedState)
@@ -625,21 +671,22 @@ class WorkoutVoiceCommandHandler(
                     ports.workoutStepPositions(updatedState).firstOrNull { it.stepKey == key }
                 }
                 val stepKey = step?.stepKey
-                if (stepKey != null && lastAnnouncedStepKey == stepKey) return
+                // Un pedido explícito (p. ej. omitir descanso) anuncia aunque sea el mismo paso.
+                if (prefix == null && stepKey != null && lastAnnouncedStepKey == stepKey) return
                 lastAnnouncedStepKey = stepKey
                 if (step?.type == WorkoutStepType.MOBILITY) {
                     val mobility = nextEx.mobilitySeries.firstOrNull { it.id == step.mobilitySeriesId }
                     val target = mobility?.durationSeconds?.let { "$it segundos" }
                         ?: mobility?.reps?.let { "$it repeticiones" }
                         ?: "según lo programado"
-                    voiceController.speakFeedbackUpdated("Movilidad: ${mobility?.name ?: displayWorkoutExerciseName(nextEx)}, $target. Di iniciar si usa tiempo, o hecha al completarla.")
+                    voiceController.speakFeedbackUpdated("${prefix.orEmpty()}Movilidad: ${mobility?.name ?: displayWorkoutExerciseName(nextEx)}, $target. Di iniciar si usa tiempo, o hecha al completarla.")
                     return
                 }
                 if (step?.type == WorkoutStepType.WARMUP) {
                     val warmup = nextEx.warmupSets.firstOrNull { it.id == step.warmupSetId }
                     val suggested = ports.getWeightSuggestionWithAutoRegulation(nextEx, updatedState.currentSetIdx)?.suggestedWeight
                     val weightText = suggested?.let { ", peso calculado ${it.toTrimmedNumberString()} kilos" }.orEmpty()
-                    voiceController.speakFeedbackUpdated("Aproximación de ${displayWorkoutExerciseName(nextEx)}: ${warmup?.targetReps ?: 0} repeticiones$weightText. Di hecha al completarla.")
+                    voiceController.speakFeedbackUpdated("${prefix.orEmpty()}Aproximación de ${displayWorkoutExerciseName(nextEx)}: ${warmup?.targetReps ?: 0} repeticiones$weightText. Di hecha al completarla.")
                     return
                 }
                 val round = step?.supersetRoundIndex?.let { it + 1 }
@@ -648,6 +695,7 @@ class WorkoutVoiceCommandHandler(
                     updatedState.currentSetIdx + 1,
                     nextEx.sets.size,
                     round = round,
+                    prefix = prefix.orEmpty(),
                 )
             }
         }
@@ -861,7 +909,12 @@ class WorkoutVoiceCommandHandler(
             valueText = acceptedInterpretation.resolvedMetricValue?.toTrimmedNumberString() ?: draft.valueText,
             intensityText = workoutVoiceIntensityText(acceptedInterpretation, exercise.sets.getOrNull(setIdx)?.intensityMode).ifBlank { draft.intensityText.orEmpty() },
             selectedSide = resolvedSide,
-            reachedFailure = if (WorkoutVoiceField.FAILURE in acceptedInterpretation.fields) acceptedInterpretation.reachedFailure else draft.reachedFailure,
+            reachedFailure = when {
+                WorkoutVoiceField.FAILURE in acceptedInterpretation.fields -> acceptedInterpretation.reachedFailure
+                // Intensidad explícita por voz: no arrastrar el fallo planificado.
+                acceptedInterpretation.intensityKind != null -> false
+                else -> draft.reachedFailure
+            },
             rom = if (exercise.trackRom) acceptedInterpretation.romPercent ?: draft.rom else null,
             voiceFields = draft.voiceFields + acceptedInterpretation.fields,
             isDirty = true,
@@ -916,7 +969,12 @@ class WorkoutVoiceCommandHandler(
         }
         val intensity = interpretation.intensityValue ?: draft.intensityText?.replace(',', '.')?.toDoubleOrNull()
         val advanced = buildVoiceAdvancedFeedback(interpretation).copy(
-            reachedFailure = if (WorkoutVoiceField.FAILURE in interpretation.fields) interpretation.reachedFailure else draft.reachedFailure == true,
+            reachedFailure = when {
+                WorkoutVoiceField.FAILURE in interpretation.fields -> interpretation.reachedFailure
+                // Intensidad explícita por voz: no arrastrar el fallo planificado.
+                interpretation.intensityKind != null -> false
+                else -> draft.reachedFailure == true
+            },
             rom = draft.rom,
         )
         try {
@@ -1088,6 +1146,48 @@ class WorkoutVoiceCommandHandler(
             alert == "retrasado" || alert == "apurar" ->
                 "Te quedan ${remaining / 60} minutos y vas un poco atrasado."
             else -> "Te quedan ${remaining / 60} minutos. Ritmo bien."
+        }
+        voiceController.speakFeedbackUpdated(message)
+        updateState { it.copy(voiceSessionState = voiceController.state.value) }
+    }
+
+    private fun handleVoiceQueryDrainage() {
+        val drain = ports.liveDrainSummary()
+        val message = if (drain == null) {
+            "Todavía no hay series registradas para calcular el drenaje."
+        } else {
+            val spinalText = if (drain.third >= 10) " y ${drain.third} por ciento espinal" else ""
+            "Llevas ${drain.second} por ciento de drenaje muscular y ${drain.first} por ciento del sistema nervioso$spinalText."
+        }
+        voiceController.speakFeedbackUpdated(message)
+        updateState { it.copy(voiceSessionState = voiceController.state.value) }
+    }
+
+    private fun handleVoiceQueryCurrentSet() {
+        val state = getState()
+        val exercise = ports.visibleExercises(state).getOrNull(state.currentExerciseIdx)
+        val message = if (exercise == null) {
+            "No hay ejercicio en curso."
+        } else {
+            "Vas en la serie ${state.currentSetIdx + 1} de ${exercise.sets.size} de ${displayWorkoutExerciseName(exercise)}."
+        }
+        voiceController.speakFeedbackUpdated(message)
+        updateState { it.copy(voiceSessionState = voiceController.state.value) }
+    }
+
+    private fun handleVoiceQueryPendingSide() {
+        val state = getState()
+        val exercise = ports.visibleExercises(state).getOrNull(state.currentExerciseIdx)
+        if (exercise == null || !exercise.isEffectivelyUnilateral()) {
+            voiceController.speakFeedbackUpdated("Este ejercicio no es unilateral.")
+            updateState { it.copy(voiceSessionState = voiceController.state.value) }
+            return
+        }
+        val pending = resolvePendingSide(exercise, state)
+        val message = when {
+            pending == null -> "Ya registraste ambos lados."
+            pending == "left" -> "Te falta el lado izquierdo."
+            else -> "Te falta el lado derecho."
         }
         voiceController.speakFeedbackUpdated(message)
         updateState { it.copy(voiceSessionState = voiceController.state.value) }

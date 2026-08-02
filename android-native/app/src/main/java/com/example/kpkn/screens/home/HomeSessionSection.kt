@@ -56,6 +56,10 @@ fun HomeSessionSection(
     onEditSession: (Session, Program) -> Unit = { _, _ -> },
     onCreateProgram: () -> Unit = {},
     modifier: Modifier = Modifier,
+    voiceArmForNextSession: Boolean = false,
+    voiceCaptureMode: com.example.kpkn.data.models.VoiceCaptureMode = com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE,
+    onVoiceArmForNextSessionChange: (Boolean) -> Unit = {},
+    onVoiceCaptureModeChange: (com.example.kpkn.data.models.VoiceCaptureMode) -> Unit = {},
 ) {
     var activeIndex by remember { mutableIntStateOf(0) }
 
@@ -110,6 +114,10 @@ fun HomeSessionSection(
                         onResume = onResumeWorkout,
                         onEdit = { onEditSession(pageItem.session, pageItem.program) },
                         modifier = Modifier.padding(horizontal = 24.dp),
+                        voiceArmForNextSession = voiceArmForNextSession,
+                        voiceCaptureMode = voiceCaptureMode,
+                        onVoiceArmForNextSessionChange = onVoiceArmForNextSessionChange,
+                        onVoiceCaptureModeChange = onVoiceCaptureModeChange,
                     )
                 }
             } else {
@@ -121,6 +129,10 @@ fun HomeSessionSection(
                     onResume = onResumeWorkout,
                     onEdit = { onEditSession(currentItem.session, currentItem.program) },
                     modifier = Modifier.padding(horizontal = 24.dp),
+                    voiceArmForNextSession = voiceArmForNextSession,
+                    voiceCaptureMode = voiceCaptureMode,
+                    onVoiceArmForNextSessionChange = onVoiceArmForNextSessionChange,
+                    onVoiceCaptureModeChange = onVoiceCaptureModeChange,
                 )
             }
         }
@@ -136,6 +148,10 @@ private fun SessionCard(
     onResume: () -> Unit,
     onEdit: () -> Unit,
     modifier: Modifier = Modifier,
+    voiceArmForNextSession: Boolean = false,
+    voiceCaptureMode: com.example.kpkn.data.models.VoiceCaptureMode = com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE,
+    onVoiceArmForNextSessionChange: (Boolean) -> Unit = {},
+    onVoiceCaptureModeChange: (com.example.kpkn.data.models.VoiceCaptureMode) -> Unit = {},
 ) {
     val isToday = item.isToday
 
@@ -278,6 +294,15 @@ private fun SessionCard(
             }
 
             var musclesExpanded by remember { mutableStateOf(false) }
+
+            if (!item.isCompleted) {
+                SessionVoicePrearmRow(
+                    armed = voiceArmForNextSession,
+                    captureMode = voiceCaptureMode,
+                    onArmedChange = onVoiceArmForNextSessionChange,
+                    onCaptureModeChange = onVoiceCaptureModeChange,
+                )
+            }
 
             run {
                 Box(
@@ -494,3 +519,77 @@ private fun RestDayCard(
         }
     }
 }
+
+/** Pre-activación de voz desde la tarjeta de hoy: switch + selector de modo. */
+@Composable
+private fun SessionVoicePrearmRow(
+    armed: Boolean,
+    captureMode: com.example.kpkn.data.models.VoiceCaptureMode,
+    onArmedChange: (Boolean) -> Unit,
+    onCaptureModeChange: (com.example.kpkn.data.models.VoiceCaptureMode) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+    ) {
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    "Entrenar con Comandos de Voz",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    "La voz se activará sola al entrar a esta sesión",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                    fontSize = 10.sp,
+                )
+            }
+            Switch(
+                checked = armed,
+                onCheckedChange = onArmedChange,
+            )
+        }
+        if (armed) {
+            Spacer(Modifier.height(4.dp))
+            Row(
+                Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    "Modo",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                )
+                val musicSelected = captureMode == com.example.kpkn.data.models.VoiceCaptureMode.MUSIC
+                SingleChoiceSegmentedButtonRow(Modifier.weight(1f)) {
+                    SegmentedButton(
+                        selected = !musicSelected,
+                        onClick = {
+                            if (musicSelected) onCaptureModeChange(com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE)
+                        },
+                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+                    ) { Text("Manos libres", fontSize = 11.sp) }
+                    SegmentedButton(
+                        selected = musicSelected,
+                        onClick = {
+                            if (!musicSelected) onCaptureModeChange(com.example.kpkn.data.models.VoiceCaptureMode.MUSIC)
+                        },
+                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+                    ) { Text("Música", fontSize = 11.sp) }
+                }
+            }
+        }
+    }
+}
+

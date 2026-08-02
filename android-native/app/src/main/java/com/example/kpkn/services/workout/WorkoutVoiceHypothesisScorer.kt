@@ -28,6 +28,8 @@ object WorkoutVoiceHypothesisScorer {
         "segundo", "segundos", "minuto", "minutos",
         "saltar", "listo", "corregir", "sugerido", "adaptativo",
         "por", "con",
+        "equis", "reserva", "reservas", "quedaron", "quedaban",
+        "dandolo", "dándolo", "agotado", "cansado", "energia", "energía",
     )
 
     fun pickBest(hypotheses: List<VoiceHypothesis>): VoiceHypothesis? {

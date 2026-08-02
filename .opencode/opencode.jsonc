@@ -28,18 +28,4 @@
     "pipeline": "allow",
     "mode_config": "allow",
   },
-  "agent": {
-    "orquestador": {
-      "description": "Investiga y prepara planes KPKN con subagentes antes de editar producto.",
-      "color": "#FFD400",
-    },
-    "constructor_kpkn": {
-      "description": "Implementa planes KPKN aprobados y valida los cambios.",
-      "color": "#00D9FF",
-    },
-    "auditor": {
-      "description": "Audita cambios KPKN y devuelve hallazgos accionables.",
-      "color": "#FF4D9D",
-    },
-  },
 }

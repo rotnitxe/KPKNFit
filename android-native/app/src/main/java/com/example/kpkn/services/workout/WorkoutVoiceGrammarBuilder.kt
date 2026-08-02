@@ -49,6 +49,11 @@ object WorkoutVoiceGrammarBuilder {
                 expandForVosk(raw.lowercase()).forEach { tokens += it }
             }
         }
+        context?.customIntensityPhrases.orEmpty().forEach { phrase ->
+            phrase.trim().takeIf(String::isNotBlank)?.let { raw ->
+                expandForVosk(raw.lowercase()).forEach { tokens += it }
+            }
+        }
         val phrases = linkedSetOf<String>().apply { addAll(tokens) }
         if (stage != VoicePipelineStage.CONFIRM_WAIT) {
             val numericWords = WorkoutVoiceCommandParser.defaultNumericGrammarTokens()

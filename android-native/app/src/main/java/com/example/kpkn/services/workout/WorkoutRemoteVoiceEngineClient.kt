@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
+import com.example.kpkn.data.models.VoiceCaptureMode
 import com.example.kpkn.data.models.VoiceNoiseProfile
 import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.CoroutineScope
@@ -35,6 +36,7 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
     private var currentStage = VoicePipelineStage.LISTENING
     private var currentGrammar = WorkoutVoiceGrammarBuilder.build(currentStage, null)
     private var noiseProfile = VoiceNoiseProfile.GYM
+    private var captureMode = VoiceCaptureMode.HANDS_FREE
 
     private val _partialResults = MutableSharedFlow<String>(extraBufferCapacity = 4)
     override val partialResults: Flow<String> = _partialResults
@@ -160,13 +162,21 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
         }
     }
 
-    override fun start(scope: CoroutineScope, holdMicRouteAcrossPause: Boolean) {
+    override fun start(scope: CoroutineScope, holdMicRouteAcrossPause: Boolean, captureMode: VoiceCaptureMode) {
         this.holdMicRouteAcrossPause = holdMicRouteAcrossPause
+        this.captureMode = captureMode
         if (!activeRequested) generation = generationCounter.incrementAndGet()
         activeRequested = true
         failedTerminal = false
         _captureState.value = VoiceCaptureState.STARTING
         if (remote == null) ensureBound() else sendStart()
+    }
+
+    override fun updateCaptureMode(mode: VoiceCaptureMode) {
+        captureMode = mode
+        if (!activeRequested || failedTerminal) return
+        runCatching { remote?.updateCaptureMode(generation, mode.ordinal) }
+            .onFailure { handleBinderDeath() }
     }
 
     override fun pause() {
@@ -229,8 +239,14 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
 
     private fun sendStart() {
         runCatching {
-            remote?.start(generation, holdMicRouteAcrossPause, currentGrammar, currentStage.ordinal, noiseProfile.ordinal)
-                ?: error("Binder de voz no disponible")
+            remote?.start(
+                generation,
+                holdMicRouteAcrossPause,
+                currentGrammar,
+                currentStage.ordinal,
+                noiseProfile.ordinal,
+                captureMode.ordinal,
+            ) ?: error("Binder de voz no disponible")
         }.onFailure { handleBinderDeath() }
     }
 
@@ -247,7 +263,13 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
         val failureMessage = "La voz se detuvo; tu entrenamiento sigue guardado"
         _errors.tryEmit(failureMessage)
         _failures.tryEmit(WorkoutVoiceFailure(WorkoutVoiceFailureCode.IPC_DEATH, failureMessage, terminal = true))
-        WorkoutVoiceDiagnosticLogger.event("voice_ipc_died", mapOf("generation" to generation))
+        WorkoutVoiceDiagnosticLogger.event(
+            "voice_ipc_died",
+            mapOf(
+                "generation" to generation,
+                "origin" to "client_bind_death",
+            ) + WorkoutVoiceDiagnosticLogger.runtimeStateFields(appContext),
+        )
     }
 
     private fun unbind() {

@@ -1,6 +1,7 @@
 package com.example.kpkn.services.workout
 
 import android.content.Context
+import android.media.AudioDeviceInfo
 import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioRecord
@@ -10,6 +11,7 @@ import android.os.Handler
 import android.os.Looper
 import android.speech.SpeechRecognizer
 import android.os.SystemClock
+import com.example.kpkn.data.models.VoiceCaptureMode
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -63,6 +65,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
     private var modelPrepareJob: Job? = null
     private var resumeJob: Job? = null
     private var fallbackJob: Job? = null
+    private var routeRevokedJob: Job? = null
     private val commands = Channel<EngineCommand>(
         capacity = 32,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
@@ -212,7 +215,11 @@ class WorkoutContinuousVoiceEngine internal constructor(
         )
     }
 
-    override fun start(scope: CoroutineScope, holdMicRouteAcrossPause: Boolean) {
+    override fun start(
+        scope: CoroutineScope,
+        holdMicRouteAcrossPause: Boolean,
+        captureMode: VoiceCaptureMode,
+    ) {
         val actorScope = persistentScope ?: scope
         this.scope = actorScope
         this.holdMicRouteAcrossPause = holdMicRouteAcrossPause
@@ -234,8 +241,13 @@ class WorkoutContinuousVoiceEngine internal constructor(
             EngineCommand.Start(
                 generation = generation,
                 holdMicRouteAcrossPause = holdMicRouteAcrossPause,
+                captureMode = captureMode,
             ),
         )
+    }
+
+    override fun updateCaptureMode(mode: com.example.kpkn.data.models.VoiceCaptureMode) {
+        commands.trySend(EngineCommand.UpdateCaptureMode(generationCounter.get(), mode))
     }
 
     override fun pause() {
@@ -364,11 +376,21 @@ class WorkoutContinuousVoiceEngine internal constructor(
         var healthyRecord = false
         var hasListenedInGeneration = false
         var consecutiveReadErrors = 0
+        var consecutiveEmptyReads = 0
+        var gateDiscardedFrames = 0L
+        var gateLastLogAtMs = 0L
+        var gateAssumedLogged = false
+        var routeMismatchAttempts = 0
         var rapidFailures = 0
         var slowProbeMode = false
         var nextOpenAtMs = Long.MAX_VALUE
         var silencedDeadlineMs: Long? = null
         var currentRecordSilenced: Boolean? = null
+        var healthWindowStartMs = 0L
+        var healthFrames = 0L
+        var healthZeroFrames = 0L
+        var healthRmsSum = 0.0
+        var healthRmsMax = Double.NEGATIVE_INFINITY
         var sawSpeechInCurrentUtterance = false
         var lastPartialText = ""
         var lastPartialEmitAtMs = 0L
@@ -451,6 +473,10 @@ class WorkoutContinuousVoiceEngine internal constructor(
             currentRecordSilenced = null
             silencedDeadlineMs = null
             consecutiveReadErrors = 0
+            consecutiveEmptyReads = 0
+            gateDiscardedFrames = 0L
+            gateLastLogAtMs = 0L
+            gateAssumedLogged = false
             runCatching { previous?.stop() }
             runCatching { previous?.release() }
         }
@@ -479,7 +505,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
             }
         }
 
-        fun openRecord(now: Long): Boolean {
+        suspend fun openRecord(now: Long): Boolean {
             if (!running || !activeRequested || !captureDesired || model == null) return false
             if (fallbackInFlight.get()) return false
             releaseRecord()
@@ -489,8 +515,28 @@ class WorkoutContinuousVoiceEngine internal constructor(
                 return false
             }
             val bufferBytes = maxOf(minBuffer, PCM_FRAME_SHORTS * 2 * 4)
+            val externalRoute = micRouter.hasExternalRouteRequested()
+            val audioSource = WorkoutVoiceAudioSourcePolicy.select(Build.VERSION.SDK_INT, externalRoute)
+            if (externalRoute) {
+                val routeAwaitStartedAt = clockMs()
+                val routeReady = micRouter.awaitCommunicationRoute(ROUTE_AWAIT_TIMEOUT_MS)
+                WorkoutVoiceDiagnosticLogger.event(
+                    "sco_link_state",
+                    mapOf(
+                        "awaitResult" to routeReady,
+                        "awaitMs" to (clockMs() - routeAwaitStartedAt),
+                        "scoOn" to runCatching {
+                            @Suppress("DEPRECATION")
+                            audioManager?.isBluetoothScoOn
+                        }.getOrNull(),
+                        "communicationDevice" to micRouter.activeRouteLabel.value,
+                        "audioMode" to audioManager?.mode,
+                        "audioSource" to WorkoutVoiceAudioSourcePolicy.nameOf(audioSource),
+                    ),
+                )
+            }
             val candidate = try {
-                audioRecordFactory.create(bufferBytes)
+                audioRecordFactory.create(bufferBytes, audioSource)
             } catch (_: Exception) {
                 scheduleAfterFailure(now)
                 return false
@@ -500,6 +546,10 @@ class WorkoutContinuousVoiceEngine internal constructor(
                 scheduleAfterFailure(now)
                 return false
             }
+            // El sessionId es válido desde la construcción del AudioRecord; asignarlo
+            // antes de startRecording() para que el AudioRecordingCallback (hilo main)
+            // nunca descarte el evento por activeSessionId == null.
+            activeSessionId = candidate.audioSessionId
             candidate.platformRecord?.let { platformRecord ->
                 micRouter.applyPreferredDeviceTo(
                     platformRecord,
@@ -526,13 +576,55 @@ class WorkoutContinuousVoiceEngine internal constructor(
                 scheduleAfterFailure(now)
                 return false
             }
-            candidate.platformRecord?.let(micRouter::observeStartedRecord)
+            val observed = candidate.platformRecord?.let(micRouter::observeStartedRecord)
+            val expectedExternal = micRouter.hasExternalRouteRequested()
+            if (expectedExternal && observed != null &&
+                (observed.deviceType == AudioDeviceInfo.TYPE_BUILTIN_MIC ||
+                    observed.deviceType == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER ||
+                    observed.deviceType == AudioDeviceInfo.TYPE_BUILTIN_EARPIECE)
+            ) {
+                routeMismatchAttempts++
+                WorkoutVoiceDiagnosticLogger.event(
+                    "audio_route_mismatch",
+                    mapOf(
+                        "requested" to micRouter.activeRouteLabel.value,
+                        "observed" to observed.label,
+                        "recordDeviceId" to observed.deviceId,
+                        "attempt" to routeMismatchAttempts,
+                    ),
+                )
+                if (routeMismatchAttempts < MAX_ROUTE_MISMATCH_RETRIES) {
+                    runCatching { candidate.stop() }
+                    runCatching { candidate.release() }
+                    activeSessionId = null
+                    leaseGuard.releaseCurrent()
+                    nextOpenAtMs = now + ROUTE_MISMATCH_RETRY_DELAY_MS
+                    _captureState.value = VoiceCaptureState.RECONNECTING
+                    return false
+                }
+                WorkoutVoiceDiagnosticLogger.event(
+                    "audio_route_fallback_phone",
+                    mapOf("requested" to micRouter.activeRouteLabel.value, "attempts" to routeMismatchAttempts),
+                )
+                // Seguir con el mic interno: mejor capturar por el teléfono que no capturar.
+            } else {
+                routeMismatchAttempts = 0
+            }
             record = candidate
             activeSessionId = candidate.audioSessionId
             recordOpenedAtMs = now
             healthyRecord = false
             currentRecordSilenced = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) false else null
             consecutiveReadErrors = 0
+            consecutiveEmptyReads = 0
+            gateDiscardedFrames = 0L
+            gateLastLogAtMs = 0L
+            gateAssumedLogged = false
+            healthWindowStartMs = now
+            healthFrames = 0L
+            healthZeroFrames = 0L
+            healthRmsSum = 0.0
+            healthRmsMax = Double.NEGATIVE_INFINITY
             micBusy = false
             silencedDeadlineMs = null
             nextOpenAtMs = Long.MAX_VALUE
@@ -574,6 +666,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
             generation: Long,
             transcript: String,
             announcePrompt: Boolean,
+            reportCapture: Boolean,
         ) {
             fallbackQueued.set(false)
             if (!running || generation != actorGeneration || !activeRequested || micBusy) return
@@ -588,7 +681,6 @@ class WorkoutContinuousVoiceEngine internal constructor(
                     }
                     FallbackGateResult.Allowed -> Unit
                 }
-                FallbackGateResult.Allowed -> Unit
             }
             if (!nativeRecognizer.isAvailable()) {
                 val reason = nativeRecognizer.unavailableReason() ?: "Fallback local no disponible"
@@ -606,7 +698,14 @@ class WorkoutContinuousVoiceEngine internal constructor(
             captureDesired = false
             releaseRecord()
             micRouter.acquire(WorkoutVoiceMicRouter.RouteMode.FALLBACK_ALLOW_HEADSET)
-            val ownerScope = scope ?: return
+            val ownerScope = scope ?: run {
+                cancelFallback()
+                discardPcmOnly = false
+                captureDesired = true
+                micBusy = false
+                micRouter.acquire(WorkoutVoiceMicRouter.RouteMode.CONTINUOUS_VOICE_FIRST)
+                return
+            }
             fallbackJob = ownerScope.launch(Dispatchers.IO) {
                 val result = try {
                     if (announcePrompt) {
@@ -647,6 +746,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
                     EngineCommand.FallbackFinished(
                         generation = generation,
                         result = result,
+                        reportCapture = reportCapture,
                     ),
                 )
             }
@@ -663,8 +763,10 @@ class WorkoutContinuousVoiceEngine internal constructor(
                     hasListenedInGeneration = false
                     rapidFailures = 0
                     slowProbeMode = false
+                    routeMismatchAttempts = 0
                     nextOpenAtMs = clockMs()
                     holdMicRouteAcrossPause = command.holdMicRouteAcrossPause
+                    micRouter.externalRouteEnabled = command.captureMode == com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE
                     _captureState.value = VoiceCaptureState.STARTING
                     micRouter.acquire(WorkoutVoiceMicRouter.RouteMode.CONTINUOUS_VOICE_FIRST)
                     registerRecordingCallback()
@@ -672,7 +774,27 @@ class WorkoutContinuousVoiceEngine internal constructor(
                         launchModelPreparation(actorGeneration)
                     }
                 }
-            reportCapture: Boolean,
+
+                is EngineCommand.UpdateCaptureMode -> {
+                    if (command.generation != actorGeneration) return
+                    val enableExternal = command.mode == com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE
+                    if (micRouter.externalRouteEnabled == enableExternal) return
+                    micRouter.externalRouteEnabled = enableExternal
+                    WorkoutVoiceDiagnosticLogger.event(
+                        "voice_capture_mode_changed",
+                        mapOf("mode" to command.mode.name) +
+                            WorkoutVoiceDiagnosticLogger.runtimeStateFields(context),
+                    )
+                    if (!running) return
+                    if (enableExternal) {
+                        micRouter.acquire(WorkoutVoiceMicRouter.RouteMode.CONTINUOUS_VOICE_FIRST)
+                    } else {
+                        micRouter.release()
+                    }
+                    releaseRecord()
+                    resetRecovery(clockMs(), immediate = true)
+                    _captureState.value = VoiceCaptureState.RECONNECTING
+                }
 
                 is EngineCommand.Stop -> {
                     actorGeneration = command.generation
@@ -746,7 +868,6 @@ class WorkoutContinuousVoiceEngine internal constructor(
                         _captureState.value = VoiceCaptureState.ERROR_RECOVERY
                         _errors.emit("Error Vosk: ${e.message ?: "desconocido"}")
                     }
-                        reportCapture = reportCapture,
                 }
 
                 is EngineCommand.ModelFailed -> {
@@ -757,6 +878,14 @@ class WorkoutContinuousVoiceEngine internal constructor(
 
                 is EngineCommand.RecordingConfig -> {
                     if (!running || command.generation != actorGeneration) return
+                    WorkoutVoiceDiagnosticLogger.event(
+                        "audio_record_config",
+                        mapOf(
+                            "present" to command.present,
+                            "silenced" to command.silenced,
+                            "sessionId" to command.sessionId,
+                        ),
+                    )
                     if (command.sessionId != activeSessionId) return
                     when {
                         !command.present -> {
@@ -792,6 +921,15 @@ class WorkoutContinuousVoiceEngine internal constructor(
                     }
                 }
 
+                is EngineCommand.RouteRevoked -> {
+                    if (command.generation != actorGeneration || !running) return
+                    if (record != null) {
+                        releaseRecord()
+                        resetRecovery(clockMs(), immediate = true)
+                        _captureState.value = VoiceCaptureState.RECONNECTING
+                    }
+                }
+
                 is EngineCommand.RequestFallback -> {
                     if (command.generation != actorGeneration) {
                         fallbackQueued.set(false)
@@ -801,6 +939,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
                         generation = command.generation,
                         transcript = command.transcript,
                         announcePrompt = command.announcePrompt,
+                        reportCapture = command.reportCapture,
                     )
                 }
 
@@ -860,6 +999,12 @@ class WorkoutContinuousVoiceEngine internal constructor(
             }
         }
 
+        routeRevokedJob?.cancel()
+        routeRevokedJob = scope?.launch(Dispatchers.IO) {
+            micRouter.routeRevoked.collect {
+                commands.trySend(EngineCommand.RouteRevoked(generationCounter.get()))
+            }
+        }
         try {
             while (kotlin.coroutines.coroutineContext.isActive) {
                 var handledCommand = false
@@ -908,15 +1053,49 @@ class WorkoutContinuousVoiceEngine internal constructor(
                     when {
                         read > 0 -> {
                             consecutiveReadErrors = 0
-                            if (!WorkoutVoiceCaptureGate.mayPublishListening(currentRecordSilenced, true)) {
+                            consecutiveEmptyReads = 0
+                            val recordAgeMs = now - recordOpenedAtMs
+                            if (!WorkoutVoiceCaptureGate.mayPublishListening(currentRecordSilenced, true, recordAgeMs)) {
+                                gateDiscardedFrames++
                                 _rmsLevel.value = 0f
                                 if (currentRecordSilenced == true) {
                                     micBusy = true
                                     _captureState.value = VoiceCaptureState.MIC_BUSY
                                 }
+                                if (now - gateLastLogAtMs >= 2_000L) {
+                                    gateLastLogAtMs = now
+                                    WorkoutVoiceDiagnosticLogger.event(
+                                        "voice_capture_gate",
+                                        mapOf(
+                                            "silenced" to currentRecordSilenced,
+                                            "recordAgeMs" to recordAgeMs,
+                                            "discardedFrames" to gateDiscardedFrames,
+                                            "reason" to "config_callback_pending_or_silenced",
+                                        ),
+                                    )
+                                }
                                 delay(ACTOR_POLL_DELAY_MS)
                                 continue
                             }
+                            if (!gateAssumedLogged &&
+                                WorkoutVoiceCaptureGate.assumedUnsilencedByGrace(currentRecordSilenced, recordAgeMs)
+                            ) {
+                                gateAssumedLogged = true
+                                WorkoutVoiceDiagnosticLogger.event(
+                                    "voice_capture_gate",
+                                    mapOf(
+                                        "silenced" to currentRecordSilenced,
+                                        "recordAgeMs" to recordAgeMs,
+                                        "discardedFrames" to gateDiscardedFrames,
+                                        "reason" to "config_callback_missing_assumed_unsilenced",
+                                    ),
+                                )
+                            }
+                            healthFrames++
+                            if (isAllZeros(shortBuffer, read)) healthZeroFrames++
+                            val frameRmsDb = estimateRmsDb(shortBuffer, read)
+                            healthRmsSum += frameRmsDb.toDouble()
+                            if (frameRmsDb > healthRmsMax) healthRmsMax = frameRmsDb.toDouble()
                             if (!healthyRecord) {
                                 healthyRecord = true
                                 rapidFailures = 0
@@ -928,7 +1107,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
                                 }
                                 hasListenedInGeneration = true
                             }
-                            _rmsLevel.value = estimateRmsDb(shortBuffer, read)
+                            _rmsLevel.value = frameRmsDb
                             if (!discardPcmOnly) {
                                 val currentRecognizer = recognizer
                                 if (currentRecognizer != null &&
@@ -954,7 +1133,6 @@ class WorkoutContinuousVoiceEngine internal constructor(
                                         if (sawSpeechInCurrentUtterance) {
                                             if (partial.isNotBlank()) {
                                                 // El final vino vacío pero el partial traía la
-                        reportCapture = command.reportCapture,
                                                 // frase: emitirlo como hipótesis de respaldo en
                                                 // vez de perder el comando.
                                                 WorkoutVoiceDiagnosticLogger.event(
@@ -999,6 +1177,10 @@ class WorkoutContinuousVoiceEngine internal constructor(
 
                         read < 0 -> {
                             consecutiveReadErrors++
+                            WorkoutVoiceDiagnosticLogger.event(
+                                "voice_read_error",
+                                mapOf("code" to read, "consecutive" to consecutiveReadErrors),
+                            )
                             if (
                                 WorkoutVoiceCaptureGate.shouldAbandonDeadAudioRecord(
                                     consecutiveReadErrors,
@@ -1009,11 +1191,46 @@ class WorkoutContinuousVoiceEngine internal constructor(
                             }
                         }
 
+                        read == 0 -> {
+                            consecutiveEmptyReads++
+                            if (consecutiveEmptyReads >= EMPTY_READ_ABANDON_THRESHOLD) {
+                                WorkoutVoiceDiagnosticLogger.event(
+                                    "voice_read_error",
+                                    mapOf("code" to 0, "consecutive" to consecutiveEmptyReads),
+                                )
+                                _statusMessages.emit("Micrófono sin datos; reconectando")
+                                scheduleAfterFailure(now)
+                            }
+                        }
+
                         !healthyRecord && now - recordOpenedAtMs >= PCM_START_WATCHDOG_MS -> {
                             _statusMessages.emit("Micrófono sin audio; reconectando")
                             scheduleAfterFailure(now)
                         }
                     }
+                }
+
+                if (record != null && now - healthWindowStartMs >= HEALTH_WINDOW_MS) {
+                    WorkoutVoiceDiagnosticLogger.event(
+                        "voice_capture_health",
+                        mapOf(
+                            "framesRead" to healthFrames,
+                            "zeroFrames" to healthZeroFrames,
+                            "readErrors" to consecutiveReadErrors,
+                            "rmsAvgDb" to if (healthFrames > 0) (healthRmsSum / healthFrames) else null,
+                            "rmsMaxDb" to healthRmsMax.takeIf { it != Double.NEGATIVE_INFINITY },
+                            "route" to micRouter.activeRouteLabel.value,
+                            "silenced" to currentRecordSilenced,
+                            "discardPcmOnly" to discardPcmOnly,
+                            "healthy" to healthyRecord,
+                            "captureAgeMs" to (now - recordOpenedAtMs),
+                        ) + WorkoutVoiceDiagnosticLogger.runtimeStateFields(context),
+                    )
+                    healthWindowStartMs = now
+                    healthFrames = 0L
+                    healthZeroFrames = 0L
+                    healthRmsSum = 0.0
+                    healthRmsMax = Double.NEGATIVE_INFINITY
                 }
 
                 if (!handledCommand) delay(ACTOR_POLL_DELAY_MS)
@@ -1029,6 +1246,8 @@ class WorkoutContinuousVoiceEngine internal constructor(
             cancelFallback()
             modelPrepareJob?.cancel()
             modelPrepareJob = null
+            routeRevokedJob?.cancel()
+            routeRevokedJob = null
             releaseRecord()
             unregisterRecordingCallback()
             micRouter.release()
@@ -1107,10 +1326,23 @@ class WorkoutContinuousVoiceEngine internal constructor(
         return (20.0 * log10(rms / Short.MAX_VALUE.toDouble()).coerceAtLeast(-60.0)).toFloat()
     }
 
+    private fun isAllZeros(buffer: ShortArray, read: Int): Boolean {
+        for (index in 0 until read) {
+            if (buffer[index] != 0.toShort()) return false
+        }
+        return true
+    }
+
     private sealed interface EngineCommand {
         data class Start(
             val generation: Long,
             val holdMicRouteAcrossPause: Boolean,
+            val captureMode: com.example.kpkn.data.models.VoiceCaptureMode,
+        ) : EngineCommand
+
+        data class UpdateCaptureMode(
+            val generation: Long,
+            val mode: com.example.kpkn.data.models.VoiceCaptureMode,
         ) : EngineCommand
 
         data class Stop(
@@ -1158,15 +1390,19 @@ class WorkoutContinuousVoiceEngine internal constructor(
             val silenced: Boolean?,
         ) : EngineCommand
 
+        data class RouteRevoked(val generation: Long) : EngineCommand
+
         data class RequestFallback(
             val generation: Long,
             val transcript: String,
             val announcePrompt: Boolean,
+            val reportCapture: Boolean = false,
         ) : EngineCommand
 
         data class FallbackFinished(
             val generation: Long,
             val result: NativeRecognitionResult,
+            val reportCapture: Boolean = false,
         ) : EngineCommand
     }
 
@@ -1180,11 +1416,17 @@ class WorkoutContinuousVoiceEngine internal constructor(
         private const val PCM_START_WATCHDOG_MS = 1_500L
         private const val MIC_BUSY_TIMEOUT_MS = 5_000L
         private const val MISSING_SESSION_RETRY_MS = 300L
+        private const val EMPTY_READ_ABANDON_THRESHOLD = 16
+        private const val HEALTH_WINDOW_MS = 5_000L
+        private const val ROUTE_AWAIT_TIMEOUT_MS = 1_500L
+        private const val MAX_ROUTE_MISMATCH_RETRIES = 2
+        private const val ROUTE_MISMATCH_RETRY_DELAY_MS = 300L
         private const val SLOW_PROBE_INTERVAL_MS = 15_000L
         private const val MAX_RAPID_RECOVERY_ATTEMPTS = 3
         private val RAPID_RETRY_DELAYS_MS = longArrayOf(300L, 1_000L, 2_000L)
         private const val TTS_RESUME_DELAY_MS = 300L
         private const val NATIVE_FALLBACK_TIMEOUT_MS = 6_000L
+        private const val REPORT_CAPTURE_TIMEOUT_MS = 15_000L
         private const val NATIVE_FALLBACK_RETRY_DELAY_MS = 400L
         private const val PROMPT_TTS_TIMEOUT_MS = 8_000L
         private val TRANSIENT_NATIVE_RECOGNIZER_ERRORS = setOf(
@@ -1205,6 +1447,3 @@ enum class VoiceCaptureState {
     ERROR_RECOVERY,
     FAILED,
 }
-            val reportCapture: Boolean = false,
-            val reportCapture: Boolean = false,
-        private const val REPORT_CAPTURE_TIMEOUT_MS = 15_000L

@@ -139,6 +139,7 @@ data class WorkoutUiState(
     val voiceUiState: WorkoutVoiceUiState = WorkoutVoiceUiState.Idle,
     val voiceSessionEnabled: Boolean = false,
     val voiceSessionState: VoiceSessionState = VoiceSessionState(),
+    val showVoiceCaptureModeDialog: Boolean = false,
     val voiceFinalNotes: String? = null,
     val voiceFinalDiscomforts: List<String> = emptyList(),
     val voiceFinalAdditionalDiscomfortNote: String? = null,

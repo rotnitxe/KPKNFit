@@ -1,5 +1,6 @@
 package com.example.kpkn.services.workout
 
+import com.example.kpkn.screens.workout.WorkoutVoiceField
 import com.example.kpkn.screens.workout.WorkoutVoiceInterpretation
 
 enum class VoicePipelineStage {
@@ -86,6 +87,39 @@ sealed interface VoicePendingAction {
         override val baseInterpretation: WorkoutVoiceInterpretation,
         val technique: String,
     ) : VoicePendingAction
+
+    /** Faltó un campo (peso o reps): se pregunta de forma dirigida. */
+    data class MissingSlot(
+        override val baseInterpretation: WorkoutVoiceInterpretation,
+        val slot: WorkoutVoiceField,
+    ) : VoicePendingAction
+
+    /** Falta la métrica y hay valor programado: "¿Pudiste hacer las X repeticiones?" */
+    data class ConfirmPlannedValue(
+        override val baseInterpretation: WorkoutVoiceInterpretation,
+        val slot: WorkoutVoiceField,
+        val plannedValue: Double,
+    ) : VoicePendingAction
+
+    /** Falta la carga y hay sugerencia: "¿Usaste los X kilos?" (sí = usar sugerido). */
+    data class ConfirmSuggestedLoad(
+        override val baseInterpretation: WorkoutVoiceInterpretation,
+        val suggestedWeight: Double,
+        val plannedReps: Double?,
+    ) : VoicePendingAction
+
+    /** Confirmación explícita de una acción estructural (mover/disolver superserie). */
+    data class ConfirmStructureAction(
+        override val baseInterpretation: WorkoutVoiceInterpretation = WorkoutVoiceInterpretation(""),
+        val action: VoiceSessionCommand,
+    ) : VoicePendingAction
+
+    /** Recoge miembros de la superserie por voz (uno por turno, "listo" termina). */
+    data class SupersetCollectMembers(
+        override val baseInterpretation: WorkoutVoiceInterpretation = WorkoutVoiceInterpretation(""),
+        val members: List<String>,
+        val exerciseNames: List<String>,
+    ) : VoicePendingAction
 }
 
 sealed class VoiceSessionCommand {
@@ -118,6 +152,8 @@ sealed class VoiceSessionCommand {
     data object SkipRest : VoiceSessionCommand()
     /** Apply pending adaptive rest suggestion. */
     data object UseAdaptiveRest : VoiceSessionCommand()
+    /** Usar la carga sugerida del set actual (auto-relleno con confirmación). */
+    data object ApplySuggestedLoad : VoiceSessionCommand()
     /** Adjust rest timer by spoken delta seconds. */
     data class AdjustRestTime(val deltaSeconds: Int) : VoiceSessionCommand()
     /** Undo last auto-confirmed set within the correction window. */
@@ -130,6 +166,23 @@ sealed class VoiceSessionCommand {
     data object FatigueAdvice : VoiceSessionCommand()
     /** Coach: session pace status. */
     data object PaceStatus : VoiceSessionCommand()
+    /** Coach: ¿cuánto drenaje/fatiga acumulada llevo? (read-only). */
+    data object QueryDrainage : VoiceSessionCommand()
+    /** ¿Qué serie voy? (read-only). */
+    data object QueryCurrentSet : VoiceSessionCommand()
+    /** ¿Qué lado falta en una serie unilateral? (read-only). */
+    data object QueryPendingSide : VoiceSessionCommand()
+    /** Mover el ejercicio actual ±1 posición (requiere confirmación). */
+    data class MoveCurrentExercise(val direction: Int) : VoiceSessionCommand()
+    /** Crear superserie guiada con los ejercicios dichos (requiere confirmación). */
+    data object CreateSuperset : VoiceSessionCommand()
+    /** Disolver la superserie del ejercicio actual (requiere confirmación). */
+    data object DissolveSuperset : VoiceSessionCommand()
+    /** Confirmada por voz: crear superserie con los miembros resueltos. */
+    data class ConfirmCreateSuperset(
+        val members: List<String>,
+        val exerciseNames: List<String>,
+    ) : VoiceSessionCommand()
     data class SetSessionTimeLimit(val minutes: Int, val persistToProgram: Boolean) : VoiceSessionCommand()
     data object StartTimedSet : VoiceSessionCommand()
     data object StopTimedSet : VoiceSessionCommand()

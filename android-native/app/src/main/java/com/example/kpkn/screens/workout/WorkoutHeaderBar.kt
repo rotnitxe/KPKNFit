@@ -247,6 +247,8 @@ internal fun WorkoutHeaderBar(
     onTagClick: (String) -> Unit = {},
     onRemoveSubTag: (String) -> Unit = {},
     onCreateTagClick: () -> Unit = {},
+    voiceCaptureMode: com.example.kpkn.data.models.VoiceCaptureMode? = null,
+    onVoiceCaptureModeChange: ((com.example.kpkn.data.models.VoiceCaptureMode) -> Unit)? = null,
 ) {
     val colors = remember(background) {
         when {
@@ -509,7 +511,55 @@ internal fun WorkoutHeaderBar(
                         }
                     }
                 }
+                if (voiceCaptureMode != null && onVoiceCaptureModeChange != null) {
+                    val musicSelected = voiceCaptureMode == com.example.kpkn.data.models.VoiceCaptureMode.MUSIC
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(99.dp))
+                            .background(Color.White.copy(alpha = 0.14f))
+                            .padding(2.dp),
+                    ) {
+                        VoiceModeHeaderSegment(
+                            label = "Manos libres",
+                            selected = !musicSelected,
+                            onClick = {
+                                if (musicSelected) onVoiceCaptureModeChange(com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE)
+                            },
+                        )
+                        VoiceModeHeaderSegment(
+                            label = "Música",
+                            selected = musicSelected,
+                            onClick = {
+                                if (!musicSelected) onVoiceCaptureModeChange(com.example.kpkn.data.models.VoiceCaptureMode.MUSIC)
+                            },
+                        )
+                    }
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun VoiceModeHeaderSegment(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(99.dp))
+            .background(if (selected) Color.White.copy(alpha = 0.30f) else Color.Transparent)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 10.dp, vertical = 5.dp),
+    ) {
+        Text(
+            text = label,
+            color = Color.White,
+            fontSize = 10.sp,
+            fontWeight = if (selected) FontWeight.Black else FontWeight.Bold,
+            maxLines = 1,
+        )
     }
 }

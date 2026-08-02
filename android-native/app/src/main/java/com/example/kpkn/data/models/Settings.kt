@@ -28,6 +28,16 @@ data class Settings(
     val voiceInputMode: VoiceInputMode = VoiceInputMode.CONTINUOUS,
     /** Tutorial version for the current hybrid voice explanation. */
     val voiceTutorialVersionSeen: Int = 0,
+    /** Modo de captura de voz: auriculares (manos libres) vs mic del teléfono (música intacta). */
+    val voiceCaptureMode: VoiceCaptureMode = VoiceCaptureMode.HANDS_FREE,
+    /** Falso hasta que el usuario elige modo por primera vez (diálogo obligatorio). */
+    val hasChosenVoiceCaptureMode: Boolean = false,
+    /** Intención de pre-activar voz al entrar a la próxima sesión (tarjeta de hoy). */
+    val voiceArmForNextSession: Boolean = false,
+    /** Cue por serie con la carga sugerida + comando "sugerencia aplicada" (opt-in). */
+    val voiceAutoSuggestLoads: Boolean = false,
+    /** Frases personalizadas del usuario → intensidad (se inyectan a la gramática). */
+    val voiceCustomIntensityPhrases: List<CustomIntensityPhrase> = emptyList(),
 
     /** User nicknames → exerciseId for voice matching. */
     val voiceExerciseAliases: Map<String, String> = emptyMap(),
@@ -112,6 +122,7 @@ enum class WorkoutLoggerMode { PRO, SIMPLE }
 enum class VoiceVerbosity { COMPLETE, ESSENTIAL, SILENT }
 enum class VoiceNoiseProfile { GYM, QUIET }
 enum class VoiceInputMode { CONTINUOUS, PUSH_TO_TALK }
+enum class VoiceCaptureMode { HANDS_FREE, MUSIC }
 enum class ApiProvider { GEMINI, GPT, DEEPSEEK }
 enum class AppTheme { DEFAULT, DARK, DEEP_BLACK, VOLT, LIGHT }
 enum class HapticIntensity { LIGHT, MEDIUM, STRONG }
@@ -125,6 +136,14 @@ data class ApiKeys(
     val gemini: String? = null,
     val gpt: String? = null,
     val deepseek: String? = null,
+)
+
+/** Frase verbal del usuario mapeada a intensidad (kind: RPE|RIR|PERCENT_RM|FALLO). */
+@Serializable
+data class CustomIntensityPhrase(
+    val phrase: String,
+    val kind: String,
+    val value: Double? = null,
 )
 
 @Serializable

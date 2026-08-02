@@ -27,26 +27,42 @@ internal interface WorkoutVoiceAudioRecord {
 }
 
 internal fun interface WorkoutVoiceAudioRecordFactory {
-    fun create(bufferBytes: Int): WorkoutVoiceAudioRecord
+    fun create(bufferBytes: Int, audioSource: Int): WorkoutVoiceAudioRecord
+}
+
+/**
+ * Fuente de AudioRecord según la ruta activa.
+ * Con micrófono Bluetooth (SCO/BLE comunicación), la vía de comunicación es la
+ * única que varios HAL/OEM (Samsung incluido) alimentan con PCM real; con el
+ * mic interno, VOICE_RECOGNITION evita procesamiento de llamada.
+ */
+internal object WorkoutVoiceAudioSourcePolicy {
+    fun select(sdkInt: Int, externalCommunicationRouteActive: Boolean): Int =
+        when {
+            externalCommunicationRouteActive -> MediaRecorder.AudioSource.VOICE_COMMUNICATION
+            sdkInt >= Build.VERSION_CODES.N -> MediaRecorder.AudioSource.VOICE_RECOGNITION
+            else -> MediaRecorder.AudioSource.MIC
+        }
+
+    fun nameOf(source: Int): String = when (source) {
+        MediaRecorder.AudioSource.VOICE_COMMUNICATION -> "VOICE_COMMUNICATION"
+        MediaRecorder.AudioSource.VOICE_RECOGNITION -> "VOICE_RECOGNITION"
+        MediaRecorder.AudioSource.MIC -> "MIC"
+        else -> "OTHER($source)"
+    }
 }
 
 internal object AndroidWorkoutVoiceAudioRecordFactory : WorkoutVoiceAudioRecordFactory {
-    override fun create(bufferBytes: Int): WorkoutVoiceAudioRecord {
-        val source = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            MediaRecorder.AudioSource.VOICE_RECOGNITION
-        } else {
-            MediaRecorder.AudioSource.MIC
-        }
-        return AndroidWorkoutVoiceAudioRecord(
+    override fun create(bufferBytes: Int, audioSource: Int): WorkoutVoiceAudioRecord =
+        AndroidWorkoutVoiceAudioRecord(
             AudioRecord(
-                source,
+                audioSource,
                 WorkoutContinuousVoiceEngine.SAMPLE_RATE,
                 AudioFormat.CHANNEL_IN_MONO,
                 AudioFormat.ENCODING_PCM_16BIT,
                 bufferBytes,
             ),
         )
-    }
 }
 
 private class AndroidWorkoutVoiceAudioRecord(
