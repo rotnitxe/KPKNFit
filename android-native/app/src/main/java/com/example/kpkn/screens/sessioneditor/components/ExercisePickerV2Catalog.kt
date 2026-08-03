@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.horizontalScroll
@@ -220,16 +221,28 @@ private fun FloatingCatalogSearch(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    CatalogSearchField(
-        value = value,
-        onValueChange = onValueChange,
-        placeholder = "Buscar ejercicio, implemento o músculo",
+    Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 14.dp, vertical = 12.dp)
-            .shadow(elevation = 18.dp, shape = RoundedCornerShape(30.dp), clip = false)
-            .clip(RoundedCornerShape(30.dp)),
-    )
+            .padding(horizontal = 16.dp, vertical = 14.dp)
+            .shadow(
+                elevation = 28.dp,
+                shape = RoundedCornerShape(32.dp),
+                ambientColor = Color.Black,
+                spotColor = Color.Black.copy(alpha = 0.65f),
+                clip = false,
+            )
+            .clip(RoundedCornerShape(32.dp))
+            .background(Color(0xFF1E2129))
+            .border(1.dp, Color.White.copy(alpha = 0.14f), RoundedCornerShape(32.dp)),
+    ) {
+        CatalogSearchField(
+            value = value,
+            onValueChange = onValueChange,
+            placeholder = "Buscar ejercicio, implemento o músculo",
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
