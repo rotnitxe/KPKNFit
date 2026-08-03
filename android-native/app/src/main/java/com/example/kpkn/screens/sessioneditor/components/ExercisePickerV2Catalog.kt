@@ -224,17 +224,17 @@ private fun FloatingCatalogSearch(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 14.dp)
+            .padding(horizontal = 18.dp, vertical = 18.dp)
             .shadow(
-                elevation = 28.dp,
+                elevation = 36.dp,
                 shape = RoundedCornerShape(32.dp),
-                ambientColor = Color.Black,
-                spotColor = Color.Black.copy(alpha = 0.65f),
+                ambientColor = Color.Black.copy(alpha = 0.45f),
+                spotColor = Color.Black.copy(alpha = 0.60f),
                 clip = false,
             )
             .clip(RoundedCornerShape(32.dp))
             .background(Color(0xFF1E2129))
-            .border(1.dp, Color.White.copy(alpha = 0.14f), RoundedCornerShape(32.dp)),
+            .border(1.dp, Color.White.copy(alpha = 0.16f), RoundedCornerShape(32.dp)),
     ) {
         CatalogSearchField(
             value = value,
