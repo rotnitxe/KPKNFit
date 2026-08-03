@@ -1,6 +1,5 @@
 package com.example.kpkn.screens.sessioneditor
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -67,7 +66,6 @@ class SessionEditorDragController {
     }
 
     fun beginExerciseDrag(partId: String, exerciseId: String, grabOffset: Offset = Offset(24f, 24f)) {
-        Log.d("DnD", "begin part=$partId ex=$exerciseId grab=$grabOffset startRect=${exerciseBounds["$partId|$exerciseId"]} loose=${looseContentBounds} partKeys=${partContentBounds.keys}")
         draggingExerciseId = exerciseId
         draggingExercisePartId = partId
         draggingExerciseOffset = Offset.Zero
@@ -204,16 +202,9 @@ class SessionEditorDragController {
                 exerciseDropTargetKey = before?.key
                 exerciseDropTargetIndex = targetIndex
             }
-            Log.d(
-                "DnD",
-                "update pointer=$pointer insertionY=$insertionY targetPart=$targetPartId " +
-                    "before=${before?.key} targetIdx=$targetIndex offset=$draggingExerciseOffset " +
-                    "keys=${orderedKeys.map { "${it.key}:${it.value.top}" }}",
-            )
         } else {
             exerciseDropTargetKey = null
             exerciseDropTargetIndex = null
-            Log.d("DnD", "update pointer=$pointer NO_TARGET_PART offset=$draggingExerciseOffset")
         }
     }
 
@@ -223,7 +214,6 @@ class SessionEditorDragController {
     ) {
         val activeExerciseId = draggingExerciseId
         val currentPartId = draggingExercisePartId
-        Log.d("DnD", "end ex=$activeExerciseId key=$exerciseDropTargetKey part=$exerciseDropTargetPartId idx=$exerciseDropTargetIndex")
         if (activeExerciseId != null && currentPartId != null) {
             val finalTargetKey = exerciseDropTargetKey
             val finalTargetPart = exerciseDropTargetPartId
