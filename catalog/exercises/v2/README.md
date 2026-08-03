@@ -1,4 +1,4 @@
-# Catálogo de ejercicios v2
+# Catálogo de ejercicios
 
 Esta carpeta es la única fuente editorial del catálogo nuevo. No se edita el
 asset Android generado a mano y no se importan aliases como identidad runtime.
@@ -13,6 +13,9 @@ asset Android generado a mano y no se importan aliases como identidad runtime.
 La fuente debe declarar configuraciones explícitas. El compilador rechaza
 combinaciones cartesianas, defaults inválidos, opciones sin efecto, IDs
 duplicados, metadata requerida ausente y estados distintos de `APPROVED`.
+Los ejes se declaran en orden jerárquico (general → particular) y el runtime
+solo revela el siguiente nivel compatible. La auditoría de fusiones y ejes está
+en [`curation/GROUPING_AUDIT.md`](curation/GROUPING_AUDIT.md).
 
 El inventario de `exercise_database.json` y `exercise_id_aliases.json` solo se
 usa como evidencia de candidatos. No se debe copiar automáticamente al
@@ -27,7 +30,7 @@ catálogo v2.
 5. Generar artefactos únicamente con `--write` cuando todas las definiciones
    de esa revisión estén aprobadas.
 
-La revisión completa `v2-approved-2026-08-02` ya fue compilada y el asset
+La revisión completa `v2-approved-2026-08-02-c` ya fue compilada y el asset
 aprobado se distribuye únicamente desde el pipeline determinista. Un fallo de
 validación detiene el pipeline y no produce un asset parcialmente válido. Los
 archivos legacy permanecen solo bajo `curation/evidence/legacy/` como evidencia

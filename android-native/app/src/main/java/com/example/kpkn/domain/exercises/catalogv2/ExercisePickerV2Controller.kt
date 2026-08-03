@@ -32,8 +32,27 @@ class ExercisePickerV2Controller(
         val compatibility = repository.compatibility(definitionId, candidate)
         if (compatibility.matchingConfigurationIds.isNotEmpty()) {
             drafts[definitionId] = current.copy(selectedOptions = candidate)
+        } else {
+            // A first-level change may invalidate a downstream choice.  Keep
+            // the new broad choice and only retain downstream values that are
+            // present in at least one explicitly materialised configuration.
+            val definition = (repository.state.value as? ExerciseCatalogStateV2.Ready)
+                ?.catalog
+                ?.families
+                ?.asSequence()
+                ?.flatMap { it.definitions.asSequence() }
+                ?.firstOrNull { it.id == definitionId }
+            val candidates = definition?.configurations?.filter {
+                it.selectedOptions[axis] == value
+            }.orEmpty()
+            if (candidates.isNotEmpty()) {
+                val repaired = candidate.filter { (selectedAxis, selectedValue) ->
+                    candidates.any { it.selectedOptions[selectedAxis] == selectedValue }
+                }
+                drafts[definitionId] = current.copy(selectedOptions = repaired)
+            }
         }
-        return compatibility
+        return repository.compatibility(definitionId, drafts[definitionId]?.selectedOptions.orEmpty())
     }
 
     fun clear(definitionId: String) {

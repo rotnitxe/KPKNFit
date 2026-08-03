@@ -36,6 +36,14 @@ def main() -> int:
             "family": family,
         }
         (OUT / filename).write_bytes(canonical(payload))
+    expected_files = set(files)
+    # The split directory is a generated review surface. Prune only JSON
+    # families that are no longer present in the canonical aggregate; keeping
+    # one behind makes reviewers believe it is approved source and can
+    # reintroduce a retired duplicate during the next curation pass.
+    for existing in OUT.glob("*.json"):
+        if existing.name not in expected_files:
+            existing.unlink()
     manifest = {
         "schemaVersion": source["schemaVersion"],
         "catalogRevision": source["catalogRevision"],

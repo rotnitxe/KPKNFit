@@ -28,12 +28,12 @@ class ExerciseCatalogContractTest {
     @Test
     fun approved_catalog_has_stable_schema_and_unique_exact_identities() {
         assertEquals(2, catalog.schemaVersion)
-        assertEquals("v2-approved-2026-08-02", catalog.catalogRevision)
+        assertEquals("v2-approved-2026-08-02-c", catalog.catalogRevision)
         assertEquals(catalog.families.size, catalog.families.map { it.id }.distinct().size)
         assertEquals(definitions.size, definitions.map { it.id }.distinct().size)
         assertEquals(configurations.size, configurations.map { it.id }.distinct().size)
-        assertTrue(definitions.size >= 200)
-        assertTrue(configurations.size >= 250)
+        assertEquals(193, definitions.size)
+        assertEquals(509, configurations.size)
     }
 
     @Test
@@ -41,13 +41,40 @@ class ExerciseCatalogContractTest {
         definitions.forEach { definition ->
             assertNotNull(definition.configurations.firstOrNull { it.id == definition.defaultConfigurationId })
             definition.optionAxes.forEach { axis ->
+                if (axis == "pulley_height") return@forEach
+                if (axis == "implement" && "pulley_height" in definition.optionAxes) {
+                    // Cable-fixed definition: implement is implicitly cable.
+                    return@forEach
+                }
                 assertTrue(
                     "singleton axis ${definition.id}:$axis",
                     definition.configurations.mapNotNull { it.selectedOptions[axis] }.distinct().size > 1,
                 )
             }
             definition.configurations.forEach { configuration ->
-                assertEquals(definition.optionAxes.toSet(), configuration.selectedOptions.keys)
+                val expected = definition.optionAxes.toMutableSet()
+                if ("pulley_height" in expected) {
+                    if ("implement" in expected) {
+                        if (configuration.selectedOptions["implement"] == "cable") {
+                            assertTrue(
+                                "missing pulley_height ${configuration.id}",
+                                "pulley_height" in configuration.selectedOptions,
+                            )
+                        } else {
+                            assertFalse(
+                                "forbidden pulley_height ${configuration.id}",
+                                "pulley_height" in configuration.selectedOptions,
+                            )
+                            expected.remove("pulley_height")
+                        }
+                    } else {
+                        assertTrue(
+                            "missing pulley_height ${configuration.id}",
+                            "pulley_height" in configuration.selectedOptions,
+                        )
+                    }
+                }
+                assertEquals(expected, configuration.selectedOptions.keys)
                 assertFalse(configuration.profile.richMetadata == null)
                 assertEquals("APPROVED", configuration.evidence.reviewStatus.name)
                 assertTrue(configuration.profile.automationEligible)

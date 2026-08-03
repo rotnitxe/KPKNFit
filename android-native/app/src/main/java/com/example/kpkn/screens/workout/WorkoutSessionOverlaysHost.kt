@@ -72,6 +72,11 @@ internal fun WorkoutSessionOverlaysHost(
     readinessSpinalStart: Int,
     todayWellbeing: DailyWellbeingLog?,
     onReadinessDismissed: () -> Unit,
+    perMuscle: Map<String, com.example.kpkn.data.models.MuscleRecoveryStatus> = emptyMap(),
+    voiceSessionEnabled: Boolean = false,
+    voiceCaptureMode: com.example.kpkn.data.models.VoiceCaptureMode = com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE,
+    onVoiceToggle: () -> Unit = {},
+    onVoiceCaptureModeChange: (com.example.kpkn.data.models.VoiceCaptureMode) -> Unit = {},
     showExitDialog: Boolean,
     onShowExitDialogChange: (Boolean) -> Unit,
     onBack: () -> Unit,
@@ -123,8 +128,12 @@ internal fun WorkoutSessionOverlaysHost(
         patternReadiness = uiState.patternReadiness,
         exerciseReadinessMap = uiState.exerciseReadinessMap,
         sessionExercises = session.exercises,
-        onDismissWithoutVerify = onReadinessDismissed,
+        perMuscle = perMuscle,
         initialDiscomforts = todayWellbeing?.preWorkoutDiscomforts ?: emptyList(),
+        voiceSessionEnabled = voiceSessionEnabled,
+        voiceCaptureMode = voiceCaptureMode,
+        onVoiceToggle = onVoiceToggle,
+        onVoiceCaptureModeChange = onVoiceCaptureModeChange,
     )
 
     val mobilityExercisesForSession = remember(uiState.previousSessionDiscomforts) {

@@ -73,6 +73,11 @@ object ExerciseCatalogV2Loader {
                     }.toSet()
                 }
                 valuesByAxis.forEach { (axis, values) ->
+                    if (axis == "pulley_height") return@forEach
+                    if (axis == "implement" && "pulley_height" in definition.optionAxes) {
+                        // Cable-fixed definition: implement is implicitly cable.
+                        return@forEach
+                    }
                     require(values.none { it.isNullOrBlank() }) {
                         "Configuration option missing: ${definition.id}:$axis"
                     }
@@ -86,7 +91,27 @@ object ExerciseCatalogV2Loader {
                     require(configurationIds.add(configuration.id)) {
                         "Duplicate configuration id: ${configuration.id}"
                     }
-                    require(configuration.selectedOptions.keys == definition.optionAxes.toSet()) {
+                    val expectedOptions = definition.optionAxes.toMutableSet()
+                    if ("pulley_height" in expectedOptions) {
+                        if ("implement" in expectedOptions) {
+                            val implement = configuration.selectedOptions["implement"]
+                            if (implement == "cable") {
+                                require("pulley_height" in configuration.selectedOptions) {
+                                    "Cable configuration must include pulley_height: ${configuration.id}"
+                                }
+                            } else {
+                                require("pulley_height" !in configuration.selectedOptions) {
+                                    "pulley_height is only allowed for cable: ${configuration.id}"
+                                }
+                                expectedOptions.remove("pulley_height")
+                            }
+                        } else {
+                            require("pulley_height" in configuration.selectedOptions) {
+                                "Cable-fixed configuration must include pulley_height: ${configuration.id}"
+                            }
+                        }
+                    }
+                    require(configuration.selectedOptions.keys == expectedOptions) {
                         "Configuration axes mismatch: ${configuration.id}"
                     }
                     require(signatures.add(
@@ -104,11 +129,31 @@ object ExerciseCatalogV2Loader {
                     requireNonBlank(profile.equipmentId, "profile.equipmentId")
                     requireNonBlank(profile.loadMode, "profile.loadMode")
                     requireNonBlank(profile.resistanceProfile, "profile.resistanceProfile")
+                    require(profile.description.trim().length >= 40) {
+                        "Configuration description is too short: ${configuration.id}"
+                    }
                     requireNonBlank(profile.performanceProfileId, "profile.performanceProfileId")
                     requireNonBlankList(profile.primaryMuscles, "profile.primaryMuscles")
                     requireNonBlankList(profile.setupCues, "profile.setupCues")
                     requireNonBlankList(profile.executionCues, "profile.executionCues")
                     requireNonBlankList(profile.commonMistakes, "profile.commonMistakes")
+                    val listedMuscles = profile.primaryMuscles + profile.secondaryMuscles + profile.stabilizerMuscles
+                    require(listedMuscles.size == listedMuscles.toSet().size) {
+                        "Muscle listed in more than one role: ${configuration.id}"
+                    }
+                    require(profile.muscleNotes.isNotEmpty()) {
+                        "muscleNotes cannot be empty: ${configuration.id}"
+                    }
+                    require(profile.muscleNotes.size == profile.muscleNotes.map { it.muscleId }.toSet().size) {
+                        "Duplicate muscle note: ${configuration.id}"
+                    }
+                    val notedMuscles = profile.muscleNotes.map { it.muscleId }.toSet()
+                    require(notedMuscles == listedMuscles.toSet()) {
+                        "muscleNotes must cover listed muscles exactly: ${configuration.id}"
+                    }
+                    require(profile.muscleNotes.all { it.note.trim().length >= 40 }) {
+                        "muscle note is too short: ${configuration.id}"
+                    }
                     require(profile.efc.isFinite() && profile.efc >= 0.0)
                     require(profile.cnc.isFinite() && profile.cnc >= 0.0)
                     require(profile.ssc.isFinite() && profile.ssc >= 0.0)

@@ -330,7 +330,7 @@ fun SessionEditorViewModel.saveSession(scope: SessionSaveScope = SessionSaveScop
             }
             return SessionEditorSaveResult(
                 false,
-                "Catálogo v2 bloqueó el guardado: $details",
+                "El catálogo de ejercicios bloqueó el guardado: $details",
             )
         }
     }
@@ -538,4 +538,3 @@ internal fun SessionEditorViewModel.normalizeMainSessions(sessions: List<Session
         session.copy(isMainSession = mainByDay[day] == session.id)
     }
 }
-

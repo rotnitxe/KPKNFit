@@ -30,7 +30,7 @@
       "required": [
         "movementPatternId", "bodyRegion", "kineticChain", "laterality",
         "equipmentId", "loadMode", "primaryMuscles", "secondaryMuscles",
-        "stabilizerMuscles", "efc", "cnc", "ssc", "ttc",
+        "stabilizerMuscles", "muscleNotes", "efc", "cnc", "ssc", "ttc",
         "axialLoadFactor", "technicalDifficulty", "resistanceProfile",
         "setupCues", "executionCues", "commonMistakes", "performanceProfileId"
       ],
@@ -44,6 +44,18 @@
         "primaryMuscles": { "type": "array", "minItems": 1, "items": { "type": "string" } },
         "secondaryMuscles": { "type": "array", "items": { "type": "string" } },
         "stabilizerMuscles": { "type": "array", "items": { "type": "string" } },
+        "muscleNotes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["muscleId", "note"],
+            "properties": {
+              "muscleId": { "type": "string", "minLength": 1 },
+              "note": { "type": "string", "minLength": 40 }
+            },
+            "additionalProperties": false
+          }
+        },
         "efc": { "type": "number", "minimum": 0 },
         "cnc": { "type": "number", "minimum": 0 },
         "ssc": { "type": "number", "minimum": 0 },

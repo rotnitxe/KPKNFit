@@ -31,7 +31,18 @@ class ExerciseCatalogV2Resolver(
                 require(definition.defaultConfigurationId in definition.configurations.map { it.id }) {
                     "Invalid default configuration in ${definition.id}"
                 }
-                require(definition.configurations.all { it.selectedOptions.keys == definition.optionAxes.toSet() }) {
+                require(definition.configurations.all { configuration ->
+                    val expected = definition.optionAxes.toMutableSet()
+                    if ("pulley_height" in expected) {
+                        if (configuration.selectedOptions["implement"] == "cable") {
+                            if ("pulley_height" !in configuration.selectedOptions) return@all false
+                        } else {
+                            if ("pulley_height" in configuration.selectedOptions) return@all false
+                            expected.remove("pulley_height")
+                        }
+                    }
+                    configuration.selectedOptions.keys == expected
+                }) {
                     "Configuration options do not match axes in ${definition.id}"
                 }
             }
@@ -91,7 +102,13 @@ class ExerciseCatalogV2Resolver(
                         append(' ')
                         append(configuration.displaySummary)
                         append(' ')
-                        append(configuration.selectedOptions.values.joinToString(" "))
+                        append(configuration.selectedOptions.values.joinToString(" ") { localizedCatalogTerms(it) })
+                        append(' ')
+                        append(localizedCatalogTerms(configuration.profile.equipmentId))
+                        append(' ')
+                        append(configuration.profile.setupCues.joinToString(" "))
+                        append(' ')
+                        append(configuration.profile.executionCues.joinToString(" "))
                     }
                 },
             )
@@ -104,7 +121,13 @@ class ExerciseCatalogV2Resolver(
             val configuration = definition.configurations
                 .firstOrNull { config ->
                     val configText = normalize(
-                        "${config.displaySummary} ${config.selectedOptions.values.joinToString(" ")}",
+                        buildString {
+                            append(config.displaySummary)
+                            append(' ')
+                            append(config.selectedOptions.values.joinToString(" ") { localizedCatalogTerms(it) })
+                            append(' ')
+                            append(localizedCatalogTerms(config.profile.equipmentId))
+                        },
                     )
                     normalizedTerms.any { term -> term.length >= 4 && configText.contains(term) }
                 }
@@ -128,4 +151,23 @@ class ExerciseCatalogV2Resolver(
             .replace("\\p{InCombiningDiacriticalMarks}+".toRegex(), "")
             .replace("[^a-z0-9]+".toRegex(), " ")
             .trim()
+
+    private fun localizedCatalogTerms(value: String): String = when (value.lowercase()) {
+        "barbell" -> "barra"
+        "band" -> "banda banda elastica"
+        "cable" -> "polea cable"
+        "dumbbells" -> "mancuerna mancuernas"
+        "machine" -> "maquina máquina"
+        "bodyweight" -> "peso corporal"
+        "plate" -> "disco"
+        "safety_bar" -> "barra de seguridad safety bar"
+        "standing" -> "de pie parado"
+        "seated" -> "sentado"
+        "pec_deck" -> "pec deck"
+        "pec_deck_reverse" -> "pec deck inverso reverse pec fly"
+        "supinated" -> "supino"
+        "pronated" -> "prono"
+        "neutral" -> "neutro"
+        else -> value
+    }
 }

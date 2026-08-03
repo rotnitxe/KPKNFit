@@ -206,8 +206,8 @@ object SessionTemplateQualityRules {
         if (isHyperfocused(template)) return 12
         return when (template.difficulty) {
             Difficulty.PRINCIPIANTE -> 6
-            Difficulty.INTERMEDIO -> 7
-            Difficulty.AVANZADO -> 8
+            Difficulty.INTERMEDIO -> 8
+            Difficulty.AVANZADO -> 10
         }
     }
 

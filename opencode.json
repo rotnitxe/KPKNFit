@@ -1,0 +1,49 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    "build": {
+      "mode": "primary",
+      "model": "cline-pass/cline-pass/kimi-k3",
+      "permission": {
+        "edit": "allow",
+        "bash": "allow"
+      }
+    },
+    "plan": {
+      "mode": "primary",
+      "model": "cline-pass/cline-pass/kimi-k3",
+      "permission": {
+        "edit": "ask",
+        "bash": "ask"
+      }
+    },
+    "build-gpt": {
+      "mode": "primary",
+      "model": "openai/gpt-5.6-sol",
+      "permission": {
+        "edit": "allow",
+        "bash": "allow"
+      }
+    },
+    "plan-gpt": {
+      "mode": "primary",
+      "model": "openai/gpt-5.6-sol",
+      "permission": {
+        "edit": "ask",
+        "bash": "ask"
+      }
+    },
+    "general": {
+      "mode": "subagent",
+      "model": "deepseek/deepseek-v4-flash"
+    },
+    "explore": {
+      "mode": "subagent",
+      "model": "deepseek/deepseek-v4-flash"
+    },
+    "scout": {
+      "mode": "subagent",
+      "model": "deepseek/deepseek-v4-flash"
+    }
+  }
+}

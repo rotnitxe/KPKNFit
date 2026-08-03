@@ -77,6 +77,9 @@ class ExerciseCatalogV2RepositoryTest {
         val repository = InMemoryExerciseCatalogRepositoryV2(catalog)
         repository.load()
 
+        val firstLevel = repository.compatibility("parent")
+        assertEquals(listOf("setup"), firstLevel.axes.map { it.axis })
+
         val compatibility = repository.compatibility(
             definitionId = "parent",
             selectedOptions = mapOf("setup" to "standing"),
@@ -90,6 +93,31 @@ class ExerciseCatalogV2RepositoryTest {
         assertTrue(implementOptions.single { it.value == "barbell" }.enabled)
         assertTrue(implementOptions.single { it.value == "cable" }.enabled)
         assertTrue(!implementOptions.single { it.value == "dumbbells" }.enabled)
+    }
+
+    @Test
+    fun changing_the_first_level_reveals_only_the_next_contextual_level() = runTest {
+        val repository = InMemoryExerciseCatalogRepositoryV2(catalog)
+        repository.load()
+
+        val compatibility = repository.compatibility(
+            definitionId = "parent",
+            selectedOptions = mapOf("setup" to "standing"),
+        )
+
+        assertEquals(listOf("setup", "implement"), compatibility.axes.map { it.axis })
+        assertEquals(
+            setOf("parent__standing__barbell", "parent__standing__cable"),
+            compatibility.matchingConfigurationIds,
+        )
+        assertEquals(null, compatibility.exactConfigurationId)
+
+        val fixed = repository.compatibility(
+            definitionId = "parent",
+            selectedOptions = mapOf("setup" to "seated"),
+        )
+        assertEquals(listOf("setup"), fixed.axes.map { it.axis })
+        assertEquals("parent__seated__dumbbells", fixed.exactConfigurationId)
     }
 
     @Test

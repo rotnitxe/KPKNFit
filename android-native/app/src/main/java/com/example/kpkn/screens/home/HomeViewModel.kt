@@ -113,31 +113,6 @@ class HomeViewModel : ViewModel() {
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, "Usuario")
 
-    val voiceArmForNextSession: StateFlow<Boolean> = repository.settings
-        .map { it.voiceArmForNextSession }
-        .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, false)
-
-    val voiceCaptureMode: StateFlow<com.example.kpkn.data.models.VoiceCaptureMode> = repository.settings
-        .map { it.voiceCaptureMode }
-        .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE)
-
-    val hasChosenVoiceCaptureMode: StateFlow<Boolean> = repository.settings
-        .map { it.hasChosenVoiceCaptureMode }
-        .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, false)
-
-    fun setVoiceArmForNextSession(armed: Boolean) {
-        repository.updateSettings { it.copy(voiceArmForNextSession = armed) }
-    }
-
-    fun setVoiceCaptureMode(mode: com.example.kpkn.data.models.VoiceCaptureMode) {
-        repository.updateSettings {
-            it.copy(voiceCaptureMode = mode, hasChosenVoiceCaptureMode = true)
-        }
-    }
-
     fun getGreeting(): String {
         val h = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
         return when {

@@ -421,4 +421,175 @@ object ExerciseReadinessEngine {
         "extensión", "extension" -> "Extensión"
         else -> force.replaceFirstChar { it.uppercase() }
     }
+
+    // ─── Coaching por Patrón Dominante ─────────────────────────────────────────
+
+    /**
+     * Mensaje de coaching amigable basado en el patrón de movimiento dominante
+     * de la sesión (por porcentaje de series). NUNCA sugiere PRs: recomienda
+     * seguir el plan o bajar cargas según el readiness real de AUGE.
+     */
+    fun buildPatternCoaching(
+        patternReadiness: List<MovementPatternReadiness>,
+        exerciseReadinessMap: Map<String, ExerciseReadiness>,
+        sessionExercises: List<Exercise>,
+        perMuscle: Map<String, MuscleRecoveryStatus>,
+    ): PatternCoaching? {
+        if (patternReadiness.isEmpty()) return null
+        val totalSets = patternReadiness.sumOf { it.totalSets }
+        if (totalSets <= 0) return null
+
+        val sorted = patternReadiness.sortedByDescending { it.totalSets }
+        val dominant = sorted.first()
+        val sharePercent = (dominant.totalSets * 100f / totalSets).roundToInt()
+        val normalizedId = normalizePattern(dominant.patternId)
+        val plural = friendlyPatternPlural(normalizedId)
+
+        val dominantPairs = sessionExercises.mapNotNull { ex ->
+            val rd = exerciseReadinessMap[ex.id] ?: return@mapNotNull null
+            if (rd.patternId == dominant.patternId) rd to ex else null
+        }
+        val exerciseNames = dominantPairs
+            .sortedByDescending { it.second.sets.size }
+            .map { it.second.name.trim() }
+            .filter { it.isNotBlank() }
+        val exercisePhrase = when (exerciseNames.size) {
+            0 -> "tus $plural"
+            1 -> exerciseNames[0].lowercase()
+            2 -> "${exerciseNames[0].lowercase()} y ${exerciseNames[1].lowercase()}"
+            else -> "${exerciseNames[0].lowercase()}, ${exerciseNames[1].lowercase()} y ${exerciseNames[2].lowercase()}"
+        }
+        val representativeExercise = exerciseNames.firstOrNull()
+
+        val avgSpinal = dominantPairs
+            .map { it.first.spinalComponent }
+            .takeIf { it.isNotEmpty() }
+            ?.average()
+            ?.roundToInt() ?: 0
+
+        val muscleScores = dominant.contributingMuscles
+            .mapNotNull { muscle -> perMuscle[muscle]?.recoveryScore?.let { muscle to it } }
+            .sortedBy { it.second }
+        val leastFresh = muscleScores.firstOrNull()
+        val freshest = muscleScores.takeLast(2)
+        val avgMuscleScore = muscleScores
+            .map { it.second }
+            .takeIf { it.isNotEmpty() }
+            ?.average()
+            ?.roundToInt() ?: 0
+        val score = dominant.overallScore
+
+        // Patrón secundario: se menciona solo si pesa ≥25% de las series
+        val secondaryLine = sorted.drop(1).firstOrNull()?.let { secondary ->
+            val share2 = (secondary.totalSets * 100f / totalSets).roundToInt()
+            if (share2 >= 25) {
+                val plural2 = friendlyPatternPlural(normalizePattern(secondary.patternId))
+                val muscleScore2 = secondary.contributingMuscles
+                    .mapNotNull { perMuscle[it]?.recoveryScore }
+                    .takeIf { it.isNotEmpty() }
+                    ?.average()
+                    ?.roundToInt()
+                val score2 = muscleScore2 ?: secondary.averageMuscleRecovery
+                if (score2 >= 80) {
+                    " También llevas $plural2 ($share2% de las series) al $score2%: sin problema."
+                } else {
+                    " También llevas $plural2 ($share2% de las series) al $score2%: tenlo en cuenta."
+                }
+            } else null
+        } ?: ""
+
+        val headline: String
+        val detail: String
+        val tone: CoachingTone
+        when {
+            score >= 75 -> {
+                tone = CoachingTone.GREEN
+                headline = "Tus rings dicen que estás listo para tus $plural."
+                detail = buildString {
+                    append("El grueso de tu sesión ($sharePercent% de las series) va por $exercisePhrase")
+                    if (muscleScores.isNotEmpty()) {
+                        val names = freshest.joinToString(" y ") { it.first.lowercase() }
+                        append(" y tus $names vienen frescos ($avgMuscleScore%)")
+                    }
+                    append(".")
+                    append(secondaryLine)
+                    append(" Sigue el plan tal cual.")
+                }
+            }
+            score >= 50 -> {
+                tone = CoachingTone.AMBER
+                headline = "A medias para tus $plural."
+                val body = if (leastFresh != null) {
+                    "Tus ${leastFresh.first.lowercase()} vienen al ${leastFresh.second}%." +
+                        " En $exercisePhrase, mete 1-2 series de calentamiento extra y si la primera " +
+                        "serie efectiva pesa de más, baja ~10%."
+                } else {
+                    "Vigila tus primeras series: mete 1-2 series de calentamiento extra y si la " +
+                        "primera serie efectiva pesa de más, baja ~10%."
+                }
+                detail = body + secondaryLine
+            }
+            else -> {
+                tone = CoachingTone.RED
+                val spinalLow = avgSpinal < 50
+                val muscleLow = leastFresh?.second?.let { it < 50 } == true
+                val loadGuidance = if (representativeExercise != null) {
+                    "Hoy baja 15-20% las cargas en ${representativeExercise.lowercase()} y prioriza la técnica."
+                } else {
+                    "Hoy baja 15-20% las cargas en tus $plural y prioriza la técnica."
+                }
+                when {
+                    spinalLow && (normalizedId == "bisagra" || normalizedId == "sentadilla") -> {
+                        headline = "Tu columna no está del todo recuperada para tus $plural."
+                        detail = loadGuidance + secondaryLine
+                    }
+                    muscleLow -> {
+                        headline = "Tus ${leastFresh.first.lowercase()} no están del todo " +
+                            "recuperados para tus $plural."
+                        detail = loadGuidance + secondaryLine
+                    }
+                    else -> {
+                        headline = "Tu cuerpo no está del todo recuperado para tus $plural."
+                        detail = loadGuidance + secondaryLine
+                    }
+                }
+            }
+        }
+
+        return PatternCoaching(
+            headline = headline,
+            detail = detail,
+            tone = tone,
+            dominantPatternLabel = dominant.patternLabel,
+            dominantSharePercent = sharePercent,
+            overallScore = score,
+        )
+    }
+
+    private fun normalizePattern(id: String): String = id.lowercase()
+        .replace("á", "a").replace("é", "e").replace("í", "i")
+        .replace("ó", "o").replace("ú", "u")
+        .trim()
+
+    private fun friendlyPatternPlural(normalizedId: String): String = when (normalizedId) {
+        "empuje" -> "presses"
+        "tiron" -> "jalones y remos"
+        "sentadilla" -> "sentadillas"
+        "bisagra" -> "pesos muertos"
+        "antiextension" -> "ejercicios de core"
+        "flexion" -> "trabajos de flexión"
+        "extension" -> "trabajos de extensión"
+        else -> "ejercicios"
+    }
 }
+
+enum class CoachingTone { GREEN, AMBER, RED }
+
+data class PatternCoaching(
+    val headline: String,
+    val detail: String,
+    val tone: CoachingTone,
+    val dominantPatternLabel: String,
+    val dominantSharePercent: Int,
+    val overallScore: Int,
+)

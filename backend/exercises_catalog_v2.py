@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -127,6 +128,11 @@ def validate_runtime_catalog(catalog: dict[str, Any]) -> None:
             axes = definition.get("optionAxes", [])
             signatures: set[tuple[tuple[str, str], ...]] = set()
             for axis in axes:
+                if axis == "pulley_height":
+                    continue
+                if axis == "implement" and "pulley_height" in axes:
+                    # Cable-fixed definition: implement is implicitly cable.
+                    continue
                 values = {configuration.get("selectedOptions", {}).get(axis) for configuration in configurations}
                 if len(values) <= 1:
                     raise CatalogV2Error(f"singleton_option_axis:{definition_id}:{axis}")
@@ -140,7 +146,19 @@ def validate_runtime_catalog(catalog: dict[str, Any]) -> None:
                     raise CatalogV2Error(f"duplicate_configuration_id:{configuration_id}")
                 configuration_ids.add(configuration_id)
                 selected_options = configuration.get("selectedOptions")
-                if not isinstance(selected_options, dict) or set(selected_options) != set(axes):
+                if not isinstance(selected_options, dict):
+                    raise CatalogV2Error(f"configuration_axes_mismatch:{configuration_id}")
+                expected_options = set(axes)
+                implement = selected_options.get("implement")
+                if "pulley_height" in expected_options:
+                    if implement == "cable":
+                        if "pulley_height" not in selected_options:
+                            raise CatalogV2Error(f"configuration_axes_mismatch:{configuration_id}")
+                    else:
+                        if "pulley_height" in selected_options:
+                            raise CatalogV2Error(f"configuration_axes_mismatch:{configuration_id}")
+                        expected_options = expected_options - {"pulley_height"}
+                if set(selected_options) != expected_options:
                     raise CatalogV2Error(f"configuration_axes_mismatch:{configuration_id}")
                 signature = tuple(sorted((str(key), str(value)) for key, value in selected_options.items()))
                 if signature in signatures:
@@ -151,6 +169,26 @@ def validate_runtime_catalog(catalog: dict[str, Any]) -> None:
                 profile = configuration.get("profile")
                 if not isinstance(profile, dict) or profile.get("automationEligible") is not True:
                     raise CatalogV2Error(f"profile_not_eligible:{configuration_id}")
+                _require_non_blank(profile.get("description"), f"profile_description:{configuration_id}")
+                if re.search(r"(?i)\b(?:ejecuta|mantén|mantener|configura|adopta|controla|asegura|evita|sigue|selecciona)\b", profile["description"]):
+                    raise CatalogV2Error(f"profile_description_instructional:{configuration_id}")
+                notes = profile.get("muscleNotes")
+                if not isinstance(notes, list) or not notes:
+                    raise CatalogV2Error(f"profile_muscle_notes_missing:{configuration_id}")
+                listed = set(profile.get("primaryMuscles", [])) | set(profile.get("secondaryMuscles", [])) | set(profile.get("stabilizerMuscles", []))
+                noted: set[str] = set()
+                for note in notes:
+                    if not isinstance(note, dict) or not isinstance(note.get("muscleId"), str) or not isinstance(note.get("note"), str):
+                        raise CatalogV2Error(f"profile_muscle_note_invalid:{configuration_id}")
+                    if note["muscleId"] not in listed:
+                        raise CatalogV2Error(f"profile_muscle_note_orphan:{configuration_id}:{note['muscleId']}")
+                    if note["muscleId"] in noted:
+                        raise CatalogV2Error(f"profile_muscle_note_duplicate:{configuration_id}:{note['muscleId']}")
+                    if len(note["note"].strip()) < 40:
+                        raise CatalogV2Error(f"profile_muscle_note_short:{configuration_id}:{note['muscleId']}")
+                    noted.add(note["muscleId"])
+                if listed != noted:
+                    raise CatalogV2Error(f"profile_muscle_notes_mismatch:{configuration_id}")
                 rich = profile.get("richMetadata")
                 if not isinstance(rich, dict):
                     raise CatalogV2Error(f"rich_metadata_missing:{configuration_id}")

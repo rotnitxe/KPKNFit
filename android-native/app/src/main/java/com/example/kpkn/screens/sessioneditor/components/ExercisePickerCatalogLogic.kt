@@ -174,7 +174,12 @@ internal fun oneSeriesVolumeContributions(exercise: ExerciseMuscleInfo): List<Mu
             emphasis = source?.emphasis,
             sourceInvolvement = source?.sourceInvolvement,
         )
-    }.sortedByDescending { it.seriesEquivalent }
+    }.sortedWith(
+        compareBy<MuscleVolumeContribution>(
+            { rolePriority[it.role] ?: 99 },
+            { -it.seriesEquivalent },
+        ),
+    )
 }
 
 internal fun roleVolumeLabel(role: MuscleRole): String = when (role) {

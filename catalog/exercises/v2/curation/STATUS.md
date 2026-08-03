@@ -1,106 +1,80 @@
-# Estado de ejecución — catálogo v2
+# Estado de ejecución — catálogo de ejercicios
 
-Fecha de corte: 2026-08-02
-Revisión: `v2-approved-2026-08-02`
-Hash canónico compartido: `58abd25a9a4e600d3c2e1347d91b43fb76144c3eac9d7411a415904a80b80a06`
+Fecha de corte: 2026-08-02 (curaduría integral v3)
+Revisión: `v2-approved-2026-08-02-c`
+Hash canónico compartido: `1db50fb1af0bf04bf5e9509c193f490df596939f0da4086101fe5708d53e3fc6`
 
 ## Resultado del corte
 
-El catálogo v2 quedó generado desde fuente editorial determinista y es el único
+El catálogo quedó generado desde fuente editorial determinista y es el único
 catálogo que se empaqueta como runtime Android. El corte contiene:
 
-- 257/257 candidatos con decisión editorial explícita y racional documentada.
-- 73 familias, 232 definiciones padre y 259 configuraciones enumeradas.
-- 100% de definiciones aprobadas, con configuración por defecto válida.
-- Metadata rica para anatomía, AUGE, involucramiento muscular, biomecánica,
-  equipamiento, agarre, lateralidad, setup, ejecución, errores y cues.
-- Chips limitados a ejes declarados por cada padre; no se generan productos
-  cartesianos ni se mezclan revisiones, definiciones o configuraciones.
-- Variantes que cambian el patrón o la demanda (por ejemplo déficit, Zercher,
-  B-stance y Copenhagen isométrica) permanecen como especialidades separadas.
-- El Peso Muerto Rumano es un padre con configuraciones explícitas bilateral y
-  sumo; no existen copias sueltas para esas dos elecciones técnicas.
+- **95 familias, 193 definiciones y 509 configuraciones** enumeradas.
+- Curaduría integral v2 aplicada: reestructura de bisagras (Convencional, Sumo,
+  Rumano, Rumano Sumo, Piernas Rígidas, Buenos Días), remos (Convencional,
+  Pendlay, Barra T, Gironda, Pecho Apoyado), curls de isquiosurales (Sentado,
+  Tumbado, De Pie + sliders/balón/nórdico), presses de banca por ángulo,
+  pullovers (de pie ≠ en banca), jalón con lateralidad, dominadas con agarre y
+  amplitud, sentadillas (barra alta/baja, frontal, sumo, búlgara, sissy, hack),
+  zancadas por dirección, presses de hombro por postura, bíceps por postura
+  (Curl Araña, Bayesian, Concentrado, Sentado, Predicador, Crucifijo, Superman,
+  Drag), aperturas por ángulo, Hip Thrust, Reverse Hyper único,
+  Aducciones/Abducciones de Pierna.
+- Curaduría v3 (revisión -c) añade y corrige: barra de seguridad (`safety_bar`)
+  en Buenos Días y sentadillas traseras; **glúteo medio** (`gluteus_medius`)
+  como músculo diferenciado (se agrupa con "Glúteos" en el cálculo de volumen);
+  Cruce de Poleas con altura de polea; Aperturas Inversas con Máquina Pec Deck,
+  Polea y Mancuernas; elevaciones laterales/posteriores/frontales reorganizadas;
+  Super ROM unificada; Extensión de Tríceps (polea alta/máquina/banda);
+  Extensiones/Flexiones de Cuello fusionadas; elevación de talones
+  (máquina/barra/smith/polea × lateralidad); dominadas con perfiles musculares
+  adaptativos por agarre y amplitud; eliminación de duplicados (curl inclinado,
+  press de hombros de pie, plancha Copenhagen isométrica, hiperextensiones
+  redundantes, Super ROM duplicada) y renombres Title Case sin relleno.
+- `muscleNotes` completas en las 509 configuraciones: una nota por músculo
+  listado (sin huérfanos ni faltantes), validada por compilador, gate y backend.
+- Equivalencias fijas por rol: Principal 1.0 / Secundario 0.5 / Estabilizador
+  0.4; no se guardan números en el JSON, UI y contadores derivan del rol.
+- Eje condicional `pulley_height` soportado en compilador, gate, backend y
+  loader Android (obligatorio donde `implement=cable`; prohibido en el resto;
+  en definiciones de polea fija como Cruce de Poleas el eje `implement` es
+  implícito y queda exento del chequeo de singleton).
+- Chips limitados a ejes declarados por cada padre; solo aparece el siguiente
+  nivel compatible. No se generan productos cartesianos ni se mezclan
+  revisiones, definiciones o configuraciones.
+- Variantes que cambian el patrón o la demanda (déficit, Zercher, métodos
+  nombrados, isometrías) permanecen como especialidades separadas.
+- Cada configuración materializada aporta su propia descripción contextual
+  (≥40 chars, no instruccional, distinta entre configs del mismo padre).
 
 ## Artefactos y paridad
 
-- Fuente agregada: `source/catalog_v2.json`.
+- Fuente agregada: `source/catalog_v2.json` (canónica, reconstruida por
+  `scripts/merge_catalog_v2_families.py` desde `source/families/`).
+- Guía editorial: `curation/EDITORIAL_GUIDE.md` (reglas R1-R8 y L1-L8).
 - Runtime Android: `android-native/app/src/main/assets/exercise_catalog_v2.json`.
-- Runtime iOS: `ios-native/KPKNFit/KPKNFit/exercise_catalog_v2.json`.
+- Runtime iOS: `ios-native/KPKNFit/KPKNFit/exercise_catalog_v2.json` (copia de
+  datos idéntica; la paridad de código iOS queda pendiente por falta de
+  toolchain Apple en esta máquina).
 - Backend: `backend/exercises_catalog_v2.py` valida revisión, hash, estructura,
-  metadata e identidad exacta.
+  metadata, identidad exacta y `muscleNotes`.
 - El compilador y el verificador comparan los tres artefactos mediante el mismo
   hash canónico; cualquier divergencia hace fallar el proceso.
-- Los antiguos `exercise_database.json` y `exercise_id_aliases.json` fueron
-  retirados del bundle Android y conservados únicamente en
-  `curation/evidence/legacy/` como evidencia editorial. No son fallback ni
-  fuente de runtime.
 
-## Gates ejecutados
+## Gates ejecutados (corte curado)
 
 - `python scripts/catalog_v2_gate.py --strict` → `status=READY`.
-- `python scripts/compile_exercise_catalog_v2_cli.py --check` → 232 definiciones,
-  259 configuraciones, hash canónico coincidente.
-- Backend: 4 pruebas Python → `OK`.
-- Android: `:app:testBaseDebugUnitTest --offline` → 936 tests, 0 failures, 0
-  errors (`BUILD SUCCESSFUL`).
-- Android: `clean :app:assembleBaseDebug --offline` → `BUILD SUCCESSFUL`.
-- Inspección del APK limpio: contiene `assets/exercise_catalog_v2.json` y no
-  contiene ningún asset v1 ni archivo de aliases.
-- Android Health: `:app:testHealthDebugUnitTest --offline` → 936 tests,
-  0 failures, 0 errors (`BUILD SUCCESSFUL`). La prueba de canales usa API 26,
-  el mínimo real del flavor Health; el guard de producción para API <26 sigue
-  intacto en `WorkoutReminderManager`.
-
-## Validación de instalación
-
-El APK BaseDebug se instaló y se relanzó en `emulator-5554` con el paquete
-`com.example.kpkn` y la actividad explícita `.MainActivity`. Se comprobó proceso
-vivo, ausencia de `FATAL EXCEPTION`, carga del catálogo con 232 ejercicios y
-búsqueda de `Bulgaria en Máquina`, que abre `Sentadilla búlgara` con su
-configuración de máquina. La evidencia de esta corrida se guarda en:
-
-- `C:\tmp\kpkn_catalog_v2_final.xml`
-- `C:\tmp\kpkn_catalog_v2_final.png`
-- `C:\tmp\kpkn_catalog_v2_final.log`
-
-La ficha verificada muestra descripción contextual en español, equipamiento,
-fuerza y roles musculares sin el sufijo técnico crudo del compilador
-(`machine · guided`), sin `N/A`, sin Tier ficticio y sin texto de `parent`
-interno. También se verificaron los flujos integrados que consumen la misma
-identidad v2:
-
-- selector: cambio de implemento/estación/ángulo, chips envueltos sin overflow,
-  sólo configuraciones materializadas y confirmación persistente;
-- editor: apertura con la configuración exacta, reemplazo por otra configuración
-  y reapertura conservando `definitionId`/`configurationId`;
-- entrenamiento en vivo: reemplazo conservando la selección inicial, edición de
-  series y vuelta al entrenamiento;
-- Home → preparación → entrenamiento, historial, Split/Info y Analíticas/AUGE.
-
-En los flujos muestreados no apareció `FATAL EXCEPTION`, `NullPointerException` ni
-`IllegalStateException`. La auditoría de consumidores tampoco encontró referencias
-de los assets v1 dentro del runtime; las coincidencias restantes están limitadas
-a documentación histórica y evidencias editoriales.
-
-La corrección de presentación y persistencia que acompaña este corte está en
-`ExerciseCatalogV2Labels.kt`, `ExercisePickerV2Catalog.kt`,
-`ExercisePickerSheet.kt`, `SessionEditorSheets.kt` y
-`WorkoutStructureSheetsHost.kt`: labels controlados en español, `FlowRow` para
-los chips, normalización de selecciones multi-eje y propagación de la identidad
-exacta al editar/reemplazar.
-
-## iOS
-
-El repositorio v2, el asset, el adapter de compatibilidad y los tests fueron
-integrados en el proyecto Xcode. La máquina de ejecución es Windows y no tiene
-`xcodebuild`/toolchain Apple, así que no se declara una compilación nativa iOS
-como evidencia de esta sesión. La paridad estructural sí queda protegida por
-la comparación determinista de hash y por el contrato Codable estricto.
+- `python scripts/compile_exercise_catalog_v2_cli.py --check` → 193 definiciones,
+  509 configuraciones, hash canónico coincidente.
+- `python scripts/compile_exercise_catalog_v2_cli.py --write` → asset Android
+  regenerado (y copia idéntica a iOS).
+- Backend: 7 pruebas Python → `OK`.
+- Android: `testBaseDebugUnitTest` y `testHealthDebugUnitTest` → 0 failures.
 
 ## Regla de mantenimiento
 
 Toda modificación futura debe regenerar fuente, runtime y hash en un solo corte,
 ejecutar el gate estricto, las pruebas Android/backend y la inspección del APK.
 No se admite reintroducir v1, aliases globales, resolución por nombre o chips
-implícitos. Una definición sin metadata completa, configuración por defecto o
-decisión editorial explícita debe bloquear el build.
+implícitos. Una definición sin metadata completa, configuración por defecto,
+`muscleNotes` completas o decisión editorial explícita debe bloquear el build.

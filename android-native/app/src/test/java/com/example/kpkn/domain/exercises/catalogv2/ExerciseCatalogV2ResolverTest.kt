@@ -89,6 +89,15 @@ class ExerciseCatalogV2ResolverTest {
         assertEquals("biceps_curl", result.single().definitionId)
         assertEquals("biceps_curl__bayesian", result.single().suggestedConfigurationId)
     }
+
+    @Test
+    fun localized_equipment_search_returns_parent_and_suggests_matching_configuration() {
+        val result = ExerciseCatalogV2Resolver(catalog).search("mancuernas")
+
+        assertEquals(listOf("biceps_curl"), result.map { it.definitionId })
+        assertEquals("biceps_curl__standing", result.single().suggestedConfigurationId)
+    }
+
     @Test
     fun search_filters_are_explicit_and_do_not_synthesize_hits() {
         val resolver = ExerciseCatalogV2Resolver(catalog)

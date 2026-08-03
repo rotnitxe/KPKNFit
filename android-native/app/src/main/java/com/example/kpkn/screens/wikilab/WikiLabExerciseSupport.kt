@@ -25,6 +25,7 @@ private val CANONICAL_MUSCLE_COLORS = mapOf(
     "Cuádriceps" to Color(0xFF43A047),
     "Isquiosurales" to Color(0xFF2E7D32),
     "Glúteos" to Color(0xFF558B2F),
+    "Glúteo Medio" to Color(0xFF558B2F),
     "Aductores" to Color(0xFF7CB342),
     "Pantorrillas" to Color(0xFF33691E),
     "Core" to Color(0xFF00695C),

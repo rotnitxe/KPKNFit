@@ -32,6 +32,24 @@ class ExercisePickerV2ControllerTest {
         assertEquals("parent_a__standing__cable", result.selection.configurationId)
     }
 
+    @Test
+    fun changing_a_broad_choice_clears_an_incompatible_downstream_choice() = runTest {
+        val repository = InMemoryExerciseCatalogRepositoryV2(testCatalog())
+        repository.load()
+        val controller = ExercisePickerV2Controller(repository)
+
+        controller.updateOption("parent_a", "setup", "standing")
+        controller.updateOption("parent_a", "implement", "cable")
+        controller.updateOption("parent_a", "setup", "seated")
+
+        assertEquals(
+            mapOf("setup" to "seated"),
+            controller.draftFor("parent_a").selectedOptions,
+        )
+        val result = controller.confirm("parent_a") as ExercisePickerV2ConfirmResult.Confirmed
+        assertEquals("parent_a__seated__dumbbells", result.selection.configurationId)
+    }
+
     private fun testCatalog() = ExerciseCatalogV2(
         schemaVersion = 2,
         catalogRevision = "picker-test",

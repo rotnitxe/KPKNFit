@@ -279,27 +279,6 @@ fun WorkoutScreen(
 
     val settings by com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.collectAsStateWithLifecycle()
 
-    // Consume la pre-activación de la tarjeta de hoy: activa voz al entrar a la sesión.
-    var voiceArmConsumed by rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(settings.voiceArmForNextSession, voiceArmConsumed) {
-        if (settings.voiceArmForNextSession && !voiceArmConsumed) {
-            voiceArmConsumed = true
-            viewModel.consumeVoiceArmForNextSession()
-            if (!uiState.voiceSessionEnabled) {
-                val needed = WorkoutVoicePermissionHelper
-                    .permissionsToRequestForVoiceEnable(
-                        context = context,
-                        includeNotifications = true,
-                    )
-                if (needed.isEmpty()) {
-                    viewModel.enableVoice()
-                } else {
-                    voicePermissionsLauncher.launch(needed)
-                }
-            }
-        }
-    }
-
     // Recovery data
     val augeSnapshot by augeViewModel.snapshot.collectAsStateWithLifecycle()
     val perMuscle by augeViewModel.perMuscle.collectAsStateWithLifecycle()
@@ -837,6 +816,26 @@ fun WorkoutScreen(
         readinessSpinalStart = readinessSpinalStart,
         todayWellbeing = todayWellbeing,
         onReadinessDismissed = { readinessSheetDismissed = true },
+        perMuscle = perMuscle,
+        voiceSessionEnabled = uiState.voiceSessionEnabled,
+        voiceCaptureMode = settings.voiceCaptureMode,
+        onVoiceToggle = {
+            if (uiState.voiceSessionEnabled) {
+                viewModel.toggleVoiceSession()
+            } else {
+                val needed = WorkoutVoicePermissionHelper
+                    .permissionsToRequestForVoiceEnable(
+                        context = context,
+                        includeNotifications = true,
+                    )
+                if (needed.isEmpty()) {
+                    viewModel.toggleVoiceSession()
+                } else {
+                    voicePermissionsLauncher.launch(needed)
+                }
+            }
+        },
+        onVoiceCaptureModeChange = { mode -> viewModel.setVoiceCaptureMode(mode) },
         showExitDialog = showExitDialog,
         onShowExitDialogChange = { showExitDialog = it },
         onBack = onBack,

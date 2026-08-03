@@ -113,25 +113,25 @@ internal fun ExercisePickerSheet(
 ) {
     val v2Context = LocalContext.current
     val v2Repository = remember(v2Context) { ApprovedAssetExerciseCatalogRepositoryV2(v2Context) }
-    val v2State by v2Repository.state.collectAsStateWithLifecycle()
     LaunchedEffect(v2Repository) { v2Repository.load() }
-    if (v2State is com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogStateV2.Ready) {
-        ExercisePickerV2Catalog(
-            repository = v2Repository,
-            query = query,
-            editingExisting = editingExisting,
-            selectedExercisesIds = selectedExercisesIds,
-            onSelect = onSelect,
-            onMultiSelect = onMultiSelect,
-            onSelectionChange = onSelectionChange,
-            onOpenExerciseDetail = onOpenExerciseDetail,
-            onOpenExerciseCreator = onOpenExerciseCreator,
-            onDismiss = onDismiss,
-            initialCatalogDefinitionId = editingCatalogDefinitionId,
-            initialCatalogConfigurationId = editingCatalogConfigurationId,
-        )
-        return
-    }
+    // v2 owns the whole surface, including Loading and Error states. The old
+    // catalog must never render as a transient fallback while the asset loads.
+    ExercisePickerV2Catalog(
+        repository = v2Repository,
+        query = query,
+        onSearch = onSearch,
+        editingExisting = editingExisting,
+        selectedExercisesIds = selectedExercisesIds,
+        onSelect = onSelect,
+        onMultiSelect = onMultiSelect,
+        onSelectionChange = onSelectionChange,
+        onOpenExerciseDetail = onOpenExerciseDetail,
+        onOpenExerciseCreator = onOpenExerciseCreator,
+        onDismiss = onDismiss,
+        initialCatalogDefinitionId = editingCatalogDefinitionId,
+        initialCatalogConfigurationId = editingCatalogConfigurationId,
+    )
+    return
     val customExercises by CustomExerciseRepository.customExercises.collectAsStateWithLifecycle()
     val fullCatalog = remember(catalog, customExercises) {
         (customExercises + catalog).distinctBy { it.id.lowercase() }

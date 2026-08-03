@@ -1,0 +1,13 @@
+# Taste
+- Wants plans read and analyzed for feasibility, correctness, and wrong assumptions before implementation — expects the agent to verify against the actual repo and improve the plan if needed. Confidence: 0.9
+- Prefers to think and design together before coding; explicitly asked "no implementemos aún, sigamos pensando" (don't implement yet, let's keep thinking). Confidence: 0.8
+- Wants plans that cover the complete feature — base functionality plus new layers — not just the newly added part (objected when a plan covered only the AI integration and omitted the core reporting feature). Confidence: 0.9
+- Wants hand-off plans written as explicit, unambiguous markdown (e.g., on the Desktop) that are "blindado anti-errores" — very clear and explicit so another model implementing them invents as little as possible. Confidence: 0.9
+- Prefers systemic/root-cause fixes over patching the reported instance ("no te reduzcas a solucionar esto en concreto, esto es un síntoma de un sistema inconsistente"). Confidence: 0.9
+- Prefers radical cleanup and perfectly curated data over preserving legacy/duplicates; willing to start from scratch or reinstall the app for quality ("no quiero que mantengas legacys"). Confidence: 0.8
+- Endorses real validation over compile-only checks: connected/instrumented tests must run, emulator build+install+relaunch, and physical-device validation for voice flows. Confidence: 0.7
+- Asks for a git commit of completed work after implementation. Confidence: 0.7
+- Delegates specific subtasks to named sub-agents (e.g., "usa como sub-agente a GPT 5.6 Luna"). Confidence: 0.6
+- Uses DeepSeek for AI features, explicitly the `deepseek-v4-flash` model — not Gemini, GPT, Pro, or older/deprecated models. Confidence: 0.9
+- Communicates in Spanish (Chilean, informal register) and expects responses in Spanish. Confidence: 0.9
+- Verifies claimed fixes and pushes back strongly when the issue persists ("no arreglaste niuna mierda"); fixes should be proven to actually resolve the problem before being reported as done. Confidence: 0.7

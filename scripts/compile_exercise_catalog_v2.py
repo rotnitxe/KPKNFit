@@ -12,9 +12,12 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import tempfile
 from pathlib import Path
 from typing import Any
+
+from build_catalog_v2_complete import AXIS_ORDER_OVERRIDES
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -59,13 +62,30 @@ def validate_profile(value: Any, path: str, allow_draft: bool) -> None:
         "movementPatternId", "bodyRegion", "kineticChain", "laterality", "equipmentId",
         "loadMode", "primaryMuscles", "secondaryMuscles", "stabilizerMuscles", "efc",
         "cnc", "ssc", "ttc", "axialLoadFactor", "technicalDifficulty", "resistanceProfile",
-        "setupCues", "executionCues", "commonMistakes", "performanceProfileId",
+        "description", "muscleNotes", "setupCues", "executionCues", "commonMistakes",
+        "performanceProfileId",
     }
     missing = sorted(key for key in required if key not in value)
     require(not missing, f"{path}.profile missing required fields: {', '.join(missing)}")
     for key in ("primaryMuscles", "secondaryMuscles", "stabilizerMuscles", "setupCues", "executionCues", "commonMistakes"):
         require(isinstance(value[key], list), f"{path}.profile.{key} must be a list")
     require(value["primaryMuscles"], f"{path}.profile.primaryMuscles cannot be empty")
+    all_listed = value["primaryMuscles"] + value["secondaryMuscles"] + value["stabilizerMuscles"]
+    require(len(all_listed) == len(set(all_listed)), f"{path}.profile lists a muscle in more than one role")
+    require(isinstance(value["description"], str) and len(value["description"].strip()) >= 40, f"{path}.profile.description is too short")
+    require(not re.search(r"(?i)\b(?:ejecuta|mantén|mantener|configura|adopta|controla|asegura|evita|sigue|selecciona)\b", value["description"]), f"{path}.profile.description must be descriptive, not instructional")
+    notes = value.get("muscleNotes")
+    require(isinstance(notes, list) and notes, f"{path}.profile.muscleNotes cannot be empty")
+    listed = set(value["primaryMuscles"]) | set(value["secondaryMuscles"]) | set(value["stabilizerMuscles"])
+    noted = {}
+    for note in notes:
+        require(isinstance(note, dict) and isinstance(note.get("muscleId"), str) and isinstance(note.get("note"), str), f"{path}.profile.muscleNotes entry invalid")
+        require(note["muscleId"] in listed, f"{path}.profile.muscleNotes orphan: {note['muscleId']}")
+        require(note["muscleId"] not in noted, f"{path}.profile.muscleNotes duplicate: {note['muscleId']}")
+        require(len(note["note"].strip()) >= 40, f"{path}.profile.muscleNotes note too short: {note['muscleId']}")
+        noted[note["muscleId"]] = True
+    missing_notes = sorted(listed - set(noted))
+    require(not missing_notes, f"{path}.profile.muscleNotes missing muscles: {', '.join(missing_notes)}")
     for key in ("efc", "cnc", "ssc", "ttc", "axialLoadFactor"):
         require(isinstance(value[key], (int, float)) and value[key] >= 0, f"{path}.profile.{key} must be a non-negative number")
     require(1 <= value["technicalDifficulty"] <= 10, f"{path}.profile.technicalDifficulty must be 1..10")
@@ -225,6 +245,10 @@ def validate(source: dict[str, Any], allow_draft: bool) -> tuple[int, int]:
             definition_ids.add(definition_id)
             require(definition.get("familyId") == family_id, f"{definition_path}.familyId must equal {family_id}")
             require(isinstance(definition.get("optionAxes"), list), f"{definition_path}.optionAxes must be a list")
+            require(len(definition["optionAxes"]) == len(set(definition["optionAxes"])), f"{definition_path}.optionAxes contains duplicates")
+            expected_axes = AXIS_ORDER_OVERRIDES.get(definition_id)
+            if expected_axes is not None:
+                require(definition["optionAxes"] == expected_axes, f"{definition_path}.optionAxes hierarchy order is not approved")
             require(len(definition.get("description", "").strip()) >= 40, f"{definition_path}.description is too short")
             validate_evidence(definition.get("evidence"), definition_path)
             if not allow_draft:
@@ -232,6 +256,11 @@ def validate(source: dict[str, Any], allow_draft: bool) -> tuple[int, int]:
             configurations = definition.get("configurations")
             require(isinstance(configurations, list) and configurations, f"{definition_path}.configurations cannot be empty")
             for axis in definition["optionAxes"]:
+                if axis == "pulley_height":
+                    continue
+                if axis == "implement" and "pulley_height" in definition["optionAxes"]:
+                    # Cable-fixed definition: implement is implicitly cable.
+                    continue
                 axis_values = {configuration.get("selectedOptions", {}).get(axis) for configuration in configurations}
                 require(len(axis_values) > 1, f"{definition_path}.optionAxes contains a singleton axis: {axis}")
             configuration_ids_for_definition: set[str] = set()
@@ -248,7 +277,24 @@ def validate(source: dict[str, Any], allow_draft: bool) -> tuple[int, int]:
                 selected_options = configuration.get("selectedOptions")
                 require(isinstance(selected_options, dict), f"{configuration_path}.selectedOptions must be an object")
                 require(all(isinstance(key, str) and isinstance(value, str) and value.strip() for key, value in selected_options.items()), f"{configuration_path}.selectedOptions must contain non-empty strings")
-                require(set(selected_options) == set(definition["optionAxes"]), f"{configuration_path}.selectedOptions must cover optionAxes exactly")
+                # The pulley_height axis is conditional: it may only appear in
+                # configurations whose implement is cable, and it must appear
+                # there. All other axes are mandatory for every configuration.
+                # A definition without an implement axis is a cable-fixed
+                # station (e.g. cable crossover): every configuration is a
+                # pulley and must declare its height.
+                expected_options = set(definition["optionAxes"])
+                if "pulley_height" in expected_options:
+                    if "implement" in expected_options:
+                        implement = selected_options.get("implement")
+                        if implement == "cable":
+                            require("pulley_height" in selected_options, f"{configuration_path}.selectedOptions must include pulley_height for cable")
+                        else:
+                            require("pulley_height" not in selected_options, f"{configuration_path}.selectedOptions must not include pulley_height for {implement}")
+                            expected_options = expected_options - {"pulley_height"}
+                    else:
+                        require("pulley_height" in selected_options, f"{configuration_path}.selectedOptions must include pulley_height for cable-fixed definition")
+                require(set(selected_options) == expected_options, f"{configuration_path}.selectedOptions must cover optionAxes exactly")
                 option_signature = tuple(sorted(selected_options.items()))
                 require(option_signature not in option_signatures, f"{configuration_path} duplicates another configuration selectedOptions")
                 option_signatures.add(option_signature)

@@ -41,21 +41,28 @@ internal fun ExerciseDefinitionV2.toLegacyInfo(
     legacyId: String = id,
 ): ExerciseMuscleInfo {
     val profile = configuration.profile
-    val primary = profile.primaryMuscles.mapNotNull(::muscleLabel)
-    val secondary = profile.secondaryMuscles.mapNotNull(::muscleLabel)
-    val stabilizers = profile.stabilizerMuscles.mapNotNull(::muscleLabel)
+    val noteByMuscle = profile.muscleNotes.associate { it.muscleId to it.note }
+    fun involved(muscleId: String, role: MuscleRole): InvolvedMuscle =
+        InvolvedMuscle(
+            muscle = muscleLabel(muscleId) ?: muscleId,
+            role = role,
+            volumeContribution = null,
+            biomechanicalReason = noteByMuscle[muscleId],
+        )
     val involved = buildList {
-        primary.forEach { add(InvolvedMuscle(it, MuscleRole.PRIMARY)) }
-        secondary.forEach { add(InvolvedMuscle(it, MuscleRole.SECONDARY)) }
-        stabilizers.forEach { add(InvolvedMuscle(it, MuscleRole.STABILIZER)) }
+        profile.primaryMuscles.forEach { add(involved(it, MuscleRole.PRIMARY)) }
+        profile.secondaryMuscles.forEach { add(involved(it, MuscleRole.SECONDARY)) }
+        profile.stabilizerMuscles.forEach { add(involved(it, MuscleRole.STABILIZER)) }
     }
     return ExerciseMuscleInfo(
         id = legacyId,
         name = canonicalName,
         alias = searchTerms.joinToString(", ").ifBlank { null },
-        // The curated description is already localized/contextual. Do not append the
-        // raw compiler display summary (e.g. "machine · guided") to user-facing text.
-        description = description.trim(),
+        // The resolved profile owns the description for the exact selected
+        // configuration. Fall back to the parent prose only for old/draft
+        // fixtures that predate the per-configuration field. Never append the
+        // raw compiler display summary (e.g. "machine · guided").
+        description = profile.description.trim().ifBlank { description.trim() },
         involvedMuscles = involved,
         equipment = equipmentLabel(profile.equipmentId),
         category = if (kind.name == "SPECIALTY") "Especialidad" else "Fuerza",
@@ -133,6 +140,7 @@ private fun muscleLabel(id: String): String? = mapOf(
     "erector_spinae" to "Erectores Espinales",
     "hamstrings" to "Isquiosurales",
     "gluteus_maximus" to "Glúteos",
+    "gluteus_medius" to "Glúteo Medio",
     "quadriceps" to "Cuádriceps",
     "calves" to "Pantorrillas",
     "tibialis_anterior" to "Tibial Anterior",
@@ -158,6 +166,7 @@ private fun equipmentLabel(id: String): String = mapOf(
     "ez_bar" to "Barra EZ",
     "trx" to "TRX",
     "smith_machine" to "Máquina Smith",
+    "safety_bar" to "Barra de Seguridad",
 )[id] ?: id
 
 private fun movementLabel(id: String): String = mapOf(

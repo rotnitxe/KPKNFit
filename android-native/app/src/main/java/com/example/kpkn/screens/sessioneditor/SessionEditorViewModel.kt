@@ -680,7 +680,7 @@ class SessionEditorViewModel(
         if (!isMeetDay) {
             val backup = current.trainingBackup
             if (backup != null && backup.catalogSchemaVersion < 2) {
-                updateUi { it.copy(snackbarMessage = "No se puede restaurar un respaldo de sesión anterior al catálogo v2.") }
+                updateUi { it.copy(snackbarMessage = "No se puede restaurar un respaldo de sesión anterior al catálogo actual.") }
                 return
             }
         }

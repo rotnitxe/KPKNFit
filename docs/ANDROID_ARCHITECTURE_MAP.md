@@ -91,7 +91,7 @@ Single source of truth per feature, all backed by Room:
 
 Located in `android-native/app/src/main/assets/`:
 
-1.  **`exercise_catalog_v2.json`:** The sole approved exercise runtime asset. It contains 232 parent/specialty definitions, 259 explicit configurations, exact catalog identities, rich muscle/AUGE/biomechanics/programming metadata, and the declared chip axes. It is loaded by `data/exercises/ExerciseDatabase.kt` and validated against the approved catalog revision/hash. The former `exercise_database.json` and `exercise_id_aliases.json` are not runtime fallbacks; legacy copies exist only as curation evidence under `catalog/exercises/v2/curation/evidence/legacy/`.
+1.  **`exercise_catalog_v2.json`:** The sole approved exercise runtime asset. It contains 180 parent/specialty definitions, 280 explicit configurations, exact catalog identities, rich muscle/AUGE/biomechanics/programming metadata, and hierarchical chip axes. It is loaded by `data/exercises/ExerciseDatabase.kt` and validated against the approved catalog revision/hash. The former `exercise_database.json` and `exercise_id_aliases.json` are not runtime fallbacks; legacy copies exist only as curation evidence under `catalog/exercises/v2/curation/evidence/legacy/`.
 2.  **`wikilab/` (`joints.json`, `kinetic_chains.json`, `movement_patterns.json`, `muscles.json`, `tendons.json` — ~104 KB):** Full relational catalog representing the anatomical connectivity of the human body (imported by `data/WikiLabPrepopulate.kt`).
 3.  **`food_data/` (`food.csv` & `food_nutrient.csv`):** Standard USDA database.
 4.  **`food_data/off_chile.csv`:** OpenFoodFacts Chile TSV dataset (~53 MB; the whole `food_data/` folder is ~80 MB).

@@ -1,6 +1,6 @@
 # Decisiones de agrupación — capturas del usuario
 
-Estado global: `APPROVED` en la revisión `v2-approved-2026-08-02`. Las capturas
+Estado global: `APPROVED` en la revisión `v2-approved-2026-08-02-c`. Las capturas
 se usaron como evidencia de curación; el runtime final proviene de la fuente
 editorial compilada, no de una copia automática de nombres legacy.
 

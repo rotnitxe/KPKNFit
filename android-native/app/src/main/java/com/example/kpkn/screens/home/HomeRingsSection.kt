@@ -33,7 +33,7 @@ import com.example.kpkn.ui.components.KpknAlertDialog
 
 // ─── Ring Constants ──────────────────────────────────────────────────────────
 
-private val RingColors = listOf(
+internal val RingColors = listOf(
     Color(0xFFC96B5C), // Músculos — terracota
     Color(0xFF4FA3A5), // Energía — turquesa grisáceo
     Color(0xFF9A86C8), // Columna — lavanda apagado
@@ -197,7 +197,7 @@ internal fun SingleRingCanvas(
 }
 
 @Composable
-private fun AugeRingsCanvas(mp: Float, sp: Float, cp: Float, ringColors: List<Color> = RingColors) {
+internal fun AugeRingsCanvas(mp: Float, sp: Float, cp: Float, ringColors: List<Color> = RingColors) {
     val values = listOf(mp, sp, cp)
     Canvas(Modifier.fillMaxSize()) {
         val radius = min(size.width / 5f, size.height * 0.38f)

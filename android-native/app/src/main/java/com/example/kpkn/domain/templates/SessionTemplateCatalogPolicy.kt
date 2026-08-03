@@ -43,11 +43,17 @@ object SessionTemplateCatalogPolicy {
         "Tríceps" to 6.0..10.0,
         "Cuádriceps" to 10.0..16.0,
         "Isquiosurales" to 8.0..12.0,
-        "Glúteos" to 8.0..14.0,
+        // El glúteo mayor es primario en bisagras y empujes de cadera del
+        // catálogo curado (peso muerto, RDL, hip thrust), por lo que el rango
+        // objetivo semanal refleja ese volumen directo acumulado.
+        "Glúteos" to 10.0..18.0,
         "Pantorrillas" to 6.0..12.0,
         "Aductores" to 4.0..8.0,
         "Abdomen" to 4.0..10.0,
-        "Core" to 4.0..8.0,
+        // El core participa como estabilizador (0.4) en muchos patrones del
+        // catálogo curado (bisagras, sentadillas, remos), por lo que el rango
+        // objetivo semanal refleja ese volumen indirecto acumulado.
+        "Core" to 4.0..10.0,
         // Compuestos (sentadilla / bisagra) aportan erectores secundarios reales del catálogo.
         "Erectores Espinales" to 3.0..12.0,
     )

@@ -16,7 +16,6 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,7 +49,6 @@ import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.screens.auge.rememberAugeViewModel
 import com.example.kpkn.screens.nutrition.NutritionViewModel
 import com.example.kpkn.screens.nutrition.components.FoodLoggerDrawer
-import com.example.kpkn.screens.workout.components.VoiceCaptureModeDialog
 import com.example.kpkn.ui.theme.AppThemeMode
 import com.example.kpkn.ui.theme.RingBlue
 import com.example.kpkn.ui.theme.RingRed
@@ -98,10 +96,6 @@ fun HomeScreen(
     val augeLoading = augeSnapshot.isLoading
     val pendingQuestionnaire by augeViewModel.pendingQuestionnaire.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
-    val voiceArmForNextSession by viewModel.voiceArmForNextSession.collectAsStateWithLifecycle()
-    val voiceCaptureMode by viewModel.voiceCaptureMode.collectAsStateWithLifecycle()
-    val hasChosenVoiceCaptureMode by viewModel.hasChosenVoiceCaptureMode.collectAsStateWithLifecycle()
-    var showVoiceModeDialog by remember { mutableStateOf(false) }
     val nutritionRepo = remember { NutritionRepository.getInstance() }
     var showFoodLogger by remember { mutableStateOf(false) }
     var showNutritionOverlay by remember { mutableStateOf(false) }
@@ -270,33 +264,10 @@ fun HomeScreen(
                 overtrainedMuscles = uiState.overtrainedMuscles,
                  onAddMeal = { showFoodLogger = true },
                  onOpenNutritionOverlay = { showNutritionOverlay = true },
-                 voiceArmForNextSession = voiceArmForNextSession,
-                 voiceCaptureMode = voiceCaptureMode,
-                 onVoiceArmForNextSessionChange = { armed ->
-                     if (armed && !hasChosenVoiceCaptureMode) {
-                         showVoiceModeDialog = true
-                     } else {
-                         viewModel.setVoiceArmForNextSession(armed)
-                     }
-                 },
-                 onVoiceCaptureModeChange = { mode ->
-                     viewModel.setVoiceCaptureMode(mode)
-                     viewModel.setVoiceArmForNextSession(true)
-                 },
                  modifier = Modifier
                      .fillMaxSize()
                      .navigationBarsPadding(),
              )
-
-        if (showVoiceModeDialog) {
-            VoiceCaptureModeDialog(
-                onChosen = { mode ->
-                    showVoiceModeDialog = false
-                    viewModel.setVoiceCaptureMode(mode)
-                    viewModel.setVoiceArmForNextSession(true)
-                },
-            )
-        }
 
         if (showFoodLogger) {
             HomeFoodLoggerHost(
@@ -373,10 +344,6 @@ private fun HomeWithProgram(
     overtrainedMuscles: List<String> = emptyList(),
     onAddMeal: () -> Unit = {},
     onOpenNutritionOverlay: () -> Unit = {},
-    voiceArmForNextSession: Boolean = false,
-    voiceCaptureMode: com.example.kpkn.data.models.VoiceCaptureMode = com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE,
-    onVoiceArmForNextSessionChange: (Boolean) -> Unit = {},
-    onVoiceCaptureModeChange: (com.example.kpkn.data.models.VoiceCaptureMode) -> Unit = {},
 ) {
     LazyColumn(
         state = listState,
@@ -397,14 +364,6 @@ private fun HomeWithProgram(
                 onEditSession = onEditSession,
                 onCreateProgram = onCreateProgram,
                 modifier = Modifier.onGloballyPositioned { onSessionAnchorPositionChanged(it.positionInRoot().y) },
-                voiceArmForNextSession = voiceArmForNextSession,
-                voiceCaptureMode = voiceCaptureMode,
-                onVoiceArmForNextSessionChange = { armed ->
-                    onVoiceArmForNextSessionChange(armed)
-                },
-                onVoiceCaptureModeChange = { mode ->
-                    onVoiceCaptureModeChange(mode)
-                },
             )
         }
 

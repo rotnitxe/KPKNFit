@@ -154,4 +154,48 @@ class ExercisePickerCatalogLogicTest {
         assertEquals("lateral", deltoidRows.single().emphasis)
         assertEquals(MuscleRole.SECONDARY, deltoidRows.single().role)
     }
+
+    @Test
+    fun involvement_rows_are_ordered_by_role_primary_secondary_stabilizer() {
+        val exercise = ExerciseMuscleInfo(
+            id = "rdl-role-order",
+            name = "Peso Muerto Rumano",
+            description = "Bisagra de cadera",
+            movementPattern = "Bisagra",
+            involvedMuscles = listOf(
+                InvolvedMuscle(
+                    muscle = "Erectores espinales",
+                    role = MuscleRole.STABILIZER,
+                    volumeContribution = 0.4,
+                ),
+                InvolvedMuscle(
+                    muscle = "Glúteos",
+                    role = MuscleRole.PRIMARY,
+                    volumeContribution = 1.0,
+                ),
+                InvolvedMuscle(
+                    muscle = "Isquiosurales",
+                    role = MuscleRole.PRIMARY,
+                    volumeContribution = 1.0,
+                ),
+                InvolvedMuscle(
+                    muscle = "Core",
+                    role = MuscleRole.STABILIZER,
+                    volumeContribution = 0.4,
+                ),
+                InvolvedMuscle(
+                    muscle = "Bíceps",
+                    role = MuscleRole.SECONDARY,
+                    volumeContribution = 0.5,
+                ),
+            ),
+        )
+
+        val roles = oneSeriesVolumeContributions(exercise).map { it.role }
+
+        assertEquals(
+            listOf(MuscleRole.PRIMARY, MuscleRole.PRIMARY, MuscleRole.SECONDARY, MuscleRole.STABILIZER, MuscleRole.STABILIZER),
+            roles,
+        )
+    }
 }

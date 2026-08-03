@@ -64,6 +64,9 @@ data class ResolvedExerciseProfileV2(
     val primaryMuscles: List<String>,
     val secondaryMuscles: List<String> = emptyList(),
     val stabilizerMuscles: List<String> = emptyList(),
+    /** One editorial note per listed muscle; the single source for
+     * biomechanical explanations shown in the picker. */
+    val muscleNotes: List<MuscleNoteV2> = emptyList(),
     val efc: Double,
     val cnc: Double,
     val ssc: Double,
@@ -80,6 +83,14 @@ data class ResolvedExerciseProfileV2(
     val replacementGroup: String? = null,
     val replacementPriority: Int? = null,
     val automationEligible: Boolean = false,
+    /** Factual prose for this exact materialized configuration; never a cue. */
+    val description: String = "",
+)
+
+@Serializable
+data class MuscleNoteV2(
+    val muscleId: String,
+    val note: String,
 )
 
 @Serializable

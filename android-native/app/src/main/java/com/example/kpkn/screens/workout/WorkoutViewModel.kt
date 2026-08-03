@@ -1318,12 +1318,6 @@ class WorkoutViewModel(
         _uiState.update { it.copy(showVoiceCaptureModeDialog = false) }
     }
 
-    /** Consume la pre-activación de la tarjeta de hoy (se limpia tras su uso). */
-    fun consumeVoiceArmForNextSession() {
-        repository.updateSettings { it.copy(voiceArmForNextSession = false) }
-    }
-
-
     fun disableVoice() {
         WorkoutVoiceDiagnosticLogger.event("voice_disable_requested")
         voiceCommandHandler.disableVoice()

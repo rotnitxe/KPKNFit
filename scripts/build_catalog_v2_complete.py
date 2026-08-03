@@ -22,8 +22,317 @@ ASSET = ROOT / "catalog" / "exercises" / "v2" / "curation" / "evidence" / "legac
 INVENTORY = ROOT / "catalog" / "exercises" / "v2" / "curation" / "candidate_inventory.json"
 OUTPUT = ROOT / "catalog" / "exercises" / "v2" / "source" / "catalog_v2.json"
 
-REVISION = "v2-approved-2026-08-02"
+REVISION = "v2-approved-2026-08-02-c"
 ONTOLOGY = "wikilab-v2-2026-08-02"
+
+# The order is editorial, not alphabetical.  It is the contract used by the
+# picker to reveal one decision level at a time: a broad choice first (usually
+# the implement or setup), followed by only the technical choices that still
+# matter for the configurations compatible with that choice.  Do not add an
+# axis merely because the legacy row mentions it; every axis must have at least
+# two real values and every combination must be materialised below.
+AXIS_ORDER_OVERRIDES = {
+    "good_morning": [
+        "implement",
+        "laterality"
+    ],
+    "romanian_deadlift": [
+        "implement",
+        "stance"
+    ],
+    "conventional_deadlift": [
+        "implement",
+        "laterality"
+    ],
+    "sumo_deadlift": [
+        "implement"
+    ],
+    "stiff_leg_deadlift": [
+        "implement",
+        "laterality"
+    ],
+    "seated_leg_curl": [
+        "implement",
+        "laterality"
+    ],
+    "lying_leg_curl": [
+        "implement",
+        "laterality"
+    ],
+    "standing_leg_curl": [
+        "implement",
+        "laterality"
+    ],
+    "belt_squat": [
+        "laterality"
+    ],
+    "pendulum_squat": [
+        "laterality"
+    ],
+    "push_up": [
+        "support_angle"
+    ],
+    "lat_pulldown": [
+        "implement",
+        "laterality"
+    ],
+    "pull_up": [
+        "grip_type",
+        "grip_width"
+    ],
+    "calf_raise": [
+        "implement",
+        "laterality"
+    ],
+    "overhead_triceps_extension": [
+        "implement"
+    ],
+    "crossbody_triceps_extension": [
+        "laterality"
+    ],
+    "pullover": [
+        "implement",
+        "laterality"
+    ],
+    "lying_pullover": [
+        "implement"
+    ],
+    "hip_thrust": [
+        "implement",
+        "laterality"
+    ],
+    "triceps_patada": [
+        "implement",
+        "laterality"
+    ],
+    "quads_extension_cuadriceps": [
+        "laterality"
+    ],
+    "military_press": [
+        "implement"
+    ],
+    "seated_shoulder_press": [
+        "implement"
+    ],
+    "forearms_curl_muneca_sentado": [
+        "implement"
+    ],
+    "reverse_pec_fly": [
+        "implement",
+        "laterality"
+    ],
+    "flat_chest_fly": [
+        "implement"
+    ],
+    "incline_chest_fly": [
+        "implement"
+    ],
+    "decline_chest_fly": [
+        "implement"
+    ],
+    "hip_abduction": [
+        "implement",
+        "station",
+        "laterality"
+    ],
+    "hip_adduction": [
+        "implement",
+        "station",
+        "laterality"
+    ],
+    "bulgarian_split_squat": [
+        "implement"
+    ],
+    "standing_biceps_curl": [
+        "implement"
+    ],
+    "preacher_curl": [
+        "implement"
+    ],
+    "standing_lateral_raise": [
+        "implement"
+    ],
+    "seated_lateral_raise": [
+        "implement"
+    ],
+    "rear_delt_raise": [
+        "implement"
+    ],
+    "bench_press": [
+        "implement"
+    ],
+    "incline_bench_press": [
+        "implement"
+    ],
+    "decline_bench_press": [
+        "implement"
+    ],
+    "floor_press": [
+        "implement"
+    ],
+    "jm_press": [
+        "implement"
+    ],
+    "california_press": [
+        "implement"
+    ],
+    "tate_press": [
+        "implement"
+    ],
+    "arnold_press": [
+        "implement"
+    ],
+    "z_press": [
+        "implement"
+    ],
+    "katana_extension": [
+        "implement",
+        "laterality"
+    ],
+    "chest_supported_row": [
+        "implement",
+        "pulley_height",
+        "grip_width"
+    ],
+    "seal_row": [
+        "implement"
+    ],
+    "conventional_row": [
+        "implement"
+    ],
+    "pendlay_row": [
+        "implement"
+    ],
+    "t_bar_row": [
+        "implement",
+        "grip_width"
+    ],
+    "gironda_row": [
+        "grip_width"
+    ],
+    "sissy_squat": [
+        "implement"
+    ],
+    "forward_lunge": [
+        "implement"
+    ],
+    "reverse_lunge": [
+        "implement"
+    ],
+    "walking_lunge": [
+        "implement"
+    ],
+    "step_up": [
+        "implement"
+    ],
+    "high_bar_back_squat": [
+        "implement"
+    ],
+    "low_bar_back_squat": [
+        "implement"
+    ],
+    "front_squat": [
+        "implement"
+    ],
+    "sumo_squat": [
+        "implement"
+    ],
+    "quads_prensa_piernas": [
+        "laterality"
+    ],
+    "glutes_patada_gluteo": [
+        "implement"
+    ],
+    "glutes_patada_gluteo_lateral": [
+        "implement"
+    ],
+    "glutes_puente_gluteos": [
+        "implement",
+        "laterality"
+    ],
+    "tren_superior_cruce_poleas": [
+        "implement",
+        "pulley_height"
+    ],
+    "lateral_raise_super_rom": [
+        "implement"
+    ],
+    "deltoides_elevaciones_frontales": [
+        "implement"
+    ],
+    "back_encogimientos": [
+        "implement"
+    ],
+    "back_encogimientos_kelso": [
+        "implement"
+    ],
+    "spider_curl": [
+        "implement",
+        "grip_type"
+    ],
+    "biceps_curl_bayesian": [
+        "implement",
+        "grip_type"
+    ],
+    "concentration_curl": [
+        "implement"
+    ],
+    "biceps_curl_sentado_banco_plano": [
+        "implement"
+    ],
+    "forearms_curl_muneca_inverso_sentado": [
+        "implement"
+    ],
+    "triceps_pushdown": [
+        "implement",
+        "laterality"
+    ],
+    "triceps_press_frances": [
+        "implement"
+    ],
+    "back_remo_gorilla_mancuernas": [
+        "implement"
+    ],
+    "back_remo_renegado_mancuernas": [
+        "implement"
+    ],
+    "romanian_sumo_deadlift": [
+        "implement",
+        "stance"
+    ],
+    "good_morning_seated": [
+        "implement"
+    ],
+    "glutes_hiperextension_45": [
+        "implement"
+    ],
+    "back_jefferson_curl": [
+        "implement"
+    ],
+    "quads_sentadilla_hack": [
+        "implement"
+    ],
+    "neck_extension_cuello": [
+        "implement"
+    ],
+    "neck_flexion_cuello": [
+        "implement"
+    ],
+    "quads_extension_cuadriceps_pie_polea": [
+        "laterality"
+    ],
+    "forearms_paseo_del_granjero": [
+        "implement"
+    ]
+}
+
+
+
+def ordered_options(definition_id: str, options: dict[str, str]) -> dict[str, str]:
+    """Return a stable, general-to-particular option map for one definition."""
+    order = AXIS_ORDER_OVERRIDES.get(definition_id, list(options))
+    unknown = [axis for axis in options if axis not in order]
+    return {axis: options[axis] for axis in [*order, *unknown] if axis in options}
 
 MUSCLE_IDS = {
     "Abdomen": "abdominals",
@@ -71,6 +380,13 @@ MUSCLE_ROLE_OVERRIDES = {
 # search terms only; they never create a second definition or runtime alias.
 SEARCH_TERM_OVERRIDES = {
     "quads_sentadilla_bulgara_maquina": ["Bulgaria en Máquina", "Bulgaria en Maquina"],
+    "deltoides_aperturas_inversas_maquina_pec_deck": [
+        "Aperturas inversas",
+        "Aperturas inversas en máquina pec deck",
+        "Aperturas inversas en polea",
+        "Reverse pec fly",
+        "Reverse cable fly",
+    ],
 }
 
 EQUIPMENT_IDS = {
@@ -80,6 +396,7 @@ EQUIPMENT_IDS = {
     "Barra EZ": "ez_bar",
     "Barra Hexagonal": "hex_bar",
     "Barra T": "t_bar",
+    "Barra de Seguridad": "safety_bar",
     "Disco": "plate",
     "Kettlebell": "kettlebell",
     "Mancuerna": "dumbbells",
@@ -92,6 +409,127 @@ EQUIPMENT_IDS = {
     "Rueda Abdominal": "ab_wheel",
     "Sliders": "sliders",
     "TRX": "trx",
+}
+
+# These labels are only used in the user-facing descriptions emitted for a
+# resolved configuration.  The catalog keeps the stable ids in
+# ``selectedOptions``; descriptions must remain readable Spanish and must not
+# expose those ids (``pec_deck_reverse``, ``barbell_back``, etc.).
+DESCRIPTION_OPTION_LABELS = {
+    "implement": {
+        "band": "banda de resistencia",
+        "barbell": "barra",
+        "hex_bar": "barra hexagonal",
+        "cable": "polea",
+        "dumbbells": "mancuernas",
+        "ez_bar": "barra EZ",
+        "kettlebell": "kettlebell",
+        "machine": "máquina",
+        "smith_machine": "máquina Smith",
+        "safety_bar": "barra de seguridad",
+        "bodyweight": "peso corporal",
+        "sliders": "sliders",
+    },
+    "laterality": {"bilateral": "bilateral", "unilateral": "unilateral"},
+    "load_position": {
+        "barbell_back": "barra sobre la espalda",
+        "cable_front": "polea frontal",
+        "front": "carga frontal",
+        "guided": "recorrido guiado",
+        "bodyweight": "sin carga externa",
+        "hack": "máquina Hack",
+        "smith": "recorrido Smith",
+        "sides": "carga a los lados",
+        "zercher": "posición Zercher",
+    },
+    "posture": {
+        "seated": "sentado",
+        "standing": "de pie",
+        "lying_flat": "acostado en banco plano",
+        "incline_supported": "inclinado con apoyo",
+        "side_lying": "recostado de lado",
+    },
+    "setup": {
+        "arana": "posición araña",
+        "bayesian": "posición bayesiana",
+        "concentrado": "posición concentrada",
+        "crucifijo": "posición crucifijo",
+        "declinado": "banco declinado",
+        "inclinado": "banco inclinado",
+        "preacher": "banco predicador",
+        "sentado_banco_plano": "sentado en banco plano",
+        "standing": "de pie",
+        "superman": "posición Superman",
+        "seated_bench": "sentado con banco plano",
+        "chest_supported": "pecho apoyado",
+        "lying_flat": "acostado en banco plano",
+        "spider": "posición araña",
+    },
+    "stance": {
+        "neutral": "postura neutra",
+        "conventional": "postura convencional",
+        "bilateral": "dos piernas",
+        "sumo": "postura sumo",
+        "b_stance": "apoyo asimétrico B-stance",
+    },
+    "load": {"bodyweight": "sin carga externa", "plate": "disco"},
+    "station": {
+        "bench": "banco",
+        "floor": "suelo",
+        "floor_sliders": "suelo con sliders",
+        "standing_cable": "de pie en polea",
+        "seated_machine": "máquina sentado",
+        "lying_machine": "máquina tumbado",
+        "standing": "estación de pie",
+        "donkey": "estación donkey",
+        "leg_press": "prensa de piernas",
+        "seated": "estación sentada",
+        "pec_deck": "pec deck",
+        "pec_deck_reverse": "pec deck inverso",
+    },
+    "support_angle": {
+        "decline": "ángulo declinado",
+        "flat": "ángulo plano",
+        "incline": "ángulo inclinado",
+        "seated": "posición sentada",
+        "standing": "posición de pie",
+        "feet_elevated": "pies elevados",
+    },
+}
+
+DESCRIPTION_INSTRUCTION_MARKERS = (
+    "es un ejercicio dentro de un patrón",
+    "se realiza con",
+    "se ejecuta con",
+    "ejecuta ",
+    "mantén",
+    "mantener ",
+    "configura ",
+    "adopta ",
+    "controla ",
+    "asegura ",
+    "evita ",
+    "sigue ",
+    "selecciona ",
+    "progresión de carga",
+)
+
+DESCRIPTION_EQUIPMENT_LABELS = {
+    "band": "banda de resistencia",
+    "barbell": "barra",
+    "cable": "polea",
+    "dumbbells": "mancuernas",
+    "machine": "máquina",
+    "ez_bar": "barra EZ",
+    "hex_bar": "barra hexagonal",
+    "t_bar": "barra T",
+    "plate": "disco",
+    "kettlebell": "kettlebell",
+    "bodyweight": "peso corporal",
+    "sliders": "sliders",
+    "ghd": "máquina GHD",
+    "trx": "TRX",
+    "safety_bar": "barra de seguridad",
 }
 
 MOVEMENT_IDS = {
@@ -297,6 +735,75 @@ def cue_text(record: dict[str, Any], phase: str) -> str:
     return f"Usar impulso, perder la posición de inicio o transformar el patrón {movement.lower()} para completar la repetición."
 
 
+def description_is_instructional(value: str) -> bool:
+    lowered = value.lower()
+    return any(marker in lowered for marker in DESCRIPTION_INSTRUCTION_MARKERS)
+
+
+def description_muscles(record: dict[str, Any]) -> tuple[list[str], list[str]]:
+    involved = record.get("involvedMuscles") or []
+    override = MUSCLE_ROLE_OVERRIDES.get(record["id"])
+    if override:
+        return override["primary"], override.get("secondary", [])
+    return (
+        [item["muscle"] for item in involved if item.get("role") == "primary"],
+        [item["muscle"] for item in involved if item.get("role") == "secondary"],
+    )
+
+
+def factual_description(record: dict[str, Any], *, subject: str, kind: str) -> str:
+    primary, secondary = description_muscles(record)
+    primary_text = ", ".join(primary) or "la musculatura declarada"
+    movement = record["movementPattern"].lower()
+    text = f"{subject} trabaja principalmente {primary_text.lower()} mediante un patrón de {movement}."
+    if secondary:
+        text += f" La participación secundaria corresponde a {', '.join(secondary).lower()}."
+    return text
+
+
+def option_description(selected_options: dict[str, str]) -> str:
+    labels: list[str] = []
+    for axis, value in selected_options.items():
+        label = DESCRIPTION_OPTION_LABELS.get(axis, {}).get(value, value.replace("_", " "))
+        if label not in labels:
+            labels.append(label)
+    return " · ".join(labels)
+
+
+def configuration_description(
+    record: dict[str, Any],
+    *,
+    canonical: str,
+    kind: str,
+    selected_options: dict[str, str],
+    equipment_override: str | None = None,
+) -> str:
+    """Return a dedicated, factual description for one materialized config.
+
+    A configuration description is deliberately separate from setup/execution
+    cues.  When legacy prose is usable, preserve its exercise-specific detail;
+    otherwise rebuild a factual sentence from the audited movement and muscle
+    fields.  In both cases append the explicit chip choices so two real
+    configurations of one parent cannot collapse into the same description.
+    """
+    existing = (record.get("description") or "").strip()
+    subject = canonical_name(record) or canonical
+    if existing and len(existing) >= 40 and not description_is_instructional(existing):
+        text = existing.rstrip(" .") + "."
+    else:
+        text = factual_description(record, subject=subject, kind=kind)
+
+    equipment_id = equipment_override or EQUIPMENT_IDS.get(record.get("equipment", ""), "")
+    equipment = DESCRIPTION_EQUIPMENT_LABELS.get(equipment_id, record.get("equipment", ""))
+    if equipment and equipment.lower() not in text.lower():
+        text += f" La configuración utiliza {equipment} como implemento."
+
+    options = option_description(selected_options)
+    if options:
+        text += f" La variante se define por: {options}."
+    return text
+
+
 def profile(record: dict[str, Any], *, config_id: str, definition_id: str, family_id: str,
             selected_options: dict[str, str], kind: str, config_name: str | None = None,
             equipment_override: str | None = None, laterality: str | None = None,
@@ -336,6 +843,13 @@ def profile(record: dict[str, Any], *, config_id: str, definition_id: str, famil
         "axialLoadFactor": axial,
         "technicalDifficulty": difficulty,
         "resistanceProfile": resistance,
+        "description": configuration_description(
+            record,
+            canonical=config_name or record["name"],
+            kind=kind,
+            selected_options=selected_options,
+            equipment_override=equipment_override,
+        ),
         "setupCues": setup, "executionCues": execution, "commonMistakes": mistakes,
         "performanceProfileId": performance,
         "replacementGroup": record.get("replacementGroup"),
@@ -427,24 +941,12 @@ def make_config(record: dict[str, Any], *, family_id: str, definition_id: str, k
 
 def make_description(record: dict[str, Any], *, canonical: str, kind: str) -> str:
     existing = (record.get("description") or "").strip()
-    if existing and "es un ejercicio dentro de un patrón" not in existing.lower() and len(existing) >= 40:
+    # A parent description must never inherit the first row's station or
+    # implement: those details belong to its chips.  Specialty descriptions
+    # can preserve audited prose when it is genuinely descriptive.
+    if kind != "PARENT" and existing and len(existing) >= 40 and not description_is_instructional(existing):
         return existing
-    involved = record.get("involvedMuscles") or []
-    override = MUSCLE_ROLE_OVERRIDES.get(record["id"])
-    primary = override["primary"] if override else [item["muscle"] for item in involved if item.get("role") == "primary"]
-    secondary = override.get("secondary", []) if override else [item["muscle"] for item in involved if item.get("role") == "secondary"]
-    primary_text = ", ".join(primary) or "la musculatura declarada"
-    secondary_text = ", ".join(secondary)
-    secondary_clause = f" También exige coordinar {secondary_text} como apoyo." if secondary_text else ""
-    chain = record.get("chain", "")
-    chain_clause = f" La cadena {chain.lower()} mantiene la demanda estable durante el recorrido." if chain else ""
-    kind_label = "ejercicio padre" if kind == "PARENT" else "especialidad"
-    return (
-        f"{canonical}: {kind_label} centrado en {primary_text}, con patrón "
-        f"{record['movementPattern'].lower()} y {record['equipment'].lower()} como implemento."
-        f" La ejecución aprobada prioriza control del recorrido y una trayectoria coherente con esa mecánica."
-        f"{secondary_clause}{chain_clause}"
-    )
+    return factual_description(record, subject=canonical, kind=kind)
 
 
 def curation_rationale(source_id: str, base: str) -> str:
@@ -470,11 +972,11 @@ def build() -> tuple[dict[str, Any], dict[str, Any]]:
     # Reuse the seven pilot definitions but rebuild their configurations from
     # source records so equipment and rich metadata are always coherent.
     pilot_rows: dict[str, tuple[str, str, dict[str, str], str, str | None]] = {
-        "hams_buenos_dias": ("hinge_good_morning", "good_morning", {"posture": "standing", "load_position": "barbell_back"}, "Buenos días", "good_morning__standing__barbell_back"),
-        "back_buenos_dias": ("hinge_good_morning", "good_morning", {"posture": "standing", "load_position": "cable_front"}, "Buenos días", "good_morning__standing__cable"),
-        "hams_buenos_dias_sentado": ("hinge_good_morning", "good_morning", {"posture": "seated", "load_position": "barbell_back"}, "Buenos días", "good_morning__seated__barbell"),
-        "hams_buenos_dias_zercher": ("hinge_good_morning", "good_morning", {"posture": "standing", "load_position": "zercher"}, "Buenos días", "good_morning__standing__zercher"),
-        "back_buenos_dias_zercher_barra": ("hinge_good_morning", "good_morning", {"posture": "standing", "load_position": "zercher"}, "Buenos días", "good_morning__standing__zercher"),
+        "hams_buenos_dias": ("hinge_good_morning", "good_morning", {"implement": "barbell", "load_position": "barbell_back", "posture": "standing"}, "Buenos días", "good_morning__standing__barbell_back"),
+        "back_buenos_dias": ("hinge_good_morning", "good_morning", {"implement": "cable", "load_position": "cable_front", "posture": "standing"}, "Buenos días", "good_morning__standing__cable"),
+        "hams_buenos_dias_sentado": ("hinge_good_morning", "good_morning", {"implement": "barbell", "load_position": "barbell_back", "posture": "seated"}, "Buenos días", "good_morning__seated__barbell"),
+        "hams_buenos_dias_zercher": ("hinge_good_morning", "good_morning", {"implement": "barbell", "load_position": "zercher", "posture": "standing"}, "Buenos días", "good_morning__standing__zercher"),
+        "back_buenos_dias_zercher_barra": ("hinge_good_morning", "good_morning", {"implement": "barbell", "load_position": "zercher", "posture": "standing"}, "Buenos días", "good_morning__standing__zercher"),
         "glutes_abduccion_cadera_sentado_maquina": ("hip_abduction", "hip_abduction", {"station": "seated", "implement": "machine", "laterality": "bilateral"}, "Abducción de cadera", "hip_abduction__seated__machine__bilateral"),
         "glutes_abduccion_cadera": ("hip_abduction", "hip_abduction", {"station": "standing", "implement": "cable", "laterality": "unilateral"}, "Abducción de cadera", "hip_abduction__standing__cable__unilateral"),
         "adductors_aduccion_cadera_sentado_maquina": ("hip_adduction", "hip_adduction", {"station": "seated", "implement": "machine", "laterality": "bilateral"}, "Aducción de cadera", "hip_adduction__seated__machine__bilateral"),
@@ -486,7 +988,7 @@ def build() -> tuple[dict[str, Any], dict[str, Any]]:
         "tren_superior_aperturas_suelo_mancuernas": ("chest_fly", "chest_fly", {"station": "floor", "support_angle": "flat", "implement": "dumbbells"}, "Aperturas de pecho", "chest_fly__floor__dumbbells"),
         "tren_superior_aperturas_pec_deck": ("chest_fly", "chest_fly", {"station": "pec_deck", "support_angle": "seated", "implement": "machine"}, "Aperturas de pecho", "chest_fly__pec_deck__machine__machine"),
         "tren_superior_aperturas_banda": ("chest_fly", "chest_fly", {"station": "standing", "support_angle": "standing", "implement": "band"}, "Aperturas de pecho", "chest_fly__standing__band__band"),
-        "deltoides_aperturas_inversas_maquina_pec_deck": ("chest_fly", "reverse_pec_fly", {}, "Aperturas inversas", "reverse_pec_fly__pec_deck__machine"),
+        "deltoides_aperturas_inversas_maquina_pec_deck": ("chest_fly", "reverse_pec_fly", {"station": "pec_deck_reverse", "implement": "machine"}, "Aperturas inversas", "reverse_pec_fly__pec_deck__machine"),
         "quads_sentadilla_bulgara_maquina": ("unilateral_knee_dominant_bulgarian", "bulgarian_split_squat", {"implement": "machine", "load_position": "guided"}, "Sentadilla búlgara", "bulgarian__machine__guided"),
         "quads_sentadilla_bulgara": ("unilateral_knee_dominant_bulgarian", "bulgarian_split_squat", {"implement": "dumbbells", "load_position": "sides"}, "Sentadilla búlgara", "bulgarian__dumbbells__sides"),
         "quads_sentadilla_bulgara_frontal": ("unilateral_knee_dominant_bulgarian", "bulgarian_split_squat", {"implement": "barbell", "load_position": "front"}, "Sentadilla búlgara", "bulgarian__front_barbell__front"),
@@ -500,16 +1002,137 @@ def build() -> tuple[dict[str, Any], dict[str, Any]]:
         "biceps_curl_trx": ("elbow_flexion_biceps_curl", "biceps_curl_trx", {}, "Curl de bíceps en TRX", "biceps_curl_trx__supinated"),
         "deltoides_elevaciones_laterales_super_rom_mancuernas": ("shoulder_lateral_raise", "lateral_raise_super_rom", {"implement": "dumbbells", "laterality": "bilateral"}, "Elevación lateral Super ROM", "lateral_raise_super_rom__dumbbells__bilateral"),
         "deltoides_elevaciones_laterales_super_rom_polea_unilateral": ("shoulder_lateral_raise", "lateral_raise_super_rom", {"implement": "cable", "laterality": "unilateral"}, "Elevación lateral Super ROM", "lateral_raise_super_rom__cable__unilateral"),
-        "deltoides_elevaciones_laterales_de_pie": ("shoulder_lateral_raise", "lateral_raise", {"posture": "standing", "implement": "dumbbells", "laterality": "bilateral"}, "Elevación lateral", "lateral_raise__standing__dumbbells__bilateral"),
-        "deltoides_elevaciones_laterales_sentado": ("shoulder_lateral_raise", "lateral_raise", {"posture": "seated", "implement": "machine", "laterality": "bilateral"}, "Elevación lateral", "lateral_raise__seated__machine__bilateral"),
+        "deltoides_elevaciones_laterales_de_pie": ("shoulder_lateral_raise", "lateral_raise", {"implement": "dumbbells", "posture": "standing", "laterality": "bilateral"}, "Elevación lateral", "lateral_raise__standing__dumbbells__bilateral"),
+        "deltoides_elevaciones_laterales_sentado": ("shoulder_lateral_raise", "lateral_raise", {"implement": "machine", "posture": "seated", "laterality": "bilateral"}, "Elevación lateral", "lateral_raise__seated__machine__bilateral"),
+        # These base rows are grouped only where the legacy technical-aspect
+        # matrix and the system templates agree on a real implement choice.
+        "back_pullover": ("upper_vertical_pull_pullover", "back_pullover", {"implement": "dumbbells"}, "Pullover", "back_pullover__dumbbells"),
+        "triceps_patada": ("upper_elbow_extension_kickback", "triceps_patada", {"implement": "dumbbells", "laterality": "bilateral"}, "Patada de tríceps", "triceps_patada__dumbbells__bilateral"),
+        "glutes_hip_thrust": ("lower_hip_extension_hip_thrust", "glutes_hip_thrust", {"implement": "barbell", "laterality": "bilateral"}, "Hip Thrust", "glutes_hip_thrust__barbell__bilateral"),
+        "quads_extension_cuadriceps": ("lower_knee_extension", "quads_extension_cuadriceps", {"laterality": "bilateral"}, "Extensión de cuádriceps", "quads_extension_cuadriceps__machine__bilateral"),
+        "deltoides_press_hombros_sentado": ("upper_vertical_push_seated_press", "deltoides_press_hombros_sentado", {"implement": "barbell"}, "Press de hombros sentado", "deltoides_press_hombros_sentado__barbell"),
+        "forearms_curl_muneca_sentado": ("lower_wrist_flexion", "forearms_curl_muneca_sentado", {"implement": "barbell"}, "Curl de muñeca sentado", "forearms_curl_muneca_sentado__barbell"),
         # Romanian deadlift is a parent; the standard and sumo stances are
-        # explicit, compatible configurations. Deficit, Zercher, B-stance and
-        # other technically distinct variants remain independent specialties.
-        "hams_peso_muerto_rumano": ("hinge_rdl", "romanian_deadlift", {"stance": "bilateral"}, "Peso muerto rumano", "romanian_deadlift__bilateral__barbell"),
-        "hams_peso_muerto_rumano_sumo": ("hinge_rdl", "romanian_deadlift", {"stance": "sumo"}, "Peso muerto rumano", "romanian_deadlift__sumo__barbell"),
+        # explicit, compatible configurations. Deficit and Zercher remain
+        # independent specialties; B-stance is retained as an explicit stance
+        # value because it is still the same RDL family and is fully profiled.
+        "hams_peso_muerto_rumano": ("hinge_rdl", "romanian_deadlift", {"implement": "barbell", "stance": "bilateral"}, "Peso muerto rumano", "romanian_deadlift__bilateral__barbell"),
+        "hams_peso_muerto_rumano_sumo": ("hinge_rdl", "romanian_deadlift", {"implement": "barbell", "stance": "sumo"}, "Peso muerto rumano", "romanian_deadlift__sumo__barbell"),
+        "hams_peso_muerto_rumano_b_stance": ("hinge_rdl", "romanian_deadlift", {"implement": "dumbbells", "stance": "b_stance"}, "Peso muerto rumano", "romanian_deadlift__b_stance__dumbbells"),
+
+        # The three standard deadlift records are one movement identity.  The
+        # hex bar is neutral; the straight bar exposes the conventional/sumo
+        # stance only after the implement choice. Deficit and other named
+        # methods remain separate specialties.
+        "hams_peso_muerto": ("hinge_deadlift", "deadlift", {"implement": "hex_bar", "stance": "neutral"}, "Peso muerto", "deadlift__neutral__hex_bar"),
+        "hams_peso_muerto_convencional": ("hinge_deadlift", "deadlift", {"implement": "barbell", "stance": "conventional"}, "Peso muerto", "deadlift__conventional__barbell"),
+        "hams_peso_muerto_sumo": ("hinge_deadlift", "deadlift", {"implement": "barbell", "stance": "sumo"}, "Peso muerto", "deadlift__sumo__barbell"),
+
+        # Leg-curl stations are the same knee-flexion identity.  Only the
+        # explicitly audited implement/station/laterality combinations exist;
+        # no seated/lying or bilateral combinations are invented.
+        "hams_curl_femoral": ("lower_knee_flexion", "leg_curl", {"implement": "sliders", "station": "floor_sliders", "laterality": "bilateral"}, "Curl femoral", "leg_curl__sliders__floor__bilateral"),
+        "hams_curl_femoral_pie_polea": ("lower_knee_flexion", "leg_curl", {"implement": "cable", "station": "standing_cable", "laterality": "unilateral"}, "Curl femoral", "leg_curl__cable__standing__unilateral"),
+        "hams_curl_femoral_sentado_unilateral_maquina": ("lower_knee_flexion", "leg_curl", {"implement": "machine", "station": "seated_machine", "laterality": "unilateral"}, "Curl femoral", "leg_curl__machine__seated__unilateral"),
+        "hams_curl_femoral_tumbado_unilateral_maquina": ("lower_knee_flexion", "leg_curl", {"implement": "machine", "station": "lying_machine", "laterality": "unilateral"}, "Curl femoral", "leg_curl__machine__lying__unilateral"),
+
+        # Weighted GHR is a load configuration of the same GHD movement, not
+        # a second exercise card.
+        "hams_glute_ham_raise": ("lower_knee_hip_extension", "glute_ham_raise", {"load": "bodyweight"}, "Glute-Ham Raise", "glute_ham_raise__bodyweight"),
+        "hams_glute_ham_raise_lastrado_disco": ("lower_knee_hip_extension", "glute_ham_raise", {"load": "plate"}, "Glute-Ham Raise", "glute_ham_raise__plate"),
+
+        # Bilateral/unilateral machine versions are a single squat identity;
+        # the lateral choice is explicit and is the only real axis here.
+        "quads_sentadilla_belt_squat_maquina": ("lower_knee_dominant_belt_squat", "belt_squat", {"laterality": "bilateral"}, "Sentadilla Belt Squat", "belt_squat__bilateral"),
+        "quads_sentadilla_belt_squat_unilateral_maquina": ("lower_knee_dominant_belt_squat", "belt_squat", {"laterality": "unilateral"}, "Sentadilla Belt Squat", "belt_squat__unilateral"),
+        "quads_sentadilla_pendulo_maquina": ("lower_knee_dominant_pendulum", "pendulum_squat", {"laterality": "bilateral"}, "Sentadilla péndulo", "pendulum_squat__bilateral"),
+        "quads_sentadilla_pendulo_unilateral_maquina": ("lower_knee_dominant_pendulum", "pendulum_squat", {"laterality": "unilateral"}, "Sentadilla péndulo", "pendulum_squat__unilateral"),
+
+        # Standard push-ups and feet-elevated push-ups share the same parent;
+        # the sphinx and other named methods remain specialties.
+        "tren_superior_flexiones": ("upper_horizontal_push", "push_up", {"support_angle": "flat"}, "Flexiones de brazos", "push_up__flat"),
+        "tren_superior_flexiones_clasicas": ("upper_horizontal_push", "push_up", {"support_angle": "flat"}, "Flexiones de brazos", "push_up__flat"),
+        "tren_superior_flexiones_pies_elevados": ("upper_horizontal_push", "push_up", {"support_angle": "feet_elevated"}, "Flexiones de brazos", "push_up__feet_elevated"),
+
+        # Explicitly materialized implement/laterality variants of the same
+        # cross-body elbow-extension identity.
+        "triceps_crossbody_banda": ("upper_elbow_extension_crossbody", "crossbody_triceps_extension", {"implement": "band", "laterality": "bilateral"}, "Extensión de tríceps cruzada", "crossbody_triceps__band__bilateral"),
+        "triceps_crossbody_kettlebell": ("upper_elbow_extension_crossbody", "crossbody_triceps_extension", {"implement": "kettlebell", "laterality": "bilateral"}, "Extensión de tríceps cruzada", "crossbody_triceps__kettlebell__bilateral"),
+        "triceps_crossbody_mancuerna": ("upper_elbow_extension_crossbody", "crossbody_triceps_extension", {"implement": "dumbbells", "laterality": "bilateral"}, "Extensión de tríceps cruzada", "crossbody_triceps__dumbbells__bilateral"),
+        "triceps_crossbody_polea": ("upper_elbow_extension_crossbody", "crossbody_triceps_extension", {"implement": "cable", "laterality": "bilateral"}, "Extensión de tríceps cruzada", "crossbody_triceps__cable__bilateral"),
+        "triceps_crossbody_polea_unilateral": ("upper_elbow_extension_crossbody", "crossbody_triceps_extension", {"implement": "cable", "laterality": "unilateral"}, "Extensión de tríceps cruzada", "crossbody_triceps__cable__unilateral"),
+
+        "triceps_overhead": ("upper_elbow_extension_overhead", "overhead_triceps_extension", {"implement": "barbell"}, "Extensión de tríceps overhead", "overhead_triceps__barbell"),
+        "triceps_overhead_maquina": ("upper_elbow_extension_overhead", "overhead_triceps_extension", {"implement": "machine"}, "Extensión de tríceps overhead", "overhead_triceps__machine"),
+
+        # The source explicitly materializes only these three pulldown
+        # implements; grip aliases remain search vocabulary, not chips.
+        "back_jalon_banda": ("upper_vertical_pull_lat_pulldown", "lat_pulldown", {"implement": "band"}, "Jalón al pecho", "lat_pulldown__band"),
+        "back_jalon_pecho_maquina": ("upper_vertical_pull_lat_pulldown", "lat_pulldown", {"implement": "machine"}, "Jalón al pecho", "lat_pulldown__machine"),
+        "back_jalon_pecho_polea": ("upper_vertical_pull_lat_pulldown", "lat_pulldown", {"implement": "cable"}, "Jalón al pecho", "lat_pulldown__cable"),
+
+        # All four records are plantar-flexion variants; station is the only
+        # materialized axis and seated remains distinct in its profile.
+        "calves_talones_de_pie": ("lower_plantar_flexion", "calf_raise", {"station": "standing", "implement": "machine", "laterality": "bilateral"}, "Elevación de talones", "calf_raise__standing__machine__bilateral"),
+        "calves_talones_donkey": ("lower_plantar_flexion", "calf_raise", {"station": "donkey", "implement": "machine", "laterality": "bilateral"}, "Elevación de talones", "calf_raise__donkey__machine__bilateral"),
+        "calves_talones_prensa": ("lower_plantar_flexion", "calf_raise", {"station": "leg_press", "implement": "machine", "laterality": "bilateral"}, "Elevación de talones", "calf_raise__leg_press__machine__bilateral"),
+        "calves_talones_sentado": ("lower_plantar_flexion", "calf_raise", {"station": "seated", "implement": "machine", "laterality": "bilateral"}, "Elevación de talones", "calf_raise__seated__machine__bilateral"),
         # The isometric Copenhagen plank is not interchangeable with the
         # dynamic eccentric version, so it has its own specialty definition.
         "adductors_plancha_copenhagen_peso_corporal": ("hip_adduction", "copenhagen_plank_isometric", {}, "Plancha Copenhagen isométrica", "copenhagen_plank_isometric__bodyweight"),
+
+        # Safe equipment families: the movement identity and setup remain the
+        # same; only an explicit implement (and, where needed, laterality or
+        # support position) changes.  Paused, deficit, eccentric, asymmetrical
+        # and named-method variants not listed here remain specialties.
+        "tren_superior_press_banca_plano_barra": ("chest_press", "bench_press", {"implement": "barbell"}, "Press de banca", "bench_press__barbell"),
+        "tren_superior_press_banca_plano_mancuernas": ("chest_press", "bench_press", {"implement": "dumbbells"}, "Press de banca", "bench_press__dumbbells"),
+        "tren_superior_floor_press_barra": ("chest_floor_press", "floor_press", {"implement": "barbell"}, "Floor press", "floor_press__barbell"),
+        "tren_superior_floor_press_mancuernas": ("chest_floor_press", "floor_press", {"implement": "dumbbells"}, "Floor press", "floor_press__dumbbells"),
+        "triceps_jm_press_barra_ez": ("triceps_jm_press", "jm_press", {"implement": "ez_bar"}, "JM press", "jm_press__ez_bar"),
+        "triceps_jm_press_mancuernas": ("triceps_jm_press", "jm_press", {"implement": "dumbbells"}, "JM press", "jm_press__dumbbells"),
+        "triceps_press_california_barra_recta": ("triceps_california_press", "california_press", {"implement": "barbell"}, "Press California", "california_press__barbell"),
+        "triceps_press_california_barra_ez": ("triceps_california_press", "california_press", {"implement": "ez_bar"}, "Press California", "california_press__ez_bar"),
+        "triceps_press_california_mancuernas": ("triceps_california_press", "california_press", {"implement": "dumbbells"}, "Press California", "california_press__dumbbells"),
+        "triceps_tate_press_mancuernas": ("triceps_tate_press", "tate_press", {"implement": "dumbbells"}, "Tate press", "tate_press__dumbbells"),
+        "triceps_tate_press_polea": ("triceps_tate_press", "tate_press", {"implement": "cable"}, "Tate press", "tate_press__cable"),
+        "deltoides_press_arnold_mancuernas": ("shoulder_arnold_press", "arnold_press", {"implement": "dumbbells"}, "Press Arnold", "arnold_press__dumbbells"),
+        "deltoides_press_arnold_kettlebell": ("shoulder_arnold_press", "arnold_press", {"implement": "kettlebell"}, "Press Arnold", "arnold_press__kettlebell"),
+        "deltoides_press_arnold_polea": ("shoulder_arnold_press", "arnold_press", {"implement": "cable"}, "Press Arnold", "arnold_press__cable"),
+        "deltoides_press_z_barra_recta": ("shoulder_z_press", "z_press", {"implement": "barbell"}, "Press Z", "z_press__barbell"),
+        "deltoides_press_z_barra_ez": ("shoulder_z_press", "z_press", {"implement": "ez_bar"}, "Press Z", "z_press__ez_bar"),
+        "deltoides_press_z_mancuernas": ("shoulder_z_press", "z_press", {"implement": "dumbbells"}, "Press Z", "z_press__dumbbells"),
+        "deltoides_press_z_kettlebell": ("shoulder_z_press", "z_press", {"implement": "kettlebell"}, "Press Z", "z_press__kettlebell"),
+        "triceps_katana_polea": ("triceps_katana_extension", "katana_extension", {"implement": "cable", "laterality": "bilateral"}, "Extensión Katana", "katana_extension__cable__bilateral"),
+        "triceps_katana_polea_unilateral": ("triceps_katana_extension", "katana_extension", {"implement": "cable", "laterality": "unilateral"}, "Extensión Katana", "katana_extension__cable__unilateral"),
+        "triceps_katana_mancuerna": ("triceps_katana_extension", "katana_extension", {"implement": "dumbbells", "laterality": "bilateral"}, "Extensión Katana", "katana_extension__dumbbells__bilateral"),
+        "triceps_katana_kettlebell": ("triceps_katana_extension", "katana_extension", {"implement": "kettlebell", "laterality": "bilateral"}, "Extensión Katana", "katana_extension__kettlebell__bilateral"),
+        "triceps_katana_banda": ("triceps_katana_extension", "katana_extension", {"implement": "band", "laterality": "bilateral"}, "Extensión Katana", "katana_extension__band__bilateral"),
+        "triceps_katana_barra_ez": ("triceps_katana_extension", "katana_extension", {"implement": "ez_bar", "laterality": "bilateral"}, "Extensión Katana", "katana_extension__ez_bar__bilateral"),
+        "back_remo_pecho_apoyado_mancuernas": ("back_chest_supported_row", "chest_supported_row", {"implement": "dumbbells"}, "Remo con pecho apoyado", "chest_supported_row__dumbbells"),
+        "back_remo_pecho_apoyado_polea": ("back_chest_supported_row", "chest_supported_row", {"implement": "cable"}, "Remo con pecho apoyado", "chest_supported_row__cable"),
+        "back_remo_seal_barra_recta": ("back_seal_row", "seal_row", {"implement": "barbell"}, "Remo Seal", "seal_row__barbell"),
+        "back_remo_seal_mancuernas": ("back_seal_row", "seal_row", {"implement": "dumbbells"}, "Remo Seal", "seal_row__dumbbells"),
+
+        # Standard lateral/rear-delt and sissy-squat rows share one movement
+        # identity; the setup/load position is exposed only after the broad
+        # implement choice.  Super-ROM and named asymmetric methods remain
+        # separate because they change the movement pattern itself.
+        "deltoides_elevaciones_laterales": ("shoulder_lateral_raise", "lateral_raise", {"implement": "barbell", "posture": "standing", "laterality": "bilateral"}, "Elevación lateral", "lateral_raise__standing__barbell__bilateral"),
+        "deltoides_elevaciones_laterales_acostado_banco_plano": ("shoulder_lateral_raise", "lateral_raise", {"implement": "dumbbells", "posture": "lying_flat", "laterality": "bilateral"}, "Elevación lateral", "lateral_raise__lying_flat__dumbbells__bilateral"),
+        "deltoides_elevaciones_laterales_inclinadas": ("shoulder_lateral_raise", "lateral_raise", {"implement": "dumbbells", "posture": "incline_supported", "laterality": "bilateral"}, "Elevación lateral", "lateral_raise__incline_supported__dumbbells__bilateral"),
+        "deltoides_elevaciones_laterales_recostado": ("shoulder_lateral_raise", "lateral_raise", {"implement": "dumbbells", "posture": "side_lying", "laterality": "bilateral"}, "Elevación lateral", "lateral_raise__side_lying__dumbbells__bilateral"),
+        "deltoides_elevaciones_posteriores_de_pie": ("shoulder_rear_delt_raise", "rear_delt_raise", {"setup": "standing"}, "Elevaciones posteriores", "rear_delt_raise__standing"),
+        "deltoides_elevaciones_posteriores_sentado_banco_plano": ("shoulder_rear_delt_raise", "rear_delt_raise", {"setup": "seated_bench"}, "Elevaciones posteriores", "rear_delt_raise__seated_bench"),
+        "deltoides_elevaciones_posteriores_pecho_apoyado": ("shoulder_rear_delt_raise", "rear_delt_raise", {"setup": "chest_supported"}, "Elevaciones posteriores", "rear_delt_raise__chest_supported"),
+        "deltoides_elevaciones_posteriores_acostado_banco_plano": ("shoulder_rear_delt_raise", "rear_delt_raise", {"setup": "lying_flat"}, "Elevaciones posteriores", "rear_delt_raise__lying_flat"),
+        "deltoides_elevaciones_posteriores_arana": ("shoulder_rear_delt_raise", "rear_delt_raise", {"setup": "spider"}, "Elevaciones posteriores", "rear_delt_raise__spider"),
+        "quads_sentadilla_sissy": ("lower_sissy_squat", "sissy_squat", {"implement": "bodyweight", "load_position": "bodyweight"}, "Sentadilla sissy", "sissy_squat__bodyweight"),
+        "quads_sentadilla_sissy_maquina_hack": ("lower_sissy_squat", "sissy_squat", {"implement": "machine", "load_position": "hack"}, "Sentadilla sissy", "sissy_squat__hack_machine"),
+        "quads_sentadilla_sissy_maquina_smith": ("lower_sissy_squat", "sissy_squat", {"implement": "smith_machine", "load_position": "smith"}, "Sentadilla sissy", "sissy_squat__smith_machine"),
+        "quads_sentadilla_sissy_barra_recta": ("lower_sissy_squat", "sissy_squat", {"implement": "barbell", "load_position": "barbell_back"}, "Sentadilla sissy", "sissy_squat__barbell_back"),
+        "quads_sentadilla_sissy_frontal_barra_recta": ("lower_sissy_squat", "sissy_squat", {"implement": "barbell", "load_position": "front"}, "Sentadilla sissy", "sissy_squat__barbell_front"),
+        "quads_sentadilla_sissy_zercher_barra_recta": ("lower_sissy_squat", "sissy_squat", {"implement": "barbell", "load_position": "zercher"}, "Sentadilla sissy", "sissy_squat__barbell_zercher"),
     }
 
     def ensure_family(family_id: str, canonical: str, description: str, taxonomy: list[str]) -> None:
@@ -526,24 +1149,53 @@ def build() -> tuple[dict[str, Any], dict[str, Any]]:
     pilot_specs = {
         "hinge_good_morning": ("Buenos días", "Familia de bisagra de cadera con postura y posición de carga materializadas.", ["lower", "posterior_chain", "hip_hinge"]),
         "hinge_rdl": ("Peso muerto rumano", "Familia de bisagra de cadera con postura de apoyo y posición de carga enumeradas; variantes excéntricas o asimétricas permanecen separadas.", ["lower", "posterior_chain", "romanian_deadlift"]),
+        "hinge_deadlift": ("Peso muerto", "Familia de bisagra de cadera con implemento y postura materializados; déficits, rack pulls y métodos nombrados permanecen separados.", ["lower", "posterior_chain", "deadlift"]),
+        "lower_knee_flexion": ("Curl femoral", "Familia de flexión de rodilla con implemento, estación y lateralidad enumerados; no se crean combinaciones no auditadas.", ["lower", "knee_flexion", "leg_curl"]),
+        "lower_knee_hip_extension": ("Glute-Ham Raise", "Familia GHD con carga externa opcional materializada; la variante lastrada no genera una tarjeta independiente.", ["lower", "knee_hip_extension", "glute_ham_raise"]),
+        "lower_knee_dominant_belt_squat": ("Sentadilla Belt Squat", "Familia de sentadilla con carga al cinturón; la lateralidad bilateral o unilateral es explícita.", ["lower", "knee_dominant", "belt_squat"]),
+        "lower_knee_dominant_pendulum": ("Sentadilla péndulo", "Familia de sentadilla guiada en péndulo; la lateralidad bilateral o unilateral es explícita.", ["lower", "knee_dominant", "pendulum_squat"]),
         "hip_abduction": ("Abducción de cadera", "Familia de abducción con estación, implemento y lateralidad compatibles.", ["lower", "hip_abduction"]),
         "hip_adduction": ("Aducción de cadera", "Familia de aducción con estación, implemento y lateralidad compatibles.", ["lower", "hip_adduction"]),
         "chest_fly": ("Aperturas de pecho", "Familia de aducción horizontal; las aperturas inversas permanecen como especialidad distinta.", ["upper", "horizontal_abduction"]),
         "unilateral_knee_dominant_bulgarian": ("Sentadilla búlgara", "Familia unilateral con implementos y posiciones de carga explícitas.", ["lower", "unilateral", "knee_dominant"]),
         "elbow_flexion_biceps_curl": ("Curl de bíceps", "Familia de flexión de codo con setups explícitos; especialidades excéntricas o de suspensión quedan separadas.", ["upper", "elbow_flexion"]),
         "shoulder_lateral_raise": ("Elevación lateral", "Familia de abducción del hombro con postura, implemento y lateralidad explícitos.", ["upper", "shoulder_abduction"]),
+        "chest_press": ("Press de banca", "Familia de empuje horizontal en banco; las configuraciones válidas cambian únicamente el implemento documentado.", ["upper", "horizontal_push", "bench_press"]),
+        "chest_floor_press": ("Floor press", "Familia de empuje horizontal con los brazos limitados por el suelo; se conserva el implemento como elección explícita.", ["upper", "horizontal_push", "floor_press"]),
+        "upper_horizontal_push": ("Empuje horizontal", "Familia de empuje horizontal; las flexiones de brazos usan un padre propio con el ángulo de apoyo materializado.", ["upper", "horizontal_push"]),
+        "triceps_jm_press": ("JM press", "Familia de extensión de codo JM; las configuraciones válidas cambian el implemento sin crear combinaciones implícitas.", ["upper", "elbow_extension", "jm_press"]),
+        "triceps_california_press": ("Press California", "Familia de extensión de codo California; la barra o mancuerna se elige como configuración materializada.", ["upper", "elbow_extension", "california_press"]),
+        "triceps_tate_press": ("Tate press", "Familia de extensión de codo Tate; las configuraciones válidas cambian la resistencia documentada.", ["upper", "elbow_extension", "tate_press"]),
+        "shoulder_arnold_press": ("Press Arnold", "Familia de empuje vertical con rotación del hombro; cada implemento queda materializado con su perfil propio.", ["upper", "vertical_push", "arnold_press"]),
+        "shoulder_z_press": ("Press Z", "Familia de empuje vertical sentado en el suelo; cada implemento se conserva como configuración explícita.", ["upper", "vertical_push", "z_press"]),
+        "triceps_katana_extension": ("Extensión Katana", "Familia de extensión de codo en posición Katana; implemento y lateralidad solo aparecen cuando cambian la configuración real.", ["upper", "elbow_extension", "katana"]),
+        "upper_elbow_extension_crossbody": ("Extensión de tríceps cruzada", "Familia de extensión de codo cruzada con implemento y lateralidad materializados.", ["upper", "elbow_extension", "crossbody"]),
+        "upper_elbow_extension_overhead": ("Extensión de tríceps overhead", "Familia de extensión de codo por encima de la cabeza con implementos explícitamente auditados.", ["upper", "elbow_extension", "overhead"]),
+        "upper_vertical_pull_lat_pulldown": ("Jalón al pecho", "Familia de tirón vertical con los tres implementos documentados; agarres no materializados quedan fuera de los chips.", ["upper", "vertical_pull", "lat_pulldown"]),
+        "upper_vertical_pull_pullover": ("Pullover", "Familia de tirón vertical con el implemento como decisión técnica; las configuraciones de mancuerna, polea y máquina se enumeran de forma explícita.", ["upper", "vertical_pull", "pullover"]),
+        "upper_elbow_extension_kickback": ("Patada de tríceps", "Familia de extensión de codo con implemento y lateralidad materializados; no se generan combinaciones no auditadas.", ["upper", "elbow_extension", "triceps_kickback"]),
+        "lower_hip_extension_hip_thrust": ("Hip Thrust", "Familia de extensión de cadera con implemento y lateralidad explícitos; la máquina y las mancuernas no se confunden con la barra.", ["lower", "hip_extension", "hip_thrust"]),
+        "lower_knee_extension": ("Extensión de cuádriceps", "Familia de extensión de rodilla con implemento y lateralidad explícitos; la máquina bilateral y unilateral se mantienen dentro del mismo padre.", ["lower", "knee_extension", "quadriceps_extension"]),
+        "upper_vertical_push_seated_press": ("Press de hombros sentado", "Familia de empuje vertical sentado con el implemento como decisión técnica; barra y máquina quedan materializadas.", ["upper", "vertical_push", "seated_shoulder_press"]),
+        "lower_wrist_flexion": ("Curl de muñeca sentado", "Familia de flexión de muñeca con implemento explícito; barra y mancuernas conservan la misma identidad mecánica.", ["lower", "wrist_flexion"]),
+        "back_chest_supported_row": ("Remo con pecho apoyado", "Familia de tirón horizontal con el tronco apoyado; la elección visible es el implemento materializado.", ["upper", "horizontal_pull", "chest_supported_row"]),
+        "back_seal_row": ("Remo Seal", "Familia de tirón horizontal con apoyo de pecho tipo Seal; la elección visible es el implemento materializado.", ["upper", "horizontal_pull", "seal_row"]),
+        "shoulder_rear_delt_raise": ("Elevaciones posteriores", "Familia de abducción horizontal de hombro con diferentes apoyos y posiciones; no se mezcla con el reverse pec fly guiado o en polea.", ["upper", "horizontal_abduction", "rear_delt_raise"]),
+        "lower_sissy_squat": ("Sentadilla sissy", "Familia de dominante de rodilla en longitud; implemento y posición de carga son elecciones explícitas y no combinaciones libres.", ["lower", "knee_dominant_lengthened", "sissy_squat"]),
+        "lower_plantar_flexion": ("Elevación de talones", "Familia de flexión plantar con estaciones explícitas; la estación sentada conserva su perfil de énfasis en sóleo.", ["lower", "plantar_flexion", "calf_raise"]),
     }
     for family_id, (name, description, taxonomy) in pilot_specs.items():
         ensure_family(family_id, name, description, taxonomy)
 
     for source_id, (family_id, definition_id, options, canonical, config_id) in pilot_rows.items():
         row = rows[source_id]
-        kind = "SPECIALTY" if definition_id in {"copenhagen_plank", "copenhagen_plank_isometric", "reverse_pec_fly", "bulgarian_zercher", "biceps_curl_zottman", "biceps_curl_drag", "biceps_curl_waiter", "biceps_curl_trx", "lateral_raise_super_rom"} else "PARENT"
-        axes = sorted(options)
+        kind = "SPECIALTY" if definition_id in {"copenhagen_plank", "copenhagen_plank_isometric", "bulgarian_zercher", "biceps_curl_zottman", "biceps_curl_drag", "biceps_curl_waiter", "biceps_curl_trx", "lateral_raise_super_rom"} else "PARENT"
+        options = ordered_options(definition_id, options)
+        axes = list(options)
         if definition_id in definitions:
             definition = definitions[definition_id]
             if options:
-                definition["optionAxes"] = sorted(set(definition["optionAxes"]) | set(options))
+                definition["optionAxes"] = list(dict.fromkeys([*definition["optionAxes"], *options]))
         else:
             definition = ensure_definition(
                 family_id,
@@ -554,7 +1206,8 @@ def build() -> tuple[dict[str, Any], dict[str, Any]]:
                 axes,
                 search_terms_for_record(row, canonical),
             )
-        equipment_override = {"band": "band", "cable": "cable", "machine": "machine", "dumbbells": "dumbbells", "barbell": "barbell", "plate": "plate", "trx": "trx"}.get(options.get("implement") or options.get("station"))
+        definition["searchTerms"] = sorted(set(definition["searchTerms"] + search_terms_for_record(row, canonical)))
+        equipment_override = {"band": "band", "cable": "cable", "machine": "machine", "dumbbells": "dumbbells", "barbell": "barbell", "hex_bar": "hex_bar", "sliders": "sliders", "plate": "plate", "trx": "trx"}.get(options.get("implement") or options.get("station"))
         config = make_config(row, family_id=family_id, definition_id=definition_id, kind=kind, config_id=config_id, selected_options=options, canonical=canonical, display=(" · ".join(options.values()) if options else canonical), equipment_override=equipment_override)
         # For a config originating from another record, align all identity rich metadata now.
         config["profile"]["richMetadata"]["identity"].update({"familyId": family_id, "definitionId": definition_id, "canonicalName": canonical, "kind": kind, "searchTerms": definition["searchTerms"]})
@@ -569,6 +1222,155 @@ def build() -> tuple[dict[str, Any], dict[str, Any]]:
             ),
         }
 
+    # Second-pass audit overlays.  These are deliberately enumerated instead
+    # of generated as a Cartesian product: each row below corresponds to a
+    # concrete implement/position combination present in the legacy technical
+    # aspects or in a system-template prescription.  This closes the only
+    # remaining source of cross-surface contradictions (for example, a
+    # template saying "hip thrust en máquina" while the metadata still said
+    # barra) without turning every possible option into a fake configuration.
+    equipment_labels = {
+        "band": "Banda",
+        "barbell": "Barra",
+        "cable": "Polea",
+        "dumbbells": "Mancuerna",
+        "machine": "Máquina",
+    }
+
+    def append_audited_overlay(
+        source_id: str,
+        family_id: str,
+        definition_id: str,
+        options: dict[str, str],
+        canonical: str,
+        config_id: str,
+        equipment_id: str,
+    ) -> None:
+        row = dict(rows[source_id])
+        synthetic_id = f"editorial:{config_id}"
+        row["id"] = synthetic_id
+        row["name"] = canonical
+        row["equipment"] = equipment_labels.get(equipment_id, row.get("equipment", ""))
+        options = ordered_options(definition_id, options)
+        definition = definitions[definition_id]
+        kind = definition["kind"]
+        config = make_config(
+            row,
+            family_id=family_id,
+            definition_id=definition_id,
+            kind=kind,
+            config_id=config_id,
+            selected_options=options,
+            canonical=canonical,
+            display=" · ".join(options.values()),
+            equipment_override=equipment_id,
+            laterality="UNILATERAL" if options.get("laterality") == "unilateral" else None,
+        )
+        config["evidence"] = evidence(
+            f"legacy:exercise_database.json#{source_id}",
+            f"editorial:configuration:{config_id}",
+            "editorial:catalog-v2-full-2026-08-02",
+            rationale="Configuración explícita aprobada en la segunda auditoría; no se deriva por combinación runtime.",
+        )
+        config["profile"]["richMetadata"]["identity"].update({
+            "familyId": family_id,
+            "definitionId": definition_id,
+            "canonicalName": canonical,
+            "kind": kind,
+            "searchTerms": definition["searchTerms"],
+        })
+        config["profile"]["richMetadata"]["display"].update({
+            "displayName": canonical,
+            "displaySummary": config["displaySummary"],
+            "selectedOptions": options,
+        })
+        definition["configurations"].append(config)
+        decisions[synthetic_id] = {
+            "decision": "CONFIGURATION",
+            "rationale": "Variante explícita materializada durante la segunda auditoría para mantener implemento y metadata sincronizados.",
+        }
+
+    for overlay in (
+        ("biceps_curl_de_pie", "elbow_flexion_biceps_curl", "biceps_curl", {"setup": "standing", "implement": "dumbbells"}, "Curl de bíceps", "biceps_curl__standing__dumbbells", "dumbbells"),
+        ("biceps_curl_predicador", "elbow_flexion_biceps_curl", "biceps_curl", {"setup": "preacher", "implement": "dumbbells"}, "Curl de bíceps", "biceps_curl__preacher__dumbbells", "dumbbells"),
+        ("biceps_curl_predicador", "elbow_flexion_biceps_curl", "biceps_curl", {"setup": "preacher", "implement": "machine"}, "Curl de bíceps", "biceps_curl__preacher__machine", "machine"),
+        ("biceps_curl_inclinado", "elbow_flexion_biceps_curl", "biceps_curl", {"setup": "inclinado", "implement": "dumbbells"}, "Curl de bíceps", "biceps_curl__inclinado__dumbbells", "dumbbells"),
+        ("hams_peso_muerto_rumano_sumo", "hinge_rdl", "romanian_deadlift", {"implement": "dumbbells", "stance": "sumo"}, "Peso muerto rumano", "romanian_deadlift__sumo__dumbbells", "dumbbells"),
+        ("triceps_overhead", "upper_elbow_extension_overhead", "overhead_triceps_extension", {"implement": "dumbbells"}, "Extensión de tríceps overhead", "overhead_triceps__dumbbells", "dumbbells"),
+        ("triceps_overhead", "upper_elbow_extension_overhead", "overhead_triceps_extension", {"implement": "cable"}, "Extensión de tríceps overhead", "overhead_triceps__cable", "cable"),
+        ("back_pullover", "upper_vertical_pull_pullover", "back_pullover", {"implement": "cable"}, "Pullover", "back_pullover__cable", "cable"),
+        ("back_pullover", "upper_vertical_pull_pullover", "back_pullover", {"implement": "machine"}, "Pullover", "back_pullover__machine", "machine"),
+        ("triceps_patada", "upper_elbow_extension_kickback", "triceps_patada", {"implement": "cable", "laterality": "bilateral"}, "Patada de tríceps", "triceps_patada__cable__bilateral", "cable"),
+        ("triceps_patada", "upper_elbow_extension_kickback", "triceps_patada", {"implement": "dumbbells", "laterality": "unilateral"}, "Patada de tríceps", "triceps_patada__dumbbells__unilateral", "dumbbells"),
+        ("glutes_hip_thrust", "lower_hip_extension_hip_thrust", "glutes_hip_thrust", {"implement": "dumbbells", "laterality": "bilateral"}, "Hip Thrust", "glutes_hip_thrust__dumbbells__bilateral", "dumbbells"),
+        ("glutes_hip_thrust", "lower_hip_extension_hip_thrust", "glutes_hip_thrust", {"implement": "dumbbells", "laterality": "unilateral"}, "Hip Thrust", "glutes_hip_thrust__dumbbells__unilateral", "dumbbells"),
+        ("glutes_hip_thrust", "lower_hip_extension_hip_thrust", "glutes_hip_thrust", {"implement": "machine", "laterality": "bilateral"}, "Hip Thrust", "glutes_hip_thrust__machine__bilateral", "machine"),
+        ("deltoides_elevaciones_laterales_de_pie", "shoulder_lateral_raise", "lateral_raise", {"implement": "machine", "posture": "standing", "laterality": "bilateral"}, "Elevación lateral", "lateral_raise__standing__machine__bilateral", "machine"),
+        ("deltoides_elevaciones_laterales_sentado", "shoulder_lateral_raise", "lateral_raise", {"implement": "dumbbells", "posture": "seated", "laterality": "bilateral"}, "Elevación lateral", "lateral_raise__seated__dumbbells__bilateral", "dumbbells"),
+        ("quads_extension_cuadriceps", "lower_knee_extension", "quads_extension_cuadriceps", {"laterality": "unilateral"}, "Extensión de cuádriceps", "quads_extension_cuadriceps__machine__unilateral", "machine"),
+        ("calves_talones_de_pie", "lower_plantar_flexion", "calf_raise", {"station": "standing", "implement": "dumbbells", "laterality": "bilateral"}, "Elevación de talones", "calf_raise__standing__dumbbells__bilateral", "dumbbells"),
+        ("calves_talones_de_pie", "lower_plantar_flexion", "calf_raise", {"station": "standing", "implement": "machine", "laterality": "unilateral"}, "Elevación de talones", "calf_raise__standing__machine__unilateral", "machine"),
+        ("deltoides_press_hombros_sentado", "upper_vertical_push_seated_press", "deltoides_press_hombros_sentado", {"implement": "machine"}, "Press de hombros sentado", "deltoides_press_hombros_sentado__machine", "machine"),
+        ("forearms_curl_muneca_sentado", "lower_wrist_flexion", "forearms_curl_muneca_sentado", {"implement": "dumbbells"}, "Curl de muñeca sentado", "forearms_curl_muneca_sentado__dumbbells", "dumbbells"),
+    ):
+        append_audited_overlay(*overlay)
+
+    # Reverse fly has two real, non-interchangeable stations. Keep one parent
+    # card and materialize the machine and cable configurations explicitly.
+    # The cable row is an editorial configuration overlay: it reuses the
+    # audited anatomy but has its own implement, cues and resistance profile.
+    reverse_definition = definitions["reverse_pec_fly"]
+    # The parent card must describe the movement family, never one of its
+    # implementations.  Machine and cable are separate, explicit
+    # configurations below; the parent description stays equipment-neutral.
+    reverse_definition["description"] = (
+        "Abducción horizontal de hombros con énfasis en deltoides posteriores. "
+        "Las configuraciones disponibles son pec deck inverso en máquina y "
+        "aperturas inversas en polea."
+    )
+    reverse_source = dict(rows["deltoides_aperturas_inversas_maquina_pec_deck"])
+    reverse_source.update({
+        "id": "editorial_reverse_pec_fly_cable",
+        "name": "Aperturas inversas en polea",
+        "equipment": "Polea",
+        "alias": "aperturas inversas en polea, reverse cable fly",
+        "description": "Abducción horizontal de deltoides posterior en polea con tensión continua.",
+    })
+    reverse_config = make_config(
+        reverse_source,
+        family_id="chest_fly",
+        definition_id="reverse_pec_fly",
+        kind="PARENT",
+        config_id="reverse_pec_fly__standing__cable",
+        selected_options=ordered_options("reverse_pec_fly", {"station": "standing", "implement": "cable"}),
+        canonical="Aperturas inversas",
+        display="De pie · polea",
+        equipment_override="cable",
+    )
+    reverse_config["evidence"] = evidence(
+        "editorial:configuration:reverse_pec_fly__standing__cable",
+        "editorial:catalog-v2-full-2026-08-02",
+        rationale="Configuración explícita de polea; no se infiere desde la configuración de máquina.",
+    )
+    reverse_definition["searchTerms"] = sorted(set(reverse_definition["searchTerms"] + SEARCH_TERM_OVERRIDES["deltoides_aperturas_inversas_maquina_pec_deck"]))
+    reverse_config["profile"]["richMetadata"]["identity"].update({
+        "familyId": "chest_fly",
+        "definitionId": "reverse_pec_fly",
+        "canonicalName": "Aperturas inversas",
+        "kind": "PARENT",
+        "searchTerms": reverse_definition["searchTerms"],
+    })
+    reverse_config["profile"]["richMetadata"]["display"].update({
+        "displayName": "Aperturas inversas",
+        "displaySummary": reverse_config["displaySummary"],
+        "selectedOptions": reverse_config["selectedOptions"],
+    })
+    reverse_definition["configurations"].append(reverse_config)
+    decisions[reverse_source["id"]] = {
+        "decision": "CONFIGURATION",
+        "rationale": "Configuración editorial de polea para el mismo ejercicio padre; mantiene la estación y el implemento explícitos.",
+    }
+
     # The legacy asset has a single cable row for unilateral hip isolation;
     # the band configuration is an explicitly audited equipment overlay, not a
     # runtime inference or a free combination.
@@ -579,6 +1381,7 @@ def build() -> tuple[dict[str, Any], dict[str, Any]]:
     ):
         row = rows[source_id]
         definition = definitions[definition_id]
+        options = ordered_options(definition_id, options)
         config = make_config(row, family_id=family_id, definition_id=definition_id, kind="PARENT", config_id=config_id, selected_options=options, canonical=canonical, display=" · ".join(options.values()), equipment_override=equipment, laterality="UNILATERAL")
         config["profile"]["richMetadata"]["identity"].update({"familyId": family_id, "definitionId": definition_id, "canonicalName": canonical, "kind": "PARENT", "searchTerms": definition["searchTerms"]})
         config["profile"]["richMetadata"]["display"].update({"displayName": canonical, "displaySummary": config["displaySummary"], "selectedOptions": options})
@@ -591,9 +1394,11 @@ def build() -> tuple[dict[str, Any], dict[str, Any]]:
         setup = slug(row["name"].split("(")[-1].rstrip(")").strip()) if "(" in row["name"] else slug(row["name"])
         config_id = f"biceps_curl__{setup}__{EQUIPMENT_IDS[row['equipment']]}"
         definition = definitions["biceps_curl"]
-        config = make_config(row, family_id="elbow_flexion_biceps_curl", definition_id="biceps_curl", kind="PARENT", config_id=config_id, selected_options={"setup": setup, "implement": EQUIPMENT_IDS[row["equipment"]]}, canonical="Curl de bíceps", display=f"{row['name'].split('(')[-1].rstrip(')')} · {row['equipment']}", equipment_override=EQUIPMENT_IDS[row["equipment"]])
+        options = ordered_options("biceps_curl", {"setup": setup, "implement": EQUIPMENT_IDS[row["equipment"]]})
+        config = make_config(row, family_id="elbow_flexion_biceps_curl", definition_id="biceps_curl", kind="PARENT", config_id=config_id, selected_options=options, canonical="Curl de bíceps", display=" · ".join(options.values()), equipment_override=EQUIPMENT_IDS[row["equipment"]])
         config["profile"]["richMetadata"]["identity"].update({"familyId": "elbow_flexion_biceps_curl", "definitionId": "biceps_curl", "canonicalName": "Curl de bíceps", "kind": "PARENT", "searchTerms": definition["searchTerms"]})
         config["profile"]["richMetadata"]["display"].update({"displayName": "Curl de bíceps", "displaySummary": config["displaySummary"], "selectedOptions": config["selectedOptions"]})
+        definition["searchTerms"] = sorted(set(definition["searchTerms"] + search_terms_for_record(row, "Curl de bíceps")))
         definition["configurations"].append(config)
         decisions[source_id] = {"decision": "CONFIGURATION", "rationale": f"Setup de curl de bíceps representado en el eje setup/implement; no se crea una card independiente."}
 
@@ -631,12 +1436,23 @@ def build() -> tuple[dict[str, Any], dict[str, Any]]:
     # Remove duplicate configurations created by multiple legacy rows mapping to
     # the same explicit pilot identity; the losing rows remain in the decision log.
     for definition in definitions.values():
+        if definition["id"] in AXIS_ORDER_OVERRIDES:
+            definition["optionAxes"] = AXIS_ORDER_OVERRIDES[definition["id"]]
         unique: dict[str, dict[str, Any]] = {}
         for config in definition["configurations"]:
+            config["selectedOptions"] = ordered_options(definition["id"], config["selectedOptions"])
             unique.setdefault(config["id"], config)
         definition["configurations"] = list(unique.values())
         if not definition["defaultConfigurationId"]:
             definition["defaultConfigurationId"] = definition["configurations"][0]["id"]
+        if definition["optionAxes"]:
+            expected = set(definition["optionAxes"])
+            for config in definition["configurations"]:
+                if set(config["selectedOptions"]) != expected:
+                    raise ValueError(
+                        f"Axis mismatch for {definition['id']}: {config['id']} "
+                        f"{sorted(config['selectedOptions'])} != {sorted(expected)}",
+                    )
         for config in definition["configurations"]:
             # Every definition-level search term is copied into rich identity.
             config["profile"]["richMetadata"]["identity"]["searchTerms"] = definition["searchTerms"]

@@ -97,13 +97,38 @@ class InMemoryExerciseCatalogRepositoryV2(
             selectedOptions.all { (axis, value) -> configuration.selectedOptions[axis] == value }
         }
         val matchingIds = matching.mapTo(linkedSetOf()) { it.id }
-        val axes = definition.optionAxes.map { axis ->
+        // optionAxes is an editorial hierarchy, not a flat checklist.  Keep
+        // already selected levels visible so the user can change them, then
+        // expose only the next unresolved level whose compatible candidates
+        // actually differ.  Fixed downstream values are inferred by the
+        // resolver and never become meaningless singleton chips.
+        val nextUnselectedAxis = definition.optionAxes.firstOrNull { axis ->
+            if (axis in selectedOptions) return@firstOrNull false
+            matching.mapNotNull { it.selectedOptions[axis] }.distinct().size > 1
+        }
+        val visibleAxes = definition.optionAxes.filter { axis ->
+            axis in selectedOptions || axis == nextUnselectedAxis
+        }
+        val axes = visibleAxes.map { axis ->
+            // For a selected axis, remove that axis from the filter while
+            // calculating choices.  This keeps an already selected chip
+            // switchable instead of making every other value appear disabled.
+            val base = definition.configurations.filter { configuration ->
+                selectedOptions
+                    .filterKeys { selectedAxis -> selectedAxis != axis }
+                    .all { (selectedAxis, value) -> configuration.selectedOptions[selectedAxis] == value }
+            }
+            val candidates = if (base.isNotEmpty()) base else definition.configurations
+            // Keep the editorial value set complete so callers can explain a
+            // disabled choice; compatibleConfigurationIds still comes from
+            // the contextual candidates above and is the source of truth for
+            // whether the chip can be used.
             val values = definition.configurations
                 .asSequence()
                 .mapNotNull { it.selectedOptions[axis] }
                 .distinct()
                 .map { value ->
-                    val compatibleIds = matching
+                    val compatibleIds = candidates
                         .filter { it.selectedOptions[axis] == value }
                         .mapTo(linkedSetOf()) { it.id }
                     ExerciseChipOptionV2(
