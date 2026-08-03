@@ -19,6 +19,7 @@
             },
             "id": "gironda_row__wide",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Remo Gironda» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -211,6 +213,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Remo Gironda» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "rhomboids",
@@ -236,6 +239,7 @@
             },
             "id": "gironda_row__medium",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -249,6 +253,7 @@
               "executionCues": [
                 "Ejecuta «Remo Gironda» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -429,6 +434,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Remo Gironda» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "deltoid"
@@ -453,6 +459,7 @@
             },
             "id": "gironda_row__close",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -466,6 +473,7 @@
               "executionCues": [
                 "Ejecuta «Remo Gironda» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -640,6 +648,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Remo Gironda» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "deltoid"

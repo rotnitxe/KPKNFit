@@ -19,6 +19,7 @@
             },
             "id": "quads_sentadilla_cajon__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla a Cajón» siguiendo el patrón dominante de rodilla / cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -199,6 +201,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Sentadilla a Cajón» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -242,6 +245,7 @@
             },
             "id": "quads_sentadilla_sumo_frontal__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -255,6 +259,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Sumo Frontal» siguiendo el patrón dominante de rodilla / cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -428,6 +433,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Sentadilla Sumo Frontal» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -471,6 +477,7 @@
             },
             "id": "quads_sentadilla_sumo_zercher__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -484,6 +491,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Sumo Zercher» siguiendo el patrón dominante de rodilla / cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -657,6 +665,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Sentadilla Sumo Zercher» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,

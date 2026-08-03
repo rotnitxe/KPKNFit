@@ -154,8 +154,9 @@ object TextNormalizer {
         "cucumbers" to "pepinos", "breast" to "pechuga", "thigh" to "muslo",
         "turkey" to "pavo", "steak" to "bistec", "bacon" to "tocino", "ham" to "jamon",
         "lamb" to "cordero", "tuna" to "atun", "oatmeal" to "avena", "cereal" to "cereal",
-        "jam" to "mermelada", "spinach" to "espinaca",
-        // Culinary jargon
+        // E15: "jam" se elimina: \bjam\b (boundary ASCII) matchea "jamón" (la
+        // tilde rompe \w) y convierte jamón → mermeladaón. "jelly" cubre el caso EN.
+        "jelly" to "mermelada", "spinach" to "espinaca",        // Culinary jargon
         "al dente" to "al dente",
         "golden" to "dorado", "crispy" to "crocante", "juicy" to "jugoso",
         "overcooked" to "pasado", "undercooked" to "poco cocido",

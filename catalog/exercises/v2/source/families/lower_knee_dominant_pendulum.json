@@ -19,6 +19,7 @@
             },
             "id": "pendulum_squat__bilateral",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla en Máquina Péndulo» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -196,6 +198,7 @@
               "setupCues": [
                 "Configura máquina y adopta la posición específica de «Sentadilla en Máquina Péndulo» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 55,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -218,6 +221,7 @@
             },
             "id": "pendulum_squat__unilateral",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -231,6 +235,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Unilateral en Máquina Péndulo» siguiendo el patrón dominante de rodilla unilateral con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
@@ -395,6 +400,7 @@
               "setupCues": [
                 "Configura máquina y adopta la posición específica de «Sentadilla Unilateral en Máquina Péndulo» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 55,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,

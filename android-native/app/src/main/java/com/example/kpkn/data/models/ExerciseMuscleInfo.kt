@@ -100,6 +100,10 @@ data class ExerciseMuscleInfo(
     /** User-facing chips of the exact selected v2 configuration (e.g.
      *  "Mancuernas", "Supino") in axis order; empty for legacy/custom. */
     val catalogVariantChips: List<String> = emptyList(),
+    /** Articulación del patrón: "MULTIARTICULAR" o "AISLADO". */
+    val articulationType: String? = null,
+    /** Tier de fatiga de la configuración: "BAJA", "MEDIA" o "ALTA". */
+    val fatigueTier: String? = null,
 )
 
 @Serializable

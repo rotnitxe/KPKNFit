@@ -19,6 +19,7 @@
             },
             "id": "romanian_deadlift__bilateral__barbell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Peso Muerto Rumano» siguiendo el patrón bisagra cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -209,6 +211,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Peso Muerto Rumano» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -235,6 +238,7 @@
             },
             "id": "romanian_deadlift__unilateral__barbell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
@@ -248,6 +252,7 @@
               "executionCues": [
                 "Ejecuta «Peso Muerto Rumano» siguiendo el patrón bisagra cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
@@ -430,6 +435,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Peso Muerto Rumano» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -457,6 +463,7 @@
             },
             "id": "romanian_deadlift__bilateral__smith_machine",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
@@ -470,6 +477,7 @@
               "executionCues": [
                 "Ejecuta «Peso Muerto Rumano» siguiendo el patrón bisagra cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -647,6 +655,7 @@
               "setupCues": [
                 "Configura la máquina Smith y adopta la posición específica de «Peso Muerto Rumano» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 50,
               "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -673,6 +682,7 @@
             },
             "id": "romanian_deadlift__unilateral__smith_machine",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
@@ -686,6 +696,7 @@
               "executionCues": [
                 "Ejecuta «Peso Muerto Rumano» siguiendo el patrón bisagra cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
@@ -868,6 +879,7 @@
               "setupCues": [
                 "Configura la máquina Smith y adopta la posición específica de «Peso Muerto Rumano» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 50,
               "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -895,6 +907,7 @@
             },
             "id": "romanian_deadlift__bilateral__dumbbells",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
@@ -908,6 +921,7 @@
               "executionCues": [
                 "Ejecuta «Peso Muerto Rumano» siguiendo el patrón bisagra cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -1085,6 +1099,7 @@
               "setupCues": [
                 "Configura mancuernas y adopta la posición específica de «Peso Muerto Rumano» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -1111,6 +1126,7 @@
             },
             "id": "romanian_deadlift__unilateral__dumbbells",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
@@ -1124,6 +1140,7 @@
               "executionCues": [
                 "Ejecuta «Peso Muerto Rumano» siguiendo el patrón bisagra cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
@@ -1306,6 +1323,7 @@
               "setupCues": [
                 "Configura mancuernas y adopta la posición específica de «Peso Muerto Rumano» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -1333,6 +1351,7 @@
             },
             "id": "romanian_deadlift__bilateral__hex_bar",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
@@ -1346,6 +1365,7 @@
               "executionCues": [
                 "Ejecuta «Peso Muerto Rumano» siguiendo el patrón bisagra cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -1523,6 +1543,7 @@
               "setupCues": [
                 "Configura barra hexagonal y adopta la posición específica de «Peso Muerto Rumano» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -1549,6 +1570,7 @@
             },
             "id": "romanian_deadlift__unilateral__hex_bar",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
@@ -1562,6 +1584,7 @@
               "executionCues": [
                 "Ejecuta «Peso Muerto Rumano» siguiendo el patrón bisagra cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
@@ -1744,6 +1767,7 @@
               "setupCues": [
                 "Configura barra hexagonal y adopta la posición específica de «Peso Muerto Rumano» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -1801,6 +1825,7 @@
             },
             "id": "romanian_sumo_deadlift__bilateral__barbell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.5,
               "bodyRegion": "LOWER",
@@ -1814,6 +1839,7 @@
               "executionCues": [
                 "Baja la carga con la cadera atrás y las piernas casi rectas, y sube extendiendo la cadera."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -1993,6 +2019,7 @@
               "setupCues": [
                 "Coloca los pies amplios y con las puntas algo hacia fuera, como en la postura sumo."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -2019,6 +2046,7 @@
             },
             "id": "romanian_sumo_deadlift__unilateral__barbell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.5,
               "bodyRegion": "LOWER",
@@ -2032,6 +2060,7 @@
               "executionCues": [
                 "Baja la carga con la cadera atrás y las piernas casi rectas, y sube extendiendo la cadera."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -2211,6 +2240,7 @@
               "setupCues": [
                 "Coloca los pies amplios y con las puntas algo hacia fuera, como en la postura sumo."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -2237,6 +2267,7 @@
             },
             "id": "romanian_sumo_deadlift__bilateral__smith_machine",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.5,
               "bodyRegion": "LOWER",
@@ -2250,6 +2281,7 @@
               "executionCues": [
                 "Baja la carga con la cadera atrás y las piernas casi rectas, y sube extendiendo la cadera."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -2429,6 +2461,7 @@
               "setupCues": [
                 "Coloca los pies amplios y con las puntas algo hacia fuera, como en la postura sumo."
               ],
+              "setupTimeSeconds": 50,
               "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -2455,6 +2488,7 @@
             },
             "id": "romanian_sumo_deadlift__unilateral__smith_machine",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.5,
               "bodyRegion": "LOWER",
@@ -2468,6 +2502,7 @@
               "executionCues": [
                 "Baja la carga con la cadera atrás y las piernas casi rectas, y sube extendiendo la cadera."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -2647,6 +2682,7 @@
               "setupCues": [
                 "Coloca los pies amplios y con las puntas algo hacia fuera, como en la postura sumo."
               ],
+              "setupTimeSeconds": 50,
               "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -2673,6 +2709,7 @@
             },
             "id": "romanian_sumo_deadlift__bilateral__dumbbells",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.5,
               "bodyRegion": "LOWER",
@@ -2686,6 +2723,7 @@
               "executionCues": [
                 "Baja la carga con la cadera atrás y las piernas casi rectas, y sube extendiendo la cadera."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -2865,6 +2903,7 @@
               "setupCues": [
                 "Coloca los pies amplios y con las puntas algo hacia fuera, como en la postura sumo."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -2891,6 +2930,7 @@
             },
             "id": "romanian_sumo_deadlift__unilateral__dumbbells",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.5,
               "bodyRegion": "LOWER",
@@ -2904,6 +2944,7 @@
               "executionCues": [
                 "Baja la carga con la cadera atrás y las piernas casi rectas, y sube extendiendo la cadera."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -3083,6 +3124,7 @@
               "setupCues": [
                 "Coloca los pies amplios y con las puntas algo hacia fuera, como en la postura sumo."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -3109,6 +3151,7 @@
             },
             "id": "romanian_sumo_deadlift__bilateral__hex_bar",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.5,
               "bodyRegion": "LOWER",
@@ -3122,6 +3165,7 @@
               "executionCues": [
                 "Baja la carga con la cadera atrás y las piernas casi rectas, y sube extendiendo la cadera."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -3301,6 +3345,7 @@
               "setupCues": [
                 "Coloca los pies amplios y con las puntas algo hacia fuera, como en la postura sumo."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -3327,6 +3372,7 @@
             },
             "id": "romanian_sumo_deadlift__unilateral__hex_bar",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.5,
               "bodyRegion": "LOWER",
@@ -3340,6 +3386,7 @@
               "executionCues": [
                 "Baja la carga con la cadera atrás y las piernas casi rectas, y sube extendiendo la cadera."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -3519,6 +3566,7 @@
               "setupCues": [
                 "Coloca los pies amplios y con las puntas algo hacia fuera, como en la postura sumo."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",

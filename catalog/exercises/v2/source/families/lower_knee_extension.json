@@ -19,6 +19,7 @@
             },
             "id": "quads_extension_cuadriceps__machine__bilateral",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Extiende las rodillas contra la resistencia y baja con control."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -187,6 +189,7 @@
               "setupCues": [
                 "Ajusta el respaldo y el rodillo a la altura de los tobillos."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -209,6 +212,7 @@
             },
             "id": "quads_extension_cuadriceps__machine__unilateral",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -222,6 +226,7 @@
               "executionCues": [
                 "Extiende las rodillas contra la resistencia y baja con control."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
@@ -377,6 +382,7 @@
               "setupCues": [
                 "Ajusta el respaldo y el rodillo a la altura de los tobillos."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -425,6 +431,7 @@
             },
             "id": "quads_extension_cuadriceps_pie_polea__bilateral",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -438,6 +445,7 @@
               "executionCues": [
                 "Extiende las rodillas contra la resistencia y baja con control."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -593,6 +601,7 @@
               "setupCues": [
                 "Ajusta el respaldo y el rodillo a la altura de los tobillos."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -615,6 +624,7 @@
             },
             "id": "quads_extension_cuadriceps_pie_polea__unilateral",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -628,6 +638,7 @@
               "executionCues": [
                 "Extiende las rodillas contra la resistencia y baja con control."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
@@ -783,6 +794,7 @@
               "setupCues": [
                 "Ajusta el respaldo y el rodillo a la altura de los tobillos."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,

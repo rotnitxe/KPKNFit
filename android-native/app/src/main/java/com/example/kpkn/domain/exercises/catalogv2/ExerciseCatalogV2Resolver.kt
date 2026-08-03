@@ -88,7 +88,10 @@ class ExerciseCatalogV2Resolver(
                     (filters.kinds.isEmpty() || definition.kind in filters.kinds) &&
                     (filters.bodyRegions.isEmpty() || configurations.any { it.profile.bodyRegion in filters.bodyRegions }) &&
                     (filters.equipmentIds.isEmpty() || configurations.any { it.profile.equipmentId in filters.equipmentIds }) &&
-                    (filters.movementPatternIds.isEmpty() || configurations.any { it.profile.movementPatternId in filters.movementPatternIds })
+                    (filters.movementPatternIds.isEmpty() || configurations.any { it.profile.movementPatternId in filters.movementPatternIds }) &&
+                    (filters.muscleIds.isEmpty() || configurations.any { config ->
+                        config.profile.primaryMuscles.any { it in filters.muscleIds }
+                    })
             }
             .mapNotNull { definition ->
             val definitionText = normalize(

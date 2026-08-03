@@ -19,6 +19,7 @@
             },
             "id": "hams_curl_nordic_peso_corporal__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Curl Nórdico (Nordic Hamstring Curl)» siguiendo el patrón flexión rodilla eccéntrica con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
@@ -194,6 +196,7 @@
               "setupCues": [
                 "Configura peso corporal y adopta la posición específica de «Curl Nórdico (Nordic Hamstring Curl)» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.2,

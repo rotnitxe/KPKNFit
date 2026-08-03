@@ -19,6 +19,7 @@
             },
             "id": "glutes_patada_gluteo_polea_diagonal__default",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Patada de Glúteos Diagonal en Polea» siguiendo el patrón extensión/abducción cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -184,6 +186,7 @@
               "setupCues": [
                 "Configura polea y adopta la posición específica de «Patada de Glúteos Diagonal en Polea» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,

@@ -19,6 +19,7 @@
             },
             "id": "back_extension_lumbar__default",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Extensión Lumbar» siguiendo el patrón extensión columna con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -194,6 +196,7 @@
               "setupCues": [
                 "Configura máquina y adopta la posición específica de «Extensión Lumbar» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
@@ -238,6 +241,7 @@
             },
             "id": "back_superman_suelo__default",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -251,6 +255,7 @@
               "executionCues": [
                 "Ejecuta «Superman en Suelo» siguiendo el patrón extensión columna con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
@@ -417,6 +422,7 @@
               "setupCues": [
                 "Configura peso corporal y adopta la posición específica de «Superman en Suelo» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 10,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
@@ -459,6 +465,7 @@
             },
             "id": "back_hiperextension_45_zercher_espalda_baja__default",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
@@ -472,6 +479,7 @@
               "executionCues": [
                 "Extiende el tronco con control manteniendo la zona lumbar neutra."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -631,6 +639,7 @@
               "setupCues": [
                 "Ajusta el banco a 45 grados y sostén la carga en posición Zercher contra el pecho."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "core"

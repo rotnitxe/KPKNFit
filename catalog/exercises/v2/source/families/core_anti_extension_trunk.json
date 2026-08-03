@@ -19,6 +19,7 @@
             },
             "id": "core_rueda_abdominal__default",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "CORE",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Rueda Abdominal» siguiendo el patrón anti-extensión tronco con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -197,6 +199,7 @@
               "setupCues": [
                 "Configura rueda abdominal y adopta la posición específica de «Rueda Abdominal» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 10,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,

@@ -93,6 +93,9 @@ def validate_profile(value: Any, path: str, allow_draft: bool) -> None:
     require(all(isinstance(item, str) and item.strip() for item in value["executionCues"]), f"{path}.profile.executionCues contains empty text")
     require(all(isinstance(item, str) and item.strip() for item in value["commonMistakes"]), f"{path}.profile.commonMistakes contains empty text")
     require(isinstance(value["performanceProfileId"], str) and value["performanceProfileId"], f"{path}.profile.performanceProfileId required")
+    require(value.get("articulationType") in {"MULTIARTICULAR", "AISLADO"}, f"{path}.profile.articulationType must be MULTIARTICULAR or AISLADO")
+    require(isinstance(value.get("setupTimeSeconds"), int) and value["setupTimeSeconds"] > 0, f"{path}.profile.setupTimeSeconds must be a positive integer")
+    require(value.get("fatigueTier") in {"BAJA", "MEDIA", "ALTA"}, f"{path}.profile.fatigueTier must be BAJA, MEDIA or ALTA")
     if not allow_draft:
         require(value.get("automationEligible") is True, f"{path}.profile.automationEligible must be true for runtime")
         rich = value.get("richMetadata")

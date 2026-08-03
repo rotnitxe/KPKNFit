@@ -19,6 +19,7 @@
             },
             "id": "california_press__barbell",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Press California con Barra Recta» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "FULL",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -196,6 +198,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Press California con Barra Recta» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
@@ -218,6 +221,7 @@
             },
             "id": "california_press__ez_bar",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -231,6 +235,7 @@
               "executionCues": [
                 "Ejecuta «Press California con Barra EZ» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "FULL",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -395,6 +400,7 @@
               "setupCues": [
                 "Configura barra ez y adopta la posición específica de «Press California con Barra EZ» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
@@ -417,6 +423,7 @@
             },
             "id": "california_press__dumbbells",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -430,6 +437,7 @@
               "executionCues": [
                 "Ejecuta «Press California con Mancuernas» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "FULL",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -594,6 +602,7 @@
               "setupCues": [
                 "Configura mancuerna y adopta la posición específica de «Press California con Mancuernas» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,

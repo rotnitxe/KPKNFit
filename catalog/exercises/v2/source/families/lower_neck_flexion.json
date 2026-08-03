@@ -19,6 +19,7 @@
             },
             "id": "neck_flexion_cuello__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Flexiona el cuello hacia delante contra la resistencia con control."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
@@ -189,6 +191,7 @@
               "setupCues": [
                 "Coloca la resistencia en la cabeza o el arnés y prepara el apoyo del cuerpo."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
@@ -211,6 +214,7 @@
             },
             "id": "neck_flexion_cuello__plate",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -224,6 +228,7 @@
               "executionCues": [
                 "Flexiona el cuello hacia delante contra la resistencia con control."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -381,6 +386,7 @@
               "setupCues": [
                 "Coloca la resistencia en la cabeza o el arnés y prepara el apoyo del cuerpo."
               ],
+              "setupTimeSeconds": 15,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,

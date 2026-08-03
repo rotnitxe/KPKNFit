@@ -19,6 +19,7 @@
             },
             "id": "copenhagen_plank__default",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Plancha Copenhagen Dinámica» siguiendo el patrón aducción dinámica con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
@@ -194,6 +196,7 @@
               "setupCues": [
                 "Configura peso corporal y adopta la posición específica de «Plancha Copenhagen Dinámica» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 10,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.5,
@@ -238,6 +241,7 @@
             },
             "id": "hip_adduction__seated__machine__bilateral",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -251,6 +255,7 @@
               "executionCues": [
                 "Cierra las piernas con recorrido controlado y resiste el retorno."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -410,6 +415,7 @@
               "setupCues": [
                 "Ajusta el equipo y la posición de inicio antes de mover las piernas."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
@@ -434,6 +440,7 @@
             },
             "id": "hip_adduction__seated__machine__unilateral",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -447,6 +454,7 @@
               "executionCues": [
                 "Cierra las piernas con recorrido controlado y resiste el retorno."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
@@ -606,6 +614,7 @@
               "setupCues": [
                 "Ajusta el equipo y la posición de inicio antes de mover las piernas."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
@@ -630,6 +639,7 @@
             },
             "id": "hip_adduction__standing__cable__bilateral",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -643,6 +653,7 @@
               "executionCues": [
                 "Cierra las piernas con recorrido controlado y resiste el retorno."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -802,6 +813,7 @@
               "setupCues": [
                 "Ajusta el equipo y la posición de inicio antes de mover las piernas."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
@@ -826,6 +838,7 @@
             },
             "id": "hip_adduction__standing__cable__unilateral",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -839,6 +852,7 @@
               "executionCues": [
                 "Cierra las piernas con recorrido controlado y resiste el retorno."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
@@ -998,6 +1012,7 @@
               "setupCues": [
                 "Ajusta el equipo y la posición de inicio antes de mover las piernas."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
@@ -1022,6 +1037,7 @@
             },
             "id": "hip_adduction__standing__band__bilateral",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -1035,6 +1051,7 @@
               "executionCues": [
                 "Cierra las piernas con recorrido controlado y resiste el retorno."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
@@ -1194,6 +1211,7 @@
               "setupCues": [
                 "Ajusta el equipo y la posición de inicio antes de mover las piernas."
               ],
+              "setupTimeSeconds": 10,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
@@ -1218,6 +1236,7 @@
             },
             "id": "hip_adduction__standing__band__unilateral",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -1231,6 +1250,7 @@
               "executionCues": [
                 "Cierra las piernas con recorrido controlado y resiste el retorno."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "variable_band_resistance",
@@ -1390,6 +1410,7 @@
               "setupCues": [
                 "Ajusta el equipo y la posición de inicio antes de mover las piernas."
               ],
+              "setupTimeSeconds": 10,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
@@ -1442,6 +1463,7 @@
             },
             "id": "copenhagen_plank_dynamic__default",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -1455,6 +1477,7 @@
               "executionCues": [
                 "Ejecuta «Plancha Copenhagen Dinámica» siguiendo el patrón aducción dinámica con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
@@ -1617,6 +1640,7 @@
               "setupCues": [
                 "Configura peso corporal y adopta la posición específica de «Plancha Copenhagen Dinámica» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 10,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.5,

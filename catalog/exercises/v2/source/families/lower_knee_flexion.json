@@ -19,6 +19,7 @@
             },
             "id": "curl_isquios_con_balon__default",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Curl de Isquiosurales con Balón» siguiendo el patrón de flexión de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
@@ -200,6 +202,7 @@
               "setupCues": [
                 "Configura el propio peso corporal y adopta la posición específica de «Curl de Isquiosurales con Balón» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 10,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -246,6 +249,7 @@
             },
             "id": "curl_isquios_con_sliders__default",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -259,6 +263,7 @@
               "executionCues": [
                 "Ejecuta «Curl de Isquiosurales con Sliders» siguiendo el patrón de flexión de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "bodyweight_with_sliding_resistance",
@@ -421,6 +426,7 @@
               "setupCues": [
                 "Configura los sliders y adopta la posición específica de «Curl de Isquiosurales con Sliders» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 10,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -465,6 +471,7 @@
             },
             "id": "lying_leg_curl__bilateral__machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -478,6 +485,7 @@
               "executionCues": [
                 "Ejecuta «Curl de Isquiosurales Tumbado» siguiendo el patrón de flexión de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -656,6 +664,7 @@
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Curl de Isquiosurales Tumbado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -681,6 +690,7 @@
             },
             "id": "lying_leg_curl__unilateral__machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -694,6 +704,7 @@
               "executionCues": [
                 "Ejecuta «Curl de Isquiosurales Tumbado» siguiendo el patrón de flexión de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
@@ -872,6 +883,7 @@
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Curl de Isquiosurales Tumbado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -897,6 +909,7 @@
             },
             "id": "lying_leg_curl__bilateral__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -910,6 +923,7 @@
               "executionCues": [
                 "Ejecuta «Curl de Isquiosurales Tumbado» siguiendo el patrón de flexión de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -1088,6 +1102,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Curl de Isquiosurales Tumbado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -1113,6 +1128,7 @@
             },
             "id": "lying_leg_curl__unilateral__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -1126,6 +1142,7 @@
               "executionCues": [
                 "Ejecuta «Curl de Isquiosurales Tumbado» siguiendo el patrón de flexión de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
@@ -1304,6 +1321,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Curl de Isquiosurales Tumbado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -1329,6 +1347,7 @@
             },
             "id": "lying_leg_curl__bilateral__dumbbells",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -1342,6 +1361,7 @@
               "executionCues": [
                 "Ejecuta «Curl de Isquiosurales Tumbado» siguiendo el patrón de flexión de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -1514,6 +1534,7 @@
               "setupCues": [
                 "Configura mancuernas y adopta la posición específica de «Curl de Isquiosurales Tumbado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -1539,6 +1560,7 @@
             },
             "id": "lying_leg_curl__unilateral__dumbbells",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -1552,6 +1574,7 @@
               "executionCues": [
                 "Ejecuta «Curl de Isquiosurales Tumbado» siguiendo el patrón de flexión de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
@@ -1724,6 +1747,7 @@
               "setupCues": [
                 "Configura mancuernas y adopta la posición específica de «Curl de Isquiosurales Tumbado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -1777,6 +1801,7 @@
             },
             "id": "seated_leg_curl__bilateral__machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -1790,6 +1815,7 @@
               "executionCues": [
                 "Ejecuta «Curl de Isquiosurales Sentado» siguiendo el patrón de flexión de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -1954,6 +1980,7 @@
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Curl de Isquiosurales Sentado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -1979,6 +2006,7 @@
             },
             "id": "seated_leg_curl__unilateral__machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -1992,6 +2020,7 @@
               "executionCues": [
                 "Ejecuta «Curl de Isquiosurales Sentado» siguiendo el patrón de flexión de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
@@ -2156,6 +2185,7 @@
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Curl de Isquiosurales Sentado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -2181,6 +2211,7 @@
             },
             "id": "seated_leg_curl__bilateral__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -2194,6 +2225,7 @@
               "executionCues": [
                 "Ejecuta «Curl de Isquiosurales Sentado» siguiendo el patrón de flexión de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -2358,6 +2390,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Curl de Isquiosurales Sentado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -2383,6 +2416,7 @@
             },
             "id": "seated_leg_curl__unilateral__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -2396,6 +2430,7 @@
               "executionCues": [
                 "Ejecuta «Curl de Isquiosurales Sentado» siguiendo el patrón de flexión de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
@@ -2560,6 +2595,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Curl de Isquiosurales Sentado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -2613,6 +2649,7 @@
             },
             "id": "standing_leg_curl__bilateral__machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -2626,6 +2663,7 @@
               "executionCues": [
                 "Ejecuta «Curl de Isquiosurales de Pie» siguiendo el patrón de flexión de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -2798,6 +2836,7 @@
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Curl de Isquiosurales de Pie» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -2823,6 +2862,7 @@
             },
             "id": "standing_leg_curl__unilateral__machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -2836,6 +2876,7 @@
               "executionCues": [
                 "Ejecuta «Curl de Isquiosurales de Pie» siguiendo el patrón de flexión de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
@@ -3008,6 +3049,7 @@
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Curl de Isquiosurales de Pie» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -3033,6 +3075,7 @@
             },
             "id": "standing_leg_curl__bilateral__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -3046,6 +3089,7 @@
               "executionCues": [
                 "Ejecuta «Curl de Isquiosurales de Pie» siguiendo el patrón de flexión de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -3218,6 +3262,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Curl de Isquiosurales de Pie» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -3243,6 +3288,7 @@
             },
             "id": "standing_leg_curl__unilateral__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -3256,6 +3302,7 @@
               "executionCues": [
                 "Ejecuta «Curl de Isquiosurales de Pie» siguiendo el patrón de flexión de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
@@ -3428,6 +3475,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Curl de Isquiosurales de Pie» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"

@@ -19,6 +19,7 @@
             },
             "id": "core_elevacion_piernas__default",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "CORE",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Elevación Piernas» siguiendo el patrón flexión pelvis / cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
@@ -192,6 +194,7 @@
               "setupCues": [
                 "Configura peso corporal y adopta la posición específica de «Elevación Piernas» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 10,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,

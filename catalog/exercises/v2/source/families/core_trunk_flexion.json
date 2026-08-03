@@ -19,6 +19,7 @@
             },
             "id": "core_crunch_banco_declinado_lastrado_disco__default",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "CORE",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Crunch Abdominal en Banco Declinado Lastrado con Disco» siguiendo el patrón flexión tronco con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -184,6 +186,7 @@
               "setupCues": [
                 "Configura disco y adopta la posición específica de «Crunch Abdominal en Banco Declinado Lastrado con Disco» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 15,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
@@ -228,6 +231,7 @@
             },
             "id": "core_crunch_en_polea_alta__default",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "CORE",
@@ -241,6 +245,7 @@
               "executionCues": [
                 "Ejecuta «Crunch Abdominal de Rodillas en Polea Alta» siguiendo el patrón flexión tronco con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
@@ -391,6 +396,7 @@
               "setupCues": [
                 "Configura polea y adopta la posición específica de «Crunch Abdominal de Rodillas en Polea Alta» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
@@ -433,6 +439,7 @@
             },
             "id": "core_crunch_maquina__default",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "CORE",
@@ -446,6 +453,7 @@
               "executionCues": [
                 "Ejecuta «Crunch Abdominal en Máquina» siguiendo el patrón flexión tronco con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
@@ -596,6 +604,7 @@
               "setupCues": [
                 "Configura máquina y adopta la posición específica de «Crunch Abdominal en Máquina» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
@@ -638,6 +647,7 @@
             },
             "id": "core_crunch_suelo_peso_corporal__default",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "CORE",
@@ -651,6 +661,7 @@
               "executionCues": [
                 "Ejecuta «Crunch Abdominal en Suelo» siguiendo el patrón flexión tronco con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
@@ -802,6 +813,7 @@
               "setupCues": [
                 "Configura peso corporal y adopta la posición específica de «Crunch Abdominal en Suelo» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 10,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,

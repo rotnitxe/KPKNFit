@@ -19,6 +19,7 @@
             },
             "id": "crossbody_triceps__cable__bilateral",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Extiende el codo cruzando hacia el otro lado con control."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "FULL",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -187,6 +189,7 @@
               "setupCues": [
                 "Coloca la polea en la altura alta y lleva el agarre al lado contrario del brazo de trabajo."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
@@ -209,6 +212,7 @@
             },
             "id": "crossbody_triceps__cable__unilateral",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -222,6 +226,7 @@
               "executionCues": [
                 "Extiende el codo cruzando hacia el otro lado con control."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "FULL",
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
@@ -377,6 +382,7 @@
               "setupCues": [
                 "Coloca la polea en la altura alta y lleva el agarre al lado contrario del brazo de trabajo."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,

@@ -1,15 +1,19 @@
 package com.example.kpkn.screens.sessioneditor.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.animateScrollBy
-import androidx.compose.foundation.gestures.animateScrollBy
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +26,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -46,9 +51,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -58,11 +65,13 @@ import com.example.kpkn.data.exercises.catalogv2.toLegacySelection
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.repository.CustomExerciseRepository
 import com.example.kpkn.domain.exercises.explainMuscleContribution
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseBodyRegionV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogRepositoryV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogStateV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Resolver
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseDefinitionV2
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseSearchFiltersV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseSelectionV2
 import com.example.kpkn.screens.sessioneditor.CatalogSearchField
 import com.example.kpkn.screens.wikilab.wikilabMuscleColor
@@ -132,46 +141,54 @@ internal fun ExercisePickerV2Catalog(
             }
         }
 
-        // Search is intentionally always visible. It must not be hidden behind
-        // an icon or disappear while the asset is being decoded.
-        CatalogSearchField(
-            value = query,
-            onValueChange = onSearch,
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = "Buscar ejercicio, implemento o músculo",
-        )
-
+        // Search is intentionally always visible as a floating pill at the
+        // bottom. It must not be hidden behind an icon or disappear while the
+        // asset is being decoded.
         when (val current = state) {
             ExerciseCatalogStateV2.Loading -> {
-                Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator(color = Color.White)
-                        Spacer(Modifier.height(10.dp))
-                        Text("Preparando el catálogo…", color = Color.White.copy(alpha = 0.78f))
+                Box(Modifier.fillMaxWidth().weight(1f)) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            CircularProgressIndicator(color = Color.White)
+                            Spacer(Modifier.height(10.dp))
+                            Text("Preparando el catálogo…", color = Color.White.copy(alpha = 0.78f))
+                        }
                     }
+                    FloatingCatalogSearch(
+                        value = query,
+                        onValueChange = onSearch,
+                        modifier = Modifier.align(Alignment.BottomCenter),
+                    )
                 }
             }
 
             is ExerciseCatalogStateV2.Error -> {
-                Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        Text(
-                            "No se pudo cargar el catálogo de ejercicios.",
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                        )
-                        Text(
-                            current.reason,
-                            color = Color.White.copy(alpha = 0.66f),
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                        Button(onClick = { retryScope.launch { repository.load() } }) {
-                            Text("Reintentar")
+                Box(Modifier.fillMaxWidth().weight(1f)) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            Text(
+                                "No se pudo cargar el catálogo de ejercicios.",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Text(
+                                current.reason,
+                                color = Color.White.copy(alpha = 0.66f),
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                            Button(onClick = { retryScope.launch { repository.load() } }) {
+                                Text("Reintentar")
+                            }
                         }
                     }
+                    FloatingCatalogSearch(
+                        value = query,
+                        onValueChange = onSearch,
+                        modifier = Modifier.align(Alignment.BottomCenter),
+                    )
                 }
             }
 
@@ -180,6 +197,7 @@ internal fun ExercisePickerV2Catalog(
                     catalog = current.catalog,
                     repository = repository,
                     query = query,
+                    onSearch = onSearch,
                     editingExisting = editingExisting,
                     selectedExercisesIds = selectedExercisesIds,
                     onSelect = onSelect,
@@ -195,12 +213,32 @@ internal fun ExercisePickerV2Catalog(
     }
 }
 
+/** Píldora flotante de búsqueda con sombra, anclada al borde inferior del área. */
+@Composable
+private fun FloatingCatalogSearch(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    CatalogSearchField(
+        value = value,
+        onValueChange = onValueChange,
+        placeholder = "Buscar ejercicio, implemento o músculo",
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 14.dp, vertical = 12.dp)
+            .shadow(elevation = 18.dp, shape = RoundedCornerShape(30.dp), clip = false)
+            .clip(RoundedCornerShape(30.dp)),
+    )
+}
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ColumnScope.CatalogReadyContent(
     catalog: ExerciseCatalogV2,
     repository: ExerciseCatalogRepositoryV2,
     query: String,
+    onSearch: (String) -> Unit,
     editingExisting: Boolean,
     selectedExercisesIds: Set<String>,
     onSelect: (ExerciseMuscleInfo) -> Unit,
@@ -215,13 +253,30 @@ private fun ColumnScope.CatalogReadyContent(
     val definitionsById = remember(catalog) {
         catalog.families.flatMap { it.definitions }.associateBy { it.id }
     }
-    val searchHits = remember(catalog, query) {
-        if (query.isBlank()) emptyList() else resolver.search(query)
+    var filterRegion by rememberSaveable { mutableStateOf<String?>(null) }
+    var filterMuscle by rememberSaveable { mutableStateOf<String?>(null) }
+    var muscleFilterExpanded by rememberSaveable { mutableStateOf(false) }
+    var chipsVisible by remember { mutableStateOf(true) }
+    val searchFilters = remember(filterRegion, filterMuscle) {
+        ExerciseSearchFiltersV2(
+            bodyRegions = filterRegion?.let { setOf(ExerciseBodyRegionV2.valueOf(it)) }.orEmpty(),
+            muscleIds = filterMuscle?.let { setOf(it) }.orEmpty(),
+        )
     }
-    val definitions = remember(catalog, query, searchHits) {
+    fun definitionMatchesFilter(definition: ExerciseDefinitionV2): Boolean {
+        val configs = definition.configurations
+        if (filterRegion != null && configs.none { it.profile.bodyRegion.name == filterRegion }) return false
+        if (filterMuscle != null && configs.none { config -> config.profile.primaryMuscles.contains(filterMuscle) }) return false
+        return true
+    }
+    val searchHits = remember(catalog, query, searchFilters) {
+        if (query.isBlank()) emptyList() else resolver.search(query, searchFilters)
+    }
+    val definitions = remember(catalog, query, searchHits, filterRegion, filterMuscle) {
         if (query.isBlank()) {
             catalog.families
                 .flatMap { it.definitions }
+                .filter(::definitionMatchesFilter)
                 .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.canonicalName })
         } else {
             // The resolver already orders hits by relevance. Keep that order
@@ -249,6 +304,22 @@ private fun ColumnScope.CatalogReadyContent(
         if (definition != null && configuration != null) mapOf(definition.id to configuration.selectedOptions) else emptyMap()
     }
     val draftByDefinition = remember(initialDraftByDefinition) { mutableStateOf(initialDraftByDefinition) }
+    val suggestedDrafts = remember(searchHits, definitionsById) {
+        searchHits.mapNotNull { hit ->
+            val suggestedId = hit.suggestedConfigurationId ?: return@mapNotNull null
+            val def = definitionsById[hit.definitionId] ?: return@mapNotNull null
+            val cfg = def.configurations.firstOrNull { it.id == suggestedId } ?: return@mapNotNull null
+            def.id to cfg.selectedOptions
+        }.toMap()
+    }
+    // Cuando el usuario escribe "Press Inclinado con Mancuernas", el mejor hit
+    // trae su configuración sugerida: se preseleccionan los chips del draft y
+    // se expande esa tarjeta para que el ejercicio quede listo.
+    LaunchedEffect(query, suggestedDrafts) {
+        if (query.isNotBlank() && suggestedDrafts.isNotEmpty()) {
+            draftByDefinition.value = draftByDefinition.value + suggestedDrafts
+        }
+    }
     val selectedRows = remember { mutableStateOf<Map<String, ExerciseMuscleInfo>>(emptyMap()) }
     var expandedDefinitionId by rememberSaveable { mutableStateOf<String?>(null) }
     val customExercises by CustomExerciseRepository.customExercises.collectAsStateWithLifecycle()
@@ -278,10 +349,88 @@ private fun ColumnScope.CatalogReadyContent(
         if (delta != 0) listState.animateScrollBy(delta.toFloat())
     }
 
+    // Expande el mejor hit de la búsqueda para que sus chips queden visibles.
+    LaunchedEffect(query, searchHits) {
+        if (query.isNotBlank()) {
+            searchHits.firstOrNull()?.let { expandedDefinitionId = it.definitionId }
+        }
+    }
+
+    // Los chips de filtro se ocultan al hacer scroll para no tapar el catálogo.
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
+            .collect { (index, offset) ->
+                chipsVisible = index == 0 && offset < 48
+            }
+    }
+
+    AnimatedVisibility(visible = chipsVisible, enter = fadeIn(), exit = shrinkVertically()) {
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                FilterChip(
+                    selected = filterRegion == null && filterMuscle == null,
+                    onClick = {
+                        filterRegion = null
+                        filterMuscle = null
+                        muscleFilterExpanded = false
+                    },
+                    label = { Text("Todos") },
+                    colors = catalogFilterChipColors(),
+                )
+                FilterChip(
+                    selected = filterRegion == "UPPER",
+                    onClick = {
+                        filterRegion = if (filterRegion == "UPPER") null else "UPPER"
+                        filterMuscle = null
+                    },
+                    label = { Text("Tren Superior") },
+                    colors = catalogFilterChipColors(),
+                )
+                FilterChip(
+                    selected = filterRegion == "LOWER",
+                    onClick = {
+                        filterRegion = if (filterRegion == "LOWER") null else "LOWER"
+                        filterMuscle = null
+                    },
+                    label = { Text("Tren Inferior") },
+                    colors = catalogFilterChipColors(),
+                )
+                FilterChip(
+                    selected = muscleFilterExpanded || filterMuscle != null,
+                    onClick = { muscleFilterExpanded = !muscleFilterExpanded },
+                    label = { Text(if (filterMuscle != null) exerciseCatalogMuscleLabel(filterMuscle!!) else "Músculo") },
+                    colors = catalogFilterChipColors(),
+                )
+            }
+            if (muscleFilterExpanded) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    CATALOG_FILTER_MUSCLE_IDS.forEach { muscleId ->
+                        FilterChip(
+                            selected = filterMuscle == muscleId,
+                            onClick = { filterMuscle = if (filterMuscle == muscleId) null else muscleId },
+                            label = { Text(exerciseCatalogMuscleLabel(muscleId)) },
+                            colors = catalogFilterChipColors(),
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    Box(Modifier.fillMaxWidth().weight(1f)) {
     LazyColumn(
         state = listState,
-        modifier = Modifier.fillMaxWidth().weight(1f),
+        modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(10.dp),
+        contentPadding = PaddingValues(bottom = 84.dp),
     ) {
         item("result-count") {
             Text(
@@ -604,6 +753,13 @@ private fun ColumnScope.CatalogReadyContent(
         item { Spacer(Modifier.height(4.dp)) }
     }
 
+    FloatingCatalogSearch(
+        value = query,
+        onValueChange = onSearch,
+        modifier = Modifier.align(Alignment.BottomCenter),
+    )
+    }
+
     if (!editingExisting && selectedRows.value.isNotEmpty()) {
         Button(
             onClick = {
@@ -614,6 +770,22 @@ private fun ColumnScope.CatalogReadyContent(
         ) { Text("Agregar ${selectedRows.value.size} ejercicio(s)") }
     }
 }
+
+/** Colores oscuros del sheet para los chips de filtro del catálogo. */
+@Composable
+private fun catalogFilterChipColors() = FilterChipDefaults.filterChipColors(
+    containerColor = Color.White.copy(alpha = 0.08f),
+    labelColor = Color.White.copy(alpha = 0.88f),
+    selectedContainerColor = Color.White.copy(alpha = 0.96f),
+    selectedLabelColor = Color(0xFF101214),
+)
+
+/** Músculos principales para el filtro "Por Músculo". */
+private val CATALOG_FILTER_MUSCLE_IDS = listOf(
+    "pectoralis", "latissimus_dorsi", "deltoid", "biceps", "triceps", "forearm",
+    "quadriceps", "hamstrings", "gluteus_maximus", "adductors", "calves",
+    "erector_spinae", "core", "trapezius", "neck",
+)
 
 @Composable
 private fun CatalogDescription(

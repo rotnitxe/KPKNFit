@@ -2,137 +2,535 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "KPKN Exercise Catalog v2",
   "type": "object",
-  "required": ["schemaVersion", "catalogRevision", "ontologyRevision", "families"],
+  "required": [
+    "schemaVersion",
+    "catalogRevision",
+    "ontologyRevision",
+    "families"
+  ],
   "properties": {
-    "schemaVersion": { "const": 2 },
-    "catalogRevision": { "type": "string", "minLength": 1 },
-    "ontologyRevision": { "type": "string", "minLength": 1 },
+    "schemaVersion": {
+      "const": 2
+    },
+    "catalogRevision": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ontologyRevision": {
+      "type": "string",
+      "minLength": 1
+    },
     "families": {
       "type": "array",
       "minItems": 1,
-      "items": { "$ref": "#/$defs/family" }
+      "items": {
+        "$ref": "#/$defs/family"
+      }
     }
   },
   "$defs": {
     "evidence": {
       "type": "object",
-      "required": ["reviewStatus", "confidence", "evidenceRefs"],
+      "required": [
+        "reviewStatus",
+        "confidence",
+        "evidenceRefs"
+      ],
       "properties": {
-        "reviewStatus": { "enum": ["DRAFT", "REVIEWED", "APPROVED"] },
-        "confidence": { "enum": ["LOW", "MEDIUM", "HIGH"] },
-        "evidenceRefs": { "type": "array", "items": { "type": "string" } },
-        "rationale": { "type": "string" }
+        "reviewStatus": {
+          "enum": [
+            "DRAFT",
+            "REVIEWED",
+            "APPROVED"
+          ]
+        },
+        "confidence": {
+          "enum": [
+            "LOW",
+            "MEDIUM",
+            "HIGH"
+          ]
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "rationale": {
+          "type": "string"
+        }
       },
       "additionalProperties": false
     },
     "profile": {
       "type": "object",
       "required": [
-        "movementPatternId", "bodyRegion", "kineticChain", "laterality",
-        "equipmentId", "loadMode", "primaryMuscles", "secondaryMuscles",
-        "stabilizerMuscles", "muscleNotes", "efc", "cnc", "ssc", "ttc",
-        "axialLoadFactor", "technicalDifficulty", "resistanceProfile",
-        "setupCues", "executionCues", "commonMistakes", "performanceProfileId"
+        "movementPatternId",
+        "bodyRegion",
+        "kineticChain",
+        "laterality",
+        "equipmentId",
+        "loadMode",
+        "primaryMuscles",
+        "secondaryMuscles",
+        "stabilizerMuscles",
+        "muscleNotes",
+        "efc",
+        "cnc",
+        "ssc",
+        "ttc",
+        "axialLoadFactor",
+        "technicalDifficulty",
+        "resistanceProfile",
+        "setupCues",
+        "executionCues",
+        "commonMistakes",
+        "performanceProfileId"
       ],
       "properties": {
-        "movementPatternId": { "type": "string", "minLength": 1 },
-        "bodyRegion": { "enum": ["UPPER", "LOWER", "CORE", "FULL"] },
-        "kineticChain": { "enum": ["ANTERIOR", "POSTERIOR", "FULL"] },
-        "laterality": { "enum": ["BILATERAL", "UNILATERAL", "ALTERNATING", "NOT_APPLICABLE"] },
-        "equipmentId": { "type": "string", "minLength": 1 },
-        "loadMode": { "type": "string", "minLength": 1 },
-        "primaryMuscles": { "type": "array", "minItems": 1, "items": { "type": "string" } },
-        "secondaryMuscles": { "type": "array", "items": { "type": "string" } },
-        "stabilizerMuscles": { "type": "array", "items": { "type": "string" } },
+        "movementPatternId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bodyRegion": {
+          "enum": [
+            "UPPER",
+            "LOWER",
+            "CORE",
+            "FULL"
+          ]
+        },
+        "kineticChain": {
+          "enum": [
+            "ANTERIOR",
+            "POSTERIOR",
+            "FULL"
+          ]
+        },
+        "laterality": {
+          "enum": [
+            "BILATERAL",
+            "UNILATERAL",
+            "ALTERNATING",
+            "NOT_APPLICABLE"
+          ]
+        },
+        "equipmentId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "loadMode": {
+          "type": "string",
+          "minLength": 1
+        },
+        "primaryMuscles": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "secondaryMuscles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "stabilizerMuscles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "muscleNotes": {
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["muscleId", "note"],
+            "required": [
+              "muscleId",
+              "note"
+            ],
             "properties": {
-              "muscleId": { "type": "string", "minLength": 1 },
-              "note": { "type": "string", "minLength": 40 }
+              "muscleId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "note": {
+                "type": "string",
+                "minLength": 40
+              }
             },
             "additionalProperties": false
           }
         },
-        "efc": { "type": "number", "minimum": 0 },
-        "cnc": { "type": "number", "minimum": 0 },
-        "ssc": { "type": "number", "minimum": 0 },
-        "ttc": { "type": "number", "minimum": 0 },
-        "axialLoadFactor": { "type": "number", "minimum": 0 },
-        "technicalDifficulty": { "type": "number", "minimum": 1, "maximum": 10 },
-        "resistanceProfile": { "type": "string", "minLength": 1 },
-        "setupCues": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
-        "executionCues": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
-        "commonMistakes": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
-        "performanceProfileId": { "type": "string", "minLength": 1 },
-        "replacementGroup": { "type": ["string", "null"] },
-        "replacementPriority": { "type": ["integer", "null"], "minimum": 0 },
-        "automationEligible": { "type": "boolean" },
-        "richMetadata": { "$ref": "#/$defs/richMetadata" }
+        "efc": {
+          "type": "number",
+          "minimum": 0
+        },
+        "cnc": {
+          "type": "number",
+          "minimum": 0
+        },
+        "ssc": {
+          "type": "number",
+          "minimum": 0
+        },
+        "ttc": {
+          "type": "number",
+          "minimum": 0
+        },
+        "axialLoadFactor": {
+          "type": "number",
+          "minimum": 0
+        },
+        "technicalDifficulty": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "resistanceProfile": {
+          "type": "string",
+          "minLength": 1
+        },
+        "setupCues": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "executionCues": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "commonMistakes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "performanceProfileId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "replacementGroup": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "replacementPriority": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "automationEligible": {
+          "type": "boolean"
+        },
+        "richMetadata": {
+          "$ref": "#/$defs/richMetadata"
+        },
+        "articulationType": {
+          "type": "string",
+          "enum": [
+            "MULTIARTICULAR",
+            "AISLADO"
+          ]
+        },
+        "setupTimeSeconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fatigueTier": {
+          "type": "string",
+          "enum": [
+            "BAJA",
+            "MEDIA",
+            "ALTA"
+          ]
+        }
       },
       "additionalProperties": false
     },
     "richMetadata": {
       "type": "object",
-      "required": ["identity", "anatomy", "biomechanics", "programming", "fatigue", "replacement", "coaching", "safety", "display", "evidenceConfidence"],
+      "required": [
+        "identity",
+        "anatomy",
+        "biomechanics",
+        "programming",
+        "fatigue",
+        "replacement",
+        "coaching",
+        "safety",
+        "display",
+        "evidenceConfidence"
+      ],
       "properties": {
-        "identity": { "type": "object", "required": ["catalogRevision", "familyId", "definitionId", "configurationId", "canonicalName", "searchTerms", "kind", "performanceProfileId"] },
-        "anatomy": { "type": "object", "required": ["primaryMuscles", "secondaryMuscles", "stabilizerMuscles", "targetRegions", "jointActions", "muscleLengthBias", "volumeContribution", "stabilizationDemand"] },
-        "biomechanics": { "type": "object", "required": ["movementPatternId", "bodyRegion", "kineticChain", "laterality", "equipmentId", "loadMode", "resistanceProfile", "rangeOfMotion", "stability", "relevantJoints", "relevantTendons"] },
-        "programming": { "type": "object", "required": ["role", "objectives", "suitableRepRanges", "indicativeRestSeconds", "fatigueCost", "recoveryCost", "requiredEquipment", "setupTransitionCost", "splitSuitability"] },
-        "fatigue": { "type": "object", "required": ["efc", "cnc", "ssc", "ttc", "axialLoadFactor", "technicalDifficulty"] },
-        "replacement": { "type": "object", "required": ["replacementGroup", "replacementPriority", "compatibleEquipmentIds", "preservesIntent"] },
-        "coaching": { "type": "object", "required": ["setup", "execution", "cues", "commonMistakes", "progressions", "regressions", "relevantMobility"] },
-        "safety": { "type": "object", "required": ["risks", "precautions", "medicalDisclaimerRequired"] },
-        "display": { "type": "object", "required": ["displayName", "displaySummary", "selectedOptions"] },
-        "evidenceConfidence": { "enum": ["LOW", "MEDIUM", "HIGH"] }
+        "identity": {
+          "type": "object",
+          "required": [
+            "catalogRevision",
+            "familyId",
+            "definitionId",
+            "configurationId",
+            "canonicalName",
+            "searchTerms",
+            "kind",
+            "performanceProfileId"
+          ]
+        },
+        "anatomy": {
+          "type": "object",
+          "required": [
+            "primaryMuscles",
+            "secondaryMuscles",
+            "stabilizerMuscles",
+            "targetRegions",
+            "jointActions",
+            "muscleLengthBias",
+            "volumeContribution",
+            "stabilizationDemand"
+          ]
+        },
+        "biomechanics": {
+          "type": "object",
+          "required": [
+            "movementPatternId",
+            "bodyRegion",
+            "kineticChain",
+            "laterality",
+            "equipmentId",
+            "loadMode",
+            "resistanceProfile",
+            "rangeOfMotion",
+            "stability",
+            "relevantJoints",
+            "relevantTendons"
+          ]
+        },
+        "programming": {
+          "type": "object",
+          "required": [
+            "role",
+            "objectives",
+            "suitableRepRanges",
+            "indicativeRestSeconds",
+            "fatigueCost",
+            "recoveryCost",
+            "requiredEquipment",
+            "setupTransitionCost",
+            "splitSuitability"
+          ]
+        },
+        "fatigue": {
+          "type": "object",
+          "required": [
+            "efc",
+            "cnc",
+            "ssc",
+            "ttc",
+            "axialLoadFactor",
+            "technicalDifficulty"
+          ]
+        },
+        "replacement": {
+          "type": "object",
+          "required": [
+            "replacementGroup",
+            "replacementPriority",
+            "compatibleEquipmentIds",
+            "preservesIntent"
+          ]
+        },
+        "coaching": {
+          "type": "object",
+          "required": [
+            "setup",
+            "execution",
+            "cues",
+            "commonMistakes",
+            "progressions",
+            "regressions",
+            "relevantMobility"
+          ]
+        },
+        "safety": {
+          "type": "object",
+          "required": [
+            "risks",
+            "precautions",
+            "medicalDisclaimerRequired"
+          ]
+        },
+        "display": {
+          "type": "object",
+          "required": [
+            "displayName",
+            "displaySummary",
+            "selectedOptions"
+          ]
+        },
+        "evidenceConfidence": {
+          "enum": [
+            "LOW",
+            "MEDIUM",
+            "HIGH"
+          ]
+        }
       },
       "additionalProperties": false
     },
     "configuration": {
       "type": "object",
-      "required": ["id", "selectedOptions", "displaySummary", "profile", "evidence"],
+      "required": [
+        "id",
+        "selectedOptions",
+        "displaySummary",
+        "profile",
+        "evidence"
+      ],
       "properties": {
-        "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
-        "selectedOptions": { "type": "object", "additionalProperties": { "type": "string" } },
-        "displaySummary": { "type": "string", "minLength": 1 },
-        "profile": { "$ref": "#/$defs/profile" },
-        "evidence": { "$ref": "#/$defs/evidence" }
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$"
+        },
+        "selectedOptions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "displaySummary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "profile": {
+          "$ref": "#/$defs/profile"
+        },
+        "evidence": {
+          "$ref": "#/$defs/evidence"
+        }
       },
       "additionalProperties": false
     },
     "definition": {
       "type": "object",
       "required": [
-        "id", "familyId", "kind", "canonicalName", "description", "searchTerms",
-        "optionAxes", "configurations", "defaultConfigurationId", "evidence"
+        "id",
+        "familyId",
+        "kind",
+        "canonicalName",
+        "description",
+        "searchTerms",
+        "optionAxes",
+        "configurations",
+        "defaultConfigurationId",
+        "evidence"
       ],
       "properties": {
-        "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
-        "familyId": { "type": "string", "minLength": 1 },
-        "kind": { "enum": ["PARENT", "SPECIALTY"] },
-        "canonicalName": { "type": "string", "minLength": 1 },
-        "description": { "type": "string", "minLength": 40 },
-        "searchTerms": { "type": "array", "items": { "type": "string", "minLength": 1 } },
-        "optionAxes": { "type": "array", "items": { "type": "string", "minLength": 1 } },
-        "configurations": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/configuration" } },
-        "defaultConfigurationId": { "type": "string", "minLength": 1 },
-        "evidence": { "$ref": "#/$defs/evidence" }
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$"
+        },
+        "familyId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "PARENT",
+            "SPECIALTY"
+          ]
+        },
+        "canonicalName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 40
+        },
+        "searchTerms": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "optionAxes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "configurations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/configuration"
+          }
+        },
+        "defaultConfigurationId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {
+          "$ref": "#/$defs/evidence"
+        }
       },
       "additionalProperties": false
     },
     "family": {
       "type": "object",
-      "required": ["id", "canonicalName", "description", "definitions", "evidence"],
+      "required": [
+        "id",
+        "canonicalName",
+        "description",
+        "definitions",
+        "evidence"
+      ],
       "properties": {
-        "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
-        "canonicalName": { "type": "string", "minLength": 1 },
-        "description": { "type": "string", "minLength": 40 },
-        "definitions": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/definition" } },
-        "evidence": { "$ref": "#/$defs/evidence" },
-        "taxonomy": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$"
+        },
+        "canonicalName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 40
+        },
+        "definitions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/definition"
+          }
+        },
+        "evidence": {
+          "$ref": "#/$defs/evidence"
+        },
+        "taxonomy": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
       },
       "additionalProperties": false
     }

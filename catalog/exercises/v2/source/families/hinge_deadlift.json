@@ -19,6 +19,7 @@
             },
             "id": "conventional_deadlift__bilateral__barbell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Peso Muerto Convencional» siguiendo el patrón bisagra cadera / tracción con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -215,6 +217,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Peso Muerto Convencional» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -241,6 +244,7 @@
             },
             "id": "conventional_deadlift__unilateral__barbell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
@@ -254,6 +258,7 @@
               "executionCues": [
                 "Ejecuta «Peso Muerto Convencional» siguiendo el patrón bisagra cadera / tracción con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
@@ -442,6 +447,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Peso Muerto Convencional» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -469,6 +475,7 @@
             },
             "id": "conventional_deadlift__bilateral__smith_machine",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
@@ -482,6 +489,7 @@
               "executionCues": [
                 "Ejecuta «Peso Muerto Convencional» siguiendo el patrón bisagra cadera / tracción con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -660,6 +668,7 @@
               "setupCues": [
                 "Configura la máquina Smith y adopta la posición específica de «Peso Muerto Convencional» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 50,
               "ssc": 1.0,
               "stabilizerMuscles": [
                 "core"
@@ -685,6 +694,7 @@
             },
             "id": "conventional_deadlift__unilateral__smith_machine",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
@@ -698,6 +708,7 @@
               "executionCues": [
                 "Ejecuta «Peso Muerto Convencional» siguiendo el patrón bisagra cadera / tracción con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
@@ -881,6 +892,7 @@
               "setupCues": [
                 "Configura la máquina Smith y adopta la posición específica de «Peso Muerto Convencional» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 50,
               "ssc": 1.0,
               "stabilizerMuscles": [
                 "core",
@@ -907,6 +919,7 @@
             },
             "id": "conventional_deadlift__bilateral__dumbbells",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
@@ -920,6 +933,7 @@
               "executionCues": [
                 "Ejecuta «Peso Muerto Convencional» siguiendo el patrón bisagra cadera / tracción con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -1103,6 +1117,7 @@
               "setupCues": [
                 "Configura mancuernas y adopta la posición específica de «Peso Muerto Convencional» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -1129,6 +1144,7 @@
             },
             "id": "conventional_deadlift__unilateral__dumbbells",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
@@ -1142,6 +1158,7 @@
               "executionCues": [
                 "Ejecuta «Peso Muerto Convencional» siguiendo el patrón bisagra cadera / tracción con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
@@ -1330,6 +1347,7 @@
               "setupCues": [
                 "Configura mancuernas y adopta la posición específica de «Peso Muerto Convencional» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -1357,6 +1375,7 @@
             },
             "id": "conventional_deadlift__bilateral__hex_bar",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
@@ -1370,6 +1389,7 @@
               "executionCues": [
                 "Ejecuta «Peso Muerto Convencional» siguiendo el patrón bisagra cadera / tracción con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -1553,6 +1573,7 @@
               "setupCues": [
                 "Configura barra hexagonal y adopta la posición específica de «Peso Muerto Convencional» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -1579,6 +1600,7 @@
             },
             "id": "conventional_deadlift__unilateral__hex_bar",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
@@ -1592,6 +1614,7 @@
               "executionCues": [
                 "Ejecuta «Peso Muerto Convencional» siguiendo el patrón bisagra cadera / tracción con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
@@ -1780,6 +1803,7 @@
               "setupCues": [
                 "Configura barra hexagonal y adopta la posición específica de «Peso Muerto Convencional» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -1835,6 +1859,7 @@
             },
             "id": "sumo_deadlift__barbell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
@@ -1848,6 +1873,7 @@
               "executionCues": [
                 "Ejecuta «Peso Muerto Sumo» siguiendo el patrón bisagra cadera / tracción con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -2030,6 +2056,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Peso Muerto Sumo» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 1.0,
               "stabilizerMuscles": [
                 "core"
@@ -2054,6 +2081,7 @@
             },
             "id": "sumo_deadlift__dumbbells",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
@@ -2067,6 +2095,7 @@
               "executionCues": [
                 "Ejecuta «Peso Muerto Sumo» siguiendo el patrón bisagra cadera / tracción con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -2249,6 +2278,7 @@
               "setupCues": [
                 "Configura mancuernas y adopta la posición específica de «Peso Muerto Sumo» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 1.0,
               "stabilizerMuscles": [
                 "core"

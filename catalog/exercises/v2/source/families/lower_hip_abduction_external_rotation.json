@@ -19,6 +19,7 @@
             },
             "id": "glutes_clamshells_banda__default",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Clamshells (Almejas) con Banda Elástica» siguiendo el patrón abducción / rotación externa cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
@@ -184,6 +186,7 @@
               "setupCues": [
                 "Configura banda elástica y adopta la posición específica de «Clamshells (Almejas) con Banda Elástica» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 10,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,

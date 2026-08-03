@@ -19,6 +19,7 @@
             },
             "id": "calf_raise__bilateral__machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -192,6 +194,7 @@
               "setupCues": [
                 "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
@@ -215,6 +218,7 @@
             },
             "id": "calf_raise__unilateral__machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
@@ -228,6 +232,7 @@
               "executionCues": [
                 "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
@@ -388,6 +393,7 @@
               "setupCues": [
                 "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
@@ -411,6 +417,7 @@
             },
             "id": "calf_raise__bilateral__barbell",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
@@ -424,6 +431,7 @@
               "executionCues": [
                 "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -584,6 +592,7 @@
               "setupCues": [
                 "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
@@ -607,6 +616,7 @@
             },
             "id": "calf_raise__unilateral__barbell",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
@@ -620,6 +630,7 @@
               "executionCues": [
                 "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
@@ -780,6 +791,7 @@
               "setupCues": [
                 "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
@@ -803,6 +815,7 @@
             },
             "id": "calf_raise__bilateral__smith_machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
@@ -816,6 +829,7 @@
               "executionCues": [
                 "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -976,6 +990,7 @@
               "setupCues": [
                 "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
               ],
+              "setupTimeSeconds": 40,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
@@ -999,6 +1014,7 @@
             },
             "id": "calf_raise__unilateral__smith_machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
@@ -1012,6 +1028,7 @@
               "executionCues": [
                 "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
@@ -1172,6 +1189,7 @@
               "setupCues": [
                 "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
               ],
+              "setupTimeSeconds": 40,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
@@ -1195,6 +1213,7 @@
             },
             "id": "calf_raise__bilateral__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
@@ -1208,6 +1227,7 @@
               "executionCues": [
                 "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -1368,6 +1388,7 @@
               "setupCues": [
                 "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
@@ -1391,6 +1412,7 @@
             },
             "id": "calf_raise__unilateral__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
@@ -1404,6 +1426,7 @@
               "executionCues": [
                 "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
@@ -1564,6 +1587,7 @@
               "setupCues": [
                 "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,

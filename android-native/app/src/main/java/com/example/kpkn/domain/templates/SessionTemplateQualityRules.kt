@@ -51,6 +51,10 @@ object SessionTemplateQualityRules {
 
     private val SMALL_ARM_MUSCLES = setOf("Deltoides", "Bíceps", "Tríceps")
 
+    private val LEG_MUSCLES = setOf(
+        "Cuádriceps", "Glúteos", "Isquiosurales", "Aductores", "Pantorrillas",
+    )
+
     private val FOCUS_KEYWORDS = listOf(
         "enfoque", "focus", "pecho", "espalda", "hombro", "brazo", "pierna",
         "glúteo", "gluteo", "cuádriceps", "cuadriceps", "isquio", "pantorr",
@@ -107,6 +111,7 @@ object SessionTemplateQualityRules {
 
     fun isCompound(info: ExerciseMuscleInfo?): Boolean {
         if (info == null) return false
+        info.articulationType?.let { return it.equals("MULTIARTICULAR", ignoreCase = true) }
         val type = info.type
         if (type?.contains("Aislamiento", ignoreCase = true) == true) return false
         if (type?.contains("Básico", ignoreCase = true) == true) return true
@@ -129,6 +134,7 @@ object SessionTemplateQualityRules {
 
     fun isIsolation(info: ExerciseMuscleInfo?): Boolean {
         if (info == null) return false
+        info.articulationType?.let { return it.equals("AISLADO", ignoreCase = true) }
         val type = info.type.orEmpty()
         if (type.contains("Aislamiento", ignoreCase = true)) return true
         if (type.contains("Accesorio", ignoreCase = true)) {
@@ -274,8 +280,11 @@ object SessionTemplateQualityRules {
             if (isMachine(equipment)) return@forEach
             val primaries = primaryMuscles(info)
             val onlySmallArms = primaries.isNotEmpty() && primaries.all { it in SMALL_ARM_MUSCLES }
-            // Mancuernas OK solo en delts/bíceps/tríceps.
-            if (onlySmallArms && isDumbbell(equipment)) return@forEach
+            // Mancuernas OK solo en delts/bíceps/tríceps y en compuestos de
+            // pierna (goblet squat, RDL con mancuerna): son el estándar
+            // recomendado para principiantes por su curva de aprendizaje.
+            val legDumbbellCompound = isDumbbell(equipment) && primaries.any { it in LEG_MUSCLES }
+            if ((onlySmallArms || legDumbbellCompound) && isDumbbell(equipment)) return@forEach
             val isFree =
                 isBarbellFree(equipment) ||
                     isDumbbell(equipment) ||
@@ -298,16 +307,24 @@ object SessionTemplateQualityRules {
         resolved: List<Pair<Exercise, ExerciseMuscleInfo?>>,
         issues: MutableList<TemplateQualityIssue>,
     ) {
-        var isolationSeen = false
+        var isolationMuscles = emptySet<String>()
         resolved.forEach { (exercise, info) ->
             if (isIsolation(info)) {
-                isolationSeen = true
-            } else if (isolationSeen && isCompound(info)) {
-                issues += TemplateQualityIssue(
-                    severity = TemplateQualitySeverity.P0,
-                    code = "ORDER_COMPOUND_AFTER_ISO",
-                    message = "Compuesto '${exercise.name}' aparece después de un aislamiento en la sesión",
-                )
+                // Acumula los músculos primarios de los aislamientos vistos.
+                isolationMuscles = isolationMuscles + primaryMuscles(info)
+            } else if (isolationMuscles.isNotEmpty() && isCompound(info)) {
+                // Solo es un orden inválido si el compuesto posterior trabaja el
+                // mismo grupo muscular que el aislamiento anterior (p. ej. press
+                // compuesto después de aperturas); entre grupos distintos es un
+                // orden perfectamente válido.
+                val compoundMuscles = primaryMuscles(info)
+                if (compoundMuscles.any { canonicalMuscle(it) in isolationMuscles.map(::canonicalMuscle).toSet() }) {
+                    issues += TemplateQualityIssue(
+                        severity = TemplateQualitySeverity.P1,
+                        code = "ORDER_COMPOUND_AFTER_ISO",
+                        message = "Compuesto '${exercise.name}' aparece después de un aislamiento del mismo músculo en la sesión",
+                    )
+                }
             }
         }
     }

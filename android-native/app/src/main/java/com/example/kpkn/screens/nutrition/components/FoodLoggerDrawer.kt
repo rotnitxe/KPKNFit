@@ -43,6 +43,7 @@ import com.example.kpkn.data.secure.DeepSeekCredentialStore
 import com.example.kpkn.data.remote.AiNutritionRequest
 import com.example.kpkn.data.remote.AiNutritionResult
 import com.example.kpkn.domain.nutrition.SmartFoodResolver
+import com.example.kpkn.domain.nutrition.SubjectivePortionEngine
 import com.example.kpkn.domain.nutrition.CookingStateResolver
 import com.example.kpkn.domain.nutrition.scaleFoodByPortion
 import com.example.kpkn.domain.nutrition.createLoggedFood
@@ -239,6 +240,20 @@ fun FoodLoggerDrawer(
     var aiComparison by remember { mutableStateOf<AiNutritionResult?>(null) }
     var isAiComparing by remember { mutableStateOf(false) }
     var aiComparisonError by remember { mutableStateOf<String?>(null) }
+
+    // E16/IT2: invalidación del aprendizaje desde la UI.
+    var learnedMemoryCleared by remember { mutableStateOf(false) }
+
+    // IT3: incertidumbre preservada como rango (referencia del dataset local).
+    var analysisKcalRange by remember { mutableStateOf<Pair<Int, Int>?>(null) }
+
+    // IT3: utensilios configurables (ml por utensilio).
+    var showUtensilDialog by remember { mutableStateOf(false) }
+    var utensilValues by remember {
+        mutableStateOf(
+            SubjectivePortionEngine.UTENSIL_DEFAULTS.mapValues { (_, ml) -> ml.toFloat() },
+        )
+    }
 
     // Modo de análisis: siempre determinístico con API externa opcional
     var showApiKey by remember { mutableStateOf(false) }
@@ -440,6 +455,11 @@ fun FoodLoggerDrawer(
                 val descriptionRetrieval = withContext(Dispatchers.Default) {
                     SemanticPortionRetriever.retrieve(description)
                 }
+                analysisKcalRange = descriptionRetrieval.macroRange
+                    ?.takeIf { it.kcalMin > 0 && it.kcalMax > it.kcalMin }
+                    ?.takeIf { descriptionRetrieval.confidence >= 0.35 }
+                    ?.let { kotlin.math.round(it.kcalMin).toInt() to kotlin.math.round(it.kcalMax).toInt() }
+                    ?.takeIf { it.second - it.first >= 30 }
                 detectedContext = ContextDetector.detect(description)
                 val parsed = if (settings.useApiForDescriptions) {
                     val apiService = DeepSeekV4FlashClient(context)
@@ -540,6 +560,7 @@ fun FoodLoggerDrawer(
                 }
             } catch (e: Exception) {
                 android.util.Log.w("FoodLogger", "Parse failed, usando determinístico", e)
+                analysisKcalRange = null
                 val fallbackParsed = withContext(Dispatchers.Default) {
                     parseMealDescription(
                         description,
@@ -1261,6 +1282,58 @@ fun FoodLoggerDrawer(
                                 error = aiComparisonError,
                             )
                         }
+
+                        // E16/IT2: el usuario puede reiniciar el aprendizaje local
+                        // (porciones y destinos recordados) cuando sienta que
+                        // "recuerda cosas viejas" que ya no quiere.
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            if (learnedMemoryCleared) {
+                                Text(
+                                    "Memoria de aprendizaje borrada",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color.White.copy(alpha = 0.6f),
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                            }
+                            TextButton(onClick = {
+                                nutritionRepo.clearLearnedResolutions()
+                                learnedMemoryCleared = true
+                            }) {
+                                Text(
+                                    "Olvidar lo aprendido",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color.White.copy(alpha = 0.55f),
+                                )
+                            }
+                            TextButton(onClick = {
+                                utensilValues = SubjectivePortionEngine.UTENSIL_DEFAULTS
+                                    .mapValues { (_, ml) -> ml.toFloat() }
+                                showUtensilDialog = true
+                            }) {
+                                Text(
+                                    "Ajustar medidas",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color.White.copy(alpha = 0.55f),
+                                )
+                            }
+                        }
+                        if (showUtensilDialog) {
+                            UtensilSettingsDialog(
+                                values = utensilValues,
+                                onValueChange = { key, ml -> utensilValues = utensilValues + (key to ml) },
+                                onSave = {
+                                    utensilValues.forEach { (key, ml) ->
+                                        nutritionRepo.saveUtensilOverride(key, ml.toDouble())
+                                    }
+                                    showUtensilDialog = false
+                                },
+                                onDismiss = { showUtensilDialog = false },
+                            )
+                        }
                     }
                 }
             }
@@ -1370,6 +1443,15 @@ fun FoodLoggerDrawer(
                             Column {
                                 Text("TOTAL", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold, letterSpacing = 0.1f.sp)
                                 Text("${kotlin.math.round(tagTotals.calories).toInt()} kcal", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
+                                // IT3: incertidumbre como rango — referencia del dataset local.
+                                if (analysisKcalRange != null && !settings.useApiForDescriptions) {
+                                    val (minK, maxK) = analysisKcalRange!!
+                                    Text(
+                                        "referencia ${minK}–${maxK} kcal",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color.White.copy(alpha = 0.6f),
+                                    )
+                                }
                             }
                             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 MacroBadge("P", "${kotlin.math.round(tagTotals.protein).toInt()}g", PROTEIN_COLOR)
@@ -2248,4 +2330,65 @@ private fun AiComparisonPanel(
             }
         }
     }
+}
+
+// ─── IT3: utensilios configurables ───────────────────────────────────────────
+
+private data class UtensilSpec(
+    val key: String,
+    val label: String,
+    val range: ClosedFloatingPointRange<Float>,
+)
+
+private val CONFIGURABLE_UTENSILS = listOf(
+    UtensilSpec("cucharadita", "Cucharadita", 3f..10f),
+    UtensilSpec("cucharada", "Cucharada", 10f..25f),
+    UtensilSpec("cucharon", "Cucharón", 60f..150f),
+    UtensilSpec("taza", "Taza", 150f..400f),
+    UtensilSpec("vaso", "Vaso", 150f..400f),
+    UtensilSpec("plato", "Plato", 150f..400f),
+    UtensilSpec("plato_hondo", "Plato hondo", 250f..600f),
+    UtensilSpec("bol", "Bol", 200f..500f),
+    UtensilSpec("copa", "Copa", 100f..300f),
+)
+
+@Composable
+private fun UtensilSettingsDialog(
+    values: Map<String, Float>,
+    onValueChange: (String, Float) -> Unit,
+    onSave: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    KpknAlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Ajustar medidas") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    "Cuánto consideras que cabe en cada utensilio de tu casa. Se usa al escribir 'una taza', 'un plato', etc.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                CONFIGURABLE_UTENSILS.forEach { spec ->
+                    val current = values[spec.key] ?: spec.range.start
+                    Text(
+                        "${spec.label}: ${current.toInt()} ml",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    Slider(
+                        value = current.coerceIn(spec.range.start, spec.range.endInclusive),
+                        onValueChange = { onValueChange(spec.key, it) },
+                        valueRange = spec.range,
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onSave) { Text("Guardar") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancelar") }
+        },
+    )
 }

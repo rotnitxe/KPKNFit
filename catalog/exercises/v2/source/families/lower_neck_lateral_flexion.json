@@ -19,6 +19,7 @@
             },
             "id": "neck_flexion_lateral_cuello__default",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Flexión Lateral de Cuello» siguiendo el patrón flexión lateral cuello con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -185,6 +187,7 @@
               "setupCues": [
                 "Configura disco y adopta la posición específica de «Flexión Lateral de Cuello» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 15,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,

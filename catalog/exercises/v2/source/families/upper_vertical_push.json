@@ -19,6 +19,7 @@
             },
             "id": "deltoides_push_press__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Push Press» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -198,6 +200,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Push Press» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,

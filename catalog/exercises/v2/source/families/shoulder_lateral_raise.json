@@ -19,6 +19,7 @@
             },
             "id": "seated_lateral_raise__dumbbells",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Eleva los brazos hasta la altura del hombro con control y baja sin golpear."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -198,6 +200,7 @@
               "setupCues": [
                 "Busca una postura estable y los brazos relajados a los costados antes de empezar."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
@@ -220,6 +223,7 @@
             },
             "id": "seated_lateral_raise__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -233,6 +237,7 @@
               "executionCues": [
                 "Eleva los brazos hasta la altura del hombro con control y baja sin golpear."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
@@ -399,6 +404,7 @@
               "setupCues": [
                 "Busca una postura estable y los brazos relajados a los costados antes de empezar."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
@@ -421,6 +427,7 @@
             },
             "id": "seated_lateral_raise__machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -434,6 +441,7 @@
               "executionCues": [
                 "Eleva los brazos hasta la altura del hombro con control y baja sin golpear."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
@@ -600,6 +608,7 @@
               "setupCues": [
                 "Busca una postura estable y los brazos relajados a los costados antes de empezar."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
@@ -622,6 +631,7 @@
             },
             "id": "seated_lateral_raise__kettlebell",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -635,6 +645,7 @@
               "executionCues": [
                 "Eleva los brazos hasta la altura del hombro con control y baja sin golpear."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -801,6 +812,7 @@
               "setupCues": [
                 "Busca una postura estable y los brazos relajados a los costados antes de empezar."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
@@ -850,6 +862,7 @@
             },
             "id": "standing_lateral_raise__dumbbells",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -863,6 +876,7 @@
               "executionCues": [
                 "Eleva los brazos hasta la altura del hombro con control y baja sin golpear."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -1029,6 +1043,7 @@
               "setupCues": [
                 "Busca una postura estable y los brazos relajados a los costados antes de empezar."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
@@ -1051,6 +1066,7 @@
             },
             "id": "standing_lateral_raise__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1064,6 +1080,7 @@
               "executionCues": [
                 "Eleva los brazos hasta la altura del hombro con control y baja sin golpear."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
@@ -1230,6 +1247,7 @@
               "setupCues": [
                 "Busca una postura estable y los brazos relajados a los costados antes de empezar."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
@@ -1252,6 +1270,7 @@
             },
             "id": "standing_lateral_raise__machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1265,6 +1284,7 @@
               "executionCues": [
                 "Eleva los brazos hasta la altura del hombro con control y baja sin golpear."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
@@ -1431,6 +1451,7 @@
               "setupCues": [
                 "Busca una postura estable y los brazos relajados a los costados antes de empezar."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
@@ -1453,6 +1474,7 @@
             },
             "id": "standing_lateral_raise__kettlebell",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1466,6 +1488,7 @@
               "executionCues": [
                 "Eleva los brazos hasta la altura del hombro con control y baja sin golpear."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -1632,6 +1655,7 @@
               "setupCues": [
                 "Busca una postura estable y los brazos relajados a los costados antes de empezar."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
@@ -1681,6 +1705,7 @@
             },
             "id": "lateral_raise_super_rom__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1694,6 +1719,7 @@
               "executionCues": [
                 "Sube el brazo más allá de la altura del hombro con control y vuelve por el mismo camino."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
@@ -1859,6 +1885,7 @@
               "setupCues": [
                 "Elige una carga ligera y prepara el brazo para un rango de recorrido completo."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
@@ -1881,6 +1908,7 @@
             },
             "id": "lateral_raise_super_rom__dumbbells",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1894,6 +1922,7 @@
               "executionCues": [
                 "Sube el brazo más allá de la altura del hombro con control y vuelve por el mismo camino."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -2059,6 +2088,7 @@
               "setupCues": [
                 "Elige una carga ligera y prepara el brazo para un rango de recorrido completo."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
@@ -2081,6 +2111,7 @@
             },
             "id": "lateral_raise_super_rom__machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -2094,6 +2125,7 @@
               "executionCues": [
                 "Sube el brazo más allá de la altura del hombro con control y vuelve por el mismo camino."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
@@ -2259,6 +2291,7 @@
               "setupCues": [
                 "Elige una carga ligera y prepara el brazo para un rango de recorrido completo."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,

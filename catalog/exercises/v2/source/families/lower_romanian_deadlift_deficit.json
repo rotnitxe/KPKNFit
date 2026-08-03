@@ -19,6 +19,7 @@
             },
             "id": "hams_peso_muerto_rumano_sumo_deficit__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Peso Muerto Rumano Sumo en Déficit» siguiendo el patrón bisagra cadera / rdl déficit con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -199,6 +201,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Peso Muerto Rumano Sumo en Déficit» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 1.0,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,

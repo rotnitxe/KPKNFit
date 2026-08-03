@@ -19,6 +19,7 @@
             },
             "id": "decline_chest_fly__dumbbells",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Aperturas Declinadas» siguiendo el patrón abducción horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -195,6 +197,7 @@
               "setupCues": [
                 "Configura mancuernas y adopta la posición específica de «Aperturas Declinadas» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.6,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -217,6 +220,7 @@
             },
             "id": "decline_chest_fly__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -230,6 +234,7 @@
               "executionCues": [
                 "Ejecuta «Aperturas Declinadas» siguiendo el patrón abducción horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -393,6 +398,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Aperturas Declinadas» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.6,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -415,6 +421,7 @@
             },
             "id": "decline_chest_fly__machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -428,6 +435,7 @@
               "executionCues": [
                 "Ejecuta «Aperturas Declinadas» siguiendo el patrón abducción horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -591,6 +599,7 @@
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Aperturas Declinadas» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.6,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -639,6 +648,7 @@
             },
             "id": "flat_chest_fly__dumbbells",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -652,6 +662,7 @@
               "executionCues": [
                 "Ejecuta «Aperturas Planas» siguiendo el patrón abducción horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -815,6 +826,7 @@
               "setupCues": [
                 "Configura mancuernas y adopta la posición específica de «Aperturas Planas» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.6,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -837,6 +849,7 @@
             },
             "id": "flat_chest_fly__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -850,6 +863,7 @@
               "executionCues": [
                 "Ejecuta «Aperturas Planas» siguiendo el patrón abducción horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -1013,6 +1027,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Aperturas Planas» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.6,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -1035,6 +1050,7 @@
             },
             "id": "flat_chest_fly__machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1048,6 +1064,7 @@
               "executionCues": [
                 "Ejecuta «Aperturas Planas» siguiendo el patrón abducción horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -1211,6 +1228,7 @@
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Aperturas Planas» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.6,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -1259,6 +1277,7 @@
             },
             "id": "incline_chest_fly__dumbbells",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1272,6 +1291,7 @@
               "executionCues": [
                 "Ejecuta «Aperturas Inclinadas» siguiendo el patrón abducción horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -1435,6 +1455,7 @@
               "setupCues": [
                 "Configura mancuernas y adopta la posición específica de «Aperturas Inclinadas» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.6,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -1457,6 +1478,7 @@
             },
             "id": "incline_chest_fly__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1470,6 +1492,7 @@
               "executionCues": [
                 "Ejecuta «Aperturas Inclinadas» siguiendo el patrón abducción horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -1633,6 +1656,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Aperturas Inclinadas» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.6,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -1655,6 +1679,7 @@
             },
             "id": "incline_chest_fly__machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1668,6 +1693,7 @@
               "executionCues": [
                 "Ejecuta «Aperturas Inclinadas» siguiendo el patrón abducción horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -1831,6 +1857,7 @@
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Aperturas Inclinadas» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.6,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -1879,6 +1906,7 @@
             },
             "id": "reverse_pec_fly__bilateral__machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1892,6 +1920,7 @@
               "executionCues": [
                 "Lleva los brazos hacia atrás con control y vuelve a la posición inicial sin dejar caer los hombros."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -2066,6 +2095,7 @@
               "setupCues": [
                 "Ajusta el asiento, la altura del mango o el agarre según la estación elegida."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
@@ -2089,6 +2119,7 @@
             },
             "id": "reverse_pec_fly__unilateral__machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -2102,6 +2133,7 @@
               "executionCues": [
                 "Lleva los brazos hacia atrás con control y vuelve a la posición inicial sin dejar caer los hombros."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
@@ -2276,6 +2308,7 @@
               "setupCues": [
                 "Ajusta el asiento, la altura del mango o el agarre según la estación elegida."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
@@ -2299,6 +2332,7 @@
             },
             "id": "reverse_pec_fly__bilateral__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -2312,6 +2346,7 @@
               "executionCues": [
                 "Lleva los brazos hacia atrás con control y vuelve a la posición inicial sin dejar caer los hombros."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -2486,6 +2521,7 @@
               "setupCues": [
                 "Ajusta el asiento, la altura del mango o el agarre según la estación elegida."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
@@ -2509,6 +2545,7 @@
             },
             "id": "reverse_pec_fly__unilateral__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -2522,6 +2559,7 @@
               "executionCues": [
                 "Lleva los brazos hacia atrás con control y vuelve a la posición inicial sin dejar caer los hombros."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
@@ -2696,6 +2734,7 @@
               "setupCues": [
                 "Ajusta el asiento, la altura del mango o el agarre según la estación elegida."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
@@ -2719,6 +2758,7 @@
             },
             "id": "reverse_pec_fly__bilateral__dumbbells",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -2732,6 +2772,7 @@
               "executionCues": [
                 "Lleva los brazos hacia atrás con control y vuelve a la posición inicial sin dejar caer los hombros."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -2906,6 +2947,7 @@
               "setupCues": [
                 "Ajusta el asiento, la altura del mango o el agarre según la estación elegida."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
@@ -2929,6 +2971,7 @@
             },
             "id": "reverse_pec_fly__unilateral__dumbbells",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -2942,6 +2985,7 @@
               "executionCues": [
                 "Lleva los brazos hacia atrás con control y vuelve a la posición inicial sin dejar caer los hombros."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
@@ -3116,6 +3160,7 @@
               "setupCues": [
                 "Ajusta el asiento, la altura del mango o el agarre según la estación elegida."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,

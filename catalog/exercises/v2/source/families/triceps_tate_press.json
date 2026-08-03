@@ -19,6 +19,7 @@
             },
             "id": "tate_press__dumbbells",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Tate Press con Mancuernas» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "FULL",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -187,6 +189,7 @@
               "setupCues": [
                 "Configura mancuerna y adopta la posición específica de «Tate Press con Mancuernas» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
@@ -209,6 +212,7 @@
             },
             "id": "tate_press__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -222,6 +226,7 @@
               "executionCues": [
                 "Ejecuta «Tate Press en Polea» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "FULL",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -377,6 +382,7 @@
               "setupCues": [
                 "Configura polea y adopta la posición específica de «Tate Press en Polea» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,

@@ -19,6 +19,7 @@
             },
             "id": "quads_sentadilla_bulgara_jefferson__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Búlgara Jefferson» siguiendo el patrón dominante de rodilla unilateral asimétrico con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -201,6 +203,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Sentadilla Búlgara Jefferson» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.2,

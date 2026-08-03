@@ -19,6 +19,7 @@
             },
             "id": "pull_up__pronated__wide",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Sube el pecho hacia la barra con control y baja sin soltarte de golpe."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
@@ -214,6 +216,7 @@
               "setupCues": [
                 "Cuelga de la barra con el agarre elegido y los hombros activados."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "biceps",
@@ -241,6 +244,7 @@
             },
             "id": "pull_up__pronated__medium",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -254,6 +258,7 @@
               "executionCues": [
                 "Sube el pecho hacia la barra con control y baja sin soltarte de golpe."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
@@ -427,6 +432,7 @@
               "setupCues": [
                 "Cuelga de la barra con el agarre elegido y los hombros activados."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "biceps",
@@ -454,6 +460,7 @@
             },
             "id": "pull_up__pronated__close",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -467,6 +474,7 @@
               "executionCues": [
                 "Sube el pecho hacia la barra con control y baja sin soltarte de golpe."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
@@ -640,6 +648,7 @@
               "setupCues": [
                 "Cuelga de la barra con el agarre elegido y los hombros activados."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "biceps",
@@ -667,6 +676,7 @@
             },
             "id": "pull_up__supinated__wide",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -680,6 +690,7 @@
               "executionCues": [
                 "Sube el pecho hacia la barra con control y baja sin soltarte de golpe."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
@@ -863,6 +874,7 @@
               "setupCues": [
                 "Cuelga de la barra con el agarre elegido y los hombros activados."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "rhomboids",
@@ -890,6 +902,7 @@
             },
             "id": "pull_up__supinated__medium",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -903,6 +916,7 @@
               "executionCues": [
                 "Sube el pecho hacia la barra con control y baja sin soltarte de golpe."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
@@ -1080,6 +1094,7 @@
               "setupCues": [
                 "Cuelga de la barra con el agarre elegido y los hombros activados."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "rhomboids",
@@ -1106,6 +1121,7 @@
             },
             "id": "pull_up__supinated__close",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1119,6 +1135,7 @@
               "executionCues": [
                 "Sube el pecho hacia la barra con control y baja sin soltarte de golpe."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
@@ -1296,6 +1313,7 @@
               "setupCues": [
                 "Cuelga de la barra con el agarre elegido y los hombros activados."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "rhomboids",
@@ -1322,6 +1340,7 @@
             },
             "id": "pull_up__neutral__wide",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1335,6 +1354,7 @@
               "executionCues": [
                 "Sube el pecho hacia la barra con control y baja sin soltarte de golpe."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
@@ -1514,6 +1534,7 @@
               "setupCues": [
                 "Cuelga de la barra con el agarre elegido y los hombros activados."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "trapezius",
@@ -1542,6 +1563,7 @@
             },
             "id": "pull_up__neutral__medium",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1555,6 +1577,7 @@
               "executionCues": [
                 "Sube el pecho hacia la barra con control y baja sin soltarte de golpe."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
@@ -1728,6 +1751,7 @@
               "setupCues": [
                 "Cuelga de la barra con el agarre elegido y los hombros activados."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "biceps",
@@ -1755,6 +1779,7 @@
             },
             "id": "pull_up__neutral__close",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1768,6 +1793,7 @@
               "executionCues": [
                 "Sube el pecho hacia la barra con control y baja sin soltarte de golpe."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
@@ -1941,6 +1967,7 @@
               "setupCues": [
                 "Cuelga de la barra con el agarre elegido y los hombros activados."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "biceps",

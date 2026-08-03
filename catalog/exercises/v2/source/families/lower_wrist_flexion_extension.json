@@ -19,6 +19,7 @@
             },
             "id": "forearms_enrollamiento_muneca_rodillo__default",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Enrollamiento de Muñeca con Rodillo y Cuerda» siguiendo el patrón flexión/extensión muñeca con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -184,6 +186,7 @@
               "setupCues": [
                 "Configura rodillo de muñeca y adopta la posición específica de «Enrollamiento de Muñeca con Rodillo y Cuerda» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 15,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,

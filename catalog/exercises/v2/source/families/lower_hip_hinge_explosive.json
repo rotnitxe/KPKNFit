@@ -19,6 +19,7 @@
             },
             "id": "hams_swing_kettlebell_dos_manos__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Swing con Kettlebell a Dos Manos» siguiendo el patrón bisagra cadera explosiva con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -198,6 +200,7 @@
               "setupCues": [
                 "Configura kettlebell y adopta la posición específica de «Swing con Kettlebell a Dos Manos» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -240,6 +243,7 @@
             },
             "id": "hams_swing_kettlebell_unilateral__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -253,6 +257,7 @@
               "executionCues": [
                 "Ejecuta «Swing con Kettlebell a Una Mano» siguiendo el patrón bisagra cadera explosiva con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
@@ -419,6 +424,7 @@
               "setupCues": [
                 "Configura kettlebell y adopta la posición específica de «Swing con Kettlebell a Una Mano» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,

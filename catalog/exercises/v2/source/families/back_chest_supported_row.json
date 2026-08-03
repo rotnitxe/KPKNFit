@@ -19,6 +19,7 @@
             },
             "id": "chest_supported_row__dumbbells__wide",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Remo con Pecho Apoyado» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -213,6 +215,7 @@
               "setupCues": [
                 "Configura mancuernas y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "rhomboids",
@@ -239,6 +242,7 @@
             },
             "id": "chest_supported_row__kettlebell__wide",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -252,6 +256,7 @@
               "executionCues": [
                 "Ejecuta «Remo con Pecho Apoyado» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -433,6 +438,7 @@
               "setupCues": [
                 "Configura kettlebell y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "rhomboids",
@@ -459,6 +465,7 @@
             },
             "id": "chest_supported_row__machine__wide",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -472,6 +479,7 @@
               "executionCues": [
                 "Ejecuta «Remo con Pecho Apoyado» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -653,6 +661,7 @@
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 55,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "rhomboids",
@@ -679,6 +688,7 @@
             },
             "id": "chest_supported_row__cable__high__wide",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -692,6 +702,7 @@
               "executionCues": [
                 "Ejecuta «Remo con Pecho Apoyado» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -874,6 +885,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "rhomboids",
@@ -901,6 +913,7 @@
             },
             "id": "chest_supported_row__cable__mid__wide",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -914,6 +927,7 @@
               "executionCues": [
                 "Ejecuta «Remo con Pecho Apoyado» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -1096,6 +1110,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "rhomboids",
@@ -1123,6 +1138,7 @@
             },
             "id": "chest_supported_row__cable__low__wide",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1136,6 +1152,7 @@
               "executionCues": [
                 "Ejecuta «Remo con Pecho Apoyado» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -1318,6 +1335,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "rhomboids",
@@ -1345,6 +1363,7 @@
             },
             "id": "chest_supported_row__dumbbells__medium",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1358,6 +1377,7 @@
               "executionCues": [
                 "Ejecuta «Remo con Pecho Apoyado» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -1540,6 +1560,7 @@
               "setupCues": [
                 "Configura mancuernas y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "deltoid"
@@ -1565,6 +1586,7 @@
             },
             "id": "chest_supported_row__kettlebell__medium",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1578,6 +1600,7 @@
               "executionCues": [
                 "Ejecuta «Remo con Pecho Apoyado» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -1760,6 +1783,7 @@
               "setupCues": [
                 "Configura kettlebell y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "deltoid"
@@ -1785,6 +1809,7 @@
             },
             "id": "chest_supported_row__machine__medium",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1798,6 +1823,7 @@
               "executionCues": [
                 "Ejecuta «Remo con Pecho Apoyado» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -1980,6 +2006,7 @@
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 55,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "deltoid"
@@ -2005,6 +2032,7 @@
             },
             "id": "chest_supported_row__cable__high__medium",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -2018,6 +2046,7 @@
               "executionCues": [
                 "Ejecuta «Remo con Pecho Apoyado» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -2201,6 +2230,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "deltoid"
@@ -2227,6 +2257,7 @@
             },
             "id": "chest_supported_row__cable__mid__medium",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -2240,6 +2271,7 @@
               "executionCues": [
                 "Ejecuta «Remo con Pecho Apoyado» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -2423,6 +2455,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "deltoid"
@@ -2449,6 +2482,7 @@
             },
             "id": "chest_supported_row__cable__low__medium",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -2462,6 +2496,7 @@
               "executionCues": [
                 "Ejecuta «Remo con Pecho Apoyado» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -2645,6 +2680,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "deltoid"
@@ -2671,6 +2707,7 @@
             },
             "id": "chest_supported_row__dumbbells__close",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -2684,6 +2721,7 @@
               "executionCues": [
                 "Ejecuta «Remo con Pecho Apoyado» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -2860,6 +2898,7 @@
               "setupCues": [
                 "Configura mancuernas y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "deltoid"
@@ -2885,6 +2924,7 @@
             },
             "id": "chest_supported_row__kettlebell__close",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -2898,6 +2938,7 @@
               "executionCues": [
                 "Ejecuta «Remo con Pecho Apoyado» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -3074,6 +3115,7 @@
               "setupCues": [
                 "Configura kettlebell y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "deltoid"
@@ -3099,6 +3141,7 @@
             },
             "id": "chest_supported_row__machine__close",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -3112,6 +3155,7 @@
               "executionCues": [
                 "Ejecuta «Remo con Pecho Apoyado» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -3288,6 +3332,7 @@
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 55,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "deltoid"
@@ -3313,6 +3358,7 @@
             },
             "id": "chest_supported_row__cable__high__close",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -3326,6 +3372,7 @@
               "executionCues": [
                 "Ejecuta «Remo con Pecho Apoyado» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -3503,6 +3550,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "deltoid"
@@ -3529,6 +3577,7 @@
             },
             "id": "chest_supported_row__cable__mid__close",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -3542,6 +3591,7 @@
               "executionCues": [
                 "Ejecuta «Remo con Pecho Apoyado» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -3719,6 +3769,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "deltoid"
@@ -3745,6 +3796,7 @@
             },
             "id": "chest_supported_row__cable__low__close",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -3758,6 +3810,7 @@
               "executionCues": [
                 "Ejecuta «Remo con Pecho Apoyado» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -3935,6 +3988,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "deltoid"

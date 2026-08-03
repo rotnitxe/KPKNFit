@@ -19,6 +19,7 @@
             },
             "id": "floor_press__barbell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Floor Press con Barra» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "ALTA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -202,6 +204,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Floor Press con Barra» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 1.0,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.2,
@@ -224,6 +227,7 @@
             },
             "id": "floor_press__dumbbells",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -237,6 +241,7 @@
               "executionCues": [
                 "Ejecuta «Floor Press con Mancuernas» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -405,6 +410,7 @@
               "setupCues": [
                 "Configura mancuerna y adopta la posición específica de «Floor Press con Mancuernas» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.9,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,

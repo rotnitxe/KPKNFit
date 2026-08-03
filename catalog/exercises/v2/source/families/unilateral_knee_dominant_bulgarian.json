@@ -19,6 +19,7 @@
             },
             "id": "bulgarian_split_squat__barbell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
@@ -200,6 +202,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -224,6 +227,7 @@
             },
             "id": "bulgarian_split_squat__smith_machine",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -237,6 +241,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
@@ -405,6 +410,7 @@
               "setupCues": [
                 "Configura la máquina Smith y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 50,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -429,6 +435,7 @@
             },
             "id": "bulgarian_split_squat__machine",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -442,6 +449,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
@@ -610,6 +618,7 @@
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 55,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -634,6 +643,7 @@
             },
             "id": "bulgarian_split_squat__dumbbells",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -647,6 +657,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
@@ -815,6 +826,7 @@
               "setupCues": [
                 "Configura mancuernas y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -839,6 +851,7 @@
             },
             "id": "bulgarian_split_squat__cable",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -852,6 +865,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
@@ -1020,6 +1034,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -1044,6 +1059,7 @@
             },
             "id": "bulgarian_split_squat__kettlebell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -1057,6 +1073,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
@@ -1225,6 +1242,7 @@
               "setupCues": [
                 "Configura kettlebell y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -1275,6 +1293,7 @@
             },
             "id": "bulgarian_zercher__barbell__zercher",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -1288,6 +1307,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Búlgara Zercher» siguiendo el patrón dominante de rodilla unilateral con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -1456,6 +1476,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Sentadilla Búlgara Zercher» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,

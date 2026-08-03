@@ -19,6 +19,7 @@
             },
             "id": "forearms_pinza_de_discos__default",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Pinza de Discos» siguiendo el patrón fuerza agarre pinza con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -184,6 +186,7 @@
               "setupCues": [
                 "Configura disco y adopta la posición específica de «Pinza de Discos» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 15,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,

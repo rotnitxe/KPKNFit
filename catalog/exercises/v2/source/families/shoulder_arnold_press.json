@@ -19,6 +19,7 @@
             },
             "id": "arnold_press__dumbbells",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Press Arnold con Mancuernas» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -196,6 +198,7 @@
               "setupCues": [
                 "Configura mancuerna y adopta la posición específica de «Press Arnold con Mancuernas» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
@@ -218,6 +221,7 @@
             },
             "id": "arnold_press__kettlebell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -231,6 +235,7 @@
               "executionCues": [
                 "Ejecuta «Press Arnold con Kettlebell» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -395,6 +400,7 @@
               "setupCues": [
                 "Configura kettlebell y adopta la posición específica de «Press Arnold con Kettlebell» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
@@ -417,6 +423,7 @@
             },
             "id": "arnold_press__cable",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -430,6 +437,7 @@
               "executionCues": [
                 "Ejecuta «Press Arnold en Polea» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -594,6 +602,7 @@
               "setupCues": [
                 "Configura polea y adopta la posición específica de «Press Arnold en Polea» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,

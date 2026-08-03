@@ -19,6 +19,7 @@
             },
             "id": "glutes_patada_gluteo_lateral__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Abduce la pierna hacia el costado con control y sin rotar el tronco."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
@@ -190,6 +192,7 @@
               "setupCues": [
                 "Coloca la resistencia en el tobillo y mantén el tronco estable con el apoyo de una mano."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -212,6 +215,7 @@
             },
             "id": "glutes_patada_gluteo_lateral__dumbbells",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -225,6 +229,7 @@
               "executionCues": [
                 "Abduce la pierna hacia el costado con control y sin rotar el tronco."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -383,6 +388,7 @@
               "setupCues": [
                 "Coloca la resistencia en el tobillo y mantén el tronco estable con el apoyo de una mano."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -405,6 +411,7 @@
             },
             "id": "glutes_patada_gluteo_lateral__band",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -418,6 +425,7 @@
               "executionCues": [
                 "Abduce la pierna hacia el costado con control y sin rotar el tronco."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "variable_band_resistance",
@@ -576,6 +584,7 @@
               "setupCues": [
                 "Coloca la resistencia en el tobillo y mantén el tronco estable con el apoyo de una mano."
               ],
+              "setupTimeSeconds": 10,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,

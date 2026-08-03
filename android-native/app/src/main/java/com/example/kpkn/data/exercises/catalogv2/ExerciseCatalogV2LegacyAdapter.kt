@@ -94,6 +94,9 @@ internal fun ExerciseDefinitionV2.toLegacyInfo(
         catalogVariantChips = optionAxes.mapNotNull { axis ->
             configuration.selectedOptions[axis]?.let { optionLabel(it) }
         },
+        setupTime = profile.setupTimeSeconds,
+        articulationType = profile.articulationType?.name,
+        fatigueTier = profile.fatigueTier?.name,
     )
 }
 

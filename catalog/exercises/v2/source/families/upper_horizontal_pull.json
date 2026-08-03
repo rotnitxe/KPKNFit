@@ -19,6 +19,7 @@
             },
             "id": "back_band_pull_apart__default",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Band Pull-Apart» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
@@ -191,6 +193,7 @@
               "setupCues": [
                 "Configura banda elástica y adopta la posición específica de «Band Pull-Apart» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 10,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
@@ -233,6 +236,7 @@
             },
             "id": "back_remo_banda__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -246,6 +250,7 @@
               "executionCues": [
                 "Ejecuta «Remo en Banda Elástica» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
@@ -423,6 +428,7 @@
               "setupCues": [
                 "Configura banda elástica y adopta la posición específica de «Remo en Banda Elástica» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
@@ -465,6 +471,7 @@
             },
             "id": "back_remo_gorilla_mancuernas__dumbbells",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "bodyRegion": "UPPER",
@@ -478,6 +485,7 @@
               "executionCues": [
                 "Lleva el peso hacia el tronco con los codos pegados y baja con control."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -650,6 +658,7 @@
               "setupCues": [
                 "Inclina el tronco con la cadera atrás y deja los brazos colgando con el peso."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.0,
@@ -672,6 +681,7 @@
             },
             "id": "back_remo_gorilla_mancuernas__kettlebell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "bodyRegion": "UPPER",
@@ -685,6 +695,7 @@
               "executionCues": [
                 "Lleva el peso hacia el tronco con los codos pegados y baja con control."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -857,6 +868,7 @@
               "setupCues": [
                 "Inclina el tronco con la cadera atrás y deja los brazos colgando con el peso."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.0,
@@ -879,6 +891,7 @@
             },
             "id": "back_remo_gorilla_mancuernas__cable",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "bodyRegion": "UPPER",
@@ -892,6 +905,7 @@
               "executionCues": [
                 "Lleva el peso hacia el tronco con los codos pegados y baja con control."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
@@ -1064,6 +1078,7 @@
               "setupCues": [
                 "Inclina el tronco con la cadera atrás y deja los brazos colgando con el peso."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.0,
@@ -1112,6 +1127,7 @@
             },
             "id": "back_remo_invertido__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1125,6 +1141,7 @@
               "executionCues": [
                 "Ejecuta «Remo Invertido» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
@@ -1302,6 +1319,7 @@
               "setupCues": [
                 "Configura peso corporal y adopta la posición específica de «Remo Invertido» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
@@ -1344,6 +1362,7 @@
             },
             "id": "back_remo_renegado_mancuernas__dumbbells",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1357,6 +1376,7 @@
               "executionCues": [
                 "Lleva un peso hacia el tronco manteniendo la cadera firme y alterna de lado."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -1534,6 +1554,7 @@
               "setupCues": [
                 "Colócate en plancha alta con un peso en cada mano."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "core"
@@ -1558,6 +1579,7 @@
             },
             "id": "back_remo_renegado_mancuernas__kettlebell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1571,6 +1593,7 @@
               "executionCues": [
                 "Lleva un peso hacia el tronco manteniendo la cadera firme y alterna de lado."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -1748,6 +1771,7 @@
               "setupCues": [
                 "Colócate en plancha alta con un peso en cada mano."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "core"
@@ -1798,6 +1822,7 @@
             },
             "id": "deltoides_face_pull__default",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1811,6 +1836,7 @@
               "executionCues": [
                 "Ejecuta «Face Pull» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -1976,6 +2002,7 @@
               "setupCues": [
                 "Configura polea y adopta la posición específica de «Face Pull» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,

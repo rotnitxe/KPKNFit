@@ -19,6 +19,7 @@
             },
             "id": "seal_row__barbell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Remo Seal con Barra Recta» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -215,6 +217,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Remo Seal con Barra Recta» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.0,
@@ -237,6 +240,7 @@
             },
             "id": "seal_row__dumbbells",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -250,6 +254,7 @@
               "executionCues": [
                 "Ejecuta «Remo Seal con Mancuernas» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -433,6 +438,7 @@
               "setupCues": [
                 "Configura mancuerna y adopta la posición específica de «Remo Seal con Mancuernas» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.0,

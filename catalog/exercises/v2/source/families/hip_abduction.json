@@ -19,6 +19,7 @@
             },
             "id": "hip_abduction__seated__machine__bilateral",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Abre y cierra las piernas con recorrido controlado sin despegar la espalda del respaldo."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -200,6 +202,7 @@
               "setupCues": [
                 "Ajusta el asiento y las almohadillas a tu altura antes de iniciar."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -224,6 +227,7 @@
             },
             "id": "hip_abduction__seated__machine__unilateral",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -237,6 +241,7 @@
               "executionCues": [
                 "Abduce una pierna con recorrido controlado, termina la serie completa y cambia de lado."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
@@ -405,6 +410,7 @@
               "setupCues": [
                 "Ajusta el asiento y las almohadillas a tu altura antes de iniciar."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -429,6 +435,7 @@
             },
             "id": "hip_abduction__standing__cable__bilateral",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -442,6 +449,7 @@
               "executionCues": [
                 "Abduce la pierna contra la polea con movimiento controlado en ambos sentidos."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -610,6 +618,7 @@
               "setupCues": [
                 "Coloca el tobilloera en la polea baja y busca un apoyo firme y estable."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -634,6 +643,7 @@
             },
             "id": "hip_abduction__standing__cable__unilateral",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -647,6 +657,7 @@
               "executionCues": [
                 "Abduce una pierna con tensión continua, completa la serie y cambia de lado."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
@@ -815,6 +826,7 @@
               "setupCues": [
                 "Coloca el tobilloera en la polea baja y busca un apoyo firme y estable."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -839,6 +851,7 @@
             },
             "id": "hip_abduction__standing__band__bilateral",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -852,6 +865,7 @@
               "executionCues": [
                 "Abduce las piernas contra la banda con control en el retorno."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
@@ -1020,6 +1034,7 @@
               "setupCues": [
                 "Coloca la banda alrededor de los tobillos y separa los pies al ancho de la cadera."
               ],
+              "setupTimeSeconds": 10,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -1044,6 +1059,7 @@
             },
             "id": "hip_abduction__standing__band__unilateral",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -1057,6 +1073,7 @@
               "executionCues": [
                 "Abduce la pierna contra la banda, completa la serie y cambia de lado."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "variable_band_resistance",
@@ -1225,6 +1242,7 @@
               "setupCues": [
                 "Ancla la banda en un punto fijo y coloca el otro extremo en el tobillo."
               ],
+              "setupTimeSeconds": 10,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,

@@ -19,6 +19,7 @@
             },
             "id": "bench_press__barbell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Press de Banca Plano» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "ALTA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -217,6 +219,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Press de Banca Plano» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 1.2,
               "stabilizerMuscles": [
                 "biceps"
@@ -241,6 +244,7 @@
             },
             "id": "bench_press__dumbbells",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -254,6 +258,7 @@
               "executionCues": [
                 "Ejecuta «Press de Banca Plano» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "ALTA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -439,6 +444,7 @@
               "setupCues": [
                 "Configura mancuernas y adopta la posición específica de «Press de Banca Plano» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 1.2,
               "stabilizerMuscles": [
                 "biceps"
@@ -463,6 +469,7 @@
             },
             "id": "bench_press__smith_machine",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -476,6 +483,7 @@
               "executionCues": [
                 "Ejecuta «Press de Banca Plano» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "ALTA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -661,6 +669,7 @@
               "setupCues": [
                 "Configura la máquina Smith y adopta la posición específica de «Press de Banca Plano» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 50,
               "ssc": 1.2,
               "stabilizerMuscles": [
                 "biceps"
@@ -685,6 +694,7 @@
             },
             "id": "bench_press__machine",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -698,6 +708,7 @@
               "executionCues": [
                 "Ejecuta «Press de Banca Plano» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "ALTA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -877,6 +888,7 @@
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Press de Banca Plano» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 55,
               "ssc": 1.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 7.0,
@@ -899,6 +911,7 @@
             },
             "id": "bench_press__cable",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -912,6 +925,7 @@
               "executionCues": [
                 "Ejecuta «Press de Banca Plano» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "ALTA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -1097,6 +1111,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Press de Banca Plano» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 1.2,
               "stabilizerMuscles": [
                 "core"
@@ -1121,6 +1136,7 @@
             },
             "id": "bench_press__kettlebell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1134,6 +1150,7 @@
               "executionCues": [
                 "Ejecuta «Press de Banca Plano» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "ALTA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -1319,6 +1336,7 @@
               "setupCues": [
                 "Configura kettlebell y adopta la posición específica de «Press de Banca Plano» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 1.2,
               "stabilizerMuscles": [
                 "biceps"
@@ -1377,6 +1395,7 @@
             },
             "id": "decline_bench_press__barbell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1390,6 +1409,7 @@
               "executionCues": [
                 "Ejecuta «Press de Banca Declinado» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "ALTA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -1567,6 +1587,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Press de Banca Declinado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 1.2,
               "stabilizerMuscles": [
                 "biceps"
@@ -1591,6 +1612,7 @@
             },
             "id": "decline_bench_press__dumbbells",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1604,6 +1626,7 @@
               "executionCues": [
                 "Ejecuta «Press de Banca Declinado» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "ALTA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -1781,6 +1804,7 @@
               "setupCues": [
                 "Configura mancuernas y adopta la posición específica de «Press de Banca Declinado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 1.2,
               "stabilizerMuscles": [
                 "biceps"
@@ -1805,6 +1829,7 @@
             },
             "id": "decline_bench_press__smith_machine",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1818,6 +1843,7 @@
               "executionCues": [
                 "Ejecuta «Press de Banca Declinado» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "ALTA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -1995,6 +2021,7 @@
               "setupCues": [
                 "Configura la máquina Smith y adopta la posición específica de «Press de Banca Declinado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 50,
               "ssc": 1.2,
               "stabilizerMuscles": [
                 "biceps"
@@ -2019,6 +2046,7 @@
             },
             "id": "decline_bench_press__machine",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -2032,6 +2060,7 @@
               "executionCues": [
                 "Ejecuta «Press de Banca Declinado» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "ALTA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -2203,6 +2232,7 @@
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Press de Banca Declinado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 55,
               "ssc": 1.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 7.0,
@@ -2225,6 +2255,7 @@
             },
             "id": "decline_bench_press__cable",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -2238,6 +2269,7 @@
               "executionCues": [
                 "Ejecuta «Press de Banca Declinado» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "ALTA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -2415,6 +2447,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Press de Banca Declinado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 1.2,
               "stabilizerMuscles": [
                 "core"
@@ -2439,6 +2472,7 @@
             },
             "id": "decline_bench_press__kettlebell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -2452,6 +2486,7 @@
               "executionCues": [
                 "Ejecuta «Press de Banca Declinado» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "ALTA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -2629,6 +2664,7 @@
               "setupCues": [
                 "Configura kettlebell y adopta la posición específica de «Press de Banca Declinado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 1.2,
               "stabilizerMuscles": [
                 "biceps"
@@ -2679,6 +2715,7 @@
             },
             "id": "incline_bench_press__barbell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -2692,6 +2729,7 @@
               "executionCues": [
                 "Ejecuta «Press de Banca Inclinado» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "ALTA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -2869,6 +2907,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Press de Banca Inclinado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 1.2,
               "stabilizerMuscles": [
                 "biceps"
@@ -2893,6 +2932,7 @@
             },
             "id": "incline_bench_press__dumbbells",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -2906,6 +2946,7 @@
               "executionCues": [
                 "Ejecuta «Press de Banca Inclinado» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "ALTA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -3083,6 +3124,7 @@
               "setupCues": [
                 "Configura mancuernas y adopta la posición específica de «Press de Banca Inclinado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 1.2,
               "stabilizerMuscles": [
                 "biceps"
@@ -3107,6 +3149,7 @@
             },
             "id": "incline_bench_press__smith_machine",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -3120,6 +3163,7 @@
               "executionCues": [
                 "Ejecuta «Press de Banca Inclinado» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "ALTA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -3297,6 +3341,7 @@
               "setupCues": [
                 "Configura la máquina Smith y adopta la posición específica de «Press de Banca Inclinado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 50,
               "ssc": 1.2,
               "stabilizerMuscles": [
                 "biceps"
@@ -3321,6 +3366,7 @@
             },
             "id": "incline_bench_press__machine",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -3334,6 +3380,7 @@
               "executionCues": [
                 "Ejecuta «Press de Banca Inclinado» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "ALTA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -3505,6 +3552,7 @@
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Press de Banca Inclinado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 55,
               "ssc": 1.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 7.0,
@@ -3527,6 +3575,7 @@
             },
             "id": "incline_bench_press__cable",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -3540,6 +3589,7 @@
               "executionCues": [
                 "Ejecuta «Press de Banca Inclinado» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "ALTA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -3717,6 +3767,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Press de Banca Inclinado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 1.2,
               "stabilizerMuscles": [
                 "core"
@@ -3741,6 +3792,7 @@
             },
             "id": "incline_bench_press__kettlebell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -3754,6 +3806,7 @@
               "executionCues": [
                 "Ejecuta «Press de Banca Inclinado» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "ALTA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -3931,6 +3984,7 @@
               "setupCues": [
                 "Configura kettlebell y adopta la posición específica de «Press de Banca Inclinado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 1.2,
               "stabilizerMuscles": [
                 "biceps"

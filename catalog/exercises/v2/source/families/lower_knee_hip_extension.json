@@ -19,6 +19,7 @@
             },
             "id": "glute_ham_raise__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Baja extendiendo el cuerpo con control y vuelve arriba contrayendo isquios y glúteo."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
@@ -201,6 +203,7 @@
               "setupCues": [
                 "Ajusta el banco GHD con las rodillas al borde y los pies fijados."
               ],
+              "setupTimeSeconds": 55,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae"

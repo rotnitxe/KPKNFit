@@ -19,6 +19,7 @@
             },
             "id": "glutes_step_up_gluteo__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Step-Up de Glúteo» siguiendo el patrón dominante cadera unilateral con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -193,6 +195,7 @@
               "setupCues": [
                 "Configura mancuerna y adopta la posición específica de «Step-Up de Glúteo» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -236,6 +239,7 @@
             },
             "id": "glutes_zancada_cruzada__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -249,6 +253,7 @@
               "executionCues": [
                 "Ejecuta «Zancada Cruzada» siguiendo el patrón dominante cadera unilateral con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -410,6 +415,7 @@
               "setupCues": [
                 "Configura mancuerna y adopta la posición específica de «Zancada Cruzada» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,

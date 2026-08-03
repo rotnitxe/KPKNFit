@@ -19,6 +19,7 @@
             },
             "id": "lying_pullover__dumbbells",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -208,6 +210,7 @@
               "setupCues": [
                 "Configura mancuernas y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "core"
@@ -232,6 +235,7 @@
             },
             "id": "lying_pullover__barbell",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -245,6 +249,7 @@
               "executionCues": [
                 "Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -421,6 +426,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "core"
@@ -445,6 +451,7 @@
             },
             "id": "lying_pullover__kettlebell",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -458,6 +465,7 @@
               "executionCues": [
                 "Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -634,6 +642,7 @@
               "setupCues": [
                 "Configura kettlebell y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "core"
@@ -659,6 +668,7 @@
             },
             "id": "lying_pullover__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -672,6 +682,7 @@
               "executionCues": [
                 "Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -848,6 +859,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "core"
@@ -873,6 +885,7 @@
             },
             "id": "lying_pullover__machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -886,6 +899,7 @@
               "executionCues": [
                 "Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -1062,6 +1076,7 @@
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "core"
@@ -1114,6 +1129,7 @@
             },
             "id": "pullover__bilateral__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1127,6 +1143,7 @@
               "executionCues": [
                 "Ejecuta «Pull Over» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -1303,6 +1320,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Pull Over» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "core"
@@ -1329,6 +1347,7 @@
             },
             "id": "pullover__unilateral__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1342,6 +1361,7 @@
               "executionCues": [
                 "Ejecuta «Pull Over» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
@@ -1518,6 +1538,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Pull Over» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "core"
@@ -1544,6 +1565,7 @@
             },
             "id": "pullover__bilateral__machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1557,6 +1579,7 @@
               "executionCues": [
                 "Ejecuta «Pull Over» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -1733,6 +1756,7 @@
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Pull Over» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "core"
@@ -1759,6 +1783,7 @@
             },
             "id": "pullover__unilateral__machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1772,6 +1797,7 @@
               "executionCues": [
                 "Ejecuta «Pull Over» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
@@ -1948,6 +1974,7 @@
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Pull Over» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "core"

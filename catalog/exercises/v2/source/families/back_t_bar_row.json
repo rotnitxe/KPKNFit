@@ -19,6 +19,7 @@
             },
             "id": "t_bar_row__machine__wide",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Remo en Barra T» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -213,6 +215,7 @@
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Remo en Barra T» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 55,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "rhomboids",
@@ -239,6 +242,7 @@
             },
             "id": "t_bar_row__t_bar__wide",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -252,6 +256,7 @@
               "executionCues": [
                 "Ejecuta «Remo en Barra T» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -433,6 +438,7 @@
               "setupCues": [
                 "Configura la barra T y adopta la posición específica de «Remo en Barra T» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "rhomboids",
@@ -459,6 +465,7 @@
             },
             "id": "t_bar_row__machine__medium",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -472,6 +479,7 @@
               "executionCues": [
                 "Ejecuta «Remo en Barra T» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -654,6 +662,7 @@
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Remo en Barra T» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 55,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "deltoid"
@@ -679,6 +688,7 @@
             },
             "id": "t_bar_row__t_bar__medium",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -692,6 +702,7 @@
               "executionCues": [
                 "Ejecuta «Remo en Barra T» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -874,6 +885,7 @@
               "setupCues": [
                 "Configura la barra T y adopta la posición específica de «Remo en Barra T» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "deltoid"
@@ -899,6 +911,7 @@
             },
             "id": "t_bar_row__machine__close",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -912,6 +925,7 @@
               "executionCues": [
                 "Ejecuta «Remo en Barra T» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -1088,6 +1102,7 @@
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Remo en Barra T» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 55,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "deltoid"
@@ -1113,6 +1128,7 @@
             },
             "id": "t_bar_row__t_bar__close",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1126,6 +1142,7 @@
               "executionCues": [
                 "Ejecuta «Remo en Barra T» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -1302,6 +1319,7 @@
               "setupCues": [
                 "Configura la barra T y adopta la posición específica de «Remo en Barra T» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "deltoid"

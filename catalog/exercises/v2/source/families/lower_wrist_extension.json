@@ -19,6 +19,7 @@
             },
             "id": "forearms_curl_muneca_inverso_sentado__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Extiende la muñeca hacia arriba y baja con control."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
@@ -190,6 +192,7 @@
               "setupCues": [
                 "Apoya el antebrazo sobre el banco con la muñeca fuera del borde."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
@@ -212,6 +215,7 @@
             },
             "id": "forearms_curl_muneca_inverso_sentado__dumbbells",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -225,6 +229,7 @@
               "executionCues": [
                 "Extiende la muñeca hacia arriba y baja con control."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -383,6 +388,7 @@
               "setupCues": [
                 "Apoya el antebrazo sobre el banco con la muñeca fuera del borde."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
@@ -405,6 +411,7 @@
             },
             "id": "forearms_curl_muneca_inverso_sentado__barbell",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -418,6 +425,7 @@
               "executionCues": [
                 "Extiende la muñeca hacia arriba y baja con control."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -576,6 +584,7 @@
               "setupCues": [
                 "Apoya el antebrazo sobre el banco con la muñeca fuera del borde."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
@@ -598,6 +607,7 @@
             },
             "id": "forearms_curl_muneca_inverso_sentado__ez_bar",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -611,6 +621,7 @@
               "executionCues": [
                 "Extiende la muñeca hacia arriba y baja con control."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -769,6 +780,7 @@
               "setupCues": [
                 "Apoya el antebrazo sobre el banco con la muñeca fuera del borde."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,

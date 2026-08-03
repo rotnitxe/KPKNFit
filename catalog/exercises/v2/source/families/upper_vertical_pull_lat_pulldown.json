@@ -19,6 +19,7 @@
             },
             "id": "lat_pulldown__bilateral__cable",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Jalón al Pecho» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -215,6 +217,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Jalón al Pecho» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae"
@@ -240,6 +243,7 @@
             },
             "id": "lat_pulldown__unilateral__cable",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -253,6 +257,7 @@
               "executionCues": [
                 "Ejecuta «Jalón al Pecho» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
@@ -436,6 +441,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Jalón al Pecho» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae"
@@ -461,6 +467,7 @@
             },
             "id": "lat_pulldown__bilateral__machine",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -474,6 +481,7 @@
               "executionCues": [
                 "Ejecuta «Jalón al Pecho» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -657,6 +665,7 @@
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Jalón al Pecho» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 55,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae"
@@ -682,6 +691,7 @@
             },
             "id": "lat_pulldown__unilateral__machine",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -695,6 +705,7 @@
               "executionCues": [
                 "Ejecuta «Jalón al Pecho» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
@@ -878,6 +889,7 @@
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Jalón al Pecho» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 55,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae"
@@ -903,6 +915,7 @@
             },
             "id": "lat_pulldown__bilateral__band",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -916,6 +929,7 @@
               "executionCues": [
                 "Ejecuta «Jalón al Pecho» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
@@ -1099,6 +1113,7 @@
               "setupCues": [
                 "Configura la banda y adopta la posición específica de «Jalón al Pecho» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae"
@@ -1124,6 +1139,7 @@
             },
             "id": "lat_pulldown__unilateral__band",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1137,6 +1153,7 @@
               "executionCues": [
                 "Ejecuta «Jalón al Pecho» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "variable_band_resistance",
@@ -1320,6 +1337,7 @@
               "setupCues": [
                 "Configura la banda y adopta la posición específica de «Jalón al Pecho» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae"

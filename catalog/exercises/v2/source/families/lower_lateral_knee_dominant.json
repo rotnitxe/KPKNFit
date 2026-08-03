@@ -19,6 +19,7 @@
             },
             "id": "quads_sentadilla_cosaca__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Cosaca» siguiendo el patrón dominante de rodilla lateral con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
@@ -193,6 +195,7 @@
               "setupCues": [
                 "Configura peso corporal y adopta la posición específica de «Sentadilla Cosaca» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,

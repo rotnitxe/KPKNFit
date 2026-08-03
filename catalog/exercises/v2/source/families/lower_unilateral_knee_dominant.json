@@ -19,6 +19,7 @@
             },
             "id": "quads_sentadilla_bulgara_somersault__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Búlgara Somersault» siguiendo el patrón dominante de rodilla unilateral con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -195,6 +197,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Sentadilla Búlgara Somersault» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.2,
@@ -238,6 +241,7 @@
             },
             "id": "quads_sentadilla_pistola__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -251,6 +255,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Pistola» siguiendo el patrón dominante de rodilla unilateral con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
@@ -420,6 +425,7 @@
               "setupCues": [
                 "Configura peso corporal y adopta la posición específica de «Sentadilla Pistola» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.2,
@@ -463,6 +469,7 @@
             },
             "id": "quads_sentadilla_pistola_asistida_trx__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -476,6 +483,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Pistola Asistida en TRX» siguiendo el patrón dominante de rodilla unilateral con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "suspension",
@@ -638,6 +646,7 @@
               "setupCues": [
                 "Configura trx y adopta la posición específica de «Sentadilla Pistola Asistida en TRX» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.2,
@@ -680,6 +689,7 @@
             },
             "id": "quads_step_up_cajon_frontal__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -693,6 +703,7 @@
               "executionCues": [
                 "Ejecuta «Step-Up a Cajón Frontal» siguiendo el patrón dominante de rodilla unilateral con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -854,6 +865,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Step-Up a Cajón Frontal» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -897,6 +909,7 @@
             },
             "id": "quads_step_up_cajon_zercher__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -910,6 +923,7 @@
               "executionCues": [
                 "Ejecuta «Step-Up a Cajón Zercher» siguiendo el patrón dominante de rodilla unilateral con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -1071,6 +1085,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Step-Up a Cajón Zercher» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -1114,6 +1129,7 @@
             },
             "id": "quads_zancada_caminando_frontal_barra_recta__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -1127,6 +1143,7 @@
               "executionCues": [
                 "Ejecuta «Zancada Caminando Frontal con Barra Recta» siguiendo el patrón dominante de rodilla unilateral con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -1287,6 +1304,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Zancada Caminando Frontal con Barra Recta» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -1329,6 +1347,7 @@
             },
             "id": "quads_zancada_caminando_zercher_barra_recta__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -1342,6 +1361,7 @@
               "executionCues": [
                 "Ejecuta «Zancada Caminando Zercher con Barra Recta» siguiendo el patrón dominante de rodilla unilateral con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -1502,6 +1522,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Zancada Caminando Zercher con Barra Recta» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -1544,6 +1565,7 @@
             },
             "id": "quads_zancada_frontal_zercher__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -1557,6 +1579,7 @@
               "executionCues": [
                 "Ejecuta «Zancada Frontal Zercher» siguiendo el patrón dominante de rodilla unilateral con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -1718,6 +1741,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Zancada Frontal Zercher» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -1761,6 +1785,7 @@
             },
             "id": "quads_zancada_inversa_frontal__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -1774,6 +1799,7 @@
               "executionCues": [
                 "Ejecuta «Zancada Inversa Frontal» siguiendo el patrón dominante de rodilla unilateral con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -1935,6 +1961,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Zancada Inversa Frontal» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -1978,6 +2005,7 @@
             },
             "id": "quads_zancada_inversa_maquina_hack__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -1991,6 +2019,7 @@
               "executionCues": [
                 "Ejecuta «Zancada Inversa en Máquina Hack» siguiendo el patrón dominante de rodilla unilateral con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -2151,6 +2180,7 @@
               "setupCues": [
                 "Configura máquina y adopta la posición específica de «Zancada Inversa en Máquina Hack» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 55,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -2193,6 +2223,7 @@
             },
             "id": "quads_zancada_inversa_maquina_v_squat__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -2206,6 +2237,7 @@
               "executionCues": [
                 "Ejecuta «Zancada Inversa en Máquina V-Squat» siguiendo el patrón dominante de rodilla unilateral con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -2366,6 +2398,7 @@
               "setupCues": [
                 "Configura máquina y adopta la posición específica de «Zancada Inversa en Máquina V-Squat» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 55,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -2408,6 +2441,7 @@
             },
             "id": "quads_zancada_inversa_zercher__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -2421,6 +2455,7 @@
               "executionCues": [
                 "Ejecuta «Zancada Inversa Zercher» siguiendo el patrón dominante de rodilla unilateral con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -2582,6 +2617,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Zancada Inversa Zercher» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,

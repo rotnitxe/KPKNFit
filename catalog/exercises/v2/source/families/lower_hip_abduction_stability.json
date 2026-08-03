@@ -19,6 +19,7 @@
             },
             "id": "glutes_monster_walk_banda__default",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Caminata del Monstruo (Monster Walk) con Banda» siguiendo el patrón abducción / estabilización con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
@@ -184,6 +186,7 @@
               "setupCues": [
                 "Configura banda elástica y adopta la posición específica de «Caminata del Monstruo (Monster Walk) con Banda» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 10,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,

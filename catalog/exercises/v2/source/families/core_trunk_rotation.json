@@ -19,6 +19,7 @@
             },
             "id": "core_lenador_polea__default",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "CORE",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Lenador en Polea» siguiendo el patrón rotación tronco con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
@@ -185,6 +187,7 @@
               "setupCues": [
                 "Configura polea y adopta la posición específica de «Lenador en Polea» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,

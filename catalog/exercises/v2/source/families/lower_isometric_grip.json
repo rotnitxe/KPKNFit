@@ -19,6 +19,7 @@
             },
             "id": "forearms_suspension_isometrica_barra_fija__default",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Suspensión Isométrica en Barra Fija (Dead Hang)» siguiendo el patrón fuerza agarre isométrica con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
@@ -192,6 +194,7 @@
               "setupCues": [
                 "Configura peso corporal y adopta la posición específica de «Suspensión Isométrica en Barra Fija (Dead Hang)» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 10,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
@@ -234,6 +237,7 @@
             },
             "id": "forearms_paseo_del_granjero__dumbbells",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "bodyRegion": "LOWER",
@@ -247,6 +251,7 @@
               "executionCues": [
                 "Camina con pasos cortos y estables manteniendo los hombros atrás."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -419,6 +424,7 @@
               "setupCues": [
                 "Toma la carga con el agarre elegido y erguido el tronco."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.2,
               "stabilizerMuscles": [
                 "core"
@@ -443,6 +449,7 @@
             },
             "id": "forearms_paseo_del_granjero__kettlebell",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "bodyRegion": "LOWER",
@@ -456,6 +463,7 @@
               "executionCues": [
                 "Camina con pasos cortos y estables manteniendo los hombros atrás."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -628,6 +636,7 @@
               "setupCues": [
                 "Toma la carga con el agarre elegido y erguido el tronco."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.2,
               "stabilizerMuscles": [
                 "core"
@@ -652,6 +661,7 @@
             },
             "id": "forearms_paseo_del_granjero__plate",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "bodyRegion": "LOWER",
@@ -665,6 +675,7 @@
               "executionCues": [
                 "Camina con pasos cortos y estables manteniendo los hombros atrás."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -837,6 +848,7 @@
               "setupCues": [
                 "Toma la carga con el agarre elegido y erguido el tronco."
               ],
+              "setupTimeSeconds": 15,
               "ssc": 0.2,
               "stabilizerMuscles": [
                 "core"
@@ -861,6 +873,7 @@
             },
             "id": "forearms_paseo_del_granjero__hex_bar",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "bodyRegion": "LOWER",
@@ -874,6 +887,7 @@
               "executionCues": [
                 "Camina con pasos cortos y estables manteniendo los hombros atrás."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -1046,6 +1060,7 @@
               "setupCues": [
                 "Toma la carga con el agarre elegido y erguido el tronco."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.2,
               "stabilizerMuscles": [
                 "core"

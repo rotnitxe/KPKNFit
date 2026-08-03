@@ -19,6 +19,7 @@
             },
             "id": "jm_press__barbell",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "FULL",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -197,6 +199,7 @@
               "setupCues": [
                 "Coloca la barra sobre el pecho con los codos apuntando hacia delante."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
@@ -219,6 +222,7 @@
             },
             "id": "jm_press__ez_bar",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "bodyRegion": "UPPER",
@@ -232,6 +236,7 @@
               "executionCues": [
                 "Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "FULL",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -397,6 +402,7 @@
               "setupCues": [
                 "Coloca la barra sobre el pecho con los codos apuntando hacia delante."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
@@ -419,6 +425,7 @@
             },
             "id": "jm_press__dumbbells",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "bodyRegion": "UPPER",
@@ -432,6 +439,7 @@
               "executionCues": [
                 "Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "FULL",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -597,6 +605,7 @@
               "setupCues": [
                 "Coloca la barra sobre el pecho con los codos apuntando hacia delante."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
@@ -619,6 +628,7 @@
             },
             "id": "jm_press__smith_machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "bodyRegion": "UPPER",
@@ -632,6 +642,7 @@
               "executionCues": [
                 "Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "FULL",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
@@ -797,6 +808,7 @@
               "setupCues": [
                 "Coloca la barra sobre el pecho con los codos apuntando hacia delante."
               ],
+              "setupTimeSeconds": 40,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
@@ -819,6 +831,7 @@
             },
             "id": "jm_press__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "bodyRegion": "UPPER",
@@ -832,6 +845,7 @@
               "executionCues": [
                 "Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "FULL",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
@@ -997,6 +1011,7 @@
               "setupCues": [
                 "Coloca la barra sobre el pecho con los codos apuntando hacia delante."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,

@@ -19,6 +19,7 @@
             },
             "id": "deltoides_press_landmine_unilateral__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Press Landmine Unilateral» siguiendo el patrón empuje diagonal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
@@ -191,6 +193,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Press Landmine Unilateral» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,

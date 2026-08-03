@@ -19,6 +19,7 @@
             },
             "id": "sissy_squat__barbell",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Inclina el tronco hacia atrás flexionando las rodillas y vuelve a extender."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -193,6 +195,7 @@
               "setupCues": [
                 "Asegura los pies bajo el soporte y prepara la carga según la estación elegida."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.2,
@@ -215,6 +218,7 @@
             },
             "id": "sissy_squat__machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "bodyRegion": "LOWER",
@@ -228,6 +232,7 @@
               "executionCues": [
                 "Inclina el tronco hacia atrás flexionando las rodillas y vuelve a extender."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
@@ -389,6 +394,7 @@
               "setupCues": [
                 "Asegura los pies bajo el soporte y prepara la carga según la estación elegida."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.2,
@@ -411,6 +417,7 @@
             },
             "id": "sissy_squat__smith_machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "bodyRegion": "LOWER",
@@ -424,6 +431,7 @@
               "executionCues": [
                 "Inclina el tronco hacia atrás flexionando las rodillas y vuelve a extender."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
@@ -585,6 +593,7 @@
               "setupCues": [
                 "Asegura los pies bajo el soporte y prepara la carga según la estación elegida."
               ],
+              "setupTimeSeconds": 40,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.2,
@@ -607,6 +616,7 @@
             },
             "id": "sissy_squat__dumbbells",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "bodyRegion": "LOWER",
@@ -620,6 +630,7 @@
               "executionCues": [
                 "Inclina el tronco hacia atrás flexionando las rodillas y vuelve a extender."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -781,6 +792,7 @@
               "setupCues": [
                 "Asegura los pies bajo el soporte y prepara la carga según la estación elegida."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.2,
@@ -803,6 +815,7 @@
             },
             "id": "sissy_squat__plate",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "bodyRegion": "LOWER",
@@ -816,6 +829,7 @@
               "executionCues": [
                 "Inclina el tronco hacia atrás flexionando las rodillas y vuelve a extender."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -977,6 +991,7 @@
               "setupCues": [
                 "Asegura los pies bajo el soporte y prepara la carga según la estación elegida."
               ],
+              "setupTimeSeconds": 15,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.2,

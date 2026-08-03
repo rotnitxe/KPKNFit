@@ -12,6 +12,7 @@ import com.example.kpkn.domain.nutrition.FoodIdentity
 import com.example.kpkn.domain.nutrition.FoodTemplateMatcher
 import com.example.kpkn.domain.nutrition.SemanticPortionRetriever
 import com.example.kpkn.domain.nutrition.SmartFoodResolver
+import com.example.kpkn.domain.nutrition.SubjectivePortionEngine
 import com.example.kpkn.services.nutrition.NutritionNotificationManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -48,6 +49,29 @@ class NutritionRepository private constructor(
     private val repositoryJob = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.IO + repositoryJob)
     private val foodPrefs by lazy { appContext.getSharedPreferences("nutrition_food_catalog", Context.MODE_PRIVATE) }
+
+    // ─── IT3: utensilios configurables (ml por utensilio) ────────────────────
+
+    private val utensilPrefs by lazy { appContext.getSharedPreferences("nutrition_utensils", Context.MODE_PRIVATE) }
+
+    /** Aplica los overrides persistidos al motor de porciones (una vez al iniciar). */
+    fun loadUtensilOverrides() {
+        val overrides = utensilPrefs.all
+            .filterKeys { it.startsWith("ml_") }
+            .mapNotNull { (key, value) ->
+                val name = key.removePrefix("ml_")
+                val ml = (value as? Number)?.toDouble()
+                if (ml != null && ml > 0) name to ml else null
+            }
+            .toMap()
+        SubjectivePortionEngine.applyUtensilOverrides(overrides)
+    }
+
+    /** Guarda el volumen de un utensilio y lo aplica de inmediato. */
+    fun saveUtensilOverride(name: String, ml: Double) {
+        utensilPrefs.edit().putFloat("ml_$name", ml.toFloat()).apply()
+        SubjectivePortionEngine.applyUtensilOverrides(SubjectivePortionEngine.currentUtensilOverrides() + (name to ml))
+    }
 
     @Serializable
     private data class FoodQueryLearningEntry(
@@ -122,6 +146,8 @@ class NutritionRepository private constructor(
             val filtered = current.filterNot { it.id == normalized.id }
             filtered + normalized
         }
+        // E16/IT2: el resolver debe ver los alimentos del usuario.
+        foodIndex.addStaticFood(normalized)
         scope.launch { db.nutritionDao().upsertCustomFood(normalized.toEntity()) }
     }
 
@@ -143,6 +169,8 @@ class NutritionRepository private constructor(
         }
         if (alreadyKnown) return
         _foodDatabase.update { it + normalizedFood }
+        // E16/IT2: los alimentos inferidos también entran al índice del resolver.
+        foodIndex.addStaticFood(normalizedFood)
         scope.launch { db.nutritionDao().upsertCustomFood(normalizedFood.toEntity()) }
     }
 
@@ -431,6 +459,11 @@ class NutritionRepository private constructor(
         ensureDatasetKnowledge()
     }
 
+    /** IT3: aplica los utensilios configurados al motor antes de cada análisis. */
+    fun applyConfiguredUtensils() {
+        loadUtensilOverrides()
+    }
+
     /** D7: estado del dataset de conocimiento (diagnóstico / aviso no-silencioso). */
     fun datasetStatus(): SemanticPortionRetriever.DatasetStatus = SemanticPortionRetriever.status()
 
@@ -471,6 +504,11 @@ class NutritionRepository private constructor(
         cookingMethod: String?,
     ) {
         smartResolver.recordLearned(query, brandHint, foodId, portionGrams, cookingMethod)
+    }
+
+    /** E16/IT2: invalidación del aprendizaje desde la UI. */
+    fun clearLearnedResolutions() {
+        smartResolver.clearLearned()
     }
 
     /**

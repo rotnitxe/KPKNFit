@@ -19,6 +19,7 @@
             },
             "id": "back_jefferson_curl__barbell",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Redondea la columna vértebra a vértebra y vuelve a subir con control."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -205,6 +207,7 @@
               "setupCues": [
                 "Coloca la carga ligera al frente y los pies separados al ancho de la cadera."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "core"
@@ -229,6 +232,7 @@
             },
             "id": "back_jefferson_curl__dumbbells",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "bodyRegion": "LOWER",
@@ -242,6 +246,7 @@
               "executionCues": [
                 "Redondea la columna vértebra a vértebra y vuelve a subir con control."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -415,6 +420,7 @@
               "setupCues": [
                 "Coloca la carga ligera al frente y los pies separados al ancho de la cadera."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "core"
@@ -439,6 +445,7 @@
             },
             "id": "back_jefferson_curl__smith_machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "bodyRegion": "LOWER",
@@ -452,6 +459,7 @@
               "executionCues": [
                 "Redondea la columna vértebra a vértebra y vuelve a subir con control."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
@@ -625,6 +633,7 @@
               "setupCues": [
                 "Coloca la carga ligera al frente y los pies separados al ancho de la cadera."
               ],
+              "setupTimeSeconds": 40,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "core"
@@ -649,6 +658,7 @@
             },
             "id": "back_jefferson_curl__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "bodyRegion": "LOWER",
@@ -662,6 +672,7 @@
               "executionCues": [
                 "Redondea la columna vértebra a vértebra y vuelve a subir con control."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
@@ -835,6 +846,7 @@
               "setupCues": [
                 "Coloca la carga ligera al frente y los pies separados al ancho de la cadera."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "core"

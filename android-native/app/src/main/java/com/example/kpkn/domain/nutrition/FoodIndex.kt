@@ -110,6 +110,13 @@ class FoodIndex {
 
     fun getFood(foodId: String): IndexedFood? = foods[foodId]
 
+    /** E16/IT2: indexa un alimento custom/estático añadido en runtime sin
+     *  reconstruir el índice (idempotente por foodId). El resolver debe ver
+     *  los alimentos del usuario, no solo el buscador. */
+    fun addStaticFood(food: FoodItem) {
+        addFood(indexStaticFood(food))
+    }
+
     fun getAllFoods(): Collection<IndexedFood> = foods.values
 
     /** Exact phrase lookup used to give curated names priority over fuzzy rows. */

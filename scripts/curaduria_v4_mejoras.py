@@ -474,9 +474,81 @@ def p4_fix_curl_implements() -> None:
     print("p4 curls OK")
 
 
+# ---------------------------------------------------------------------------
+# P5 — Metadata interna por configuración: articulationType, setupTimeSeconds,
+# fatigueTier. Alimenta reglas del editor (multiarticulares/aislados) y el
+# tiempo estimado de sesión.
+# ---------------------------------------------------------------------------
+MULTIARTICULAR_PATTERNS = {
+    "deadlift", "hip_hinge", "hip_hinge_deficit", "hip_hinge_explosive",
+    "hip_hinge_lengthened", "romanian_deadlift", "romanian_deadlift_deficit",
+    "knee_dominant", "knee_dominant_asymmetric", "knee_dominant_lengthened",
+    "knee_hip_dominant", "knee_hip_extension", "knee_hip_flexion",
+    "lateral_knee_dominant", "unilateral_knee_dominant",
+    "unilateral_knee_dominant_asymmetric", "unilateral_hip_dominant",
+    "horizontal_pull", "horizontal_push", "vertical_pull",
+    "vertical_pull_abduction", "vertical_push", "diagonal_push",
+    "biarticular_lengthened", "eccentric_knee_flexion",
+}
+
+# Excepciones puntuales por definición (criterio biomecánico editorial).
+ARTICULATION_OVERRIDES = {
+    # Aperturas: abducción/aducción horizontal de hombro, una sola articulación.
+    "flat_chest_fly": "AISLADO",
+    "incline_chest_fly": "AISLADO",
+    "decline_chest_fly": "AISLADO",
+    # Face Pull y band pull-apart: deltoides posterior/rotadores, monoarticular.
+    "deltoides_face_pull": "AISLADO",
+    "back_band_pull_apart": "AISLADO",
+    # Pullovers: extensión de hombro, monoarticular (el codo apenas flexiona).
+    "pullover": "AISLADO",
+    "lying_pullover": "AISLADO",
+    "sissy_squat": "AISLADO",          # solo rodilla
+    "quads_sentadilla_cajon": "MULTIARTICULAR",
+    "quads_extension_cuadriceps": "AISLADO",
+    "quads_extension_cuadriceps_pie_polea": "AISLADO",
+    "lying_leg_curl": "AISLADO",
+    "seated_leg_curl": "AISLADO",
+    "standing_leg_curl": "AISLADO",
+    "curl_isquios_con_balon": "AISLADO",
+    "curl_isquios_con_sliders": "AISLADO",
+    "calf_raise": "AISLADO",
+    "calves_tibial_anterior": "AISLADO",
+}
+
+SETUP_SECONDS_BY_EQUIPMENT = {
+    "machine": 45, "smith_machine": 40, "barbell": 35, "hex_bar": 35,
+    "t_bar": 35, "safety_bar": 40, "ez_bar": 30, "h_bar": 25, "cable": 25,
+    "dumbbells": 20, "kettlebell": 20, "plate": 15, "trx": 15, "band": 10,
+    "bodyweight": 10, "sliders": 10, "ghd": 45, "ab_wheel": 10,
+    "wrist_roller": 15,
+}
+
+
+def p5_metadata() -> None:
+    for path in sorted(FAMILIES.glob("*.json")):
+        payload = load(path.name)
+        for definition in fam_of(payload)["definitions"]:
+            if definition["id"] in ARTICULATION_OVERRIDES:
+                articulation = ARTICULATION_OVERRIDES[definition["id"]]
+            else:
+                pattern = definition["configurations"][0]["profile"]["movementPatternId"]
+                articulation = "MULTIARTICULAR" if pattern in MULTIARTICULAR_PATTERNS else "AISLADO"
+            for cfg in definition["configurations"]:
+                p = cfg["profile"]
+                p["articulationType"] = articulation
+                base = SETUP_SECONDS_BY_EQUIPMENT.get(p["equipmentId"], 25)
+                p["setupTimeSeconds"] = base + (10 if articulation == "MULTIARTICULAR" else 0)
+                efc = p["efc"]
+                p["fatigueTier"] = "ALTA" if efc >= 3.5 else ("MEDIA" if efc >= 2.8 else "BAJA")
+        save(path.name, payload)
+    print("p5 metadata OK")
+
+
 if __name__ == "__main__":
     p1_new_exercises()
     p2_adaptive_muscles()
     p3_descriptions()
     p4_fix_curl_implements()
+    p5_metadata()
     print("curaduria v4 OK")

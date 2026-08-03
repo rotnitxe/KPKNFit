@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.nutrition
 
+import com.example.kpkn.data.models.FoodItem
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -49,5 +50,54 @@ class FoodIndexTest {
     fun `generateTrigrams for short token`() {
         val trigrams = FoodIndex.generateTrigrams("ab")
         assertEquals(setOf("ab"), trigrams)
+    }
+
+    // ─── E16/IT2: custom foods indexados en runtime ─────────────────────────
+
+    private fun customFood() = FoodItem(
+        id = "custom1",
+        name = "Almuerzo de Mamá",
+        brand = null,
+        servingSize = 150.0,
+        unit = "g",
+        calories = 300.0,
+        protein = 15.0,
+        carbs = 30.0,
+        fats = 12.0,
+        searchAliases = listOf("almuerzo de mama", "almuerzo de la mama"),
+    )
+
+    @Test
+    fun `addStaticFood indexa un custom food y lo encuentra por alias`() {
+        val index = FoodIndex()
+        index.build(globalFoods = emptyList(), staticFoods = emptyList(), staticAliases = emptyMap())
+        index.addStaticFood(customFood())
+
+        assertEquals(1, index.size())
+        val exact = index.exactMatches("almuerzo de la mama")
+        assertEquals("el custom food se encuentra por alias normalizado", "custom1", exact.first().foodId)
+        assertTrue("búsqueda por tokens también lo encuentra", index.search("almuerzo").contains("custom1"))
+    }
+
+    @Test
+    fun `addStaticFood es idempotente y reemplaza por id`() {
+        val index = FoodIndex()
+        index.build(globalFoods = emptyList(), staticFoods = emptyList(), staticAliases = emptyMap())
+        index.addStaticFood(customFood())
+        index.addStaticFood(customFood())
+        assertEquals("mismo id no duplica", 1, index.size())
+    }
+
+    @Test
+    fun `addStaticFood no rompe alimentos ya indexados`() {
+        val base = FoodItem(
+            id = "gen001", name = "Manzana", brand = "Genérico", servingSize = 100.0, unit = "g",
+            calories = 52.0, protein = 0.3, carbs = 14.0, fats = 0.2,
+        )
+        val index = FoodIndex()
+        index.build(globalFoods = emptyList(), staticFoods = listOf(base), staticAliases = emptyMap())
+        index.addStaticFood(customFood())
+        assertTrue(index.search("manzana").contains("gen001"))
+        assertTrue(index.search("almuerzo").contains("custom1"))
     }
 }

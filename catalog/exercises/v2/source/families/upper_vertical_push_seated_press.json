@@ -19,6 +19,7 @@
             },
             "id": "seated_shoulder_press__barbell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -196,6 +198,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
@@ -218,6 +221,7 @@
             },
             "id": "seated_shoulder_press__dumbbells",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -231,6 +235,7 @@
               "executionCues": [
                 "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -395,6 +400,7 @@
               "setupCues": [
                 "Configura mancuernas y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
@@ -417,6 +423,7 @@
             },
             "id": "seated_shoulder_press__smith_machine",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -430,6 +437,7 @@
               "executionCues": [
                 "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -594,6 +602,7 @@
               "setupCues": [
                 "Configura la máquina Smith y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 50,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
@@ -616,6 +625,7 @@
             },
             "id": "seated_shoulder_press__machine",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -629,6 +639,7 @@
               "executionCues": [
                 "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -793,6 +804,7 @@
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 55,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
@@ -815,6 +827,7 @@
             },
             "id": "seated_shoulder_press__cable",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -828,6 +841,7 @@
               "executionCues": [
                 "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -992,6 +1006,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
@@ -1014,6 +1029,7 @@
             },
             "id": "seated_shoulder_press__kettlebell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1027,6 +1043,7 @@
               "executionCues": [
                 "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -1191,6 +1208,7 @@
               "setupCues": [
                 "Configura kettlebell y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,

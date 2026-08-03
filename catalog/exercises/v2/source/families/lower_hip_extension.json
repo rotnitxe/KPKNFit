@@ -19,6 +19,7 @@
             },
             "id": "glutes_hiperextension_45__dumbbells",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Extiende el tronco desde la posición flexionada hasta la línea del cuerpo y vuelve con control."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -205,6 +207,7 @@
               "setupCues": [
                 "Ajusta el banco a 45 grados y coloca las almohadillas a la altura de la cadera."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae"
@@ -229,6 +232,7 @@
             },
             "id": "glutes_hiperextension_45__barbell",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "bodyRegion": "LOWER",
@@ -242,6 +246,7 @@
               "executionCues": [
                 "Extiende el tronco desde la posición flexionada hasta la línea del cuerpo y vuelve con control."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -415,6 +420,7 @@
               "setupCues": [
                 "Ajusta el banco a 45 grados y coloca las almohadillas a la altura de la cadera."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae"
@@ -439,6 +445,7 @@
             },
             "id": "glutes_hiperextension_45__plate",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "bodyRegion": "LOWER",
@@ -452,6 +459,7 @@
               "executionCues": [
                 "Extiende el tronco desde la posición flexionada hasta la línea del cuerpo y vuelve con control."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -625,6 +633,7 @@
               "setupCues": [
                 "Ajusta el banco a 45 grados y coloca las almohadillas a la altura de la cadera."
               ],
+              "setupTimeSeconds": 15,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae"
@@ -649,6 +658,7 @@
             },
             "id": "glutes_hiperextension_45__smith_machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "bodyRegion": "LOWER",
@@ -662,6 +672,7 @@
               "executionCues": [
                 "Extiende el tronco desde la posición flexionada hasta la línea del cuerpo y vuelve con control."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
@@ -835,6 +846,7 @@
               "setupCues": [
                 "Ajusta el banco a 45 grados y coloca las almohadillas a la altura de la cadera."
               ],
+              "setupTimeSeconds": 40,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae"
@@ -886,6 +898,7 @@
             },
             "id": "glutes_patada_gluteo__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -899,6 +912,7 @@
               "executionCues": [
                 "Extiende la cadera hacia atrás con control, evitando arqueo lumbar."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
@@ -1057,6 +1071,7 @@
               "setupCues": [
                 "Ajusta la polea baja o el lastre a la altura del tobillo y busca apoyo estable."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -1079,6 +1094,7 @@
             },
             "id": "glutes_patada_gluteo__dumbbells",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -1092,6 +1108,7 @@
               "executionCues": [
                 "Extiende la cadera hacia atrás con control, evitando arqueo lumbar."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -1250,6 +1267,7 @@
               "setupCues": [
                 "Ajusta la polea baja o el lastre a la altura del tobillo y busca apoyo estable."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -1272,6 +1290,7 @@
             },
             "id": "glutes_patada_gluteo__band",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -1285,6 +1304,7 @@
               "executionCues": [
                 "Extiende la cadera hacia atrás con control, evitando arqueo lumbar."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "variable_band_resistance",
@@ -1443,6 +1463,7 @@
               "setupCues": [
                 "Ajusta la polea baja o el lastre a la altura del tobillo y busca apoyo estable."
               ],
+              "setupTimeSeconds": 10,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -1492,6 +1513,7 @@
             },
             "id": "glutes_puente_gluteos__bilateral__barbell",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
@@ -1505,6 +1527,7 @@
               "executionCues": [
                 "Eleva la cadera hasta el puente y baja con control sin perder tensión en el glúteo."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -1664,6 +1687,7 @@
               "setupCues": [
                 "Coloca la carga sobre la cadera y los pies apoyados a una distancia cómoda."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -1687,6 +1711,7 @@
             },
             "id": "glutes_puente_gluteos__unilateral__barbell",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
@@ -1700,6 +1725,7 @@
               "executionCues": [
                 "Eleva la cadera hasta el puente y baja con control sin perder tensión en el glúteo."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
@@ -1859,6 +1885,7 @@
               "setupCues": [
                 "Coloca la carga sobre la cadera y los pies apoyados a una distancia cómoda."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -1882,6 +1909,7 @@
             },
             "id": "glutes_puente_gluteos__bilateral__dumbbells",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
@@ -1895,6 +1923,7 @@
               "executionCues": [
                 "Eleva la cadera hasta el puente y baja con control sin perder tensión en el glúteo."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -2054,6 +2083,7 @@
               "setupCues": [
                 "Coloca la carga sobre la cadera y los pies apoyados a una distancia cómoda."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -2077,6 +2107,7 @@
             },
             "id": "glutes_puente_gluteos__unilateral__dumbbells",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
@@ -2090,6 +2121,7 @@
               "executionCues": [
                 "Eleva la cadera hasta el puente y baja con control sin perder tensión en el glúteo."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
@@ -2249,6 +2281,7 @@
               "setupCues": [
                 "Coloca la carga sobre la cadera y los pies apoyados a una distancia cómoda."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -2272,6 +2305,7 @@
             },
             "id": "glutes_puente_gluteos__bilateral__smith_machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
@@ -2285,6 +2319,7 @@
               "executionCues": [
                 "Eleva la cadera hasta el puente y baja con control sin perder tensión en el glúteo."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -2444,6 +2479,7 @@
               "setupCues": [
                 "Coloca la carga sobre la cadera y los pies apoyados a una distancia cómoda."
               ],
+              "setupTimeSeconds": 40,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -2467,6 +2503,7 @@
             },
             "id": "glutes_puente_gluteos__unilateral__smith_machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
@@ -2480,6 +2517,7 @@
               "executionCues": [
                 "Eleva la cadera hasta el puente y baja con control sin perder tensión en el glúteo."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
@@ -2639,6 +2677,7 @@
               "setupCues": [
                 "Coloca la carga sobre la cadera y los pies apoyados a una distancia cómoda."
               ],
+              "setupTimeSeconds": 40,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -2690,6 +2729,7 @@
             },
             "id": "reverse_hyper__machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -2703,6 +2743,7 @@
               "executionCues": [
                 "Ejecuta «Reverse Hyper» siguiendo el patrón extensión cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -2873,6 +2914,7 @@
               "setupCues": [
                 "Configura máquina y adopta la posición específica de «Reverse Hyper» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.0,
@@ -2917,6 +2959,7 @@
             },
             "id": "glutes_hiperextension_45_zercher__default",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
@@ -2930,6 +2973,7 @@
               "executionCues": [
                 "Extiende el tronco hasta la línea del cuerpo con control y vuelve a flexionar."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -3097,6 +3141,7 @@
               "setupCues": [
                 "Ajusta el banco a 45 grados y sostén la carga en posición Zercher contra el pecho."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae"

@@ -19,6 +19,7 @@
             },
             "id": "back_dominadas_escapulares__default",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Dominadas Escapulares» siguiendo el patrón depresión escapular con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
@@ -203,6 +205,7 @@
               "setupCues": [
                 "Configura peso corporal y adopta la posición específica de «Dominadas Escapulares» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 10,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,

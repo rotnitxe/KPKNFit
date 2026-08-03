@@ -19,6 +19,7 @@
             },
             "id": "push_up__flat",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Flexiones de Brazos» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "ALTA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
@@ -210,6 +212,7 @@
               "setupCues": [
                 "Configura peso corporal y adopta la posición específica de «Flexiones de Brazos» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.9,
               "stabilizerMuscles": [
                 "core"
@@ -234,6 +237,7 @@
             },
             "id": "push_up__feet_elevated",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -247,6 +251,7 @@
               "executionCues": [
                 "Ejecuta «Flexiones con Pies Elevados» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
@@ -423,6 +428,7 @@
               "setupCues": [
                 "Configura peso corporal y adopta la posición específica de «Flexiones con Pies Elevados» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.8,
               "stabilizerMuscles": [
                 "core"
@@ -474,6 +480,7 @@
             },
             "id": "tren_superior_cruce_poleas__high",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -487,6 +494,7 @@
               "executionCues": [
                 "Junta las manos frente al pecho con control y deja que los brazos vuelvan con tensión."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
@@ -652,6 +660,7 @@
               "setupCues": [
                 "Ajusta ambas poleas a la misma altura y coloca un pie adelantado para estabilizarte."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.6,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
@@ -675,6 +684,7 @@
             },
             "id": "tren_superior_cruce_poleas__mid",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -688,6 +698,7 @@
               "executionCues": [
                 "Junta las manos frente al pecho con control y deja que los brazos vuelvan con tensión."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
@@ -853,6 +864,7 @@
               "setupCues": [
                 "Ajusta ambas poleas a la misma altura y coloca un pie adelantado para estabilizarte."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.6,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
@@ -876,6 +888,7 @@
             },
             "id": "tren_superior_cruce_poleas__low",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -889,6 +902,7 @@
               "executionCues": [
                 "Junta las manos frente al pecho con control y deja que los brazos vuelvan con tensión."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
@@ -1054,6 +1068,7 @@
               "setupCues": [
                 "Ajusta ambas poleas a la misma altura y coloca un pie adelantado para estabilizarte."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.6,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
@@ -1106,6 +1121,7 @@
             },
             "id": "tren_superior_fondos__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1119,6 +1135,7 @@
               "executionCues": [
                 "Ejecuta «Fondos» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "ALTA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
@@ -1295,6 +1312,7 @@
               "setupCues": [
                 "Configura peso corporal y adopta la posición específica de «Fondos» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.9,
               "stabilizerMuscles": [
                 "core"
@@ -1342,6 +1360,7 @@
             },
             "id": "tren_superior_press_banca_cadenas__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1355,6 +1374,7 @@
               "executionCues": [
                 "Ejecuta «Press de Banca con Cadenas» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "ALTA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -1522,6 +1542,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Press de Banca con Cadenas» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 1.1,
               "stabilizerMuscles": [],
               "technicalDifficulty": 6.8,
@@ -1564,6 +1585,7 @@
             },
             "id": "tren_superior_press_banda_resistencia__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1577,6 +1599,7 @@
               "executionCues": [
                 "Ejecuta «Press con Banda de Resistencia» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
@@ -1744,6 +1767,7 @@
               "setupCues": [
                 "Configura banda y adopta la posición específica de «Press con Banda de Resistencia» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.9,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.0,
@@ -1786,6 +1810,7 @@
             },
             "id": "tren_superior_press_pecho_maquina_convergente__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -1799,6 +1824,7 @@
               "executionCues": [
                 "Ejecuta «Press de Pecho en Máquina Convergente» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -1967,6 +1993,7 @@
               "setupCues": [
                 "Configura máquina y adopta la posición específica de «Press de Pecho en Máquina Convergente» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 55,
               "ssc": 0.8,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
@@ -2012,6 +2039,7 @@
             },
             "id": "tren_superior_press_spoto_barra__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -2025,6 +2053,7 @@
               "executionCues": [
                 "Ejecuta «Press Spoto con Barra» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "ALTA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -2192,6 +2221,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Press Spoto con Barra» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 1.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 6.8,
@@ -2234,6 +2264,7 @@
             },
             "id": "tren_superior_press_unilateral_polea__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -2247,6 +2278,7 @@
               "executionCues": [
                 "Ejecuta «Press Unilateral en Polea» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
@@ -2412,6 +2444,7 @@
               "setupCues": [
                 "Configura polea y adopta la posición específica de «Press Unilateral en Polea» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.7,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.5,
@@ -2454,6 +2487,7 @@
             },
             "id": "tren_superior_squeeze_press_mancuernas__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -2467,6 +2501,7 @@
               "executionCues": [
                 "Ejecuta «Squeeze Press con Mancuernas» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -2632,6 +2667,7 @@
               "setupCues": [
                 "Configura mancuerna y adopta la posición específica de «Squeeze Press con Mancuernas» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.7,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.5,
@@ -2674,6 +2710,7 @@
             },
             "id": "tren_superior_press_inclinado_maquina_convergente__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -2687,6 +2724,7 @@
               "executionCues": [
                 "Ejecuta «Press de Pecho en Máquina Convergente» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -2854,6 +2892,7 @@
               "setupCues": [
                 "Configura máquina y adopta la posición específica de «Press de Pecho en Máquina Convergente» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 55,
               "ssc": 0.8,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,

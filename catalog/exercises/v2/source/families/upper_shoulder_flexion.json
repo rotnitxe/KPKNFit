@@ -19,6 +19,7 @@
             },
             "id": "deltoides_elevaciones_frontales__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Eleva el brazo hasta la altura del hombro con control y baja sin balanceo."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
@@ -198,6 +200,7 @@
               "setupCues": [
                 "Toma el implemento con una postura estable y los brazos extendidos al frente."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
@@ -220,6 +223,7 @@
             },
             "id": "deltoides_elevaciones_frontales__barbell",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -233,6 +237,7 @@
               "executionCues": [
                 "Eleva el brazo hasta la altura del hombro con control y baja sin balanceo."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -399,6 +404,7 @@
               "setupCues": [
                 "Toma el implemento con una postura estable y los brazos extendidos al frente."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
@@ -421,6 +427,7 @@
             },
             "id": "deltoides_elevaciones_frontales__dumbbells",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -434,6 +441,7 @@
               "executionCues": [
                 "Eleva el brazo hasta la altura del hombro con control y baja sin balanceo."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -600,6 +608,7 @@
               "setupCues": [
                 "Toma el implemento con una postura estable y los brazos extendidos al frente."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
@@ -622,6 +631,7 @@
             },
             "id": "deltoides_elevaciones_frontales__kettlebell",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -635,6 +645,7 @@
               "executionCues": [
                 "Eleva el brazo hasta la altura del hombro con control y baja sin balanceo."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -801,6 +812,7 @@
               "setupCues": [
                 "Toma el implemento con una postura estable y los brazos extendidos al frente."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,

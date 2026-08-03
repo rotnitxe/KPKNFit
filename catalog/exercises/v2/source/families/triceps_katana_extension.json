@@ -19,6 +19,7 @@
             },
             "id": "katana_extension__cable__bilateral",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Extiende el codo hacia arriba con control manteniendo el brazo estable."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "FULL",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -188,6 +190,7 @@
               "setupCues": [
                 "Sitúa el codo junto al torso y prepara el agarre por encima de la cabeza."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
@@ -211,6 +214,7 @@
             },
             "id": "katana_extension__cable__unilateral",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -224,6 +228,7 @@
               "executionCues": [
                 "Extiende el codo hacia arriba con control manteniendo el brazo estable."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "FULL",
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
@@ -380,6 +385,7 @@
               "setupCues": [
                 "Sitúa el codo junto al torso y prepara el agarre por encima de la cabeza."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
@@ -403,6 +409,7 @@
             },
             "id": "katana_extension__band__bilateral",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -416,6 +423,7 @@
               "executionCues": [
                 "Extiende el codo hacia arriba con control manteniendo el brazo estable."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "FULL",
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
@@ -572,6 +580,7 @@
               "setupCues": [
                 "Sitúa el codo junto al torso y prepara el agarre por encima de la cabeza."
               ],
+              "setupTimeSeconds": 10,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,

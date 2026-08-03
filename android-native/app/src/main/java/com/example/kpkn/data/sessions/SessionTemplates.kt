@@ -1,5 +1,6 @@
 package com.example.kpkn.data.sessions
 
+import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.splits.Difficulty
 import kotlin.math.roundToInt
@@ -332,16 +333,26 @@ private fun sessionTotalSets(session: Session): Int =
 /**
  * Deriva exerciseCount / partCount / estimatedDurationMinutes del contenido real
  * para evitar metadata duplicada inconsistente.
+ *
+ * La duración usa la MISMA fórmula que SessionTemplateAudit (setupTime y
+ * averageRestSeconds del catálogo por ejercicio), sin depender de domain:
+ * así la declarada coincide con la estimada del audit dentro del desvío
+ * permitido por el test.
  */
 private fun finalizedTemplate(template: SessionTemplate): SessionTemplate {
     val exercises = template.session.allExercises()
+    val index = catalogExerciseIndex()
     var durationSeconds = 0
     exercises.forEach { exercise ->
+        val info = resolveTemplateCatalogInfo(exercise, index)
         val setCount = exercise.sets.size
-        val rest = exercise.restTime?.takeIf { it > 0 } ?: TEMPLATE_DEFAULT_REST_SECONDS
+        val setup = info?.setupTime?.takeIf { it > 0 } ?: TEMPLATE_SETUP_SECONDS
+        val rest = exercise.restTime?.takeIf { it > 0 }
+            ?: info?.averageRestSeconds?.takeIf { it > 0 }
+            ?: TEMPLATE_DEFAULT_REST_SECONDS
         val execution = setCount * TEMPLATE_EXECUTION_SECONDS_PER_SET
         val restTotal = if (setCount > 1) rest * (setCount - 1) else 0
-        durationSeconds += TEMPLATE_SETUP_SECONDS + execution + restTotal
+        durationSeconds += setup + execution + restTotal
     }
     val estimated = (durationSeconds / 60.0)
         .roundToInt()
@@ -349,8 +360,28 @@ private fun finalizedTemplate(template: SessionTemplate): SessionTemplate {
     return template.copy(
         exerciseCount = exercises.size,
         partCount = template.session.parts.size,
-        estimatedDurationMinutes = estimated,
+        // La duración explícita de una variante derivada (p.ej. "Compacta" con
+        // 13/11 min) se respeta: coincide con la estimada del audit. Solo se
+        // deriva del contenido cuando no hay valor declarado.
+        estimatedDurationMinutes = template.estimatedDurationMinutes ?: estimated,
     )
+}
+
+/** Resuelve la metadata del catálogo para un ejercicio (igual que el audit). */
+private fun resolveTemplateCatalogInfo(
+    exercise: Exercise,
+    index: Map<String, ExerciseMuscleInfo>,
+): ExerciseMuscleInfo? {
+    val candidates = listOfNotNull(
+        exercise.catalogConfigurationId,
+        exercise.exerciseDbId,
+        exercise.exerciseId,
+        exercise.canonicalExerciseId,
+    ).map { it.trim().lowercase() }.filter { it.isNotEmpty() }.distinct()
+    for (id in candidates) {
+        index[id]?.let { return it }
+    }
+    return null
 }
 
 private fun mapSessionExercises(session: Session, transform: (Exercise) -> Exercise): Session =
@@ -403,7 +434,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             SessionTemplateTag.BRAZOS,
         ),
         difficulty = Difficulty.INTERMEDIO,
-        estimatedDurationMinutes = 60,
+        estimatedDurationMinutes = 22,
         exerciseCount = 7,
         partCount = 3,
         muscleGroupsSummary = "Pecho · Hombros · Tríceps",
@@ -453,7 +484,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             SessionTemplateTag.BRAZOS,
         ),
         difficulty = Difficulty.INTERMEDIO,
-        estimatedDurationMinutes = 60,
+        estimatedDurationMinutes = 22,
         exerciseCount = 7,
         partCount = 3,
         muscleGroupsSummary = "Espalda · Bíceps · Romboides",
@@ -502,7 +533,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             SessionTemplateTag.GLUTEOS,
         ),
         difficulty = Difficulty.INTERMEDIO,
-        estimatedDurationMinutes = 60,
+        estimatedDurationMinutes = 28,
         exerciseCount = 6,
         partCount = 2,
         muscleGroupsSummary = "Cuádriceps · Isquios · Glúteos · Aductores",
@@ -553,7 +584,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             SessionTemplateTag.GLUTEOS,
         ),
         difficulty = Difficulty.INTERMEDIO,
-        estimatedDurationMinutes = 60,
+        estimatedDurationMinutes = 27,
         exerciseCount = 6,
         partCount = 2,
         muscleGroupsSummary = "Isquios · Glúteos · Aductores · Pantorrillas",
@@ -604,7 +635,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             SessionTemplateTag.ESPALDA,
         ),
         difficulty = Difficulty.INTERMEDIO,
-        estimatedDurationMinutes = 65,
+        estimatedDurationMinutes = 30,
         exerciseCount = 8,
         partCount = 2,
         muscleGroupsSummary = "Pecho · Espalda · Hombros · Bíceps · Tríceps",
@@ -656,7 +687,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             SessionTemplateTag.HIPERTROFIA,
         ),
         difficulty = Difficulty.PRINCIPIANTE,
-        estimatedDurationMinutes = 50,
+        estimatedDurationMinutes = 25,
         exerciseCount = 6,
         partCount = 3,
         muscleGroupsSummary = "Cuerpo Completo",
@@ -706,7 +737,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             SessionTemplateTag.FUERZA,
         ),
         difficulty = Difficulty.AVANZADO,
-        estimatedDurationMinutes = 80,
+        estimatedDurationMinutes = 41,
         exerciseCount = 6,
         partCount = 3,
         muscleGroupsSummary = "Sentadilla · Banca · Peso Muerto",
@@ -792,7 +823,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             SessionTemplateTag.HIPERTROFIA,
         ),
         difficulty = Difficulty.INTERMEDIO,
-        estimatedDurationMinutes = 55,
+        estimatedDurationMinutes = 19,
         exerciseCount = 5,
         partCount = 2,
         muscleGroupsSummary = "Pecho · Hombros · Tríceps",
@@ -843,7 +874,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             SessionTemplateTag.GEMELOS,
         ),
         difficulty = Difficulty.INTERMEDIO,
-        estimatedDurationMinutes = 70,
+        estimatedDurationMinutes = 29,
         exerciseCount = 7,
         partCount = 3,
         muscleGroupsSummary = "Cuádriceps · Isquios · Glúteos · Pantorrillas",
@@ -896,7 +927,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             SessionTemplateTag.HIPERTROFIA,
         ),
         difficulty = Difficulty.AVANZADO,
-        estimatedDurationMinutes = 65,
+        estimatedDurationMinutes = 23,
         exerciseCount = 6,
         partCount = 2,
         muscleGroupsSummary = "Pecho · Espalda",
@@ -945,7 +976,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             SessionTemplateTag.HIPERTROFIA,
         ),
         difficulty = Difficulty.INTERMEDIO,
-        estimatedDurationMinutes = 60,
+        estimatedDurationMinutes = 19,
         exerciseCount = 6,
         partCount = 2,
         muscleGroupsSummary = "Hombros · Bíceps · Tríceps",
@@ -991,7 +1022,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             SessionTemplateTag.HIPERTROFIA,
         ),
         difficulty = Difficulty.PRINCIPIANTE,
-        estimatedDurationMinutes = 40,
+        estimatedDurationMinutes = 16,
         exerciseCount = 4,
         partCount = 2,
         muscleGroupsSummary = "Hombros · Abdominales · Core",
@@ -1034,7 +1065,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             SessionTemplateTag.HIPERTROFIA,
         ),
         difficulty = Difficulty.INTERMEDIO,
-        estimatedDurationMinutes = 55,
+        estimatedDurationMinutes = 15,
         exerciseCount = 4,
         partCount = 2,
         muscleGroupsSummary = "Glúteos · Isquiosurales",
@@ -1077,7 +1108,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             SessionTemplateTag.HIPERTROFIA,
         ),
         difficulty = Difficulty.INTERMEDIO,
-        estimatedDurationMinutes = 45,
+        estimatedDurationMinutes = 17,
         exerciseCount = 3,
         partCount = 2,
         muscleGroupsSummary = "Glúteos · Pantorrillas",
@@ -1126,7 +1157,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             SessionTemplateTag.HIPERTROFIA,
         ),
         difficulty = Difficulty.PRINCIPIANTE,
-        estimatedDurationMinutes = 50,
+        estimatedDurationMinutes = 23,
         exerciseCount = 5,
         partCount = 2,
         muscleGroupsSummary = "Pecho · Espalda · Hombros · Brazos",
@@ -1170,7 +1201,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             SessionTemplateTag.FUERZA,
         ),
         difficulty = Difficulty.INTERMEDIO,
-        estimatedDurationMinutes = 60,
+        estimatedDurationMinutes = 30,
         exerciseCount = 4,
         partCount = 2,
         muscleGroupsSummary = "Banca · Espalda · Hombros",
@@ -1213,7 +1244,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             SessionTemplateTag.FUERZA,
         ),
         difficulty = Difficulty.INTERMEDIO,
-        estimatedDurationMinutes = 70,
+        estimatedDurationMinutes = 33,
         exerciseCount = 3,
         partCount = 2,
         muscleGroupsSummary = "Sentadilla · Banca · Espalda",
@@ -1253,7 +1284,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             SessionTemplateTag.FUERZA,
         ),
         difficulty = Difficulty.INTERMEDIO,
-        estimatedDurationMinutes = 60,
+        estimatedDurationMinutes = 23,
         exerciseCount = 3,
         partCount = 2,
         muscleGroupsSummary = "Peso Muerto · Banca Inclinada",
@@ -1293,7 +1324,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             SessionTemplateTag.FUERZA,
         ),
         difficulty = Difficulty.INTERMEDIO,
-        estimatedDurationMinutes = 55,
+        estimatedDurationMinutes = 23,
         exerciseCount = 3,
         partCount = 0,
         muscleGroupsSummary = "Sentadilla · Isquios · Espalda",
@@ -1329,7 +1360,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             SessionTemplateTag.FUERZA,
         ),
         difficulty = Difficulty.INTERMEDIO,
-        estimatedDurationMinutes = 55,
+        estimatedDurationMinutes = 24,
         exerciseCount = 3,
         partCount = 0,
         muscleGroupsSummary = "Banca · Pectoral Superior · Espalda",
@@ -1365,7 +1396,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             SessionTemplateTag.FUERZA,
         ),
         difficulty = Difficulty.INTERMEDIO,
-        estimatedDurationMinutes = 55,
+        estimatedDurationMinutes = 24,
         exerciseCount = 3,
         partCount = 0,
         muscleGroupsSummary = "Peso Muerto · Sentadilla · Dorsales",
@@ -1401,7 +1432,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             SessionTemplateTag.FUERZA,
         ),
         difficulty = Difficulty.INTERMEDIO,
-        estimatedDurationMinutes = 50,
+        estimatedDurationMinutes = 22,
         exerciseCount = 3,
         partCount = 0,
         muscleGroupsSummary = "Militar · Banca · Hombros",
@@ -1438,7 +1469,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             SessionTemplateTag.HIPERTROFIA,
         ),
         difficulty = Difficulty.INTERMEDIO,
-        estimatedDurationMinutes = 60,
+        estimatedDurationMinutes = 21,
         exerciseCount = 5,
         partCount = 2,
         muscleGroupsSummary = "Cuádriceps · Pecho · Hombros",
@@ -1485,7 +1516,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             SessionTemplateTag.HIPERTROFIA,
         ),
         difficulty = Difficulty.INTERMEDIO,
-        estimatedDurationMinutes = 65,
+        estimatedDurationMinutes = 24,
         exerciseCount = 6,
         partCount = 2,
         muscleGroupsSummary = "Isquios · Espalda · Lumbares",
@@ -1530,12 +1561,16 @@ private fun independentTemplate(
     category: SessionTemplateFocusCategory,
     sortOrder: Int,
     shortDescription: String,
+    estimatedDurationMinutes: Int? = null,
 ): SessionTemplate {
     val source = SESSION_TEMPLATES_BASE.first { it.id == sourceId }
     return source.copy(
         id = id,
         name = name,
         description = source.description,
+        // Solo el valor explícito; null → finalizedTemplate deriva del contenido
+        // (la duración de la fuente completa no aplica a la variante recortada).
+        estimatedDurationMinutes = estimatedDurationMinutes,
         sortOrder = sortOrder,
         splitIds = emptyList(),
         splitDayLabels = emptyList(),
@@ -1561,6 +1596,7 @@ private fun lowVolumeSplitTemplate(
     category: SessionTemplateFocusCategory,
     sortOrder: Int,
     shortDescription: String,
+    estimatedDurationMinutes: Int? = null,
 ): SessionTemplate {
     val source = SESSION_TEMPLATES_BASE.first { it.id == sourceId }
     val maxSets = LOW_VOLUME_MIN_SETS // 8 series: caben en 8–12 y no revientan splits de alta frecuencia
@@ -1611,6 +1647,8 @@ private fun lowVolumeSplitTemplate(
         splitDayLabels = splitDayLabels,
         focusCategory = category,
         shortDescription = shortDescription,
+        // Solo el valor explícito; null → finalizedTemplate deriva del contenido.
+        estimatedDurationMinutes = estimatedDurationMinutes,
         weeklyVolumePolicyId = "high_freq_low",
         session = session,
     )
@@ -1686,6 +1724,7 @@ private val SESSION_TEMPLATES_DERIVED_SPLIT: List<SessionTemplate> = listOf(
         category = SessionTemplateFocusCategory.ESPALDA,
         sortOrder = -94,
         shortDescription = "Tirón controlado para splits de alto volumen",
+        estimatedDurationMinutes = 13,
     ),
     lowVolumeSplitTemplate(
         sourceId = "sys-legs-quad",
@@ -1706,6 +1745,7 @@ private val SESSION_TEMPLATES_DERIVED_SPLIT: List<SessionTemplate> = listOf(
         category = SessionTemplateFocusCategory.PECHO,
         sortOrder = -92,
         shortDescription = "Antagonistas de torso con volumen controlado",
+        estimatedDurationMinutes = 13,
     ),
     lowVolumeSplitTemplate(
         sourceId = "sys-shoulder-arms-arnold",
@@ -1716,6 +1756,7 @@ private val SESSION_TEMPLATES_DERIVED_SPLIT: List<SessionTemplate> = listOf(
         category = SessionTemplateFocusCategory.BRAZOS,
         sortOrder = -91,
         shortDescription = "Deltoides y brazos con volumen controlado",
+        estimatedDurationMinutes = 11,
     ),
     lowVolumeSplitTemplate(
         sourceId = "sys-shoulders-abs-glute",
@@ -1736,6 +1777,7 @@ private val SESSION_TEMPLATES_DERIVED_SPLIT: List<SessionTemplate> = listOf(
         category = SessionTemplateFocusCategory.BRAZOS,
         sortOrder = -89,
         shortDescription = "Brazos dedicados con volumen controlado",
+        estimatedDurationMinutes = 11,
     ),
     lowVolumeSplitTemplate(
         sourceId = "sys-chest-pec",
@@ -1756,6 +1798,7 @@ private val SESSION_TEMPLATES_DERIVED_SPLIT: List<SessionTemplate> = listOf(
         category = SessionTemplateFocusCategory.ESPALDA,
         sortOrder = -87,
         shortDescription = "Espalda dedicada con volumen controlado",
+        estimatedDurationMinutes = 13,
     ),
     lowVolumeSplitTemplate(
         sourceId = "sys-squat-bench-pl",

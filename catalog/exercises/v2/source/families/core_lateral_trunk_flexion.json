@@ -19,6 +19,7 @@
             },
             "id": "core_inclinacion_lateral__default",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "CORE",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Inclinación Lateral» siguiendo el patrón flexión lateral tronco con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -183,6 +185,7 @@
               "setupCues": [
                 "Configura mancuerna y adopta la posición específica de «Inclinación Lateral» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,

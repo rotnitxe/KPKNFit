@@ -19,6 +19,7 @@
             },
             "id": "hams_peso_muerto_rumano_zercher__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Peso Muerto Rumano Zercher» siguiendo el patrón bisagra cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -205,6 +207,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Peso Muerto Rumano Zercher» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 1.0,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -248,6 +251,7 @@
             },
             "id": "hams_pull_through__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -261,6 +265,7 @@
               "executionCues": [
                 "Ejecuta «Pull-Through» siguiendo el patrón bisagra cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -414,6 +419,7 @@
               "setupCues": [
                 "Configura polea y adopta la posición específica de «Pull-Through» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,

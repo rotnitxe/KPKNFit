@@ -57,6 +57,12 @@ class SmartFoodResolver(
     // In-memory cache for fast lookups (backed by LearnedResolutionDao)
     private val learnedCache = mutableMapOf<String, LearnedEntry>()
 
+    /** E16/IT2: tope de memoria aprendida — al superarlo se poda la DB. */
+    private val LEARNED_EXPIRATION_THRESHOLD = 600
+
+    /** E16/IT2: cuántas entradas aprendidas se conservan al podar. */
+    private val LEARNED_PRUNE_KEEP = 500
+
     data class LearnedEntry(
         val foodId: String,
         val portionGrams: Double?,
@@ -281,8 +287,31 @@ class SmartFoodResolver(
                         lastUsedAt = System.currentTimeMillis(),
                     )
                 )
+                // E16/IT2: expiración — la memoria crece sin límite sin esto. Al
+                // superar el umbral se poda la DB (menos usadas) y se recarga el
+                // cache en memoria con las top 500.
+                if (learnedCache.size > LEARNED_EXPIRATION_THRESHOLD) {
+                    learnedDao?.prune(LEARNED_PRUNE_KEEP)
+                    learnedCache.clear()
+                    preloadLearned()
+                }
             } catch (e: Exception) {
                 android.util.Log.w("SmartFoodResolver", "recordLearned persist failed", e)
+            }
+        }
+    }
+
+    /**
+     * E16/IT2: invalidación total del aprendizaje (botón "olvidar" en la UI).
+     * Borra la DB y el cache en memoria; el aprendizaje se reinicia desde cero.
+     */
+    fun clearLearned() {
+        learnedCache.clear()
+        kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                learnedDao?.prune(0)
+            } catch (e: Exception) {
+                android.util.Log.w("SmartFoodResolver", "clearLearned failed", e)
             }
         }
     }

@@ -19,6 +19,7 @@
             },
             "id": "z_press__barbell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Press Z con Barra Recta» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -203,6 +205,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Press Z con Barra Recta» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
@@ -225,6 +228,7 @@
             },
             "id": "z_press__ez_bar",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -238,6 +242,7 @@
               "executionCues": [
                 "Ejecuta «Press Z con Barra EZ» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -409,6 +414,7 @@
               "setupCues": [
                 "Configura barra ez y adopta la posición específica de «Press Z con Barra EZ» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 40,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
@@ -431,6 +437,7 @@
             },
             "id": "z_press__dumbbells",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -444,6 +451,7 @@
               "executionCues": [
                 "Ejecuta «Press Z con Mancuernas» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -615,6 +623,7 @@
               "setupCues": [
                 "Configura mancuerna y adopta la posición específica de «Press Z con Mancuernas» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
@@ -637,6 +646,7 @@
             },
             "id": "z_press__kettlebell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -650,6 +660,7 @@
               "executionCues": [
                 "Ejecuta «Press Z con Kettlebell» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -821,6 +832,7 @@
               "setupCues": [
                 "Configura kettlebell y adopta la posición específica de «Press Z con Kettlebell» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,

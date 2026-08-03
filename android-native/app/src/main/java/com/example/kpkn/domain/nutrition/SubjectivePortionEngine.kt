@@ -40,6 +40,30 @@ object SubjectivePortionEngine {
 
     // ─── Utensilios: volumen base en ml ─────────────────────────────────────
 
+    /** IT3: utensilios configurables — overrides de ml por nombre de utensilio,
+     *  aplicados por el usuario y persistidos fuera del engine. Vacío = base. */
+    private val utensilOverrides = java.util.concurrent.ConcurrentHashMap<String, Double>()
+
+    fun applyUtensilOverrides(overrides: Map<String, Double>) {
+        utensilOverrides.clear()
+        utensilOverrides.putAll(overrides.filterValues { it > 0 })
+    }
+
+    fun currentUtensilOverrides(): Map<String, Double> = utensilOverrides.toMap()
+
+    /** IT3: utensilios editables por el usuario — nombre de patrón → ml base. */
+    val UTENSIL_DEFAULTS: Map<String, Double> = mapOf(
+        "cucharadita" to 5.0,
+        "cucharada" to 15.0,
+        "cucharon" to 90.0,
+        "taza" to 250.0,
+        "vaso" to 250.0,
+        "plato" to 250.0,
+        "plato_hondo" to 400.0,
+        "bol" to 300.0,
+        "copa" to 150.0,
+    )
+
     private val UTENSIL_PATTERNS = listOf(
         // Cucharadas
         Triple(Regex("""\b(un|una|1)\s+cucharaditas?\b""", RegexOption.IGNORE_CASE), 5.0, "cucharadita"),
@@ -339,7 +363,8 @@ object SubjectivePortionEngine {
             val match = pattern.find(lower) ?: continue
             val qty = match.groupValues.getOrNull(1)?.replace(",", ".")?.toDoubleOrNull() ?: 1.0
             val category = foodCategory ?: FoodDensityCategory.MIXED
-            val grams = baseMl * qty * category.densityGPerMl
+            val effectiveMl = utensilOverrides[source] ?: baseMl
+            val grams = effectiveMl * qty * category.densityGPerMl
             return PortionResult(
                 grams = grams,
                 confidence = 0.75,

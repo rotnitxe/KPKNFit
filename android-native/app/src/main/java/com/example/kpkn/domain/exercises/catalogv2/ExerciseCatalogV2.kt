@@ -85,7 +85,27 @@ data class ResolvedExerciseProfileV2(
     val automationEligible: Boolean = false,
     /** Factual prose for this exact materialized configuration; never a cue. */
     val description: String = "",
+    /** Articulación del patrón: MULTIARTICULAR (compuesto) o AISLADO (una
+     *  articulación). Alimenta las reglas del editor de sesiones. */
+    val articulationType: ExerciseArticulationTypeV2? = null,
+    /** Tiempo de set-up estimado en segundos para la configuración exacta. */
+    val setupTimeSeconds: Int? = null,
+    /** Tier de fatiga de la configuración derivado del coste editorial (efc). */
+    val fatigueTier: ExerciseFatigueTierV2? = null,
 )
+
+@Serializable
+enum class ExerciseArticulationTypeV2 {
+    MULTIARTICULAR,
+    AISLADO,
+}
+
+@Serializable
+enum class ExerciseFatigueTierV2 {
+    BAJA,
+    MEDIA,
+    ALTA,
+}
 
 @Serializable
 data class MuscleNoteV2(
@@ -152,6 +172,7 @@ data class ExerciseSearchFiltersV2(
     val bodyRegions: Set<ExerciseBodyRegionV2> = emptySet(),
     val equipmentIds: Set<String> = emptySet(),
     val movementPatternIds: Set<String> = emptySet(),
+    val muscleIds: Set<String> = emptySet(),
 )
 @Serializable
 data class ExerciseSearchHitV2(

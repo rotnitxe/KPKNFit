@@ -19,6 +19,7 @@
             },
             "id": "triceps_patada__dumbbells__bilateral",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Patada de Tríceps» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "FULL",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -188,6 +190,7 @@
               "setupCues": [
                 "Configura mancuerna y adopta la posición específica de «Patada de Tríceps» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
@@ -212,6 +215,7 @@
             },
             "id": "triceps_patada__cable__bilateral",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -225,6 +229,7 @@
               "executionCues": [
                 "Ejecuta «Patada de tríceps» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "FULL",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -381,6 +386,7 @@
               "setupCues": [
                 "Configura polea y adopta la posición específica de «Patada de tríceps» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
@@ -405,6 +411,7 @@
             },
             "id": "triceps_patada__dumbbells__unilateral",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -418,6 +425,7 @@
               "executionCues": [
                 "Ejecuta «Patada de tríceps» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "FULL",
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
@@ -574,6 +582,7 @@
               "setupCues": [
                 "Configura mancuerna y adopta la posición específica de «Patada de tríceps» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,

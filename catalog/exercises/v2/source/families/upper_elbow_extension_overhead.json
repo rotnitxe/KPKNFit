@@ -19,6 +19,7 @@
             },
             "id": "overhead_triceps__barbell",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Extensión de Tríceps Overhead» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "FULL",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -187,6 +189,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Extensión de Tríceps Overhead» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
@@ -209,6 +212,7 @@
             },
             "id": "overhead_triceps__machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -222,6 +226,7 @@
               "executionCues": [
                 "Ejecuta «Extensión de Tríceps Overhead en Máquina» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "FULL",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -377,6 +382,7 @@
               "setupCues": [
                 "Configura máquina y adopta la posición específica de «Extensión de Tríceps Overhead en Máquina» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
@@ -400,6 +406,7 @@
             },
             "id": "overhead_triceps__dumbbells",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -413,6 +420,7 @@
               "executionCues": [
                 "Ejecuta «Extensión de tríceps overhead» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "FULL",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -568,6 +576,7 @@
               "setupCues": [
                 "Configura mancuerna y adopta la posición específica de «Extensión de tríceps overhead» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
@@ -591,6 +600,7 @@
             },
             "id": "overhead_triceps__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -604,6 +614,7 @@
               "executionCues": [
                 "Ejecuta «Extensión de tríceps overhead» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "FULL",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -759,6 +770,7 @@
               "setupCues": [
                 "Configura polea y adopta la posición específica de «Extensión de tríceps overhead» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,

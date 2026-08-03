@@ -19,6 +19,7 @@
             },
             "id": "step_up__barbell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Step-Up a Cajón» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
@@ -208,6 +210,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Step-Up a Cajón» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -232,6 +235,7 @@
             },
             "id": "step_up__smith_machine",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -245,6 +249,7 @@
               "executionCues": [
                 "Ejecuta «Step-Up a Cajón» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
@@ -421,6 +426,7 @@
               "setupCues": [
                 "Configura la máquina Smith y adopta la posición específica de «Step-Up a Cajón» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 50,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -445,6 +451,7 @@
             },
             "id": "step_up__dumbbells",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -458,6 +465,7 @@
               "executionCues": [
                 "Ejecuta «Step-Up a Cajón» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
@@ -634,6 +642,7 @@
               "setupCues": [
                 "Configura mancuernas y adopta la posición específica de «Step-Up a Cajón» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -658,6 +667,7 @@
             },
             "id": "step_up__kettlebell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -671,6 +681,7 @@
               "executionCues": [
                 "Ejecuta «Step-Up a Cajón» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
@@ -847,6 +858,7 @@
               "setupCues": [
                 "Configura kettlebell y adopta la posición específica de «Step-Up a Cajón» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -871,6 +883,7 @@
             },
             "id": "step_up__cable",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -884,6 +897,7 @@
               "executionCues": [
                 "Ejecuta «Step-Up a Cajón» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
@@ -1060,6 +1074,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Step-Up a Cajón» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"

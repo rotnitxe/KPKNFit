@@ -19,6 +19,7 @@
             },
             "id": "deltoides_y_raises_sentado_banco_inclinado__default",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Y-Raises Sentado en Banco Inclinado» siguiendo el patrón abducción diagonal con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -192,6 +194,7 @@
               "setupCues": [
                 "Configura mancuerna y adopta la posición específica de «Y-Raises Sentado en Banco Inclinado» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,

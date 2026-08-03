@@ -19,6 +19,7 @@
             },
             "id": "front_squat__barbell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Frontal» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -205,6 +207,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Sentadilla Frontal» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -230,6 +233,7 @@
             },
             "id": "front_squat__smith_machine",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -243,6 +247,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Frontal» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -416,6 +421,7 @@
               "setupCues": [
                 "Configura la máquina Smith y adopta la posición específica de «Sentadilla Frontal» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 50,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -441,6 +447,7 @@
             },
             "id": "front_squat__dumbbells",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -454,6 +461,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Frontal» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -627,6 +635,7 @@
               "setupCues": [
                 "Configura mancuernas y adopta la posición específica de «Sentadilla Frontal» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -652,6 +661,7 @@
             },
             "id": "front_squat__kettlebell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -665,6 +675,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Frontal» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -838,6 +849,7 @@
               "setupCues": [
                 "Configura kettlebell y adopta la posición específica de «Sentadilla Frontal» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -863,6 +875,7 @@
             },
             "id": "front_squat__cable",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -876,6 +889,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Frontal» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -1049,6 +1063,7 @@
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Sentadilla Frontal» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -1100,6 +1115,7 @@
             },
             "id": "high_bar_back_squat__barbell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -1113,6 +1129,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Trasera con Barra Alta» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -1287,6 +1304,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Sentadilla Trasera con Barra Alta» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -1312,6 +1330,7 @@
             },
             "id": "high_bar_back_squat__smith_machine",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -1325,6 +1344,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Trasera con Barra Alta» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -1499,6 +1519,7 @@
               "setupCues": [
                 "Configura la máquina Smith y adopta la posición específica de «Sentadilla Trasera con Barra Alta» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 50,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -1524,6 +1545,7 @@
             },
             "id": "high_bar_back_squat__safety_bar",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
@@ -1537,6 +1559,7 @@
               "executionCues": [
                 "Baja en sentadilla con el torso erguido y sube extendiendo rodilla y cadera."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -1709,6 +1732,7 @@
               "setupCues": [
                 "Coloca la barra de seguridad sobre los trapecios con los agarres frontales cómodos."
               ],
+              "setupTimeSeconds": 50,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -1760,6 +1784,7 @@
             },
             "id": "low_bar_back_squat__barbell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -1773,6 +1798,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Trasera con Barra Baja» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -1947,6 +1973,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Sentadilla Trasera con Barra Baja» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -1972,6 +1999,7 @@
             },
             "id": "low_bar_back_squat__smith_machine",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -1985,6 +2013,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Trasera con Barra Baja» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -2159,6 +2188,7 @@
               "setupCues": [
                 "Configura la máquina Smith y adopta la posición específica de «Sentadilla Trasera con Barra Baja» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 50,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
@@ -2184,6 +2214,7 @@
             },
             "id": "low_bar_back_squat__safety_bar",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
@@ -2197,6 +2228,7 @@
               "executionCues": [
                 "Baja en sentadilla con el torso erguido y sube extendiendo rodilla y cadera."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -2369,6 +2401,7 @@
               "setupCues": [
                 "Coloca la barra de seguridad sobre los trapecios con los agarres frontales cómodos."
               ],
+              "setupTimeSeconds": 50,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -2420,6 +2453,7 @@
             },
             "id": "quads_prensa_piernas__bilateral",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -2433,6 +2467,7 @@
               "executionCues": [
                 "Ejecuta «Prensa de Piernas» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -2601,6 +2636,7 @@
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Prensa de Piernas» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 55,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -2625,6 +2661,7 @@
             },
             "id": "quads_prensa_piernas__unilateral",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -2638,6 +2675,7 @@
               "executionCues": [
                 "Ejecuta «Prensa de Piernas» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
@@ -2806,6 +2844,7 @@
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Prensa de Piernas» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 55,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -2856,6 +2895,7 @@
             },
             "id": "quads_sentadilla_anderson__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -2869,6 +2909,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Anderson» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -3036,6 +3077,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Sentadilla Anderson» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -3079,6 +3121,7 @@
             },
             "id": "quads_sentadilla_anderson_frontal_barra_recta__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -3092,6 +3135,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Anderson Frontal con Barra Recta» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -3254,6 +3298,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Sentadilla Anderson Frontal con Barra Recta» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -3298,6 +3343,7 @@
             },
             "id": "quads_sentadilla_bazuca__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -3311,6 +3357,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Bazuca» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -3478,6 +3525,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Sentadilla Bazuca» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -3521,6 +3569,7 @@
             },
             "id": "quads_sentadilla_copa__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -3534,6 +3583,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Copa» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -3695,6 +3745,7 @@
               "setupCues": [
                 "Configura mancuerna y adopta la posición específica de «Sentadilla Copa» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -3738,6 +3789,7 @@
             },
             "id": "quads_sentadilla_hack__machine",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.5,
               "bodyRegion": "LOWER",
@@ -3751,6 +3803,7 @@
               "executionCues": [
                 "Baja flexionando rodillas y cadera y sube extendiendo con el torso fijo."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
@@ -3916,6 +3969,7 @@
               "setupCues": [
                 "Coloca los pies en la plataforma o bajo la barra según la estación elegida."
               ],
+              "setupTimeSeconds": 55,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -3938,6 +3992,7 @@
             },
             "id": "quads_sentadilla_hack__barbell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.5,
               "bodyRegion": "LOWER",
@@ -3951,6 +4006,7 @@
               "executionCues": [
                 "Baja flexionando rodillas y cadera y sube extendiendo con el torso fijo."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -4116,6 +4172,7 @@
               "setupCues": [
                 "Coloca los pies en la plataforma o bajo la barra según la estación elegida."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -4138,6 +4195,7 @@
             },
             "id": "quads_sentadilla_hack__smith_machine",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.5,
               "bodyRegion": "LOWER",
@@ -4151,6 +4209,7 @@
               "executionCues": [
                 "Baja flexionando rodillas y cadera y sube extendiendo con el torso fijo."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
@@ -4316,6 +4375,7 @@
               "setupCues": [
                 "Coloca los pies en la plataforma o bajo la barra según la estación elegida."
               ],
+              "setupTimeSeconds": 50,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -4364,6 +4424,7 @@
             },
             "id": "quads_sentadilla_hack_invertida_maquina__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -4377,6 +4438,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Invertida en Máquina Hack» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -4537,6 +4599,7 @@
               "setupCues": [
                 "Configura máquina y adopta la posición específica de «Sentadilla Invertida en Máquina Hack» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 55,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -4579,6 +4642,7 @@
             },
             "id": "quads_sentadilla_somersault__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -4592,6 +4656,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Somersault» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -4755,6 +4820,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Sentadilla Somersault» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.2,
@@ -4798,6 +4864,7 @@
             },
             "id": "quads_sentadilla_v_squat__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -4811,6 +4878,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla en V-Squat» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -4973,6 +5041,7 @@
               "setupCues": [
                 "Configura máquina y adopta la posición específica de «Sentadilla en V-Squat» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 55,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -5017,6 +5086,7 @@
             },
             "id": "quads_sentadilla_v_squat_invertida_maquina__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -5030,6 +5100,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Invertida en Máquina V-Squat» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -5190,6 +5261,7 @@
               "setupCues": [
                 "Configura máquina y adopta la posición específica de «Sentadilla Invertida en Máquina V-Squat» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 55,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -5232,6 +5304,7 @@
             },
             "id": "quads_sentadilla_zercher_barra_recta__default",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -5245,6 +5318,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Zercher con Barra Recta» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -5411,6 +5485,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Sentadilla Zercher con Barra Recta» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
@@ -5453,6 +5528,7 @@
             },
             "id": "sumo_squat__barbell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -5466,6 +5542,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Sumo» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -5642,6 +5719,7 @@
               "setupCues": [
                 "Configura barra y adopta la posición específica de «Sentadilla Sumo» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -5666,6 +5744,7 @@
             },
             "id": "sumo_squat__dumbbells",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -5679,6 +5758,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Sumo» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -5855,6 +5935,7 @@
               "setupCues": [
                 "Configura mancuernas y adopta la posición específica de «Sentadilla Sumo» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
@@ -5879,6 +5960,7 @@
             },
             "id": "sumo_squat__kettlebell",
             "profile": {
+              "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
@@ -5892,6 +5974,7 @@
               "executionCues": [
                 "Ejecuta «Sentadilla Sumo» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "MEDIA",
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -6068,6 +6151,7 @@
               "setupCues": [
                 "Configura kettlebell y adopta la posición específica de «Sentadilla Sumo» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 30,
               "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"

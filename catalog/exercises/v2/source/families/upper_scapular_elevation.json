@@ -19,6 +19,7 @@
             },
             "id": "back_encogimientos__dumbbells",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "bodyRegion": "UPPER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Eleva los hombros hacia las orejas y baja con control sin balanceo."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -199,6 +201,7 @@
               "setupCues": [
                 "Toma el peso con los brazos extendidos y la postura erguida."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
@@ -221,6 +224,7 @@
             },
             "id": "back_encogimientos__smith_machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "bodyRegion": "UPPER",
@@ -234,6 +238,7 @@
               "executionCues": [
                 "Eleva los hombros hacia las orejas y baja con control sin balanceo."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
@@ -401,6 +406,7 @@
               "setupCues": [
                 "Toma el peso con los brazos extendidos y la postura erguida."
               ],
+              "setupTimeSeconds": 40,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
@@ -423,6 +429,7 @@
             },
             "id": "back_encogimientos__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "bodyRegion": "UPPER",
@@ -436,6 +443,7 @@
               "executionCues": [
                 "Eleva los hombros hacia las orejas y baja con control sin balanceo."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
@@ -603,6 +611,7 @@
               "setupCues": [
                 "Toma el peso con los brazos extendidos y la postura erguida."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
@@ -625,6 +634,7 @@
             },
             "id": "back_encogimientos__kettlebell",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "bodyRegion": "UPPER",
@@ -638,6 +648,7 @@
               "executionCues": [
                 "Eleva los hombros hacia las orejas y baja con control sin balanceo."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -805,6 +816,7 @@
               "setupCues": [
                 "Toma el peso con los brazos extendidos y la postura erguida."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
@@ -827,6 +839,7 @@
             },
             "id": "back_encogimientos__barbell",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "bodyRegion": "UPPER",
@@ -840,6 +853,7 @@
               "executionCues": [
                 "Eleva los hombros hacia las orejas y baja con control sin balanceo."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -1007,6 +1021,7 @@
               "setupCues": [
                 "Toma el peso con los brazos extendidos y la postura erguida."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
@@ -1056,6 +1071,7 @@
             },
             "id": "back_encogimientos_kelso__barbell",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "bodyRegion": "UPPER",
@@ -1069,6 +1085,7 @@
               "executionCues": [
                 "Eleva los hombros hacia arriba con control desde la posición inclinada."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -1235,6 +1252,7 @@
               "setupCues": [
                 "Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."
               ],
+              "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
@@ -1257,6 +1275,7 @@
             },
             "id": "back_encogimientos_kelso__machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "bodyRegion": "UPPER",
@@ -1270,6 +1289,7 @@
               "executionCues": [
                 "Eleva los hombros hacia arriba con control desde la posición inclinada."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
@@ -1436,6 +1456,7 @@
               "setupCues": [
                 "Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."
               ],
+              "setupTimeSeconds": 45,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
@@ -1458,6 +1479,7 @@
             },
             "id": "back_encogimientos_kelso__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "bodyRegion": "UPPER",
@@ -1471,6 +1493,7 @@
               "executionCues": [
                 "Eleva los hombros hacia arriba con control desde la posición inclinada."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
@@ -1637,6 +1660,7 @@
               "setupCues": [
                 "Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
@@ -1659,6 +1683,7 @@
             },
             "id": "back_encogimientos_kelso__kettlebell",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "bodyRegion": "UPPER",
@@ -1672,6 +1697,7 @@
               "executionCues": [
                 "Eleva los hombros hacia arriba con control desde la posición inclinada."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -1838,6 +1864,7 @@
               "setupCues": [
                 "Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
@@ -1860,6 +1887,7 @@
             },
             "id": "back_encogimientos_kelso__smith_machine",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "bodyRegion": "UPPER",
@@ -1873,6 +1901,7 @@
               "executionCues": [
                 "Eleva los hombros hacia arriba con control desde la posición inclinada."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
@@ -2039,6 +2068,7 @@
               "setupCues": [
                 "Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."
               ],
+              "setupTimeSeconds": 40,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
@@ -2087,6 +2117,7 @@
             },
             "id": "back_y_raises__default",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
@@ -2100,6 +2131,7 @@
               "executionCues": [
                 "Ejecuta «Y-Raises» siguiendo el patrón elevación escapular con recorrido controlado y sin cambiar la trayectoria bajo carga."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -2278,6 +2310,7 @@
               "setupCues": [
                 "Configura mancuerna y adopta la posición específica de «Y-Raises» antes de iniciar; conserva una base estable."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,

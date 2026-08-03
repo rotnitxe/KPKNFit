@@ -19,6 +19,7 @@
             },
             "id": "supination__dumbbells",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -32,6 +33,7 @@
               "executionCues": [
                 "Gira la palma hacia arriba rotando solo el antebrazo, con el codo quieto."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -197,6 +199,7 @@
               "setupCues": [
                 "Sujeta el peso con la palma hacia abajo y el codo apoyado y fijo."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
@@ -219,6 +222,7 @@
             },
             "id": "supination__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -232,6 +236,7 @@
               "executionCues": [
                 "Gira la palma hacia arriba rotando solo el antebrazo, con el codo quieto."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
@@ -397,6 +402,7 @@
               "setupCues": [
                 "Sujeta el peso con la palma hacia abajo y el codo apoyado y fijo."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
@@ -446,6 +452,7 @@
             },
             "id": "pronation__dumbbells",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -459,6 +466,7 @@
               "executionCues": [
                 "Gira la palma hacia abajo rotando solo el antebrazo, con el codo quieto."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -616,6 +624,7 @@
               "setupCues": [
                 "Sujeta el peso con la palma hacia arriba y el codo apoyado y fijo."
               ],
+              "setupTimeSeconds": 20,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
@@ -638,6 +647,7 @@
             },
             "id": "pronation__cable",
             "profile": {
+              "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
@@ -651,6 +661,7 @@
               "executionCues": [
                 "Gira la palma hacia abajo rotando solo el antebrazo, con el codo quieto."
               ],
+              "fatigueTier": "BAJA",
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
@@ -808,6 +819,7 @@
               "setupCues": [
                 "Sujeta el peso con la palma hacia arriba y el codo apoyado y fijo."
               ],
+              "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
