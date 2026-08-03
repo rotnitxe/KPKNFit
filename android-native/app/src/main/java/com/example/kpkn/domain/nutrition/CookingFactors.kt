@@ -119,3 +119,92 @@ data class Quadruple(
 )
 
 fun round1(v: Double): Double = kotlin.math.round(v * 10.0) / 10.0
+
+// ─── Absorción de aceite por categoría culinaria (IT3) ───────────────────────
+
+/**
+ * Categoría culinaria para estimar cuánto aceite absorbe un alimento al freírse.
+ * Antes se sumaban 8 g fijos a todo; ahora el medio depende del alimento:
+ * las masas y tubérculos absorben mucho, las carnes rojas rinden su propia grasa.
+ */
+enum class OilAbsorptionCategory(val mediumGrams: Double) {
+    /** Pollo, pavo, pescados magros, huevo, mariscos. */
+    PROTEIN_LEAN(6.0),
+    /** Carnes rojas y procesadas: rinden grasa propia al freírse. */
+    PROTEIN_FATTY(4.0),
+    /** Verduras y hortalizas. */
+    VEGETABLE(8.0),
+    /** Papas, masas, panes, empanadas, frituras rebozadas. */
+    STARCH_BATTER(12.0),
+    /** Legumbres. */
+    LEGUME(7.0),
+    /** Resto. */
+    DEFAULT(8.0),
+}
+
+/** Gramos de aceite añadido por nivel, según la categoría del alimento. */
+fun oilGramsForLevelInCategory(oilLevel: String, category: OilAbsorptionCategory): Double {
+    val base = category.mediumGrams
+    return when (oilLevel.lowercase()) {
+        "poco" -> 3.0
+        "abundante" -> base * 2.2
+        else -> base
+    }
+}
+
+private val STARCH_BATTER_KEYWORDS = listOf(
+    "papa", "papas", "batata", "camote", "yuca", "churro", "donut", "croqueta",
+    "empanada", "sopaipilla", "pan", "marraqueta", "hallulla", "completo",
+    "milanesa", "rebozado", "tempura", "masa", "tortilla", "arepa", "choclo",
+    "maiz", "maíz",
+)
+
+private val PROTEIN_LEAN_KEYWORDS = listOf(
+    "pollo", "pechuga", "pavo", "pescado", "merluza", "congrio", "salmón", "salmon",
+    "atún", "atun", "camarón", "camaron", "langostino", "pulpo", "calamar", "huevo",
+    "clara", "tilapia", "trucha", "corvina", "reineta", "jurel",
+)
+
+private val PROTEIN_FATTY_KEYWORDS = listOf(
+    "carne", "vacuno", "res", "cerdo", "puerco", "lomo", "bife", "asado", "costilla",
+    "chuleta", "longaniza", "salchicha", "vienesa", "tocino", "panceta", "chorizo",
+    "molida", "filete",
+)
+
+private val LEGUME_KEYWORDS = listOf(
+    "lenteja", "garbanzo", "poroto", "frijol", "frejol", "haba", "soya", "soja", "pvt",
+)
+
+private val VEGETABLE_KEYWORDS = listOf(
+    "verdura", "lechuga", "tomate", "cebolla", "zapallo", "brócoli", "brocoli",
+    "champiñón", "champinon", "berenjena", "espinaca", "acelga", "zanahoria",
+    "pepino", "pimentón", "pimenton", "coliflor", "repollo", "poroto verde",
+)
+
+/** Categoría de absorción de aceite según el nombre del alimento. */
+fun oilAbsorptionCategory(foodName: String): OilAbsorptionCategory {
+    val lower = foodName.lowercase()
+    return when {
+        STARCH_BATTER_KEYWORDS.any { lower.contains(it) } -> OilAbsorptionCategory.STARCH_BATTER
+        PROTEIN_LEAN_KEYWORDS.any { lower.contains(it) } -> OilAbsorptionCategory.PROTEIN_LEAN
+        PROTEIN_FATTY_KEYWORDS.any { lower.contains(it) } -> OilAbsorptionCategory.PROTEIN_FATTY
+        LEGUME_KEYWORDS.any { lower.contains(it) } -> OilAbsorptionCategory.LEGUME
+        VEGETABLE_KEYWORDS.any { lower.contains(it) } -> OilAbsorptionCategory.VEGETABLE
+        else -> OilAbsorptionCategory.DEFAULT
+    }
+}
+
+/**
+ * Factor de cocción por categoría (IT3): la fritura de masas/tubérculos concentra
+ * más kcal por el aceite absorbido (×1.20 en vez de ×1.10). El resto usa la tabla base.
+ */
+fun cookingFactorFor(foodName: String, method: CookingMethod?): CookingFactor {
+    if (method == null) return CookingFactor()
+    val base = COOKING_FACTORS[method] ?: return CookingFactor()
+    if (method == CookingMethod.FRITO &&
+        oilAbsorptionCategory(foodName) == OilAbsorptionCategory.STARCH_BATTER
+    ) {
+        return base.copy(kcal = 1.20)
+    }
+    return base
+}

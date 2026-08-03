@@ -162,7 +162,7 @@ object WorkoutStepRules {
             steps += WorkoutStep(
                 type = WorkoutStepType.MOBILITY,
                 exerciseId = exercise.id,
-                exerciseName = displayWorkoutExerciseName(exercise),
+                exerciseName = spokenWorkoutExerciseName(exercise),
                 stepKey = mobilityStepKey(exercise.id, mobility.id),
                 mobilitySeriesId = mobility.id,
                 supersetGroupId = groupId,
@@ -194,7 +194,7 @@ object WorkoutStepRules {
         return WorkoutStep(
             type = WorkoutStepType.WARMUP,
             exerciseId = exercise.id,
-            exerciseName = displayWorkoutExerciseName(exercise),
+            exerciseName = spokenWorkoutExerciseName(exercise),
             stepKey = warmupSet?.let { warmupStepKey(exercise.id, it.id) }.orEmpty(),
             setIndex = index,
             warmupSetId = warmupSet?.id,
@@ -215,7 +215,7 @@ object WorkoutStepRules {
             steps += WorkoutStep(
                 type = WorkoutStepType.WORKING_SET,
                 exerciseId = exercise.id,
-                exerciseName = displayWorkoutExerciseName(exercise),
+                exerciseName = spokenWorkoutExerciseName(exercise),
                 stepKey = workingStepKey(exercise.id, setIndex),
                 setIndex = setIndex,
                 supersetGroupId = groupId,
@@ -239,7 +239,7 @@ object WorkoutStepRules {
             steps += WorkoutStep(
                 type = WorkoutStepType.WORKING_SET,
                 exerciseId = exercise.id,
-                exerciseName = displayWorkoutExerciseName(exercise),
+                exerciseName = spokenWorkoutExerciseName(exercise),
                 stepKey = workingStepKey(exercise.id, setIndex, side),
                 setIndex = setIndex,
                 side = side,

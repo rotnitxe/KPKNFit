@@ -119,8 +119,9 @@ fun scaleFoodByPortion(
     var fatPerGram = food.fats
 
     if (cookingMethod != null && cookingMethod != CookingMethod.CRUDO) {
-        val cf = COOKING_FACTORS[cookingMethod]
-        if (cf != null) {
+        // IT3: factor por categoría de alimento (fritura de masas/tubérculos concentra más).
+        val cf = cookingFactorFor(food.name, cookingMethod)
+        if (cf != CookingFactor()) {
             calPerGram = food.calories * cf.kcal
             protPerGram = food.protein * cf.protein * (1.0 + proteinBoost)
             carbPerGram = food.carbs * cf.carbs
@@ -181,8 +182,9 @@ fun createLoggedFood(
 ): LoggedFood {
     val ratio = if (amount > 0) amount / 100.0 else 1.0
     val (adjCal, adjProt, adjCarb, adjFat) = if (cookingMethod != null && cookingMethod != CookingMethod.CRUDO) {
-        val cf = COOKING_FACTORS[cookingMethod]
-        if (cf != null) {
+        // IT3: factor por categoría de alimento.
+        val cf = cookingFactorFor(foodName, cookingMethod)
+        if (cf != CookingFactor()) {
             Quadruple(
                 round1(calories * cf.kcal * ratio),
                 round1(protein * cf.protein * ratio),

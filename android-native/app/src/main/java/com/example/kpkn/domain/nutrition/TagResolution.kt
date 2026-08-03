@@ -168,8 +168,10 @@ class TagResolver(private val port: FoodResolutionPort) {
 
             }
             val resolutionStatus = when {
-                needsClarify -> FoodResolutionStatus.NEEDS_STATE
+                // E16: alias de aproximación primero — "cereal" no debe pedir estado
+                // de avena (identidad equivocada): pasa a revisión visible.
                 approximationAlias -> FoodResolutionStatus.NEEDS_CONFIRMATION
+                needsClarify -> FoodResolutionStatus.NEEDS_STATE
                 localAuthority && !requiresCandidateReview -> FoodResolutionStatus.AUTO
                 effectiveFood != null -> FoodResolutionStatus.NEEDS_CONFIRMATION
                 else -> FoodResolutionStatus.NO_RESOLVED
@@ -242,6 +244,7 @@ class TagResolver(private val port: FoodResolutionPort) {
                         finalLogged.copy(analysisSource = AnalysisSource.DATABASE),
                         item.cookingMethod,
                         effectiveOilLevel,
+                        foodName = effectiveFood.name,
                     )
                 } else {
                     finalLogged.copy(
@@ -505,11 +508,28 @@ fun oilGramsForLevel(oilLevel: String): Double = when (oilLevel.lowercase()) {
     else -> 8.0
 }
 
-fun adjustLoggedFoodForOil(logged: LoggedFood, method: CookingMethod?, oilLevel: String): LoggedFood {
+fun adjustLoggedFoodForOil(logged: LoggedFood, method: CookingMethod?, oilLevel: String): LoggedFood =
+    adjustLoggedFoodForOil(logged, method, oilLevel, foodName = null)
+
+/**
+ * IT3: aceite por categoría del alimento — "huevo frito" (magro, 6 g) y
+ * "papas fritas" desde crudo (masa/tubérculo, 12 g) ya no suman los mismos 8 g.
+ * Cuando no se conoce el alimento, se mantiene el default histórico.
+ */
+fun adjustLoggedFoodForOil(
+    logged: LoggedFood,
+    method: CookingMethod?,
+    oilLevel: String,
+    foodName: String?,
+): LoggedFood {
     if (method != CookingMethod.FRITO && method != CookingMethod.EMPANIZADO_FRITO) {
         return logged
     }
-    val oilGrams = oilGramsForLevel(oilLevel)
+    val oilGrams = if (foodName.isNullOrBlank()) {
+        oilGramsForLevel(oilLevel)
+    } else {
+        oilGramsForLevelInCategory(oilLevel, oilAbsorptionCategory(foodName))
+    }
     val addedFat = oilGrams
     val addedCal = oilGrams * 9
     return logged.copy(
@@ -518,11 +538,24 @@ fun adjustLoggedFoodForOil(logged: LoggedFood, method: CookingMethod?, oilLevel:
     )
 }
 
-fun stripOilFromLoggedFood(logged: LoggedFood, method: CookingMethod?, oilLevel: String): LoggedFood {
+fun stripOilFromLoggedFood(logged: LoggedFood, method: CookingMethod?, oilLevel: String): LoggedFood =
+    stripOilFromLoggedFood(logged, method, oilLevel, foodName = null)
+
+/** Versión por categoría para el strip (debe coincidir con el add). */
+fun stripOilFromLoggedFood(
+    logged: LoggedFood,
+    method: CookingMethod?,
+    oilLevel: String,
+    foodName: String?,
+): LoggedFood {
     if (method != CookingMethod.FRITO && method != CookingMethod.EMPANIZADO_FRITO) {
         return logged
     }
-    val oilGrams = oilGramsForLevel(oilLevel)
+    val oilGrams = if (foodName.isNullOrBlank()) {
+        oilGramsForLevel(oilLevel)
+    } else {
+        oilGramsForLevelInCategory(oilLevel, oilAbsorptionCategory(foodName))
+    }
     return logged.copy(
         fats = kotlin.math.round((logged.fats - oilGrams).coerceAtLeast(0.0) * 10.0) / 10.0,
         calories = kotlin.math.round((logged.calories - oilGrams * 9).coerceAtLeast(0.0)),

@@ -91,6 +91,9 @@ internal fun ExerciseDefinitionV2.toLegacyInfo(
         catalogRichMetadataJson = profile.richMetadata?.let { metadata ->
             catalogRichMetadataCodec.encodeToString(ResolvedExerciseMetadataV2.serializer(), metadata)
         },
+        catalogVariantChips = optionAxes.mapNotNull { axis ->
+            configuration.selectedOptions[axis]?.let { optionLabel(it) }
+        },
     )
 }
 
@@ -168,6 +171,31 @@ private fun equipmentLabel(id: String): String = mapOf(
     "smith_machine" to "Máquina Smith",
     "safety_bar" to "Barra de Seguridad",
 )[id] ?: id
+
+/** Short user-facing label for a selected v2 option value. */
+private fun optionLabel(id: String): String = when (id) {
+    "bilateral" -> "Bilateral"
+    "unilateral" -> "Unilateral"
+    "seated" -> "Sentado"
+    "standing" -> "De pie"
+    "supinated" -> "Supino"
+    "neutral" -> "Neutro"
+    "pronated" -> "Prono"
+    "wide" -> "Amplio"
+    "medium" -> "Medio"
+    "close" -> "Cerrado"
+    "high" -> "Polea Alta"
+    "mid" -> "Polea Media"
+    "low" -> "Polea Baja"
+    "flat" -> "Plano"
+    "feet_elevated" -> "Pies Elevados"
+    "h_bar" -> "Barra H"
+    "t_bar" -> "Barra T"
+    "hex_bar" -> "Barra Hex"
+    "sliders" -> "Deslizadores"
+    "ghd" -> "GHD"
+    else -> equipmentLabel(id)
+}
 
 private fun movementLabel(id: String): String = mapOf(
     "hip_hinge" to "Bisagra",

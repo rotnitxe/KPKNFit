@@ -45,6 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.domain.exercises.resolveCatalogInfoForDisplay
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
@@ -85,7 +86,7 @@ internal fun SessionEditorListItem(
     onOpenCompetitionConfig: () -> Unit,
     onLooseBoundsReport: (Rect) -> Unit,
     onPartContentBoundsReport: (String, Rect) -> Unit,
-    beginExerciseDrag: (String, String) -> Unit,
+    beginExerciseDrag: (String, String, Offset) -> Unit,
     updateExerciseDrag: (Offset) -> Unit,
     endExerciseDrag: () -> Unit,
     projectedShiftFor: (String, Int, String) -> Float,
@@ -130,10 +131,20 @@ internal fun SessionEditorListItem(
 
         is SessionListItem.LooseExercise -> {
             val exercise = session.exercises.firstOrNull { it.id == listItem.exerciseId } ?: return
+            val shiftY by animateFloatAsState(
+                targetValue = if (draggingExerciseId != null) {
+                    projectedShiftFor("__loose__", listItem.indexInLoose, exercise.id)
+                } else {
+                    0f
+                },
+                animationSpec = tween(160),
+                label = "looseDnDShift",
+            )
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 4.dp)
+                    .graphicsLayer { translationY = shiftY }
                     .onGloballyPositioned { onLooseBoundsReport(it.boundsInWindow()) },
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
@@ -165,6 +176,15 @@ internal fun SessionEditorListItem(
             val part = groupedParts.firstOrNull { it.id == listItem.partId } ?: return
             val exercise = part.exercises.firstOrNull { it.id == listItem.exerciseId } ?: return
             val partAccent = remember(part.color) { resolvePartAccent(part.color) }
+            val shiftY by animateFloatAsState(
+                targetValue = if (draggingExerciseId != null) {
+                    projectedShiftFor(part.id, listItem.indexInPart, exercise.id)
+                } else {
+                    0f
+                },
+                animationSpec = tween(160),
+                label = "partDnDShift",
+            )
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -172,6 +192,7 @@ internal fun SessionEditorListItem(
                     .background(partAccent.brush(alpha = 0.06f))
                     .drawPartBorder(partAccent.primary)
                     .padding(horizontal = 4.dp, vertical = 4.dp)
+                    .graphicsLayer { translationY = shiftY }
                     .onGloballyPositioned { onPartContentBoundsReport(part.id, it.boundsInWindow()) },
             ) {
                 PartExerciseItem(
@@ -204,10 +225,20 @@ internal fun SessionEditorListItem(
                 session.exercises.firstOrNull { it.id == id }
             }
             if (supersetMembers.size < 2) return
+            val looseSupersetShiftY by animateFloatAsState(
+                targetValue = if (draggingExerciseId != null) {
+                    projectedShiftFor("__loose__", listItem.indexInLoose, supersetMembers.first().id)
+                } else {
+                    0f
+                },
+                animationSpec = tween(160),
+                label = "looseSupersetDnDShift",
+            )
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 4.dp)
+                    .graphicsLayer { translationY = looseSupersetShiftY }
                     .onGloballyPositioned { onLooseBoundsReport(it.boundsInWindow()) },
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
@@ -244,6 +275,15 @@ internal fun SessionEditorListItem(
             }
             if (supersetMembers.size < 2) return
             val partAccent = remember(part.color) { resolvePartAccent(part.color) }
+            val partSupersetShiftY by animateFloatAsState(
+                targetValue = if (draggingExerciseId != null) {
+                    projectedShiftFor(part.id, listItem.indexInPart, supersetMembers.first().id)
+                } else {
+                    0f
+                },
+                animationSpec = tween(160),
+                label = "partSupersetDnDShift",
+            )
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -251,6 +291,7 @@ internal fun SessionEditorListItem(
                     .background(partAccent.brush(alpha = 0.06f))
                     .drawPartBorder(partAccent.primary)
                     .padding(horizontal = 4.dp, vertical = 4.dp)
+                    .graphicsLayer { translationY = partSupersetShiftY }
                     .onGloballyPositioned { onPartContentBoundsReport(part.id, it.boundsInWindow()) },
             ) {
                 PartSupersetItem(
@@ -289,7 +330,8 @@ internal fun SessionEditorListItem(
                     .padding(horizontal = 16.dp)
                     .clip(footerShape)
                     .background(partAccent.brush(alpha = 0.06f))
-                    .padding(horizontal = 4.dp, vertical = 6.dp),
+                    .padding(horizontal = 4.dp, vertical = 6.dp)
+                    .onGloballyPositioned { onPartContentBoundsReport(part.id, it.boundsInWindow()) },
             ) {
                 FilledTonalButton(
                     onClick = { viewModel.openPicker(part.id) },
@@ -332,7 +374,7 @@ private fun LooseExerciseItem(
     exerciseBounds: MutableMap<String, Rect>,
     pendingAutoExpandExerciseId: String?,
     onPendingAutoExpandHandled: (String) -> Unit,
-    beginExerciseDrag: (String, String) -> Unit,
+    beginExerciseDrag: (String, String, Offset) -> Unit,
     updateExerciseDrag: (Offset) -> Unit,
     endExerciseDrag: () -> Unit,
     projectedShiftFor: (String, Int, String) -> Float,
@@ -341,17 +383,9 @@ private fun LooseExerciseItem(
     val partId = "__loose__"
     val accentHex = resolveExerciseAccentHex(session, partColor = null)
     key("loose|${exercise.id}") {
-        SessionEditorDropIndicator(
-            visible = draggingExerciseId != null &&
-                draggingExerciseId != exercise.id &&
-                (
-                    (exerciseDropTargetPartId == partId && exerciseDropTargetIndex == index) ||
-                        exerciseDropTargetKey == "$partId|${exercise.id}"
-                    ),
-        )
         ExerciseEditorCard(
             exercise = exercise,
-            exerciseInfo = exercise.exerciseDbId?.let { exerciseInfoById[it] },
+            exerciseInfo = resolveCatalogInfoForDisplay(exercise, exerciseInfoById),
             accentHex = accentHex,
             partId = partId,
             isCompetitionMovement = exercise.matchesCompetitionMovement(competitionMovementIds),
@@ -364,7 +398,7 @@ private fun LooseExerciseItem(
                 ) && draggingExerciseId != exercise.id,
             isPartDropTarget = exerciseDropTargetPartId == partId && draggingExerciseId != exercise.id,
             onBoundsChange = { rect -> exerciseBounds["$partId|${exercise.id}"] = rect },
-            onDragStart = { beginExerciseDrag(partId, exercise.id) },
+            onDragStart = { grab -> beginExerciseDrag(partId, exercise.id, grab) },
             onDrag = updateExerciseDrag,
             onDragEnd = { endExerciseDrag() },
             onUpdateExercise = { updater -> viewModel.updateExercise(null, exercise.id, updater) },
@@ -410,7 +444,7 @@ private fun PartExerciseItem(
     exerciseBounds: MutableMap<String, Rect>,
     pendingAutoExpandExerciseId: String?,
     onPendingAutoExpandHandled: (String) -> Unit,
-    beginExerciseDrag: (String, String) -> Unit,
+    beginExerciseDrag: (String, String, Offset) -> Unit,
     updateExerciseDrag: (Offset) -> Unit,
     endExerciseDrag: () -> Unit,
     projectedShiftFor: (String, Int, String) -> Float,
@@ -418,17 +452,9 @@ private fun PartExerciseItem(
 ) {
     key("${part.id}|${exercise.id}") {
         val accentHex = resolveExerciseAccentHex(session, part.color)
-        SessionEditorDropIndicator(
-            visible = draggingExerciseId != null &&
-                draggingExerciseId != exercise.id &&
-                (
-                    (exerciseDropTargetPartId == part.id && exerciseDropTargetIndex == index) ||
-                        exerciseDropTargetKey == "${part.id}|${exercise.id}"
-                    ),
-        )
         ExerciseEditorCard(
             exercise = exercise,
-            exerciseInfo = exercise.exerciseDbId?.let { exerciseInfoById[it] },
+            exerciseInfo = resolveCatalogInfoForDisplay(exercise, exerciseInfoById),
             accentHex = accentHex,
             partId = part.id,
             isCompetitionMovement = exercise.matchesCompetitionMovement(competitionMovementIds),
@@ -441,7 +467,7 @@ private fun PartExerciseItem(
                 ) && draggingExerciseId != exercise.id,
             isPartDropTarget = exerciseDropTargetPartId == part.id && draggingExerciseId != exercise.id,
             onBoundsChange = { rect -> exerciseBounds["${part.id}|${exercise.id}"] = rect },
-            onDragStart = { beginExerciseDrag(part.id, exercise.id) },
+            onDragStart = { grab -> beginExerciseDrag(part.id, exercise.id, grab) },
             onDrag = updateExerciseDrag,
             onDragEnd = { endExerciseDrag() },
             onUpdateExercise = { updater -> viewModel.updateExercise(part.id, exercise.id, updater) },
@@ -488,7 +514,7 @@ private fun LooseSupersetItem(
     exerciseBounds: MutableMap<String, Rect>,
     pendingAutoExpandExerciseId: String?,
     onPendingAutoExpandHandled: (String) -> Unit,
-    beginExerciseDrag: (String, String) -> Unit,
+    beginExerciseDrag: (String, String, Offset) -> Unit,
     updateExerciseDrag: (Offset) -> Unit,
     endExerciseDrag: () -> Unit,
     projectedShiftFor: (String, Int, String) -> Float,
@@ -497,14 +523,6 @@ private fun LooseSupersetItem(
     val partId = "__loose__"
     val accentHex = resolveExerciseAccentHex(session, partColor = null)
     val firstMember = supersetMembers.first()
-    SessionEditorDropIndicator(
-        visible = draggingExerciseId != null &&
-            draggingExerciseId != firstMember.id &&
-            (
-                (exerciseDropTargetPartId == partId && exerciseDropTargetIndex == index) ||
-                    exerciseDropTargetKey == "$partId|${firstMember.id}"
-                ),
-    )
     SupersetGroupEditorCard(
         group = supersetGroup,
         exercises = supersetMembers,
@@ -514,7 +532,7 @@ private fun LooseSupersetItem(
         dragOffset = if (draggingExerciseId == firstMember.id) draggingExerciseOffset else Offset.Zero,
         modifier = Modifier,
         onBoundsChange = { rect -> exerciseBounds["$partId|${firstMember.id}"] = rect },
-        onDragStart = { beginExerciseDrag(partId, firstMember.id) },
+        onDragStart = { grab -> beginExerciseDrag(partId, firstMember.id, grab) },
         onDrag = updateExerciseDrag,
         onDragEnd = { endExerciseDrag() },
         onOpenSupersetCreator = viewModel::openSupersetCreator,
@@ -545,7 +563,7 @@ private fun LooseSupersetItem(
             key("loose|${member.id}") {
                 ExerciseEditorCard(
                     exercise = member,
-                    exerciseInfo = member.exerciseDbId?.let { exerciseInfoById[it] },
+                    exerciseInfo = resolveCatalogInfoForDisplay(member, exerciseInfoById),
                     accentHex = accentHex,
                     partId = partId,
                     isCompetitionMovement = member.matchesCompetitionMovement(competitionMovementIds),
@@ -562,7 +580,7 @@ private fun LooseSupersetItem(
                         // block; its card must not overwrite the group bounds.
                         if (member.id != firstMember.id) exerciseBounds["$partId|${member.id}"] = rect
                     },
-                    onDragStart = { beginExerciseDrag(partId, member.id) },
+                    onDragStart = { grab -> beginExerciseDrag(partId, member.id, grab) },
                     onDrag = updateExerciseDrag,
                     onDragEnd = { endExerciseDrag() },
                     onUpdateExercise = { updater -> viewModel.updateExercise(null, member.id, updater) },
@@ -612,7 +630,7 @@ private fun PartSupersetItem(
     exerciseBounds: MutableMap<String, Rect>,
     pendingAutoExpandExerciseId: String?,
     onPendingAutoExpandHandled: (String) -> Unit,
-    beginExerciseDrag: (String, String) -> Unit,
+    beginExerciseDrag: (String, String, Offset) -> Unit,
     updateExerciseDrag: (Offset) -> Unit,
     endExerciseDrag: () -> Unit,
     projectedShiftFor: (String, Int, String) -> Float,
@@ -620,14 +638,6 @@ private fun PartSupersetItem(
 ) {
     val accentHex = resolveExerciseAccentHex(session, part.color)
     val firstMember = supersetMembers.first()
-    SessionEditorDropIndicator(
-        visible = draggingExerciseId != null &&
-            draggingExerciseId != firstMember.id &&
-            (
-                (exerciseDropTargetPartId == part.id && exerciseDropTargetIndex == index) ||
-                    exerciseDropTargetKey == "${part.id}|${firstMember.id}"
-                ),
-    )
     SupersetGroupEditorCard(
         group = supersetGroup,
         exercises = supersetMembers,
@@ -637,7 +647,7 @@ private fun PartSupersetItem(
         dragOffset = if (draggingExerciseId == firstMember.id) draggingExerciseOffset else Offset.Zero,
         modifier = Modifier,
         onBoundsChange = { rect -> exerciseBounds["${part.id}|${firstMember.id}"] = rect },
-        onDragStart = { beginExerciseDrag(part.id, firstMember.id) },
+        onDragStart = { grab -> beginExerciseDrag(part.id, firstMember.id, grab) },
         onDrag = updateExerciseDrag,
         onDragEnd = { endExerciseDrag() },
         onOpenSupersetCreator = viewModel::openSupersetCreator,
@@ -668,7 +678,7 @@ private fun PartSupersetItem(
             key("${part.id}|${member.id}") {
                 ExerciseEditorCard(
                     exercise = member,
-                    exerciseInfo = member.exerciseDbId?.let { exerciseInfoById[it] },
+                    exerciseInfo = resolveCatalogInfoForDisplay(member, exerciseInfoById),
                     accentHex = accentHex,
                     partId = part.id,
                     isCompetitionMovement = member.matchesCompetitionMovement(competitionMovementIds),
@@ -683,7 +693,7 @@ private fun PartSupersetItem(
                     onBoundsChange = { rect ->
                         if (member.id != firstMember.id) exerciseBounds["${part.id}|${member.id}"] = rect
                     },
-                    onDragStart = { beginExerciseDrag(part.id, member.id) },
+                    onDragStart = { grab -> beginExerciseDrag(part.id, member.id, grab) },
                     onDrag = updateExerciseDrag,
                     onDragEnd = { endExerciseDrag() },
                     onUpdateExercise = { updater -> viewModel.updateExercise(part.id, member.id, updater) },

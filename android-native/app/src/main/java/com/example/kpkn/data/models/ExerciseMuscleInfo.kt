@@ -97,6 +97,9 @@ data class ExerciseMuscleInfo(
     val catalogReviewStatus: String? = null,
     /** Serialized typed v2 metadata; null for legacy/custom records. */
     val catalogRichMetadataJson: String? = null,
+    /** User-facing chips of the exact selected v2 configuration (e.g.
+     *  "Mancuernas", "Supino") in axis order; empty for legacy/custom. */
+    val catalogVariantChips: List<String> = emptyList(),
 )
 
 @Serializable

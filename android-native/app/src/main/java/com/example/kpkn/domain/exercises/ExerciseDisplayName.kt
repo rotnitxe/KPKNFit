@@ -22,6 +22,13 @@ fun exerciseDisplayParts(
     exercise: Exercise,
     catalogInfo: ExerciseMuscleInfo?,
 ): ExerciseDisplayParts {
+    val v2Chips = catalogInfo?.catalogVariantChips.orEmpty()
+    if (v2Chips.isNotEmpty()) {
+        return ExerciseDisplayParts(
+            parentName = exercise.name,
+            chips = dedupeChips(v2Chips),
+        )
+    }
     val selected = exercise.selectedAspects.orEmpty()
     val options = catalogInfo?.catalogOptionAxes.orEmpty().flatMap { aspect ->
         val optionId = selected[aspect.id] ?: return@flatMap emptyList<AspectOption>()
@@ -34,8 +41,22 @@ fun exerciseDisplayParts(
         ?.takeUnless { value -> options.any { it.name.equals(value, ignoreCase = true) } }
     return ExerciseDisplayParts(
         parentName = exercise.name,
-        chips = options.map { it.name } + listOfNotNull(legacyVariant),
+        chips = dedupeChips(options.map { it.name } + listOfNotNull(legacyVariant)),
     )
+}
+
+/**
+ * Removes redundant chips: exact duplicates and chips fully contained in a
+ * more specific one. Example: ["Polea", "Polea Alta"] collapses to
+ * ["Polea Alta"] because the height already implies the implement.
+ */
+private fun dedupeChips(chips: List<String>): List<String> {
+    val unique = chips.distinctBy { it.trim().lowercase() }
+    return unique.filter { chip ->
+        unique.none { other ->
+            other.length > chip.length && other.contains(chip, ignoreCase = true)
+        }
+    }
 }
 
 fun exerciseDisplayName(
@@ -66,7 +87,7 @@ fun completedExerciseDisplayName(
     return exerciseDisplayName(planned, catalogLookup)
 }
 
-private fun resolveCatalogInfoForDisplay(
+internal fun resolveCatalogInfoForDisplay(
     exercise: Exercise,
     catalogLookup: Map<String, ExerciseMuscleInfo>,
 ): ExerciseMuscleInfo? {

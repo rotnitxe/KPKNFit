@@ -1,5 +1,8 @@
 package com.example.kpkn.services.workout
 
+import com.example.kpkn.screens.workout.SPOKEN_CHIP_PHRASES
+import com.example.kpkn.screens.workout.spokenWorkoutExerciseName
+
 import android.content.Context
 import android.os.SystemClock
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
@@ -8,6 +11,7 @@ import com.example.kpkn.services.diagnostics.ReportEnrichmentScheduler
 import com.example.kpkn.services.diagnostics.ReportOrigin
 import com.example.kpkn.services.diagnostics.ReportRequest
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.ReplacementPersistenceScopeV2
@@ -595,6 +599,41 @@ class WorkoutVoiceController(
         )
     }
 
+    fun requestExerciseReplacementConfirmation(
+        targetExerciseId: String,
+        targetName: String,
+        replacement: ExerciseMuscleInfo,
+    ) {
+        confirmedOrCancelled = false
+        val replacementName = spokenExerciseReplacementName(replacement)
+        _state.update {
+            it.copy(
+                pendingAction = VoicePendingAction.ExerciseReplacement(
+                    command = VoiceSessionCommand.ConfirmReplaceExercise(targetExerciseId, replacement),
+                    targetName = targetName,
+                    replacementName = replacementName,
+                ),
+            )
+        }
+        runSpeakingOrSkip(
+            onComplete = {
+                updateStage(VoicePipelineStage.CONFIRM_WAIT)
+                continuousEngine.updateCommandContext(currentVoiceContext(), VoicePipelineStage.CONFIRM_WAIT)
+                scope?.let(::startEngineForCurrentInputMode)
+            },
+            speak = { ttsManager.speakError("¿Reemplazo $targetName por $replacementName?") },
+        )
+    }
+
+    private fun spokenExerciseReplacementName(replacement: ExerciseMuscleInfo): String {
+        val chips = replacement.catalogVariantChips.orEmpty()
+        if (chips.isEmpty()) return replacement.name
+        val spoken = chips.mapNotNull { chip ->
+            SPOKEN_CHIP_PHRASES[chip.trim()] ?: chip.trim()
+        }
+        return if (spoken.isEmpty()) replacement.name else "${replacement.name} ${spoken.joinToString(" y ")}"
+    }
+
     fun requestDiscomfortSelection(candidates: Map<String, String>) {
         if (candidates.isEmpty()) return
         _state.update { it.copy(pendingAction = VoicePendingAction.DiscomfortSelection(candidates = candidates)) }
@@ -630,6 +669,8 @@ class WorkoutVoiceController(
         )
     }
 
+    /** Pide confirmación hablada antes de reemplazar un ejercicio por otro del
+     *  catálogo; el "sí" emite [VoiceSessionCommand.ConfirmReplaceExercise]. */
     fun speakFeedbackSaved() {
         speakWhilePaused {
             ttsManager.speakError("Feedback registrado.")
@@ -1251,6 +1292,7 @@ class WorkoutVoiceController(
                 }
             }
             is VoicePendingAction.ExerciseNavigation -> null
+            is VoicePendingAction.ExerciseReplacement -> null
             is VoicePendingAction.DiscomfortSelection -> pendingClarification.candidates.entries
                 .firstOrNull { normalizedClarification.contains(it.value.lowercase()) }
                 ?.let { VoiceSessionCommand.LogFeedback(null, it.key, null) }
@@ -1426,6 +1468,37 @@ class WorkoutVoiceController(
                     WorkoutVoiceDiagnosticLogger.event(
                         "voice_structure_action",
                         mapOf("type" to pendingClarification.action.javaClass.simpleName, "confirmed" to false),
+                    )
+                    runSpeakingOrSkip(
+                        onComplete = { resumeListening() },
+                        speak = { ttsManager.speakError("Cancelado.") },
+                    )
+                }
+                return
+            }
+            is VoicePendingAction.ExerciseReplacement -> {
+                if (isAffirmativeReply(transcript)) {
+                    _state.update { it.copy(pendingAction = null) }
+                    WorkoutVoiceDiagnosticLogger.event(
+                        "voice_exercise_replacement",
+                        mapOf(
+                            "target" to pendingClarification.targetName,
+                            "replacement" to pendingClarification.replacementName,
+                            "confirmed" to true,
+                        ),
+                    )
+                    onCommandDetected?.invoke(pendingClarification.command)
+                    releaseDucking()
+                    resumeListening()
+                } else {
+                    _state.update { it.copy(pendingAction = null) }
+                    WorkoutVoiceDiagnosticLogger.event(
+                        "voice_exercise_replacement",
+                        mapOf(
+                            "target" to pendingClarification.targetName,
+                            "replacement" to pendingClarification.replacementName,
+                            "confirmed" to false,
+                        ),
                     )
                     runSpeakingOrSkip(
                         onComplete = { resumeListening() },
@@ -1652,7 +1725,7 @@ class WorkoutVoiceController(
             }
             is VoiceSessionCommand.CreateSuperset -> {
                 val info = exerciseInfoProvider?.invoke()
-                val currentName = info?.exercise?.name ?: "el ejercicio actual"
+                val currentName = info?.exercise?.let(::spokenWorkoutExerciseName) ?: "el ejercicio actual"
                 _state.update {
                     it.copy(
                         pendingAction = VoicePendingAction.SupersetCollectMembers(
@@ -2562,6 +2635,14 @@ class WorkoutVoiceController(
         if (navigation != null) {
             _state.update { it.copy(pendingAction = null) }
             onCommandDetected?.invoke(navigation.command)
+            releaseDucking()
+            resumeListening()
+            return
+        }
+        val replacement = _state.value.pendingAction as? VoicePendingAction.ExerciseReplacement
+        if (replacement != null) {
+            _state.update { it.copy(pendingAction = null) }
+            onCommandDetected?.invoke(replacement.command)
             releaseDucking()
             resumeListening()
             return

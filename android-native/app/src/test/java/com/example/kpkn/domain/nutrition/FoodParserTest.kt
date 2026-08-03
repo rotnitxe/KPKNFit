@@ -320,4 +320,50 @@ class FoodParserTest {
         assertEquals(signature(first), signature(second))
         assertEquals(signature(second), signature(third))
     }
+
+    // ─── IT3: vocabulario de cocción ───────────────────────────────────────
+
+    @Test
+    fun `IT3 huevo duro detecta COCIDO`() {
+        val result = parseMealDescription("2 huevos duros")
+        assertEquals(1, result.items.size)
+        assertEquals(2.0, result.items[0].quantity, 0.01)
+        assertEquals(CookingMethod.COCIDO, result.items[0].cookingMethod)
+    }
+
+    @Test
+    fun `IT3 guiso detecta GUISADO`() {
+        val result = parseMealDescription("guiso de lentejas")
+        assertEquals(1, result.items.size)
+        assertEquals(CookingMethod.GUISADO, result.items[0].cookingMethod)
+    }
+
+    @Test
+    fun `IT3 guisado y guisito tambien detectan GUISADO`() {
+        assertEquals(CookingMethod.GUISADO, parseMealDescription("lentejas guisadas").items[0].cookingMethod)
+        assertEquals(CookingMethod.GUISADO, parseMealDescription("un guisito de pollo").items[0].cookingMethod)
+    }
+
+    @Test
+    fun `IT3 aceite por categoria en pipeline completo`() {
+        val foods = listOf(
+            com.example.kpkn.data.models.FoodItem(
+                id = "t1", name = "Papa (cruda)", servingSize = 100.0, unit = "g",
+                calories = 87.0, protein = 1.9, carbs = 20.0, fats = 0.1,
+            ),
+        )
+        val logged = com.example.kpkn.domain.nutrition.scaleFoodByPortion(
+            food = foods[0],
+            amountGrams = 100.0,
+            cookingMethod = CookingMethod.FRITO,
+        )
+        // Factor por categoría: papas → kcal ×1.20
+        assertEquals(104.4, logged.calories, 0.5) // 87 × 1.20
+        // Aceite medio para tubérculo: 12 g
+        val oiled = com.example.kpkn.domain.nutrition.adjustLoggedFoodForOil(
+            logged, CookingMethod.FRITO, "medio", foodName = "Papa (cruda)",
+        )
+        assertEquals(12.1, oiled.fats, 0.1) // 0.1 + 12
+        assertEquals(212.4, oiled.calories, 0.5) // 104.4 + 108
+    }
 }

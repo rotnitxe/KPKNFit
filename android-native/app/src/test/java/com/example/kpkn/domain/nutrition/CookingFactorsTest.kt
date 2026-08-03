@@ -141,4 +141,70 @@ class CookingFactorsTest {
         assert(isLikelyLiquid("té"))
         assert(isLikelyLiquid("leche descremada"))
     }
+
+    // ─── IT3: absorción de aceite y factor de cocción por categoría ─────────
+
+    @Test
+    fun `IT3 aceite medio por categoria de alimento`() {
+        assertEquals(6.0, oilGramsForLevelInCategory("medio", oilAbsorptionCategory("Pechuga de Pollo")), 0.001)
+        assertEquals(6.0, oilGramsForLevelInCategory("medio", oilAbsorptionCategory("huevo")), 0.001)
+        assertEquals(4.0, oilGramsForLevelInCategory("medio", oilAbsorptionCategory("Carne molida")), 0.001)
+        assertEquals(12.0, oilGramsForLevelInCategory("medio", oilAbsorptionCategory("papas fritas")), 0.001)
+        assertEquals(12.0, oilGramsForLevelInCategory("medio", oilAbsorptionCategory("Empanada de Pino")), 0.001)
+        assertEquals(8.0, oilGramsForLevelInCategory("medio", oilAbsorptionCategory("tomate")), 0.001)
+        assertEquals(7.0, oilGramsForLevelInCategory("medio", oilAbsorptionCategory("lentejas")), 0.001)
+        assertEquals(8.0, oilGramsForLevelInCategory("medio", oilAbsorptionCategory("algo raro")), 0.001)
+    }
+
+    @Test
+    fun `IT3 aceite poco y abundante escalan sobre la categoria`() {
+        assertEquals(3.0, oilGramsForLevelInCategory("poco", oilAbsorptionCategory("papas fritas")), 0.001)
+        val abundantePapa = oilGramsForLevelInCategory("abundante", oilAbsorptionCategory("papas fritas"))
+        assertEquals(26.4, abundantePapa, 0.1)
+        val abundantePollo = oilGramsForLevelInCategory("abundante", oilAbsorptionCategory("Pollo"))
+        assertEquals(13.2, abundantePollo, 0.1)
+    }
+
+    @Test
+    fun `IT3 factor de fritura mayor para masas y tuberculos`() {
+        val papas = cookingFactorFor("papas", CookingMethod.FRITO)
+        assertEquals(1.20, papas.kcal, 0.01)
+        val pollo = cookingFactorFor("Pollo", CookingMethod.FRITO)
+        assertEquals(1.10, pollo.kcal, 0.01)
+        val hornoPapas = cookingFactorFor("papas", CookingMethod.HORNO)
+        assertEquals(1.15, hornoPapas.kcal, 0.01)
+        val sinMetodo = cookingFactorFor("papas", null)
+        assertEquals(1.00, sinMetodo.kcal, 0.01)
+    }
+
+    @Test
+    fun `IT3 adjust oil por nombre de alimento`() {
+        val base = com.example.kpkn.data.models.LoggedFood(
+            id = "1", foodName = "Papa (cruda)", amount = 100.0,
+            calories = 100.0, protein = 2.0, carbs = 20.0, fats = 1.0,
+            cookingMethod = com.example.kpkn.data.models.CookingMethod.FRITO,
+        )
+        val papaFrita = adjustLoggedFoodForOil(base, com.example.kpkn.data.models.CookingMethod.FRITO, "medio", foodName = "Papa")
+        assertEquals(13.0, papaFrita.fats, 0.01) // 1 + 12
+        assertEquals(208.0, papaFrita.calories, 0.01) // 100 + 108
+        val huevoFrito = adjustLoggedFoodForOil(base, com.example.kpkn.data.models.CookingMethod.FRITO, "medio", foodName = "Huevo")
+        assertEquals(7.0, huevoFrito.fats, 0.01) // 1 + 6
+        val sinNombre = adjustLoggedFoodForOil(base, com.example.kpkn.data.models.CookingMethod.FRITO, "medio")
+        assertEquals(9.0, sinNombre.fats, 0.01) // 1 + 8 (default histórico)
+    }
+
+    @Test
+    fun `IT3 strip y reapply con categoria son consistentes`() {
+        val logged = com.example.kpkn.data.models.LoggedFood(
+            id = "1", foodName = "Papas", amount = 100.0,
+            calories = 208.0, protein = 2.0, carbs = 20.0, fats = 13.0,
+            cookingMethod = com.example.kpkn.data.models.CookingMethod.FRITO,
+        )
+        val stripped = stripOilFromLoggedFood(logged, com.example.kpkn.data.models.CookingMethod.FRITO, "medio", foodName = "Papas")
+        assertEquals(1.0, stripped.fats, 0.01)
+        assertEquals(100.0, stripped.calories, 0.01)
+        val reapplied = adjustLoggedFoodForOil(stripped, com.example.kpkn.data.models.CookingMethod.FRITO, "medio", foodName = "Papas")
+        assertEquals(13.0, reapplied.fats, 0.01)
+        assertEquals(208.0, reapplied.calories, 0.01)
+    }
 }

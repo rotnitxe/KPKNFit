@@ -66,7 +66,7 @@ class ExerciseCatalogV2BackendTest(unittest.TestCase):
     def test_editorial_android_ios_artifacts_have_one_hash_and_revision(self) -> None:
         self.assertEqual(
             verify_shared_catalog_artifacts(),
-            "944acdf3940f8a33ba0e2e5954f48e891f27facf34883c3ecf176958c6fcc5d9",
+            "02e0954512d23729ff15efe13bfd9cce00309769d1e8fb450e2344708f14b3cf",
         )
 
     def test_reverse_fly_is_one_parent_with_explicit_machine_and_cable_configs(self) -> None:

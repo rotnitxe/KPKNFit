@@ -502,9 +502,9 @@ private fun ColumnScope.CatalogReadyContent(
                                     verticalArrangement = Arrangement.spacedBy(6.dp),
                                 ) {
                                     axesWithOptions.forEach { (axis, visibleOptions) ->
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
+                                        FlowRow(
                                             horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                            verticalArrangement = Arrangement.spacedBy(4.dp),
                                         ) {
                                             Text(
                                                 "${exerciseCatalogAxisLabel(axis.axis, definition.id)}:",
@@ -542,7 +542,6 @@ private fun ColumnScope.CatalogReadyContent(
                                                     modifier = Modifier.weight(1f),
                                                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                                                     verticalArrangement = Arrangement.spacedBy(6.dp),
-                                                    maxLines = 1,
                                                 ) {
                                                     visibleOptions.forEach { option ->
                                                         AxisChip(

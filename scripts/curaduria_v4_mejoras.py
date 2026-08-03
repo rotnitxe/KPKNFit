@@ -80,7 +80,7 @@ def p1_new_exercises() -> None:
     )
 
     hammer_configs = []
-    for implement in ("h_bar", "dumbbells", "cable", "machine", "band"):
+    for implement in ("h_bar", "dumbbells", "cable", "band", "kettlebell"):
         hammer_configs.append(
             make_config(
                 template,
@@ -93,7 +93,7 @@ def p1_new_exercises() -> None:
                 equipment_id=implement, laterality="BILATERAL", axial=0.6,
                 perf_id=f"hammer_curl__{implement}",
                 objectives=[f"Desarrollar biceps con el curl martillo en {implement}."],
-                required_equipment=[implement], compatible_equipment=["h_bar", "dumbbells", "cable", "machine", "band"],
+                required_equipment=[implement], compatible_equipment=["h_bar", "dumbbells", "cable", "band", "kettlebell"],
                 preserves_intent=["Conserva el patrón de flexión de codo y el objetivo biceps."],
                 target_regions=["biceps", "forearm"],
                 setup_cue="Agarra el implemento con las palmas enfrentadas y los brazos a los costados.",
@@ -121,7 +121,7 @@ def p1_new_exercises() -> None:
         "Secundario: el bíceps asiste la flexión del codo en menor medida con las palmas hacia abajo; por eso suma 0.5.",
     )
     reverse_configs = []
-    for implement in ("h_bar", "dumbbells", "cable", "machine", "band"):
+    for implement in ("h_bar", "dumbbells", "cable", "band", "kettlebell"):
         reverse_configs.append(
             make_config(
                 template,
@@ -134,7 +134,7 @@ def p1_new_exercises() -> None:
                 equipment_id=implement, laterality="BILATERAL", axial=0.6,
                 perf_id=f"reverse_curl__{implement}",
                 objectives=[f"Desarrollar forearm con el curl invertido en {implement}."],
-                required_equipment=[implement], compatible_equipment=["h_bar", "dumbbells", "cable", "machine", "band"],
+                required_equipment=[implement], compatible_equipment=["h_bar", "dumbbells", "cable", "band", "kettlebell"],
                 preserves_intent=["Conserva el patrón de flexión de codo y el objetivo forearm."],
                 target_regions=["forearm", "biceps"],
                 setup_cue="Agarra el implemento con las palmas hacia abajo y los brazos extendidos.",
@@ -371,8 +371,8 @@ HAMMER_DESC = {
     "h_bar": "Con la barra H, las palmas quedan enfrentadas de forma natural y el recorrido se siente muy estable. La versión perfecta para centrarte solo en la tensión del brazo sin distracciones.",
     "dumbbells": "Con mancuernas, cada brazo trabaja por su cuenta: notarás si un lado carga más que el otro y podrás igualarlos poco a poco. El clásico que nunca falla para dar grosor al brazo.",
     "cable": "En polea, la tensión no se suelta ni un segundo: el antebrazo y el braquial arden desde la primera repetición. Ideal para rematar el brazo con una sensación constante de trabajo.",
-    "machine": "En máquina, el recorrido viene guiado y solo te queda empujar y sentir. La opción más cómoda para concentrarte en la contracción sin preocuparte por el equilibrio del peso.",
     "band": "Con banda elástica, la resistencia crece cuando más tenso estás arriba. Perfecta para hacer un buen trabajo de brazo en casa o como remate rápido al final de la sesión.",
+    "kettlebell": "Con kettlebell, el agarre en martillo suma un extra de trabajo al antebrazo y el brazo se carga igual de profundo. Variante original del curl martillo.",
 }
 REVERSE_DEF_DESC = ("El mismo curl, pero con las palmas hacia abajo: el trabajo se corre al braquiorradial y al antebrazo. "
                     "Es la herramienta perfecta para equilibrar la fuerza de agarre y darle vida a unos antebrazos que aguantan todo.")
@@ -380,8 +380,8 @@ REVERSE_DESC = {
     "h_bar": "Con la barra H y agarre prono, el antebrazo toma el protagonismo con un recorrido cómodo y estable para las muñecas. La opción más agradable para series largas.",
     "dumbbells": "Con mancuernas y palmas hacia abajo, sientes cómo el antebrazo hace el trabajo pesado. Además cada lado se entrena por separado para corregir desequilibrios.",
     "cable": "En polea, la tensión constante convierte cada repetición en un martilleo para el antebrazo. Perfecto para acabar con la fuerza de agarre en las últimas series.",
-    "machine": "En máquina, el guiado te deja exprimir el antebrazo sin pensar en estabilizar el peso. La versión más limpia para centrarse en la contracción.",
     "band": "Con banda, la resistencia aumenta arriba y el antebrazo aguanta la tensión en todo el recorrido. Fácil de montar en cualquier lado y muy exigente.",
+    "kettlebell": "Con kettlebell y palmas hacia abajo, el antebrazo hace el trabajo pesado con un agarre que exige más. Variante original del curl invertido.",
 }
 SUP_DEF_DESC = ("Gira la palma de la mano hacia arriba contra la resistencia: un movimiento pequeño que trabaja de verdad los músculos que "
                 "supinan el antebrazo. Clave para la salud de la muñeca, el codo y un agarre más fuerte en todo lo que hagas.")
@@ -397,8 +397,86 @@ PRON_DESC = {
 }
 
 
+# ---------------------------------------------------------------------------
+# P4 — Curl Martillo / Curl Invertido: solo agarre neutro inherente y set de
+# implementos mancuerna/barra H/polea/banda/kettlebell (sin máquina, sin eje de
+# agarre). Idempotente: reconstruye las configuraciones de ambos curls.
+# ---------------------------------------------------------------------------
+def p4_fix_curl_implements() -> None:
+    payload = load("elbow_flexion_biceps_curl.json")
+    family = fam_of(payload)
+    template = next(
+        c for d in family["definitions"] if d["id"] == "standing_biceps_curl"
+        for c in d["configurations"] if c["id"].endswith("__dumbbells")
+    )
+    implements = ("h_bar", "dumbbells", "cable", "band", "kettlebell")
+
+    def rebuild(def_id: str, desc_map: dict, primary: list, secondary: list, notes: list,
+                objectives: str, setup_cue: str, exec_cue: str, mistake: str) -> None:
+        definition = find_def(payload, def_id)
+        configs = []
+        for implement in implements:
+            configs.append(
+                make_config(
+                    template,
+                    cfg_id=f"{def_id}__{implement}",
+                    options={"implement": implement},
+                    display_summary=f"{implement} · bilateral",
+                    description=desc_map[implement],
+                    primary=primary, secondary=secondary, stabilizers=[],
+                    notes=notes,
+                    equipment_id=implement, laterality="BILATERAL", axial=0.6,
+                    perf_id=f"{def_id}__{implement}",
+                    objectives=[f"{objectives} en {implement}."],
+                    required_equipment=[implement],
+                    compatible_equipment=["h_bar", "dumbbells", "cable", "band", "kettlebell"],
+                    preserves_intent=[f"Conserva el patrón de flexión de codo y el objetivo {primary[0]}."],
+                    target_regions=primary + secondary,
+                    setup_cue=setup_cue, exec_cue=exec_cue, mistake=mistake,
+                )
+            )
+        definition["configurations"] = configs
+        definition["defaultConfigurationId"] = f"{def_id}__dumbbells"
+        definition["optionAxes"] = ["implement"]
+
+    biceps_note = note(
+        "biceps",
+        "Principal: el bíceps flexiona el codo y concentra el trabajo del curl; por eso suma la serie completa (1.0).",
+    )
+    forearm_hammer = note(
+        "forearm",
+        "Secundario: el braquiorradial y el braquial ayudan con el agarre en martillo; por eso suman 0.5.",
+    )
+    forearm_reverse = note(
+        "forearm",
+        "Principal: el braquiorradial y el braquial concentran el trabajo con el agarre pronado; por eso suman la serie completa (1.0).",
+    )
+    biceps_reverse = note(
+        "biceps",
+        "Secundario: el bíceps asiste la flexión del codo en menor medida con las palmas hacia abajo; por eso suma 0.5.",
+    )
+    rebuild(
+        "hammer_curl", HAMMER_DESC, ["biceps"], ["forearm"], [biceps_note, forearm_hammer],
+        "Desarrollar biceps con el curl martillo",
+        "Agarra el implemento con las palmas enfrentadas y los brazos a los costados.",
+        "Flexiona los codos llevando el peso hacia los hombros sin mover los brazos.",
+        "Balancear el torso o abrir los codos para levantar más peso.",
+    )
+    rebuild(
+        "reverse_curl", REVERSE_DESC, ["forearm"], ["biceps"], [forearm_reverse, biceps_reverse],
+        "Desarrollar forearm con el curl invertido",
+        "Agarra el implemento con las palmas hacia abajo y los brazos extendidos.",
+        "Flexiona los codos llevando el peso hacia el pecho manteniendo las palmas abajo.",
+        "Usar muñecas en flexión o impulsar el peso con el tronco.",
+    )
+    sync_identity(payload, REVISION)
+    save("elbow_flexion_biceps_curl.json", payload)
+    print("p4 curls OK")
+
+
 if __name__ == "__main__":
     p1_new_exercises()
     p2_adaptive_muscles()
     p3_descriptions()
+    p4_fix_curl_implements()
     print("curaduria v4 OK")

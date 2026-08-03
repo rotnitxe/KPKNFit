@@ -243,6 +243,11 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     FoodItem(id = "gen130", name = "Burrito", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 200.0, protein = 8.0, carbs = 26.0, fats = 7.0, searchAliases = listOf("burrito", "burritos")),
     FoodItem(id = "gen131", name = "Sushi", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 150.0, protein = 6.0, carbs = 25.0, fats = 3.0, searchAliases = listOf("sushi")),
     FoodItem(id = "gen132", name = "Donut", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 420.0, protein = 5.0, carbs = 51.0, fats = 22.0, searchAliases = listOf("donut", "dona", "donuts", "donas")),
+    // E16: identidad faltante detectada por el contrato de métricas (baseline 87%)
+    FoodItem(id = "gen133", name = "Pan Integral", brand = "Genérico", servingSize = 50.0, unit = "u", calories = 265.0, protein = 9.5, carbs = 45.0, fats = 4.2, searchAliases = listOf("pan integral", "pan de molde integral", "pan centeno")),
+    FoodItem(id = "gen134", name = "Sopa (casera)", brand = "Genérico", servingSize = 250.0, unit = "ml", calories = 42.0, protein = 2.0, carbs = 4.0, fats = 1.5, searchAliases = listOf("sopa", "sopa casera", "caldo", "sopa de verduras", "sopa de pollo")),
+    FoodItem(id = "gen135", name = "Porotos (cocidos)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 140.0, protein = 8.5, carbs = 25.0, fats = 0.5, searchAliases = listOf("porotos", "poroto", "porotos cocidos", "porotos negros", "frijoles", "frijol")),
+    FoodItem(id = "gen136", name = "Arroz Integral (cocido)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 123.0, protein = 2.7, carbs = 26.0, fats = 0.9, searchAliases = listOf("arroz integral", "arroz integral cocido")),
 )
 
 // ─── Chilean Foods ───────────────────────────────────────────────────────────
@@ -442,10 +447,15 @@ val FOOD_ALIASES_APPROXIMATION: Set<String> = setOf(
     "cafe con leche", "nuggets",
 )
 
+/** Claves de aproximación normalizadas una sola vez (sin tildes, minúsculas). */
+private val FOOD_ALIASES_APPROXIMATION_NORMALIZED: Set<String> by lazy {
+    FOOD_ALIASES_APPROXIMATION.map { stripAccents(it.trim().lowercase()) }.toSet()
+}
+
 /** True si el texto es un alias de aproximación (identidad distinta a lo escrito). */
 fun isApproximationAlias(text: String): Boolean {
     val normalized = stripAccents(text.trim().lowercase())
-    return normalized in FOOD_ALIASES_APPROXIMATION
+    return normalized in FOOD_ALIASES_APPROXIMATION_NORMALIZED
 }
 
 // ─── Portion References (grams per unit) ─────────────────────────────────────

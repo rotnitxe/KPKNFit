@@ -55,6 +55,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -79,7 +80,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
+import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.exercises.*
 import com.example.kpkn.screens.sessioneditor.components.rememberSessionEditorSpacing
@@ -110,6 +111,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.filled.AutoAwesome
@@ -197,16 +199,21 @@ fun SessionEditorScreen(
     var navigatorHeightDp by remember { mutableStateOf(editorSpacing.bottomContentPadding) }
     val contentBottomPadding = navigatorHeightDp + 16.dp
     val fabBottomPadding = navigatorHeightDp + 8.dp
-    val exerciseInfoById = remember { exerciseCatalogSnapshot().associateBy { it.id } }
+    val exerciseInfoById = remember { catalogExerciseIndex() }
     val dragController = remember(session?.id) { SessionEditorDragController() }
     val partBounds = dragController.partBounds
     val partContentBounds = dragController.partContentBounds
     val exerciseBounds = dragController.exerciseBounds
     var looseContentBounds by dragController::looseContentBounds
-    LaunchedEffect(session?.id, session, uiState.collapsedPartIds) {
-        // Bounds belong to the current flattened list. Do not retain rectangles
-        // from removed or collapsed items as valid drop zones.
+    LaunchedEffect(session?.id) {
+        // Cambio de sesión: los bounds pertenecen al layout anterior.
         dragController.clearBounds()
+    }
+    LaunchedEffect(session, uiState.collapsedPartIds) {
+        // Tras ediciones, solo se descartan bounds de ítems que ya no existen
+        // (sin vaciar todo: onGloballyPositioned no se re-dispara si nada se movió).
+        val active = session ?: return@LaunchedEffect
+        dragController.pruneBounds(active, uiState.collapsedPartIds)
     }
     var draggingPartId by dragController::draggingPartId
     var draggingPartOffsetY by dragController::draggingPartOffsetY
@@ -219,8 +226,8 @@ fun SessionEditorScreen(
     var exerciseDropTargetPartId by dragController::exerciseDropTargetPartId
     var exerciseDropTargetIndex by dragController::exerciseDropTargetIndex
 
-    fun beginExerciseDrag(partId: String, exerciseId: String) =
-        dragController.beginExerciseDrag(partId, exerciseId)
+    fun beginExerciseDrag(partId: String, exerciseId: String, grab: Offset) =
+        dragController.beginExerciseDrag(partId, exerciseId, grab)
 
     fun updateExerciseDrag(delta: Offset) {
         val activeSession = session ?: return
@@ -281,6 +288,9 @@ fun SessionEditorScreen(
             scrollableListItems.isNotEmpty() && listState.firstVisibleItemIndex > 0
         }
     }
+    var compactHeroHeightPx by remember { mutableIntStateOf(0) }
+    val heroInset = if (showCompactHero) with(density) { compactHeroHeightPx.toDp() } else 0.dp
+    val animatedHeroInset by animateDpAsState(heroInset, tween(220), label = "compactHeroInset")
 
     // Auto-scroll al ejercicio recién añadido (índice = Hero + offset en scrollable)
     LaunchedEffect(pendingAutoExpandExerciseId, scrollableListItems) {
@@ -308,15 +318,17 @@ fun SessionEditorScreen(
         partId: String,
         index: Int,
         exerciseId: String,
-        itemHeight: Float = exerciseBounds["$partId|$exerciseId"]?.height ?: 88f,
+        itemHeight: Float = (dragController.frozenExerciseBounds["$partId|$exerciseId"]
+            ?: exerciseBounds["$partId|$exerciseId"])?.height ?: 88f,
     ): Float {
         val activeId = draggingExerciseId ?: return 0f
         val sourcePartId = draggingExercisePartId ?: return 0f
         val keyTargetPart = exerciseDropTargetKey?.substringBefore("|")
         val keyTargetExercise = exerciseDropTargetKey?.substringAfter("|")
         val targetPartId = exerciseDropTargetPartId ?: keyTargetPart ?: return 0f
+        val targetList = if (targetPartId == "__loose__") session.exercises
+        else session.parts.firstOrNull { it.id == targetPartId }?.exercises.orEmpty()
         val targetIndex = exerciseDropTargetIndex ?: keyTargetExercise?.let { targetExerciseId ->
-            val targetList = if (targetPartId == "__loose__") session.exercises else session.parts.firstOrNull { it.id == targetPartId }?.exercises.orEmpty()
             targetList.indexOfFirst { it.id == targetExerciseId }.takeIf { it >= 0 }
         } ?: return 0f
         if (exerciseId in draggedExerciseIds) return 0f
@@ -324,7 +336,8 @@ fun SessionEditorScreen(
         val movingCount = draggedExerciseIds.size.coerceAtLeast(1)
         val gap = (itemHeight + 10f) * movingCount
         if (partId != sourcePartId) {
-            return if (index >= targetIndex) gap else 0f
+            if (targetIndex < targetList.size) return if (index >= targetIndex) gap else 0f
+            return if (index == targetList.size - 1) gap else 0f
         }
         val sourceList = if (partId == "__loose__") session.exercises else session.parts.firstOrNull { it.id == partId }?.exercises.orEmpty()
         val sourceIndex = sourceList.indexOfFirst { it.id == activeId }
@@ -375,7 +388,10 @@ fun SessionEditorScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .imePadding(),
-            contentPadding = PaddingValues(bottom = padding.calculateBottomPadding() + contentBottomPadding),
+            contentPadding = PaddingValues(
+                top = animatedHeroInset,
+                bottom = padding.calculateBottomPadding() + contentBottomPadding,
+            ),
         ) {
             item {
                 SessionHero(
@@ -425,10 +441,14 @@ fun SessionEditorScreen(
                     },
                     onOpenCompetitionConfig = { showCompetitionConfigSheet = true },
                     onLooseBoundsReport = { rect ->
-                        looseContentBounds = rect
+                        if (!dragController.isExerciseDragging) {
+                            looseContentBounds = mergeBounds(looseContentBounds, rect)
+                        }
                     },
                     onPartContentBoundsReport = { partId, rect ->
-                        partContentBounds[partId] = rect
+                        if (!dragController.isExerciseDragging) {
+                            partContentBounds[partId] = mergeBounds(partContentBounds[partId], rect)
+                        }
                     },
                     beginExerciseDrag = ::beginExerciseDrag,
                     updateExerciseDrag = ::updateExerciseDrag,
@@ -488,7 +508,8 @@ fun SessionEditorScreen(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
-                .zIndex(270f),
+                .zIndex(270f)
+                .onSizeChanged { compactHeroHeightPx = it.height },
             enter = fadeIn() + slideInVertically { -it / 3 },
             exit = fadeOut() + slideOutVertically { -it / 3 },
         ) {

@@ -70,8 +70,8 @@ private val COOKING_PATTERNS = listOf(
     // 4. FRITO + SALTEADO + REVUELTO (unificados como PWA)
     Pair(Regex("""\b(?:frit[oa]s?|fre[ií]d[oa]s?|revuelt[oa]s?|saltead[oa]s?|saltear|sofrit[oa]s?|soffrit[oa]s?|fried)\b""", RegexOption.IGNORE_CASE), CookingMethod.FRITO),
     
-    // 5. COCIDO / HERVIDO / SANCOCHADO
-    Pair(Regex("""\b(?:cocid[oa]s?|hervid[oa]s?|sancochad[oa]s?|boiled|estofad[oa]s?)\b""", RegexOption.IGNORE_CASE), CookingMethod.COCIDO),
+    // 5. COCIDO / HERVIDO / SANCOCHADO (incluye "duro": "huevo duro" es cocido, IT3)
+    Pair(Regex("""\b(?:cocid[oa]s?|hervid[oa]s?|sancochad[oa]s?|duro|dura|duros|duras|boiled|estofad[oa]s?)\b""", RegexOption.IGNORE_CASE), CookingMethod.COCIDO),
     
     // 6. CRUDO
     Pair(Regex("""\b(?:crud[oa]s?|fresc[oa]s?|raw)\b""", RegexOption.IGNORE_CASE), CookingMethod.CRUDO),
@@ -85,8 +85,8 @@ private val COOKING_PATTERNS = listOf(
     // 9. ASADO_PARRILLA (ahora separado de plancha)
     Pair(Regex("""\b(?:a\s+la\s+)?parrilla\b|\bparrill[ae]r[oa]s?\b|\b(?:grilled|asad[oa]s?|al\s+carb[oó]n)\b""", RegexOption.IGNORE_CASE), CookingMethod.ASADO_PARRILLA),
     
-    // 10. GUISADO
-    Pair(Regex("""\bguisad[oa]s?\b|\bcazuel[ae]d[oa]s?\b""", RegexOption.IGNORE_CASE), CookingMethod.GUISADO),
+    // 10. GUISADO (incluye "guiso"/"guisito"/"guisote", IT3)
+    Pair(Regex("""\bguis(?:ad)?[oa]s?\b|\bguisit[oa]s?\b|\bguisote\b|\bcazuel[ae]d[oa]s?\b""", RegexOption.IGNORE_CASE), CookingMethod.GUISADO),
     
     // 11. AHUMADO
     Pair(Regex("""\bahumad[oa]s?\b|\bhumad[oa]s?\b|\bsmoked\b""", RegexOption.IGNORE_CASE), CookingMethod.AHUMADO),
@@ -160,9 +160,9 @@ private val REFERENCE_KEYWORDS_FAST = listOf(
 private val COOKING_KEYWORDS_FAST = listOf(
     "empaniz", "apanad", "breaded", "empanad", "plancha", "horno", "horn",
     "baked", "airfryer", "air fryer", "frit", "freid", "freíd", "freir", "revuelt",
-    "saltea", "sofrit", "soffrit", "fried", "cocid", "hervid", "sancoch",
-    "boiled", "estofad", "crud", "fresc", "raw", "vapor", "steamed", "olla",
-    "parrill", "grilled", "asado", "carbón", "carbon", "guisad", "cazuel",
+    "saltea", "sofrit", "soffrit", "fried", "cocid", "hervid", "sancoch", "duro", "dura",
+    "boiled", "estofad", "guis", "crud", "raw", "vapor", "steamed", "olla",
+    "parrill", "grilled", "asado", "carbón", "carbon", "cazuel",
     "ahumad", "humad", "smoked"
 )
 
@@ -750,6 +750,12 @@ private fun extractModifiers(
 ): Triple<MacroScale?, Double?, String> {
     val lower = text.lowercase()
     if (MODIFIER_KEYWORDS_FAST.none { lower.contains(it) }) {
+        return Triple(null, currentGrams, text)
+    }
+    // E16: una frase de alimento conocida completa ("pan integral", "arroz
+    // integral") es identidad: el modificador ya vive en la fila del catálogo
+    // y no debe arrancarle la palabra ("pan integral" ≠ "pan").
+    if (PROTECTED_ENTITY_PHRASES.any { it.equals(text.trim(), ignoreCase = true) }) {
         return Triple(null, currentGrams, text)
     }
     var working = text

@@ -157,6 +157,57 @@ class ResolutionGoldenCorpusTest {
         assertEquals(signature(), signature())
     }
 
+    // ─── E17: filas reales conflictivas (atún agua/aceite, cazuela, pasta) ──
+
+    @Test
+    fun `atun a secas resuelve a la variante al agua y no a la del aceite`() = runBlocking {
+        val tags = resolve("atún")
+        assertEquals(FoodResolutionStatus.NEEDS_CONFIRMATION, tags.single().resolutionStatus)
+        assertEquals("gen029", tags.single().foodItem?.id)
+        assertTrue(tags.single().foodItem?.name?.contains("agua", ignoreCase = true) == true)
+    }
+
+    @Test
+    fun `atun en aceite resuelve a su propia variante`() = runBlocking {
+        val tags = resolve("atún en aceite")
+        assertEquals(FoodResolutionStatus.AUTO, tags.single().resolutionStatus)
+        assertEquals("gen029e", tags.single().foodItem?.id)
+    }
+
+    @Test
+    fun `atun al agua resuelve a la variante al agua`() = runBlocking {
+        val tags = resolve("atún al agua")
+        assertEquals(FoodResolutionStatus.AUTO, tags.single().resolutionStatus)
+        assertEquals("gen029", tags.single().foodItem?.id)
+    }
+
+    @Test
+    fun `pasta a secas no se autoconfirma y pide estado`() = runBlocking {
+        val tags = resolve("pasta")
+        assertEquals(FoodResolutionStatus.NEEDS_STATE, tags.single().resolutionStatus)
+        assertEquals("gen040", tags.single().foodItem?.id)
+    }
+
+    @Test
+    fun `pasta cocida resuelve a la variante cocida`() = runBlocking {
+        val tags = resolve("pasta cocida")
+        assertEquals("gen040", tags.single().foodItem?.id)
+    }
+
+    @Test
+    fun `cazuela resuelve al plato preparado y no a sus ingredientes sueltos`() = runBlocking {
+        val tags = resolve("cazuela")
+        assertEquals("cl004", tags.single().foodItem?.id)
+        assertEquals(FoodResolutionStatus.AUTO, tags.single().resolutionStatus)
+    }
+
+    @Test
+    fun `cazuela de vacuno resuelve al plato preparado de vacuno`() = runBlocking {
+        val tags = resolve("cazuela de vacuno")
+        assertEquals("cl030", tags.single().foodItem?.id)
+        assertEquals(FoodResolutionStatus.AUTO, tags.single().resolutionStatus)
+    }
+
     // ─── Anti-auto-refuerzo del aprendizaje ───────────────────────────────
 
     @Test

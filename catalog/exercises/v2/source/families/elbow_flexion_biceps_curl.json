@@ -7107,8 +7107,8 @@
                     "h_bar",
                     "dumbbells",
                     "cable",
-                    "machine",
-                    "band"
+                    "band",
+                    "kettlebell"
                   ],
                   "preservesIntent": [
                     "Conserva el patrón de flexión de codo y el objetivo biceps."
@@ -7310,8 +7310,8 @@
                     "h_bar",
                     "dumbbells",
                     "cable",
-                    "machine",
-                    "band"
+                    "band",
+                    "kettlebell"
                   ],
                   "preservesIntent": [
                     "Conserva el patrón de flexión de codo y el objetivo biceps."
@@ -7513,8 +7513,8 @@
                     "h_bar",
                     "dumbbells",
                     "cable",
-                    "machine",
-                    "band"
+                    "band",
+                    "kettlebell"
                   ],
                   "preservesIntent": [
                     "Conserva el patrón de flexión de codo y el objetivo biceps."
@@ -7543,209 +7543,6 @@
             },
             "selectedOptions": {
               "implement": "cable"
-            }
-          },
-          {
-            "displaySummary": "machine · bilateral",
-            "evidence": {
-              "confidence": "MEDIUM",
-              "evidenceRefs": [
-                "legacy:exercise_database.json#biceps_curl_drag",
-                "editorial:catalog-v2-full-2026-08-02"
-              ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
-              "reviewStatus": "APPROVED"
-            },
-            "id": "hammer_curl__machine",
-            "profile": {
-              "automationEligible": true,
-              "axialLoadFactor": 0.6,
-              "bodyRegion": "UPPER",
-              "cnc": 1.6,
-              "commonMistakes": [
-                "Balancear el torso o abrir los codos para levantar más peso."
-              ],
-              "description": "En máquina, el recorrido viene guiado y solo te queda empujar y sentir. La opción más cómoda para concentrarte en la contracción sin preocuparte por el equilibrio del peso.",
-              "efc": 2.0,
-              "equipmentId": "machine",
-              "executionCues": [
-                "Flexiona los codos llevando el peso hacia los hombros sin mover los brazos."
-              ],
-              "kineticChain": "FULL",
-              "laterality": "BILATERAL",
-              "loadMode": "guided_external_load",
-              "movementPatternId": "elbow_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "biceps",
-                  "note": "Principal: el bíceps flexiona el codo y concentra el trabajo del curl; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "forearm",
-                  "note": "Secundario: el braquiorradial y el braquial ayudan con el agarre en martillo; por eso suman 0.5."
-                }
-              ],
-              "performanceProfileId": "hammer_curl__machine",
-              "primaryMuscles": [
-                "biceps"
-              ],
-              "replacementGroup": null,
-              "replacementPriority": null,
-              "resistanceProfile": "guided_constant",
-              "richMetadata": {
-                "anatomy": {
-                  "jointActions": [
-                    "elbow_flexion"
-                  ],
-                  "muscleLengthBias": "mixed_controlled",
-                  "primaryMuscles": [
-                    "biceps"
-                  ],
-                  "secondaryMuscles": [
-                    "forearm"
-                  ],
-                  "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "biceps",
-                    "forearm"
-                  ],
-                  "volumeContribution": "direct"
-                },
-                "biomechanics": {
-                  "bodyRegion": "UPPER",
-                  "equipmentId": "machine",
-                  "kineticChain": "FULL",
-                  "laterality": "BILATERAL",
-                  "loadMode": "guided_external_load",
-                  "movementPatternId": "elbow_flexion",
-                  "rangeOfMotion": "controlled_full_available",
-                  "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
-                  ],
-                  "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
-                  ],
-                  "resistanceProfile": "guided_constant",
-                  "stability": "self_stabilized"
-                },
-                "coaching": {
-                  "commonMistakes": [
-                    "Balancear el torso o abrir los codos para levantar más peso."
-                  ],
-                  "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
-                  ],
-                  "execution": [
-                    "Flexiona los codos llevando el peso hacia los hombros sin mover los brazos."
-                  ],
-                  "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
-                  ],
-                  "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Agarra el implemento con las palmas enfrentadas y los brazos a los costados."
-                  ]
-                },
-                "display": {
-                  "displayName": "Curl Martillo",
-                  "displaySummary": "machine · bilateral",
-                  "selectedOptions": {
-                    "implement": "machine"
-                  }
-                },
-                "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.6,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
-                "identity": {
-                  "canonicalName": "Curl Martillo",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
-                  "configurationId": "hammer_curl__machine",
-                  "definitionId": "hammer_curl",
-                  "familyId": "elbow_flexion_biceps_curl",
-                  "kind": "PARENT",
-                  "performanceProfileId": "hammer_curl__machine",
-                  "searchTerms": [
-                    "curl martillo",
-                    "hammer curl",
-                    "martillo",
-                    "curl agarre neutro"
-                  ]
-                },
-                "programming": {
-                  "fatigueCost": "moderate",
-                  "indicativeRestSeconds": {
-                    "max": 90,
-                    "min": 30
-                  },
-                  "objectives": [
-                    "Desarrollar biceps con el curl martillo en machine."
-                  ],
-                  "recoveryCost": "moderate",
-                  "requiredEquipment": [
-                    "machine"
-                  ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
-                },
-                "replacement": {
-                  "compatibleEquipmentIds": [
-                    "h_bar",
-                    "dumbbells",
-                    "cable",
-                    "machine",
-                    "band"
-                  ],
-                  "preservesIntent": [
-                    "Conserva el patrón de flexión de codo y el objetivo biceps."
-                  ],
-                  "replacementGroup": null,
-                  "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
-                }
-              },
-              "secondaryMuscles": [
-                "forearm"
-              ],
-              "setupCues": [
-                "Agarra el implemento con las palmas enfrentadas y los brazos a los costados."
-              ],
-              "ssc": 0.1,
-              "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
-            },
-            "selectedOptions": {
-              "implement": "machine"
             }
           },
           {
@@ -7919,8 +7716,8 @@
                     "h_bar",
                     "dumbbells",
                     "cable",
-                    "machine",
-                    "band"
+                    "band",
+                    "kettlebell"
                   ],
                   "preservesIntent": [
                     "Conserva el patrón de flexión de codo y el objetivo biceps."
@@ -7949,6 +7746,209 @@
             },
             "selectedOptions": {
               "implement": "band"
+            }
+          },
+          {
+            "displaySummary": "kettlebell · bilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#biceps_curl_drag",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "hammer_curl__kettlebell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.6,
+              "bodyRegion": "UPPER",
+              "cnc": 1.6,
+              "commonMistakes": [
+                "Balancear el torso o abrir los codos para levantar más peso."
+              ],
+              "description": "Con kettlebell, el agarre en martillo suma un extra de trabajo al antebrazo y el brazo se carga igual de profundo. Variante original del curl martillo.",
+              "efc": 2.0,
+              "equipmentId": "kettlebell",
+              "executionCues": [
+                "Flexiona los codos llevando el peso hacia los hombros sin mover los brazos."
+              ],
+              "kineticChain": "FULL",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: el bíceps flexiona el codo y concentra el trabajo del curl; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: el braquiorradial y el braquial ayudan con el agarre en martillo; por eso suman 0.5."
+                }
+              ],
+              "performanceProfileId": "hammer_curl__kettlebell",
+              "primaryMuscles": [
+                "biceps"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "elbow_flexion"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "biceps"
+                  ],
+                  "secondaryMuscles": [
+                    "forearm"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "biceps",
+                    "forearm"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "kettlebell",
+                  "kineticChain": "FULL",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "elbow_flexion",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Balancear el torso o abrir los codos para levantar más peso."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Flexiona los codos llevando el peso hacia los hombros sin mover los brazos."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Agarra el implemento con las palmas enfrentadas y los brazos a los costados."
+                  ]
+                },
+                "display": {
+                  "displayName": "Curl Martillo",
+                  "displaySummary": "kettlebell · bilateral",
+                  "selectedOptions": {
+                    "implement": "kettlebell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.6,
+                  "cnc": 1.6,
+                  "efc": 2.0,
+                  "ssc": 0.1,
+                  "technicalDifficulty": 4.6,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Curl Martillo",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "hammer_curl__kettlebell",
+                  "definitionId": "hammer_curl",
+                  "familyId": "elbow_flexion_biceps_curl",
+                  "kind": "PARENT",
+                  "performanceProfileId": "hammer_curl__kettlebell",
+                  "searchTerms": [
+                    "curl martillo",
+                    "hammer curl",
+                    "martillo",
+                    "curl agarre neutro"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar biceps con el curl martillo en kettlebell."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "kettlebell"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "h_bar",
+                    "dumbbells",
+                    "cable",
+                    "band",
+                    "kettlebell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón de flexión de codo y el objetivo biceps."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "forearm"
+              ],
+              "setupCues": [
+                "Agarra el implemento con las palmas enfrentadas y los brazos a los costados."
+              ],
+              "ssc": 0.1,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.6,
+              "ttc": 1.5
+            },
+            "selectedOptions": {
+              "implement": "kettlebell"
             }
           }
         ],
@@ -8149,8 +8149,8 @@
                     "h_bar",
                     "dumbbells",
                     "cable",
-                    "machine",
-                    "band"
+                    "band",
+                    "kettlebell"
                   ],
                   "preservesIntent": [
                     "Conserva el patrón de flexión de codo y el objetivo forearm."
@@ -8352,8 +8352,8 @@
                     "h_bar",
                     "dumbbells",
                     "cable",
-                    "machine",
-                    "band"
+                    "band",
+                    "kettlebell"
                   ],
                   "preservesIntent": [
                     "Conserva el patrón de flexión de codo y el objetivo forearm."
@@ -8555,8 +8555,8 @@
                     "h_bar",
                     "dumbbells",
                     "cable",
-                    "machine",
-                    "band"
+                    "band",
+                    "kettlebell"
                   ],
                   "preservesIntent": [
                     "Conserva el patrón de flexión de codo y el objetivo forearm."
@@ -8585,209 +8585,6 @@
             },
             "selectedOptions": {
               "implement": "cable"
-            }
-          },
-          {
-            "displaySummary": "machine · bilateral",
-            "evidence": {
-              "confidence": "MEDIUM",
-              "evidenceRefs": [
-                "legacy:exercise_database.json#biceps_curl_drag",
-                "editorial:catalog-v2-full-2026-08-02"
-              ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
-              "reviewStatus": "APPROVED"
-            },
-            "id": "reverse_curl__machine",
-            "profile": {
-              "automationEligible": true,
-              "axialLoadFactor": 0.6,
-              "bodyRegion": "UPPER",
-              "cnc": 1.6,
-              "commonMistakes": [
-                "Usar muñecas en flexión o impulsar el peso con el tronco."
-              ],
-              "description": "En máquina, el guiado te deja exprimir el antebrazo sin pensar en estabilizar el peso. La versión más limpia para centrarse en la contracción.",
-              "efc": 2.0,
-              "equipmentId": "machine",
-              "executionCues": [
-                "Flexiona los codos llevando el peso hacia el pecho manteniendo las palmas abajo."
-              ],
-              "kineticChain": "FULL",
-              "laterality": "BILATERAL",
-              "loadMode": "guided_external_load",
-              "movementPatternId": "elbow_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "forearm",
-                  "note": "Principal: el braquiorradial y el braquial concentran el trabajo con el agarre pronado; por eso suman la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps asiste la flexión del codo en menor medida con las palmas hacia abajo; por eso suma 0.5."
-                }
-              ],
-              "performanceProfileId": "reverse_curl__machine",
-              "primaryMuscles": [
-                "forearm"
-              ],
-              "replacementGroup": null,
-              "replacementPriority": null,
-              "resistanceProfile": "guided_constant",
-              "richMetadata": {
-                "anatomy": {
-                  "jointActions": [
-                    "elbow_flexion"
-                  ],
-                  "muscleLengthBias": "mixed_controlled",
-                  "primaryMuscles": [
-                    "forearm"
-                  ],
-                  "secondaryMuscles": [
-                    "biceps"
-                  ],
-                  "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "forearm",
-                    "biceps"
-                  ],
-                  "volumeContribution": "direct"
-                },
-                "biomechanics": {
-                  "bodyRegion": "UPPER",
-                  "equipmentId": "machine",
-                  "kineticChain": "FULL",
-                  "laterality": "BILATERAL",
-                  "loadMode": "guided_external_load",
-                  "movementPatternId": "elbow_flexion",
-                  "rangeOfMotion": "controlled_full_available",
-                  "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
-                  ],
-                  "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
-                  ],
-                  "resistanceProfile": "guided_constant",
-                  "stability": "self_stabilized"
-                },
-                "coaching": {
-                  "commonMistakes": [
-                    "Usar muñecas en flexión o impulsar el peso con el tronco."
-                  ],
-                  "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
-                  ],
-                  "execution": [
-                    "Flexiona los codos llevando el peso hacia el pecho manteniendo las palmas abajo."
-                  ],
-                  "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
-                  ],
-                  "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Agarra el implemento con las palmas hacia abajo y los brazos extendidos."
-                  ]
-                },
-                "display": {
-                  "displayName": "Curl Invertido",
-                  "displaySummary": "machine · bilateral",
-                  "selectedOptions": {
-                    "implement": "machine"
-                  }
-                },
-                "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.6,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
-                "identity": {
-                  "canonicalName": "Curl Invertido",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
-                  "configurationId": "reverse_curl__machine",
-                  "definitionId": "reverse_curl",
-                  "familyId": "elbow_flexion_biceps_curl",
-                  "kind": "PARENT",
-                  "performanceProfileId": "reverse_curl__machine",
-                  "searchTerms": [
-                    "curl invertido",
-                    "reverse curl",
-                    "curl prono",
-                    "antebrazo"
-                  ]
-                },
-                "programming": {
-                  "fatigueCost": "moderate",
-                  "indicativeRestSeconds": {
-                    "max": 90,
-                    "min": 30
-                  },
-                  "objectives": [
-                    "Desarrollar forearm con el curl invertido en machine."
-                  ],
-                  "recoveryCost": "moderate",
-                  "requiredEquipment": [
-                    "machine"
-                  ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
-                },
-                "replacement": {
-                  "compatibleEquipmentIds": [
-                    "h_bar",
-                    "dumbbells",
-                    "cable",
-                    "machine",
-                    "band"
-                  ],
-                  "preservesIntent": [
-                    "Conserva el patrón de flexión de codo y el objetivo forearm."
-                  ],
-                  "replacementGroup": null,
-                  "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
-                }
-              },
-              "secondaryMuscles": [
-                "biceps"
-              ],
-              "setupCues": [
-                "Agarra el implemento con las palmas hacia abajo y los brazos extendidos."
-              ],
-              "ssc": 0.1,
-              "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
-            },
-            "selectedOptions": {
-              "implement": "machine"
             }
           },
           {
@@ -8961,8 +8758,8 @@
                     "h_bar",
                     "dumbbells",
                     "cable",
-                    "machine",
-                    "band"
+                    "band",
+                    "kettlebell"
                   ],
                   "preservesIntent": [
                     "Conserva el patrón de flexión de codo y el objetivo forearm."
@@ -8991,6 +8788,209 @@
             },
             "selectedOptions": {
               "implement": "band"
+            }
+          },
+          {
+            "displaySummary": "kettlebell · bilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#biceps_curl_drag",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "reverse_curl__kettlebell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.6,
+              "bodyRegion": "UPPER",
+              "cnc": 1.6,
+              "commonMistakes": [
+                "Usar muñecas en flexión o impulsar el peso con el tronco."
+              ],
+              "description": "Con kettlebell y palmas hacia abajo, el antebrazo hace el trabajo pesado con un agarre que exige más. Variante original del curl invertido.",
+              "efc": 2.0,
+              "equipmentId": "kettlebell",
+              "executionCues": [
+                "Flexiona los codos llevando el peso hacia el pecho manteniendo las palmas abajo."
+              ],
+              "kineticChain": "FULL",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: el braquiorradial y el braquial concentran el trabajo con el agarre pronado; por eso suman la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps asiste la flexión del codo en menor medida con las palmas hacia abajo; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "reverse_curl__kettlebell",
+              "primaryMuscles": [
+                "forearm"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "elbow_flexion"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "forearm"
+                  ],
+                  "secondaryMuscles": [
+                    "biceps"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "forearm",
+                    "biceps"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "kettlebell",
+                  "kineticChain": "FULL",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "elbow_flexion",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar muñecas en flexión o impulsar el peso con el tronco."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Flexiona los codos llevando el peso hacia el pecho manteniendo las palmas abajo."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Agarra el implemento con las palmas hacia abajo y los brazos extendidos."
+                  ]
+                },
+                "display": {
+                  "displayName": "Curl Invertido",
+                  "displaySummary": "kettlebell · bilateral",
+                  "selectedOptions": {
+                    "implement": "kettlebell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.6,
+                  "cnc": 1.6,
+                  "efc": 2.0,
+                  "ssc": 0.1,
+                  "technicalDifficulty": 4.6,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Curl Invertido",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "reverse_curl__kettlebell",
+                  "definitionId": "reverse_curl",
+                  "familyId": "elbow_flexion_biceps_curl",
+                  "kind": "PARENT",
+                  "performanceProfileId": "reverse_curl__kettlebell",
+                  "searchTerms": [
+                    "curl invertido",
+                    "reverse curl",
+                    "curl prono",
+                    "antebrazo"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar forearm con el curl invertido en kettlebell."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "kettlebell"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "h_bar",
+                    "dumbbells",
+                    "cable",
+                    "band",
+                    "kettlebell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón de flexión de codo y el objetivo forearm."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "biceps"
+              ],
+              "setupCues": [
+                "Agarra el implemento con las palmas hacia abajo y los brazos extendidos."
+              ],
+              "ssc": 0.1,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.6,
+              "ttc": 1.5
+            },
+            "selectedOptions": {
+              "implement": "kettlebell"
             }
           }
         ],

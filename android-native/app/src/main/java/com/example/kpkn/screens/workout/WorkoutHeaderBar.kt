@@ -21,8 +21,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -227,6 +230,7 @@ internal fun WorkoutChronometer(
 @Composable
 internal fun WorkoutHeaderBar(
     exerciseName: String,
+    exerciseChips: List<String> = emptyList(),
     sessionName: String,
     groupName: String?,
     startTimeMs: Long,
@@ -309,10 +313,19 @@ internal fun WorkoutHeaderBar(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = exerciseName,
+                        text = buildAnnotatedString {
+                            withStyle(SpanStyle(color = Color.White)) {
+                                append(exerciseName)
+                            }
+                            exerciseChips.forEach { chip ->
+                                append(" · ")
+                                withStyle(SpanStyle(color = Color.White.copy(alpha = 0.72f))) {
+                                    append(chip)
+                                }
+                            }
+                        },
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Black,
-                        color = Color.White,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.fillMaxWidth(),

@@ -85,7 +85,7 @@ internal fun SupersetGroupEditorCard(
     isDragging: Boolean = false,
     dragOffset: Offset = Offset.Zero,
     onBoundsChange: (Rect) -> Unit = {},
-    onDragStart: () -> Unit = {},
+    onDragStart: (Offset) -> Unit = {},
     onDrag: (Offset) -> Unit = {},
     onDragEnd: () -> Unit = {},
     onOpenSupersetCreator: (String?, List<String>) -> Unit,
@@ -150,7 +150,7 @@ internal fun SupersetGroupEditorCard(
                         .size(24.dp)
                         .pointerInput(group.id) {
                             detectDragGestures(
-                                onDragStart = { onDragStart() },
+                                onDragStart = { offset -> onDragStart(offset) },
                                 onDragCancel = { onDragEnd() },
                                 onDragEnd = { onDragEnd() },
                                 onDrag = { change, dragAmount ->

@@ -2,7 +2,7 @@
 
 Fecha de corte: 2026-08-02 (curaduría integral v3)
 Revisión: `v2-approved-2026-08-02-c`
-Hash canónico compartido: `944acdf3940f8a33ba0e2e5954f48e891f27facf34883c3ecf176958c6fcc5d9`
+Hash canónico compartido: `02e0954512d23729ff15efe13bfd9cce00309769d1e8fb450e2344708f14b3cf`
 
 ## Curaduría v4 (2026-08-03): descripciones amigables, involucramiento adaptativo y ejercicios nuevos
 

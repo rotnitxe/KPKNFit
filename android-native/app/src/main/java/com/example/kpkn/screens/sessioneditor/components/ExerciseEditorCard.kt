@@ -57,8 +57,11 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.example.kpkn.data.models.*
@@ -105,7 +108,7 @@ internal fun ExerciseEditorCard(
     isDropTarget: Boolean,
     isPartDropTarget: Boolean,
     onBoundsChange: (Rect) -> Unit,
-    onDragStart: () -> Unit,
+    onDragStart: (Offset) -> Unit,
     onDrag: (Offset) -> Unit,
     onDragEnd: () -> Unit,
     onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
@@ -217,8 +220,8 @@ internal fun ExerciseEditorCard(
             .fillMaxWidth()
             .onGloballyPositioned { onBoundsChange(it.boundsInWindow()) }
             .graphicsLayer {
-                translationX = 0f
-                translationY = 0f
+                translationX = if (isDragging) dragOffset.x else 0f
+                translationY = if (isDragging) dragOffset.y else 0f
                 alpha = if (isDragging) 0.22f else 1f
                 shadowElevation = if (isDragging) 6.dp.toPx() else 0f
             }
@@ -247,7 +250,7 @@ internal fun ExerciseEditorCard(
                     .size(48.dp)
                     .pointerInput(exercise.id) {
                         detectDragGestures(
-                            onDragStart = { onDragStart() },
+                            onDragStart = { offset -> onDragStart(offset) },
                             onDragCancel = { onDragEnd() },
                             onDragEnd = { onDragEnd() },
                             onDrag = { change, dragAmount ->
@@ -287,19 +290,22 @@ internal fun ExerciseEditorCard(
                         )
                     }
                     Text(
-                        text = displayParts.parentName.ifBlank { "Seleccionar ejercicio" },
+                        text = buildAnnotatedString {
+                            withStyle(SpanStyle(color = Color.White.copy(alpha = 0.94f))) {
+                                append(displayParts.parentName.ifBlank { "Seleccionar ejercicio" })
+                            }
+                            displayParts.chips.forEach { chip ->
+                                append(" · ")
+                                withStyle(SpanStyle(color = Color.White.copy(alpha = 0.55f))) {
+                                    append(chip)
+                                }
+                            }
+                        },
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White.copy(alpha = 0.94f),
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    displayParts.chips.forEach { chip ->
-                        AssistChip(
-                            onClick = {},
-                            label = { Text(chip, style = MaterialTheme.typography.labelSmall) },
-                        )
-                    }
                 }
                 Text(
                     text = buildString {

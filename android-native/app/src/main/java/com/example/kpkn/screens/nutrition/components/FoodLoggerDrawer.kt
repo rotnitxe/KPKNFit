@@ -64,6 +64,7 @@ import com.example.kpkn.domain.nutrition.ResolvedTag
 import com.example.kpkn.domain.nutrition.mergeTagsPreservingManualEdits
 import com.example.kpkn.domain.nutrition.applyModifierScale
 import com.example.kpkn.domain.nutrition.adjustLoggedFoodForOil
+import com.example.kpkn.domain.nutrition.stripOilFromLoggedFood
 import com.example.kpkn.domain.nutrition.scalingForIntent
 import com.example.kpkn.ui.components.KpknSheet
 import java.util.UUID
@@ -129,36 +130,6 @@ private data class ResolvedTag(
     /** When true, food macros already include frying — do not add oil grams. */
     val oilApplied: Boolean = false,
 )
-
-private fun oilGramsForLevel(oilLevel: String): Double = when (oilLevel.lowercase()) {
-    "poco" -> 3.0
-    "abundante" -> 18.0
-    else -> 8.0
-}
-
-private fun adjustLoggedFoodForOil(logged: LoggedFood, method: CookingMethod?, oilLevel: String): LoggedFood {
-    if (method != CookingMethod.FRITO && method != CookingMethod.EMPANIZADO_FRITO) {
-        return logged
-    }
-    val oilGrams = oilGramsForLevel(oilLevel)
-    val addedFat = oilGrams
-    val addedCal = oilGrams * 9
-    return logged.copy(
-        fats = kotlin.math.round((logged.fats + addedFat) * 10.0) / 10.0,
-        calories = kotlin.math.round(logged.calories + addedCal),
-    )
-}
-
-private fun stripOilFromLoggedFood(logged: LoggedFood, method: CookingMethod?, oilLevel: String): LoggedFood {
-    if (method != CookingMethod.FRITO && method != CookingMethod.EMPANIZADO_FRITO) {
-        return logged
-    }
-    val oilGrams = oilGramsForLevel(oilLevel)
-    return logged.copy(
-        fats = kotlin.math.round((logged.fats - oilGrams).coerceAtLeast(0.0) * 10.0) / 10.0,
-        calories = kotlin.math.round((logged.calories - oilGrams * 9).coerceAtLeast(0.0)),
-    )
-}
 
 private fun scalingForIntent(
     intent: AmountIntent,
@@ -669,7 +640,7 @@ fun FoodLoggerDrawer(
                     proteinBoost = boost,
                 )
                 val adjustedLogged = if (applyOil) {
-                    adjustLoggedFoodForOil(logged, tag.cookingMethod, tag.oilLevel)
+                    adjustLoggedFoodForOil(logged, tag.cookingMethod, tag.oilLevel, foodName = food.name)
                 } else {
                     logged.copy(cookingMethod = tag.cookingMethod ?: logged.cookingMethod)
                 }
@@ -729,7 +700,7 @@ fun FoodLoggerDrawer(
                         proteinBoost = boost,
                     )
                     val adjustedLogged = if (tag.oilApplied) {
-                        adjustLoggedFoodForOil(logged, tag.cookingMethod, tag.oilLevel)
+                        adjustLoggedFoodForOil(logged, tag.cookingMethod, tag.oilLevel, foodName = food.name)
                     } else logged
                     tag.copy(
                         portion = portion,
@@ -785,7 +756,7 @@ fun FoodLoggerDrawer(
                         proteinBoost = boost,
                     )
                     if (tag.oilApplied) {
-                        adjustLoggedFoodForOil(baseLogged, tag.cookingMethod, tag.oilLevel)
+                        adjustLoggedFoodForOil(baseLogged, tag.cookingMethod, tag.oilLevel, foodName = food.name)
                     } else baseLogged
                 } else {
                     val old = tag.loggedFood
@@ -835,7 +806,7 @@ fun FoodLoggerDrawer(
                     portionAdjustment = adj,
                     proteinBoost = boost,
                 )
-                val adjustedLogged = adjustLoggedFoodForOil(logged, tag.cookingMethod, oilLevel)
+                val adjustedLogged = adjustLoggedFoodForOil(logged, tag.cookingMethod, oilLevel, foodName = food.name)
                 tag.copy(
                     oilLevel = oilLevel,
                     loggedFood = adjustedLogged,
@@ -843,8 +814,8 @@ fun FoodLoggerDrawer(
                     oilApplied = true,
                 )
             } else if (tag.loggedFood != null) {
-                val stripped = stripOilFromLoggedFood(tag.loggedFood, tag.cookingMethod, tag.oilLevel)
-                val adjusted = adjustLoggedFoodForOil(stripped, tag.cookingMethod, oilLevel)
+                val stripped = stripOilFromLoggedFood(tag.loggedFood, tag.cookingMethod, tag.oilLevel, foodName = tag.foodItem?.name)
+                val adjusted = adjustLoggedFoodForOil(stripped, tag.cookingMethod, oilLevel, foodName = tag.foodItem?.name)
                 tag.copy(
                     oilLevel = oilLevel,
                     loggedFood = adjusted,

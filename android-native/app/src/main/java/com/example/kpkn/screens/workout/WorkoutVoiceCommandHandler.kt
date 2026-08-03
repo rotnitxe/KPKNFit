@@ -3,8 +3,10 @@ package com.example.kpkn.screens.workout
 import android.content.Context
 import android.os.SystemClock
 import android.util.Log
+import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.UnitModeV2
@@ -108,6 +110,8 @@ class WorkoutVoiceCommandHandler(
         fun setVoiceExerciseQueue(exerciseIds: List<String>)
         /** Mueve el ejercicio actual ±1 posición (estructura en vivo). */
         fun moveCurrentExercise(direction: Int)
+        /** Reemplaza el ejercicio indicado por la configuración exacta del catálogo. */
+        fun replaceExerciseById(exerciseId: String, replacement: ExerciseMuscleInfo)
         /** Crea superserie en vivo con los miembros indicados. */
         fun createLiveSuperset(memberIds: List<String>)
         /** Disuelve la superserie del ejercicio actual. */
@@ -447,8 +451,12 @@ class WorkoutVoiceCommandHandler(
                 if (best == null) {
                     voiceController.speakFeedbackUpdated("No encontré ese ejercicio entre los pendientes.")
                 } else {
+                    val bestExercise = exercises.firstOrNull { it.id == best.exerciseId }
                     ports.setVoiceExerciseQueue(ranked.map { it.exerciseId })
-                    voiceController.requestExerciseNavigationConfirmation(best.exerciseId, best.exerciseName)
+                    voiceController.requestExerciseNavigationConfirmation(
+                        exerciseId = best.exerciseId,
+                        exerciseName = bestExercise?.let(::spokenWorkoutExerciseName) ?: best.exerciseName,
+                    )
                 }
             }
             is VoiceSessionCommand.NavigateToExercise -> {
@@ -458,6 +466,11 @@ class WorkoutVoiceCommandHandler(
                     ports.selectExercise(index)
                     speakCurrentStepAnnouncementIfEnabled()
                 }
+            }
+            is VoiceSessionCommand.ReplaceExercise -> handleVoiceReplaceExercise(command)
+            is VoiceSessionCommand.ConfirmReplaceExercise -> {
+                ports.replaceExerciseById(command.targetExerciseId, command.replacement)
+                speakCurrentStepAnnouncementIfEnabled()
             }
             is VoiceSessionCommand.TurnOffVoice -> disableVoice()
             is VoiceSessionCommand.FinishSession -> handleFinishRequest()
@@ -494,7 +507,7 @@ class WorkoutVoiceCommandHandler(
                     voiceController.speakRestSkippedAnnouncement(
                         setIndex = restState.currentSetIdx,
                         totalSets = restExercise.sets.size,
-                        exerciseName = displayWorkoutExerciseName(restExercise),
+                        exerciseName = spokenWorkoutExerciseName(restExercise),
                     )
                 }
             }
@@ -679,19 +692,19 @@ class WorkoutVoiceCommandHandler(
                     val target = mobility?.durationSeconds?.let { "$it segundos" }
                         ?: mobility?.reps?.let { "$it repeticiones" }
                         ?: "según lo programado"
-                    voiceController.speakFeedbackUpdated("${prefix.orEmpty()}Movilidad: ${mobility?.name ?: displayWorkoutExerciseName(nextEx)}, $target. Di iniciar si usa tiempo, o hecha al completarla.")
+                    voiceController.speakFeedbackUpdated("${prefix.orEmpty()}Movilidad: ${mobility?.name ?: spokenWorkoutExerciseName(nextEx)}, $target. Di iniciar si usa tiempo, o hecha al completarla.")
                     return
                 }
                 if (step?.type == WorkoutStepType.WARMUP) {
                     val warmup = nextEx.warmupSets.firstOrNull { it.id == step.warmupSetId }
                     val suggested = ports.getWeightSuggestionWithAutoRegulation(nextEx, updatedState.currentSetIdx)?.suggestedWeight
                     val weightText = suggested?.let { ", peso calculado ${it.toTrimmedNumberString()} kilos" }.orEmpty()
-                    voiceController.speakFeedbackUpdated("${prefix.orEmpty()}Aproximación de ${displayWorkoutExerciseName(nextEx)}: ${warmup?.targetReps ?: 0} repeticiones$weightText. Di hecha al completarla.")
+                    voiceController.speakFeedbackUpdated("${prefix.orEmpty()}Aproximación de ${spokenWorkoutExerciseName(nextEx)}: ${warmup?.targetReps ?: 0} repeticiones$weightText. Di hecha al completarla.")
                     return
                 }
                 val round = step?.supersetRoundIndex?.let { it + 1 }
                 voiceController.speakCurrentExercise(
-                    displayWorkoutExerciseName(nextEx),
+                    spokenWorkoutExerciseName(nextEx),
                     updatedState.currentSetIdx + 1,
                     nextEx.sets.size,
                     round = round,
@@ -734,7 +747,7 @@ class WorkoutVoiceCommandHandler(
             exerciseId = targetExercise.id,
             exerciseDbId = ports.canonicalExerciseKey(targetExercise),
             canonicalExerciseId = targetExercise.canonicalExerciseId ?: ports.canonicalExerciseKey(targetExercise),
-            exerciseName = displayWorkoutExerciseName(targetExercise),
+            exerciseName = spokenWorkoutExerciseName(targetExercise),
             technicalQuality = 8,
             discomfortIds = emptyList(),
             perceivedIntensityRpe = null
@@ -791,7 +804,7 @@ class WorkoutVoiceCommandHandler(
                     postExerciseFeedbackByExerciseId = it.postExerciseFeedbackByExerciseId + (targetExercise.id to currentFeedback)
                 )
             }
-            val targetLabel = if (target is PostExerciseFeedbackTarget.SupersetGroup) "${targetExercise.name}: " else ""
+            val targetLabel = if (target is PostExerciseFeedbackTarget.SupersetGroup) "${spokenWorkoutExerciseName(targetExercise)}: " else ""
             voiceController.speakFeedbackUpdated("$targetLabel${updates.joinToString(", ")}")
         }
     }
@@ -1078,6 +1091,61 @@ class WorkoutVoiceCommandHandler(
         updateState { it.copy(voiceSessionState = voiceController.state.value) }
     }
 
+    private fun handleVoiceReplaceExercise(command: VoiceSessionCommand.ReplaceExercise) {
+        val state = getState()
+        val exercises = ports.visibleExercises(state)
+        val targetId = if (command.targetName.isBlank()) {
+            exercises.getOrNull(state.currentExerciseIdx)?.id
+        } else {
+            WorkoutVoiceExerciseAliasMatcher.rank(
+                command.targetName,
+                exercises.map { it.id to it.name },
+                ports.voiceExerciseAliases(),
+            ).firstOrNull()?.exerciseId
+        }
+        val target = targetId?.let { id -> exercises.firstOrNull { it.id == id } }
+        if (target == null) {
+            voiceController.speakFeedbackUpdated("¿Qué ejercicio quieres reemplazar?")
+            return
+        }
+        val replacement = resolveVoiceCatalogCandidate(command.replacementPhrase)
+        if (replacement == null) {
+            voiceController.speakFeedbackUpdated("No encontré ese ejercicio en el catálogo.")
+            return
+        }
+        voiceController.requestExerciseReplacementConfirmation(
+            targetExerciseId = target.id,
+            targetName = spokenWorkoutExerciseName(target),
+            replacement = replacement,
+        )
+    }
+
+    /** Resuelve la frase hablada contra el catálogo y devuelve la configuración
+     *  exacta cuyo chips coinciden con las opciones mencionadas (ej. "con
+     *  mancuernas", "en polea alta"); si no se menciona ninguna, la default. */
+    private fun resolveVoiceCatalogCandidate(phrase: String): ExerciseMuscleInfo? {
+        val index = catalogExerciseIndex()
+        val definitions = index.values.filter { it.id == it.catalogDefinitionId }
+        val ranked = WorkoutVoiceExerciseAliasMatcher.rank(
+            phrase,
+            definitions.map { it.id to it.name },
+            emptyMap(),
+        ).firstOrNull() ?: return null
+        val definition = definitions.firstOrNull { it.id == ranked.exerciseId } ?: return null
+        val normalized = normalizeVoiceReplaceText(phrase)
+        val configs = index.values.filter { it.catalogDefinitionId == definition.id && it.id == it.catalogConfigurationId }
+        return configs.maxByOrNull { config ->
+            config.catalogVariantChips.count { chip -> normalizeVoiceReplaceText(chip) in normalized }
+        } ?: definition
+    }
+
+    private fun normalizeVoiceReplaceText(text: String): String =
+        text.lowercase()
+            .replace("á", "a").replace("é", "e").replace("í", "i")
+            .replace("ó", "o").replace("ú", "u").replace("ü", "u")
+            .replace("ñ", "n")
+            .trim()
+
     private fun handleVoicePreviousExercise() {
         stopTimedSet()
         ports.prevSet()
@@ -1098,7 +1166,7 @@ class WorkoutVoiceCommandHandler(
         )
         val weight = suggestion?.suggestedWeight
         if (weight != null && weight > 0.0) {
-            voiceController.speakSuggestedWeight(displayWorkoutExerciseName(exercise), weight)
+            voiceController.speakSuggestedWeight(spokenWorkoutExerciseName(exercise), weight)
         }
         updateState { it.copy(voiceSessionState = voiceController.state.value) }
     }
@@ -1169,7 +1237,7 @@ class WorkoutVoiceCommandHandler(
         val message = if (exercise == null) {
             "No hay ejercicio en curso."
         } else {
-            "Vas en la serie ${state.currentSetIdx + 1} de ${exercise.sets.size} de ${displayWorkoutExerciseName(exercise)}."
+            "Vas en la serie ${state.currentSetIdx + 1} de ${exercise.sets.size} de ${spokenWorkoutExerciseName(exercise)}."
         }
         voiceController.speakFeedbackUpdated(message)
         updateState { it.copy(voiceSessionState = voiceController.state.value) }
@@ -1224,7 +1292,7 @@ class WorkoutVoiceCommandHandler(
 
         scope.launch {
             voiceController.speakFeedbackUpdated(
-                "${displayWorkoutExerciseName(exercise)}, serie $setNum de $totalSets$sideLabel.",
+                "${spokenWorkoutExerciseName(exercise)}, serie $setNum de $totalSets$sideLabel.",
             )
         }
         updateState { it.copy(voiceSessionState = voiceController.state.value) }
@@ -1236,7 +1304,7 @@ class WorkoutVoiceCommandHandler(
         val nextEx = allExercises.getOrNull(state.currentExerciseIdx + 1)
         if (nextEx != null) {
             scope.launch {
-                voiceController.speakNextExercise(displayWorkoutExerciseName(nextEx))
+                voiceController.speakNextExercise(spokenWorkoutExerciseName(nextEx))
             }
         }
         updateState { it.copy(voiceSessionState = voiceController.state.value) }

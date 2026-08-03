@@ -59,6 +59,7 @@ internal fun WorkoutV2Body(
     onSelectedContextTabChange: (WorkoutExerciseContextTab?) -> Unit,
     sessionAccentColor: Color,
     headerExerciseName: String,
+    headerExerciseChips: List<String> = emptyList(),
     headerSessionName: String,
     headerGroupName: String?,
     headerStartTimeMs: Long,
@@ -149,6 +150,7 @@ internal fun WorkoutV2Body(
             val sessionTimeRemainingSeconds by viewModel.sessionTimeRemainingSeconds.collectAsStateWithLifecycle()
             WorkoutHeaderBar(
                 exerciseName = headerExerciseName,
+                exerciseChips = headerExerciseChips,
                 sessionName = headerSessionName,
                 groupName = headerGroupName,
                 startTimeMs = headerStartTimeMs,
@@ -603,7 +605,7 @@ internal fun WorkoutV2Body(
                         LaunchedEffect("ex:${currentExercise.id}", progress) {
                             viewModel.checkLocalBudgetGuide(
                                 scopeKey = "ex:${currentExercise.id}",
-                                scopeLabel = currentExercise.name,
+                                scopeLabel = spokenWorkoutExerciseName(currentExercise),
                                 progress = progress,
                                 isExerciseScope = true,
                             )

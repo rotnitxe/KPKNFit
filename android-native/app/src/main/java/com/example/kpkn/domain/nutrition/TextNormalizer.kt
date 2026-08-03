@@ -174,7 +174,9 @@ object TextNormalizer {
         "un" to 1, "uno" to 1, "una" to 1,
         "dos" to 2, "tres" to 3, "cuatro" to 4, "cinco" to 5,
         "seis" to 6, "siete" to 7, "ocho" to 8, "nueve" to 9, "diez" to 10,
-        "once" to 11, "doce" to 12, "trece" to 13, "catorce" to 14, "quince" to 15,
+        // E16: "once" NO se convierte: en Chile es la merienda ("la once") y el
+        // parser ya soporta "once huevos" como cantidad literal.
+        "doce" to 12, "trece" to 13, "catorce" to 14, "quince" to 15,
         "dieciseis" to 16, "diecisiete" to 17, "dieciocho" to 18, "diecinueve" to 19,
         "veinte" to 20, "treinta" to 30, "cuarenta" to 40, "cincuenta" to 50,
         "sesenta" to 60, "setenta" to 70, "ochenta" to 80, "noventa" to 90,

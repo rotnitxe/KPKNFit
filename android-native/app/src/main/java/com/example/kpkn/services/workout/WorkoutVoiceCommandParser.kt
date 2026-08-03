@@ -210,6 +210,7 @@ object WorkoutVoiceCommandParser {
                 base += FATIGUE_KEYWORDS
                 base += DRAINAGE_QUERY_KEYWORDS
                 base += CURRENT_SET_QUERY_KEYWORDS
+                base += setOf("reemplaza", "reemplazar", "reemplazá", "sustituye", "sustituir", "por")
                 base += PENDING_SIDE_QUERY_KEYWORDS
                 base += PACE_STATUS_KEYWORDS
                 base += WEIGHT_REASON_KEYWORDS
@@ -396,6 +397,8 @@ object WorkoutVoiceCommandParser {
         Regex("(?:ir|ve|cambiar|continuar)\\s+(?:a|con)\\s+(.+)").find(lower)?.groupValues?.getOrNull(1)
             ?.trim()?.takeIf(String::isNotBlank)?.let { return VoiceSessionCommand.GoToExercise(it) }
 
+        parseReplaceExercise(lower)?.let { return it }
+
         if (APPLY_SUGGESTED_LOAD_KEYWORDS.any { lower.contains(it) }) {
             return VoiceSessionCommand.ApplySuggestedLoad
         }
@@ -447,6 +450,26 @@ object WorkoutVoiceCommandParser {
             ?.trim(' ', '.', ',')?.take(40) ?: return null
         if (spoken.isBlank()) return null
         return VoiceSessionCommand.ApplyTag(knownTagNames.firstOrNull { normalizeText(it) == spoken } ?: spoken)
+    }
+
+        /**
+     * "reemplaza X por Y" / "reemplazar el press por curl martillo con polea" /
+     * "sustituye X por Y". [targetName] vacío cuando se dice "este/el actual".
+     */
+    fun parseReplaceExercise(normalized: String): VoiceSessionCommand.ReplaceExercise? {
+        val match = Regex("(?:reemplaza|reemplazar|reemplazá|sustituye|sustituir)\\s+(.+?)\\s+por\\s+(.+)")
+            .find(normalized) ?: return null
+        val rawTarget = match.groupValues[1].trim()
+        val replacement = match.groupValues[2].trim()
+        if (replacement.isBlank()) return null
+        val target = rawTarget
+            .removePrefix("el ")
+            .removePrefix("al ")
+            .removePrefix("ejercicio ")
+            .trim()
+            .takeUnless { it in setOf("este", "actual", "el actual", "este ejercicio", "el ejercicio actual") }
+            .orEmpty()
+        return VoiceSessionCommand.ReplaceExercise(targetName = target, replacementPhrase = replacement)
     }
 
     fun parseEditLastSet(normalized: String): VoiceSessionCommand.EditLastSet? {

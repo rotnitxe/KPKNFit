@@ -458,6 +458,9 @@ class WorkoutViewModel(
                     val exercise = visibleExercises(state).getOrNull(state.currentExerciseIdx) ?: return
                     moveExercise(exercise.id, direction)
                 }
+                override fun replaceExerciseById(exerciseId: String, replacement: ExerciseMuscleInfo) {
+                    replaceExercise(exerciseId = exerciseId, replacement = replacement, deferPersistencePrompt = true)
+                }
                 override fun createLiveSuperset(memberIds: List<String>) {
                     createLiveSuperset(memberIds, partId = null, restBetween = 60, restAfter = 120)
                 }
