@@ -1,290 +1,74 @@
 {
   "catalogRevision": "v2-approved-2026-08-02-c",
   "family": {
-    "canonicalName": "Tren inferior · erector spinae · spinal flexion",
+    "canonicalName": "Rotaciones de Antebrazo",
     "definitions": [
       {
-        "canonicalName": "Jefferson Curl",
+        "canonicalName": "Supinaciones",
         "configurations": [
           {
-            "displaySummary": "barbell",
+            "displaySummary": "dumbbells · bilateral",
             "evidence": {
               "confidence": "MEDIUM",
               "evidenceRefs": [
-                "legacy:exercise_database.json#back_jefferson_curl",
+                "legacy:exercise_database.json#forearms_curl_muneca_sentado",
                 "editorial:catalog-v2-full-2026-08-02"
               ],
               "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
               "reviewStatus": "APPROVED"
             },
-            "id": "back_jefferson_curl__barbell",
+            "id": "supination__dumbbells",
             "profile": {
               "automationEligible": true,
-              "axialLoadFactor": 0.2,
+              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
-              "cnc": 2.0,
+              "cnc": 1.5,
               "commonMistakes": [
-                "Acelerar la bajada o usar un peso que impide el control del recorrido."
+                "Mover el codo o el hombro para ayudar a girar el peso."
               ],
-              "description": "Barra en las manos y espalda redondeando vértebra a vértebra: baja lento y sube lento. El Jefferson curl clásico para movilidad y fuerza.",
-              "efc": 2.5,
-              "equipmentId": "barbell",
-              "executionCues": [
-                "Redondea la columna vértebra a vértebra y vuelve a subir con control."
-              ],
-              "kineticChain": "POSTERIOR",
-              "laterality": "NOT_APPLICABLE",
-              "loadMode": "free_external_load",
-              "movementPatternId": "spinal_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Principal: los erectores trabajan en elongación contra la flexión controlada de la columna; por eso suman la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundario: los isquiosurales frenan la flexión de cadera durante el descenso; por eso suman 0.5."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco firme y protege la zona lumbar; por eso suma 0.4."
-                }
-              ],
-              "performanceProfileId": "back_jefferson_curl__barbell",
-              "primaryMuscles": [
-                "erector_spinae"
-              ],
-              "replacementGroup": null,
-              "replacementPriority": 999,
-              "resistanceProfile": "gravity_arc",
-              "richMetadata": {
-                "anatomy": {
-                  "jointActions": [
-                    "spinal_flexion"
-                  ],
-                  "muscleLengthBias": "mixed_controlled",
-                  "primaryMuscles": [
-                    "erector_spinae"
-                  ],
-                  "secondaryMuscles": [
-                    "hamstrings"
-                  ],
-                  "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [
-                    "core"
-                  ],
-                  "targetRegions": [
-                    "erector_spinae"
-                  ],
-                  "volumeContribution": "direct"
-                },
-                "biomechanics": {
-                  "bodyRegion": "LOWER",
-                  "equipmentId": "barbell",
-                  "kineticChain": "POSTERIOR",
-                  "laterality": "NOT_APPLICABLE",
-                  "loadMode": "free_external_load",
-                  "movementPatternId": "spinal_flexion",
-                  "rangeOfMotion": "controlled_full_available",
-                  "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
-                  ],
-                  "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
-                  ],
-                  "resistanceProfile": "gravity_arc",
-                  "stability": "self_stabilized"
-                },
-                "coaching": {
-                  "commonMistakes": [
-                    "Acelerar la bajada o usar un peso que impide el control del recorrido."
-                  ],
-                  "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
-                  ],
-                  "execution": [
-                    "Redondea la columna vértebra a vértebra y vuelve a subir con control."
-                  ],
-                  "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
-                  ],
-                  "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Coloca la carga ligera al frente y los pies separados al ancho de la cadera."
-                  ]
-                },
-                "display": {
-                  "displayName": "Jefferson Curl",
-                  "displaySummary": "barbell",
-                  "selectedOptions": {
-                    "implement": "barbell"
-                  }
-                },
-                "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.2,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 5.0,
-                  "ttc": 1.8
-                },
-                "identity": {
-                  "canonicalName": "Jefferson Curl",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
-                  "configurationId": "back_jefferson_curl__barbell",
-                  "definitionId": "back_jefferson_curl",
-                  "familyId": "lower_spinal_flexion",
-                  "kind": "PARENT",
-                  "performanceProfileId": "back_jefferson_curl__barbell",
-                  "searchTerms": [
-                    "jefferson curl",
-                    "curl de jefferson"
-                  ]
-                },
-                "programming": {
-                  "fatigueCost": "moderate",
-                  "indicativeRestSeconds": {
-                    "max": 120,
-                    "min": 60
-                  },
-                  "objectives": [
-                    "Desarrollar erector_spinae con la flexión espinal controlada del Jefferson Curl."
-                  ],
-                  "recoveryCost": "moderate",
-                  "requiredEquipment": [
-                    "barbell"
-                  ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
-                },
-                "replacement": {
-                  "compatibleEquipmentIds": [
-                    "barbell",
-                    "dumbbells",
-                    "smith_machine",
-                    "cable"
-                  ],
-                  "preservesIntent": [
-                    "Conserva la flexión espinal controlada y el objetivo erector_spinae."
-                  ],
-                  "replacementGroup": null,
-                  "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": [
-                    "La pérdida de la posición puede trasladar carga fuera del patrón spinal_flexion."
-                  ]
-                }
-              },
-              "secondaryMuscles": [
-                "hamstrings"
-              ],
-              "setupCues": [
-                "Coloca la carga ligera al frente y los pies separados al ancho de la cadera."
-              ],
-              "ssc": 0.4,
-              "stabilizerMuscles": [
-                "core"
-              ],
-              "technicalDifficulty": 5.0,
-              "ttc": 1.8
-            },
-            "selectedOptions": {
-              "implement": "barbell"
-            }
-          },
-          {
-            "displaySummary": "dumbbells",
-            "evidence": {
-              "confidence": "MEDIUM",
-              "evidenceRefs": [
-                "legacy:exercise_database.json#back_jefferson_curl",
-                "editorial:catalog-v2-full-2026-08-02"
-              ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
-              "reviewStatus": "APPROVED"
-            },
-            "id": "back_jefferson_curl__dumbbells",
-            "profile": {
-              "automationEligible": true,
-              "axialLoadFactor": 0.2,
-              "bodyRegion": "LOWER",
-              "cnc": 2.0,
-              "commonMistakes": [
-                "Acelerar la bajada o usar un peso que impide el control del recorrido."
-              ],
-              "description": "Mancuernas en las manos: el peso libre acompaña la curvatura de la espalda. Versión accesible del Jefferson curl.",
-              "efc": 2.5,
+              "description": "Con mancuerna, el codo apoyado y la palma girando arriba: sientes el trabajo profundo en el antebrazo y el bíceps ayuda a girar.",
+              "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Redondea la columna vértebra a vértebra y vuelve a subir con control."
+                "Gira la palma hacia arriba rotando solo el antebrazo, con el codo quieto."
               ],
               "kineticChain": "POSTERIOR",
-              "laterality": "NOT_APPLICABLE",
+              "laterality": "BILATERAL",
               "loadMode": "free_external_load",
-              "movementPatternId": "spinal_flexion",
+              "movementPatternId": "wrist_flexion",
               "muscleNotes": [
                 {
-                  "muscleId": "erector_spinae",
-                  "note": "Principal: los erectores trabajan en elongación contra la flexión controlada de la columna; por eso suman la serie completa (1.0)."
+                  "muscleId": "forearm",
+                  "note": "Principal: los músculos supinadores giran el antebrazo contra la resistencia; por eso suman la serie completa (1.0)."
                 },
                 {
-                  "muscleId": "hamstrings",
-                  "note": "Secundario: los isquiosurales frenan la flexión de cadera durante el descenso; por eso suman 0.5."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco firme y protege la zona lumbar; por eso suma 0.4."
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps asiste la rotación externa del antebrazo; por eso suma 0.5."
                 }
               ],
-              "performanceProfileId": "back_jefferson_curl__dumbbells",
+              "performanceProfileId": "supination__dumbbells",
               "primaryMuscles": [
-                "erector_spinae"
+                "forearm"
               ],
-              "replacementGroup": null,
-              "replacementPriority": 999,
+              "replacementGroup": "forearm_wrist_curl",
+              "replacementPriority": 1,
               "resistanceProfile": "gravity_arc",
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "spinal_flexion"
+                    "wrist_flexion"
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "erector_spinae"
+                    "forearm"
                   ],
                   "secondaryMuscles": [
-                    "hamstrings"
+                    "biceps"
                   ],
                   "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [
-                    "core"
-                  ],
+                  "stabilizerMuscles": [],
                   "targetRegions": [
-                    "erector_spinae"
+                    "forearm"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -292,9 +76,9 @@
                   "bodyRegion": "LOWER",
                   "equipmentId": "dumbbells",
                   "kineticChain": "POSTERIOR",
-                  "laterality": "NOT_APPLICABLE",
+                  "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
-                  "movementPatternId": "spinal_flexion",
+                  "movementPatternId": "wrist_flexion",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "hip",
@@ -311,13 +95,13 @@
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Acelerar la bajada o usar un peso que impide el control del recorrido."
+                    "Mover el codo o el hombro para ayudar a girar el peso."
                   ],
                   "cues": [
                     "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
                   ],
                   "execution": [
-                    "Redondea la columna vértebra a vértebra y vuelve a subir con control."
+                    "Gira la palma hacia arriba rotando solo el antebrazo, con el codo quieto."
                   ],
                   "progressions": [
                     "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
@@ -330,46 +114,48 @@
                     "Movilidad de knee según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca la carga ligera al frente y los pies separados al ancho de la cadera."
+                    "Sujeta el peso con la palma hacia abajo y el codo apoyado y fijo."
                   ]
                 },
                 "display": {
-                  "displayName": "Jefferson Curl",
-                  "displaySummary": "dumbbells",
+                  "displayName": "Supinaciones",
+                  "displaySummary": "dumbbells · bilateral",
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
-                  "axialLoadFactor": 0.2,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 5.0,
-                  "ttc": 1.8
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.5,
+                  "efc": 2.0,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 3.5,
+                  "ttc": 1.5
                 },
                 "identity": {
-                  "canonicalName": "Jefferson Curl",
+                  "canonicalName": "Supinaciones",
                   "catalogRevision": "v2-approved-2026-08-02-c",
-                  "configurationId": "back_jefferson_curl__dumbbells",
-                  "definitionId": "back_jefferson_curl",
-                  "familyId": "lower_spinal_flexion",
+                  "configurationId": "supination__dumbbells",
+                  "definitionId": "supination",
+                  "familyId": "lower_wrist_rotation",
                   "kind": "PARENT",
-                  "performanceProfileId": "back_jefferson_curl__dumbbells",
+                  "performanceProfileId": "supination__dumbbells",
                   "searchTerms": [
-                    "jefferson curl",
-                    "curl de jefferson"
+                    "supinaciones",
+                    "supinación",
+                    "rotación externa antebrazo",
+                    "giro palma arriba"
                   ]
                 },
                 "programming": {
                   "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
-                    "max": 120,
-                    "min": 60
+                    "max": 90,
+                    "min": 30
                   },
                   "objectives": [
-                    "Desarrollar erector_spinae con la flexión espinal controlada del Jefferson Curl."
+                    "Desarrollar forearm con supinaciones en dumbbells."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -388,323 +174,101 @@
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
-                    "barbell",
                     "dumbbells",
-                    "smith_machine",
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva la flexión espinal controlada y el objetivo erector_spinae."
+                    "Conserva la rotación externa del antebrazo y el objetivo forearm."
                   ],
-                  "replacementGroup": null,
-                  "replacementPriority": 999
+                  "replacementGroup": "forearm_wrist_curl",
+                  "replacementPriority": 1
                 },
                 "safety": {
                   "medicalDisclaimerRequired": false,
                   "precautions": [
                     "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
                   ],
-                  "risks": [
-                    "La pérdida de la posición puede trasladar carga fuera del patrón spinal_flexion."
-                  ]
+                  "risks": []
                 }
               },
               "secondaryMuscles": [
-                "hamstrings"
+                "biceps"
               ],
               "setupCues": [
-                "Coloca la carga ligera al frente y los pies separados al ancho de la cadera."
+                "Sujeta el peso con la palma hacia abajo y el codo apoyado y fijo."
               ],
-              "ssc": 0.4,
-              "stabilizerMuscles": [
-                "core"
-              ],
-              "technicalDifficulty": 5.0,
-              "ttc": 1.8
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.5,
+              "ttc": 1.5
             },
             "selectedOptions": {
               "implement": "dumbbells"
             }
           },
           {
-            "displaySummary": "smith_machine",
+            "displaySummary": "cable · unilateral",
             "evidence": {
               "confidence": "MEDIUM",
               "evidenceRefs": [
-                "legacy:exercise_database.json#back_jefferson_curl",
+                "legacy:exercise_database.json#forearms_curl_muneca_sentado",
                 "editorial:catalog-v2-full-2026-08-02"
               ],
               "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
               "reviewStatus": "APPROVED"
             },
-            "id": "back_jefferson_curl__smith_machine",
+            "id": "supination__cable",
             "profile": {
               "automationEligible": true,
-              "axialLoadFactor": 0.2,
+              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
-              "cnc": 2.0,
+              "cnc": 1.5,
               "commonMistakes": [
-                "Acelerar la bajada o usar un peso que impide el control del recorrido."
+                "Mover el codo o el hombro para ayudar a girar el peso."
               ],
-              "description": "Smith: la barra guiada desciende con la espalda redondeada con seguridad. Una forma controlada de explorar el movimiento.",
-              "efc": 2.5,
-              "equipmentId": "smith_machine",
-              "executionCues": [
-                "Redondea la columna vértebra a vértebra y vuelve a subir con control."
-              ],
-              "kineticChain": "POSTERIOR",
-              "laterality": "NOT_APPLICABLE",
-              "loadMode": "guided_external_load",
-              "movementPatternId": "spinal_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Principal: los erectores trabajan en elongación contra la flexión controlada de la columna; por eso suman la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundario: los isquiosurales frenan la flexión de cadera durante el descenso; por eso suman 0.5."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco firme y protege la zona lumbar; por eso suma 0.4."
-                }
-              ],
-              "performanceProfileId": "back_jefferson_curl__smith_machine",
-              "primaryMuscles": [
-                "erector_spinae"
-              ],
-              "replacementGroup": null,
-              "replacementPriority": 999,
-              "resistanceProfile": "guided_constant",
-              "richMetadata": {
-                "anatomy": {
-                  "jointActions": [
-                    "spinal_flexion"
-                  ],
-                  "muscleLengthBias": "mixed_controlled",
-                  "primaryMuscles": [
-                    "erector_spinae"
-                  ],
-                  "secondaryMuscles": [
-                    "hamstrings"
-                  ],
-                  "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [
-                    "core"
-                  ],
-                  "targetRegions": [
-                    "erector_spinae"
-                  ],
-                  "volumeContribution": "direct"
-                },
-                "biomechanics": {
-                  "bodyRegion": "LOWER",
-                  "equipmentId": "smith_machine",
-                  "kineticChain": "POSTERIOR",
-                  "laterality": "NOT_APPLICABLE",
-                  "loadMode": "guided_external_load",
-                  "movementPatternId": "spinal_flexion",
-                  "rangeOfMotion": "controlled_full_available",
-                  "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
-                  ],
-                  "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
-                  ],
-                  "resistanceProfile": "guided_constant",
-                  "stability": "self_stabilized"
-                },
-                "coaching": {
-                  "commonMistakes": [
-                    "Acelerar la bajada o usar un peso que impide el control del recorrido."
-                  ],
-                  "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
-                  ],
-                  "execution": [
-                    "Redondea la columna vértebra a vértebra y vuelve a subir con control."
-                  ],
-                  "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
-                  ],
-                  "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Coloca la carga ligera al frente y los pies separados al ancho de la cadera."
-                  ]
-                },
-                "display": {
-                  "displayName": "Jefferson Curl",
-                  "displaySummary": "smith_machine",
-                  "selectedOptions": {
-                    "implement": "smith_machine"
-                  }
-                },
-                "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.2,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 5.0,
-                  "ttc": 1.8
-                },
-                "identity": {
-                  "canonicalName": "Jefferson Curl",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
-                  "configurationId": "back_jefferson_curl__smith_machine",
-                  "definitionId": "back_jefferson_curl",
-                  "familyId": "lower_spinal_flexion",
-                  "kind": "PARENT",
-                  "performanceProfileId": "back_jefferson_curl__smith_machine",
-                  "searchTerms": [
-                    "jefferson curl",
-                    "curl de jefferson"
-                  ]
-                },
-                "programming": {
-                  "fatigueCost": "moderate",
-                  "indicativeRestSeconds": {
-                    "max": 120,
-                    "min": 60
-                  },
-                  "objectives": [
-                    "Desarrollar erector_spinae con la flexión espinal controlada del Jefferson Curl."
-                  ],
-                  "recoveryCost": "moderate",
-                  "requiredEquipment": [
-                    "smith_machine"
-                  ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
-                },
-                "replacement": {
-                  "compatibleEquipmentIds": [
-                    "barbell",
-                    "dumbbells",
-                    "smith_machine",
-                    "cable"
-                  ],
-                  "preservesIntent": [
-                    "Conserva la flexión espinal controlada y el objetivo erector_spinae."
-                  ],
-                  "replacementGroup": null,
-                  "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": [
-                    "La pérdida de la posición puede trasladar carga fuera del patrón spinal_flexion."
-                  ]
-                }
-              },
-              "secondaryMuscles": [
-                "hamstrings"
-              ],
-              "setupCues": [
-                "Coloca la carga ligera al frente y los pies separados al ancho de la cadera."
-              ],
-              "ssc": 0.4,
-              "stabilizerMuscles": [
-                "core"
-              ],
-              "technicalDifficulty": 5.0,
-              "ttc": 1.8
-            },
-            "selectedOptions": {
-              "implement": "smith_machine"
-            }
-          },
-          {
-            "displaySummary": "cable",
-            "evidence": {
-              "confidence": "MEDIUM",
-              "evidenceRefs": [
-                "legacy:exercise_database.json#back_jefferson_curl",
-                "editorial:catalog-v2-full-2026-08-02"
-              ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
-              "reviewStatus": "APPROVED"
-            },
-            "id": "back_jefferson_curl__cable",
-            "profile": {
-              "automationEligible": true,
-              "axialLoadFactor": 0.2,
-              "bodyRegion": "LOWER",
-              "cnc": 2.0,
-              "commonMistakes": [
-                "Acelerar la bajada o usar un peso que impide el control del recorrido."
-              ],
-              "description": "Polea baja: la tensión constante acompaña el redondeo de la espalda. Variante suave del Jefferson curl.",
-              "efc": 2.5,
+              "description": "En polea, la tensión se mantiene todo el recorrido y el giro se siente lleno de principio a fin. Una forma muy pulida de fortalecer la muñeca.",
+              "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
-                "Redondea la columna vértebra a vértebra y vuelve a subir con control."
+                "Gira la palma hacia arriba rotando solo el antebrazo, con el codo quieto."
               ],
               "kineticChain": "POSTERIOR",
-              "laterality": "NOT_APPLICABLE",
+              "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
-              "movementPatternId": "spinal_flexion",
+              "movementPatternId": "wrist_flexion",
               "muscleNotes": [
                 {
-                  "muscleId": "erector_spinae",
-                  "note": "Principal: los erectores trabajan en elongación contra la flexión controlada de la columna; por eso suman la serie completa (1.0)."
+                  "muscleId": "forearm",
+                  "note": "Principal: los músculos supinadores giran el antebrazo contra la resistencia; por eso suman la serie completa (1.0)."
                 },
                 {
-                  "muscleId": "hamstrings",
-                  "note": "Secundario: los isquiosurales frenan la flexión de cadera durante el descenso; por eso suman 0.5."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco firme y protege la zona lumbar; por eso suma 0.4."
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps asiste la rotación externa del antebrazo; por eso suma 0.5."
                 }
               ],
-              "performanceProfileId": "back_jefferson_curl__cable",
+              "performanceProfileId": "supination__cable",
               "primaryMuscles": [
-                "erector_spinae"
+                "forearm"
               ],
-              "replacementGroup": null,
-              "replacementPriority": 999,
+              "replacementGroup": "forearm_wrist_curl",
+              "replacementPriority": 1,
               "resistanceProfile": "continuous_cable",
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "spinal_flexion"
+                    "wrist_flexion"
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "erector_spinae"
+                    "forearm"
                   ],
                   "secondaryMuscles": [
-                    "hamstrings"
+                    "biceps"
                   ],
                   "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [
-                    "core"
-                  ],
+                  "stabilizerMuscles": [],
                   "targetRegions": [
-                    "erector_spinae"
+                    "forearm"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -712,9 +276,9 @@
                   "bodyRegion": "LOWER",
                   "equipmentId": "cable",
                   "kineticChain": "POSTERIOR",
-                  "laterality": "NOT_APPLICABLE",
+                  "laterality": "UNILATERAL",
                   "loadMode": "continuous_cable",
-                  "movementPatternId": "spinal_flexion",
+                  "movementPatternId": "wrist_flexion",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "hip",
@@ -731,13 +295,13 @@
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Acelerar la bajada o usar un peso que impide el control del recorrido."
+                    "Mover el codo o el hombro para ayudar a girar el peso."
                   ],
                   "cues": [
                     "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
                   ],
                   "execution": [
-                    "Redondea la columna vértebra a vértebra y vuelve a subir con control."
+                    "Gira la palma hacia arriba rotando solo el antebrazo, con el codo quieto."
                   ],
                   "progressions": [
                     "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
@@ -750,46 +314,48 @@
                     "Movilidad de knee según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca la carga ligera al frente y los pies separados al ancho de la cadera."
+                    "Sujeta el peso con la palma hacia abajo y el codo apoyado y fijo."
                   ]
                 },
                 "display": {
-                  "displayName": "Jefferson Curl",
-                  "displaySummary": "cable",
+                  "displayName": "Supinaciones",
+                  "displaySummary": "cable · unilateral",
                   "selectedOptions": {
                     "implement": "cable"
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
-                  "axialLoadFactor": 0.2,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 5.0,
-                  "ttc": 1.8
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.5,
+                  "efc": 2.0,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 3.5,
+                  "ttc": 1.5
                 },
                 "identity": {
-                  "canonicalName": "Jefferson Curl",
+                  "canonicalName": "Supinaciones",
                   "catalogRevision": "v2-approved-2026-08-02-c",
-                  "configurationId": "back_jefferson_curl__cable",
-                  "definitionId": "back_jefferson_curl",
-                  "familyId": "lower_spinal_flexion",
+                  "configurationId": "supination__cable",
+                  "definitionId": "supination",
+                  "familyId": "lower_wrist_rotation",
                   "kind": "PARENT",
-                  "performanceProfileId": "back_jefferson_curl__cable",
+                  "performanceProfileId": "supination__cable",
                   "searchTerms": [
-                    "jefferson curl",
-                    "curl de jefferson"
+                    "supinaciones",
+                    "supinación",
+                    "rotación externa antebrazo",
+                    "giro palma arriba"
                   ]
                 },
                 "programming": {
                   "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
-                    "max": 120,
-                    "min": 60
+                    "max": 90,
+                    "min": 30
                   },
                   "objectives": [
-                    "Desarrollar erector_spinae con la flexión espinal controlada del Jefferson Curl."
+                    "Desarrollar forearm con supinaciones en cable."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -808,80 +374,487 @@
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
-                    "barbell",
                     "dumbbells",
-                    "smith_machine",
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva la flexión espinal controlada y el objetivo erector_spinae."
+                    "Conserva la rotación externa del antebrazo y el objetivo forearm."
                   ],
-                  "replacementGroup": null,
-                  "replacementPriority": 999
+                  "replacementGroup": "forearm_wrist_curl",
+                  "replacementPriority": 1
                 },
                 "safety": {
                   "medicalDisclaimerRequired": false,
                   "precautions": [
                     "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
                   ],
-                  "risks": [
-                    "La pérdida de la posición puede trasladar carga fuera del patrón spinal_flexion."
-                  ]
+                  "risks": []
                 }
               },
               "secondaryMuscles": [
-                "hamstrings"
+                "biceps"
               ],
               "setupCues": [
-                "Coloca la carga ligera al frente y los pies separados al ancho de la cadera."
+                "Sujeta el peso con la palma hacia abajo y el codo apoyado y fijo."
               ],
-              "ssc": 0.4,
-              "stabilizerMuscles": [
-                "core"
-              ],
-              "technicalDifficulty": 5.0,
-              "ttc": 1.8
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.5,
+              "ttc": 1.5
             },
             "selectedOptions": {
               "implement": "cable"
             }
           }
         ],
-        "defaultConfigurationId": "back_jefferson_curl__barbell",
-        "description": "Jefferson curl: con la carga en las manos, doblas la espalda vértebra a vértebra hasta redondearla y vuelves igual de lento. El ejercicio de movilidad más controvertido y más respetado entre los que saben.",
+        "defaultConfigurationId": "supination__dumbbells",
+        "description": "Gira la palma de la mano hacia arriba contra la resistencia: un movimiento pequeño que trabaja de verdad los músculos que supinan el antebrazo. Clave para la salud de la muñeca, el codo y un agarre más fuerte en todo lo que hagas.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:back_jefferson_curl"
+            "editorial:catalog-v3-2026-08-02"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Aprobado por decisión explícita de catálogo v3; la configuración está materializada y no depende de inferencia runtime.",
           "reviewStatus": "APPROVED"
         },
-        "familyId": "lower_spinal_flexion",
-        "id": "back_jefferson_curl",
+        "familyId": "lower_wrist_rotation",
+        "id": "supination",
         "kind": "PARENT",
         "optionAxes": [
           "implement"
         ],
         "searchTerms": [
-          "jefferson curl",
-          "curl de jefferson"
+          "supinaciones",
+          "supinación",
+          "rotación externa antebrazo",
+          "giro palma arriba"
+        ]
+      },
+      {
+        "canonicalName": "Pronaciones",
+        "configurations": [
+          {
+            "displaySummary": "dumbbells · bilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#forearms_curl_muneca_sentado",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "pronation__dumbbells",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "cnc": 1.5,
+              "commonMistakes": [
+                "Levantar el codo o usar el hombro para facilitar la rotación."
+              ],
+              "description": "Con mancuerna, el codo apoyado y la palma girando abajo: el antebrazo trabaja solo y el movimiento se siente muy controlado.",
+              "efc": 2.0,
+              "equipmentId": "dumbbells",
+              "executionCues": [
+                "Gira la palma hacia abajo rotando solo el antebrazo, con el codo quieto."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "wrist_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: los músculos pronadores rotan el antebrazo contra la resistencia; por eso suman la serie completa (1.0)."
+                }
+              ],
+              "performanceProfileId": "pronation__dumbbells",
+              "primaryMuscles": [
+                "forearm"
+              ],
+              "replacementGroup": "forearm_wrist_curl",
+              "replacementPriority": 1,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "wrist_flexion"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "forearm"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "forearm"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "dumbbells",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "wrist_flexion",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Levantar el codo o usar el hombro para facilitar la rotación."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Gira la palma hacia abajo rotando solo el antebrazo, con el codo quieto."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Sujeta el peso con la palma hacia arriba y el codo apoyado y fijo."
+                  ]
+                },
+                "display": {
+                  "displayName": "Pronaciones",
+                  "displaySummary": "dumbbells · bilateral",
+                  "selectedOptions": {
+                    "implement": "dumbbells"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.5,
+                  "efc": 2.0,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 3.5,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Pronaciones",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "pronation__dumbbells",
+                  "definitionId": "pronation",
+                  "familyId": "lower_wrist_rotation",
+                  "kind": "PARENT",
+                  "performanceProfileId": "pronation__dumbbells",
+                  "searchTerms": [
+                    "pronaciones",
+                    "pronación",
+                    "rotación interna antebrazo",
+                    "giro palma abajo"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar forearm con pronaciones en dumbbells."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "dumbbells"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells",
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la rotación interna del antebrazo y el objetivo forearm."
+                  ],
+                  "replacementGroup": "forearm_wrist_curl",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Sujeta el peso con la palma hacia arriba y el codo apoyado y fijo."
+              ],
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.5,
+              "ttc": 1.5
+            },
+            "selectedOptions": {
+              "implement": "dumbbells"
+            }
+          },
+          {
+            "displaySummary": "cable · unilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#forearms_curl_muneca_sentado",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "pronation__cable",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "cnc": 1.5,
+              "commonMistakes": [
+                "Levantar el codo o usar el hombro para facilitar la rotación."
+              ],
+              "description": "En polea, la tensión constante hace que el giro hacia abajo cargue todo el recorrido. Ideal para igualar la fuerza de las rotaciones.",
+              "efc": 2.0,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Gira la palma hacia abajo rotando solo el antebrazo, con el codo quieto."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "wrist_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: los músculos pronadores rotan el antebrazo contra la resistencia; por eso suman la serie completa (1.0)."
+                }
+              ],
+              "performanceProfileId": "pronation__cable",
+              "primaryMuscles": [
+                "forearm"
+              ],
+              "replacementGroup": "forearm_wrist_curl",
+              "replacementPriority": 1,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "wrist_flexion"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "forearm"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "forearm"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "cable",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "wrist_flexion",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Levantar el codo o usar el hombro para facilitar la rotación."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Gira la palma hacia abajo rotando solo el antebrazo, con el codo quieto."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Sujeta el peso con la palma hacia arriba y el codo apoyado y fijo."
+                  ]
+                },
+                "display": {
+                  "displayName": "Pronaciones",
+                  "displaySummary": "cable · unilateral",
+                  "selectedOptions": {
+                    "implement": "cable"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.5,
+                  "efc": 2.0,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 3.5,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Pronaciones",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "pronation__cable",
+                  "definitionId": "pronation",
+                  "familyId": "lower_wrist_rotation",
+                  "kind": "PARENT",
+                  "performanceProfileId": "pronation__cable",
+                  "searchTerms": [
+                    "pronaciones",
+                    "pronación",
+                    "rotación interna antebrazo",
+                    "giro palma abajo"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar forearm con pronaciones en cable."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells",
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la rotación interna del antebrazo y el objetivo forearm."
+                  ],
+                  "replacementGroup": "forearm_wrist_curl",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Sujeta el peso con la palma hacia arriba y el codo apoyado y fijo."
+              ],
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.5,
+              "ttc": 1.5
+            },
+            "selectedOptions": {
+              "implement": "cable"
+            }
+          }
+        ],
+        "defaultConfigurationId": "pronation__dumbbells",
+        "description": "Gira la palma de la mano hacia abajo contra la resistencia: el gesto complementario a la supinación que fortalece los pronadores del antebrazo. Pequeño en tamaño, grande en beneficios para el codo y el agarre.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:catalog-v3-2026-08-02"
+          ],
+          "rationale": "Aprobado por decisión explícita de catálogo v3; la configuración está materializada y no depende de inferencia runtime.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "lower_wrist_rotation",
+        "id": "pronation",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement"
+        ],
+        "searchTerms": [
+          "pronaciones",
+          "pronación",
+          "rotación interna antebrazo",
+          "giro palma abajo"
         ]
       }
     ],
-    "description": "Familia controlada por patrón spinal_flexion; cada especialidad conserva su perfil resuelto.",
+    "description": "Familia de rotación del antebrazo con implemento explícito: supinar y pronar trabajan los músculos que giran la palma y dan fuerza y salud a la muñeca y el codo.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:lower_spinal_flexion"
+        "editorial:family:lower_wrist_flexion"
       ],
       "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
       "reviewStatus": "APPROVED"
     },
-    "id": "lower_spinal_flexion",
+    "id": "lower_wrist_rotation",
     "taxonomy": [
       "lower",
-      "spinal_flexion"
+      "wrist_rotation"
     ]
   },
   "ontologyRevision": "wikilab-v2-2026-08-02",

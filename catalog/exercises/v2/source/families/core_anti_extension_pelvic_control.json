@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón anti-extensión / control pelvis para completar la repetición."
               ],
-              "description": "Elevación y descenso rígido del torso completo sujeto al banco estilo Bruce Lee. La configuración utiliza peso corporal como implemento.",
+              "description": "Versión completa del dragon flag: desde acostado subes el cuerpo entero sin doblar las rodillas y desciendes con freno. La joya de la corona del trabajo abdominal.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -200,7 +200,7 @@
           }
         ],
         "defaultConfigurationId": "core_dragon_flag_banco_plano__default",
-        "description": "Elevación y descenso rígido del torso completo sujeto al banco estilo Bruce Lee.",
+        "description": "El ejercicio de las películas de artes marciales: boca arriba en el banco, subes el cuerpo entero hasta casi la vertical y desciendes con todo controlado. Fuerza de core extrema y mucha adrenalina.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

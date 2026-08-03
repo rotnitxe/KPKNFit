@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."
               ],
-              "description": "Hip Thrust con barra y ambas piernas: la espalda apoya en el banco y la barra sobre la cadera, con la pelvis que sube hasta el bloqueo. Es la referencia de la familia para progresar la carga del glúteo.",
+              "description": "Barra en la cadera con ambas piernas: el hip thrust clásico, con la espalda en el banco y el glúteo empujando el peso. El ejercicio rey del glúteo.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -240,7 +240,7 @@
               "commonMistakes": [
                 "Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."
               ],
-              "description": "Hip Thrust con barra y una pierna: un pie apoya en el suelo y la cadera sube contra la barra con el glúteo del lado activo. Permite corregir asimetrías con la misma carga.",
+              "description": "Barra con una pierna: el glúteo de un lado trabaja solo y el equilibrio se suma. La versión avanzada para quien ya domina el clásico.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -454,7 +454,7 @@
               "commonMistakes": [
                 "Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."
               ],
-              "description": "Hip Thrust en Smith con ambas piernas: el riel guiado fija la trayectoria de la barra sobre la cadera. La máquina reduce el equilibrio del empuje de cadera.",
+              "description": "Smith con ambas piernas: la barra guiada te deja exprimir el glúteo sin pensar en el equilibrio. Perfecto para series pesadas.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -668,7 +668,7 @@
               "commonMistakes": [
                 "Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."
               ],
-              "description": "Hip Thrust en Smith con una pierna: la barra guiada acompaña la elevación unilateral de la cadera. La máquina fija el plano del movimiento del glúteo.",
+              "description": "Smith con una pierna: guiado estable y trabajo unilateral del glúteo. Ideal para corregir desequilibrios con carga.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -883,7 +883,7 @@
               "commonMistakes": [
                 "Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."
               ],
-              "description": "Hip Thrust en máquina con ambas piernas: el cojín presiona la cadera y la pelvis sube contra la resistencia guiada. La estación fija el tronco y aísla el glúteo.",
+              "description": "Máquina de hip thrust con ambas piernas: la almohadilla y el guiado hacen el resto. La opción más cómoda para cargar el glúteo con seguridad.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -1098,7 +1098,7 @@
               "commonMistakes": [
                 "Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."
               ],
-              "description": "Hip Thrust en máquina con una pierna: el cojín acompaña la elevación de un solo lado con el tronco apoyado. Permite trabajar el glúteo de forma independiente.",
+              "description": "Máquina con una pierna: cada glúteo trabaja por separado con el guiado de la máquina. Perfecta para igualar ambos lados.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -1312,7 +1312,7 @@
               "commonMistakes": [
                 "Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."
               ],
-              "description": "Hip Thrust con banda y ambas piernas: la banda rodea la cadera y añade resistencia progresiva en el bloqueo. Variante portátil del empuje de cadera.",
+              "description": "Banda sobre la cadera con ambas piernas: la resistencia crece al empujar arriba. Fácil de montar en cualquier sitio y muy exigente al final de la serie.",
               "efc": 2.8,
               "equipmentId": "band",
               "executionCues": [
@@ -1526,7 +1526,7 @@
               "commonMistakes": [
                 "Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."
               ],
-              "description": "Hip Thrust con banda y una pierna: la banda sobre la cadera y un pie en el suelo concentran el empuje en el glúteo del lado activo. Variante para asimetrías sin equipamiento pesado.",
+              "description": "Banda con una pierna: el glúteo trabaja solo contra la resistencia elástica. Variante sencilla y muy efectiva para rematar.",
               "efc": 2.8,
               "equipmentId": "band",
               "executionCues": [
@@ -1722,7 +1722,7 @@
           }
         ],
         "defaultConfigurationId": "hip_thrust__bilateral__barbell",
-        "description": "Empuje de cadera con la espalda apoyada en un banco, que aísla el glúteo mayor con el tronco fijo. El implemento y la lateralidad definen cada configuración.",
+        "description": "Hip thrust: la espalda apoyada en el banco y la barra en la cadera, empujando el peso hacia arriba. El rey indiscutible para construir glúteos con carga, el favorito de todos.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

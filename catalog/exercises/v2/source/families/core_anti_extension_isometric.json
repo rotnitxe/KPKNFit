@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón anti-extensión isométrica para completar la repetición."
               ],
-              "description": "Plancha trabaja principalmente core mediante un patrón de anti-extensión isométrica. La participación secundaria corresponde a abdomen. La configuración utiliza peso corporal como implemento.",
+              "description": "Versión isométrica clásica: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie. Simple de aprender, demoledor para el core y perfecto para empezar.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -201,7 +201,7 @@
           }
         ],
         "defaultConfigurationId": "core_plancha__default",
-        "description": "Plancha trabaja principalmente core mediante un patrón de anti-extensión isométrica. La participación secundaria corresponde a abdomen.",
+        "description": "Plancha abdominal: aguanta el cuerpo recto como una tabla apoyado en los antebrazos y las puntas de los pies. El isométrico clásico que enciende el abdomen en serio, sin moverte un centímetro.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

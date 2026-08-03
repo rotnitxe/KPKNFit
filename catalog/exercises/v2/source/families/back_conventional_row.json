@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo convencional con barra: el tronco se inclina con la espalda neutra y la barra sube hacia el abdomen. Es la versión de referencia para cargar el dorsal y el trapecio con progresión de peso.",
+              "description": "Con barra, el remo más clásico de todos: cargas pesadas, torso firme y codos hacia atrás. La base de cualquier espalda seria en el gimnasio.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -260,7 +260,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo convencional con mancuernas: cada brazo tracciona de forma independiente y el recorrido se adapta a la movilidad del hombro. Ayuda a igualar asimetrías entre los dos lados de la espalda.",
+              "description": "Con mancuernas, cada lado trabaja por separado y corriges desequilibrios de espalda. Además puedes apoyar la rodilla en el banco y centrarte en el tirón.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -494,7 +494,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo convencional en máquina: el pecho se apoya en el cojín y los brazos tiran hacia el tronco con recorrido guiado. Opción estable para aislar la espalda sin exigir equilibrio del tronco.",
+              "description": "En máquina, el recorrido guiado te deja concentrarte en la contracción de la espalda. La opción más estable para acumular volumen sin distracciones.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -728,7 +728,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo convencional en máquina Smith: la barra sube por el riel guiado y el recorrido vertical queda fijado. Permite concentrarse en la contracción de la espalda con la postura sostenida por el riel.",
+              "description": "En Smith, la barra sube en línea recta y solo te queda empujar con la espalda. Perfecto para progresar con peso sin preocuparte por el equilibrio.",
               "efc": 2.5,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -962,7 +962,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo convencional con kettlebell: la empuñadura compacta cambia el centro de gravedad y exige más control del agarre. Variante accesible cuando no hay barra ni mancuernas disponibles.",
+              "description": "Con kettlebell, el remo se vuelve más dinámico y el agarre también trabaja. Una variante que mezcla espalda y fuerza de agarre en cada repetición.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -1196,7 +1196,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo convencional en polea: la tensión continua sostiene la carga en la fase de estiramiento del dorsal. El cable permite ajustar el peso con rapidez entre series.",
+              "description": "En polea, la tensión es constante de arriba a abajo del recorrido y la espalda no descansa. Ideal para cerrar la sesión con un buen bombeo de dorsales.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -1412,7 +1412,7 @@
           }
         ],
         "defaultConfigurationId": "conventional_row__barbell",
-        "description": "Tirón horizontal con el tronco inclinado y la espalda neutra, que prioriza el dorsal y el trapecio. El implemento cambia la curva de tensión y la exigencia de equilibrio de cada variante.",
+        "description": "El remo de toda la vida: torso inclinado, pesos hacia la cintura y codos que viajan hacia atrás. Construye una espalda ancha y fuerte mientras aprendes a cargar con la cadera.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

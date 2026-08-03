@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
               ],
-              "description": "Press de banca plano con barra: el agarre fijo reparte la carga entre ambos brazos y permite mover el peso mayor de la familia. La trayectoria vertical exige control del hombro y de la escápula.",
+              "description": "Con barra, mueves la mayor cantidad de peso y lo compruebas en cada sesión: los números no mienten. El press plano clásico, puro y duro.",
               "efc": 4.2,
               "equipmentId": "barbell",
               "executionCues": [
@@ -248,7 +248,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
               ],
-              "description": "Press de banca plano con mancuernas: cada brazo trabaja de forma independiente y el recorrido alcanza más profundidad. Exige mayor estabilidad del hombro que la barra.",
+              "description": "Con mancuernas, cada brazo trabaja por su cuenta y el recorrido es más natural para el hombro. La opción favorita para equilibrio, estética y seguridad.",
               "efc": 4.2,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -470,7 +470,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
               ],
-              "description": "Press de banca plano en máquina Smith: el recorrido guiado elimina el equilibrio lateral y concentra el trabajo en el pectoral. Opción estable para cargas altas o entrenar cerca del fallo.",
+              "description": "En Smith, la barra va guiada y puedes exprimir el pecho sin preocuparte por el equilibrio. Ideal para series pesadas en solitario con total confianza.",
               "efc": 4.2,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -692,7 +692,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
               ],
-              "description": "Press de banca plano en máquina convergente: los brazos empujan hacia la línea media con tensión constante y trayectoria guiada. Resulta cómoda para aislar el pectoral sin coordinar la barra.",
+              "description": "En máquina, el recorrido fijo te deja concentrarte en empujar con el pecho a tope. La versión más cómoda para acumular volumen sin desgaste.",
               "efc": 4.2,
               "equipmentId": "machine",
               "executionCues": [
@@ -906,7 +906,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
               ],
-              "description": "Press de banca plano en polea: la tensión continua del cable sostiene la carga en la parte final del empuje. El agarre libre permite ajustar la trayectoria según la comodidad del hombro.",
+              "description": "En polea, la tensión constante llega hasta arriba del empuje y el pecho no descansa jamás. Un cambio de estímulo brutal para el final de la rutina.",
               "efc": 4.2,
               "equipmentId": "cable",
               "executionCues": [
@@ -1128,7 +1128,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
               ],
-              "description": "Press de banca plano con kettlebell: el peso compacto cambia el centro de gravedad y reta la estabilidad del hombro. Variante versátil cuando no hay barra ni mancuernas disponibles.",
+              "description": "Con kettlebell, el press se vuelve más inestable y el trabajo de estabilidad se dispara. Variante poco común que exige concentración y enciende el pecho.",
               "efc": 4.2,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -1332,7 +1332,7 @@
           }
         ],
         "defaultConfigurationId": "bench_press__barbell",
-        "description": "Empuje horizontal sobre banco plano que prioriza el pectoral mayor con el tronco apoyado. El implemento cambia la curva de tensión y la estabilidad requerida.",
+        "description": "El rey del pecho: acostado en el banco, bajas la barra al pecho y la empujas con todo. Mide tu fuerza real de empuje, emociona como pocos ejercicios y nunca pasa de moda.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1384,7 +1384,7 @@
               "commonMistakes": [
                 "Usar impulso, perder el apoyo del tronco o reducir el rango de la articulación para completar la repetición."
               ],
-              "description": "Press de banca declinado con barra: el banco baja la cabeza y la barra desciende hacia la parte baja del pecho. El ángulo enfatiza el pectoral inferior con más recorrido de la parte baja.",
+              "description": "Barra en banco declinado: el ángulo apunta directo a la parte baja del pecho. Complemento perfecto para el press plano con carga libre.",
               "efc": 4.2,
               "equipmentId": "barbell",
               "executionCues": [
@@ -1598,7 +1598,7 @@
               "commonMistakes": [
                 "Usar impulso, perder el apoyo del tronco o reducir el rango de la articulación para completar la repetición."
               ],
-              "description": "Press de banca declinado con mancuernas: los brazos parten del pecho bajo y suben en trayectoria propia. La carga libre permite un recorrido profundo con el banco declinado.",
+              "description": "Mancuernas en banco declinado: el trabajo cae a la parte inferior del pectoral con recorrido libre. Variante fina para dar forma al pecho.",
               "efc": 4.2,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -1812,7 +1812,7 @@
               "commonMistakes": [
                 "Usar impulso, perder el apoyo del tronco o reducir el rango de la articulación para completar la repetición."
               ],
-              "description": "Press de banca declinado en Smith: el riel guiado fija la trayectoria y reduce la coordinación necesaria. Opción estable para aislar el pectoral inferior con carga progresiva.",
+              "description": "Smith en banco declinado: barra guiada y ángulo bajo para aislar el pectoral inferior. Cómoda para cargar peso y sentir la zona baja.",
               "efc": 4.2,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -2026,7 +2026,7 @@
               "commonMistakes": [
                 "Usar impulso, perder el apoyo del tronco o reducir el rango de la articulación para completar la repetición."
               ],
-              "description": "Press de banca declinado en máquina convergente: los brazos empujan hacia la línea media con el banco declinado y tensión constante. El guiado simplifica la posición del pectoral inferior.",
+              "description": "Máquina declinada: recorrido fijo y foco total en la parte baja del pecho. La opción más limpia para rematar el pectoral inferior.",
               "efc": 4.2,
               "equipmentId": "machine",
               "executionCues": [
@@ -2232,7 +2232,7 @@
               "commonMistakes": [
                 "Usar impulso, perder el apoyo del tronco o reducir el rango de la articulación para completar la repetición."
               ],
-              "description": "Press de banca declinado en polea: la tensión continua sostiene la carga en la fase final del empuje. El agarre libre se adapta a la trayectoria del pectoral inferior.",
+              "description": "Polea en banco declinado: tensión constante que mantiene la parte baja del pecho ardiendo. Variante original que se agradece a mitad de rutina.",
               "efc": 4.2,
               "equipmentId": "cable",
               "executionCues": [
@@ -2446,7 +2446,7 @@
               "commonMistakes": [
                 "Usar impulso, perder el apoyo del tronco o reducir el rango de la articulación para completar la repetición."
               ],
-              "description": "Press de banca declinado con kettlebell: el peso compacto exige control del hombro en el ángulo declinado. Variante versátil para el pectoral inferior sin equipamiento pesado.",
+              "description": "Kettlebell en banco declinado: inestabilidad extra y trabajo enfocado en el pecho bajo. Para quien busca salir de la zona cómoda.",
               "efc": 4.2,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -2642,7 +2642,7 @@
           }
         ],
         "defaultConfigurationId": "decline_bench_press__barbell",
-        "description": "Empuje horizontal sobre banco declinado que enfatiza la parte inferior del pectoral con mayor recorrido. El implemento define la curva de tensión de cada configuración.",
+        "description": "Press en banco declinado, con la cabeza más baja que las caderas: ataca la parte baja del pecho desde un ángulo que se siente distinto. Buen complemento para redondear el trabajo del press plano.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -2686,7 +2686,7 @@
               "commonMistakes": [
                 "Usar impulso, perder el apoyo del tronco o reducir el rango de la articulación para completar la repetición."
               ],
-              "description": "Press de banca inclinado con barra: el banco sube entre 30 y 45 grados y la barra desciende hacia la parte alta del pecho. El ángulo reparte el trabajo entre el pectoral alto y el deltoides anterior.",
+              "description": "Barra en banco inclinado: el empuje sube el foco a la parte alta del pecho y al hombro. El press que más redondea el torso visto de frente.",
               "efc": 4.2,
               "equipmentId": "barbell",
               "executionCues": [
@@ -2900,7 +2900,7 @@
               "commonMistakes": [
                 "Usar impulso, perder el apoyo del tronco o reducir el rango de la articulación para completar la repetición."
               ],
-              "description": "Press de banca inclinado con mancuernas: cada brazo parte desde el pecho alto y sube en trayectoria propia hacia el techo. La carga libre exige más estabilidad del hombro que la barra.",
+              "description": "Mancuernas en banco inclinado: la parte alta del pecho trabaja con recorrido libre y natural. El favorito para dar forma a la clavícula.",
               "efc": 4.2,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -3114,7 +3114,7 @@
               "commonMistakes": [
                 "Usar impulso, perder el apoyo del tronco o reducir el rango de la articulación para completar la repetición."
               ],
-              "description": "Press de banca inclinado en Smith: el riel guiado fija la trayectoria de la barra y elimina el equilibrio lateral. Permite concentrarse en el pectoral alto con la postura sostenida.",
+              "description": "Smith en banco inclinado: barra guiada, ángulo alto y foco en el pectoral superior. Segura para progresar con peso en solitario.",
               "efc": 4.2,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -3328,7 +3328,7 @@
               "commonMistakes": [
                 "Usar impulso, perder el apoyo del tronco o reducir el rango de la articulación para completar la repetición."
               ],
-              "description": "Press de banca inclinado en máquina convergente: los brazos empujan hacia la línea media con el banco inclinado y tensión constante. El asiento guiado aísla el trabajo del pectoral sin coordinar la barra.",
+              "description": "Máquina inclinada: el recorrido fijo lleva la tensión directa a la parte alta del pecho. Perfecta para terminar el día de pecho sin distracciones.",
               "efc": 4.2,
               "equipmentId": "machine",
               "executionCues": [
@@ -3534,7 +3534,7 @@
               "commonMistakes": [
                 "Usar impulso, perder el apoyo del tronco o reducir el rango de la articulación para completar la repetición."
               ],
-              "description": "Press de banca inclinado en polea: la tensión continua del cable mantiene la carga en la fase final del empuje. El agarre libre permite ajustar la trayectoria a la comodidad del hombro.",
+              "description": "Polea en banco inclinado: tensión constante en la zona alta del pecho en todo el empuje. Un remate fino que se siente desde la primera serie.",
               "efc": 4.2,
               "equipmentId": "cable",
               "executionCues": [
@@ -3748,7 +3748,7 @@
               "commonMistakes": [
                 "Usar impulso, perder el apoyo del tronco o reducir el rango de la articulación para completar la repetición."
               ],
-              "description": "Press de banca inclinado con kettlebell: el peso compacto cambia el centro de gravedad y reta la estabilidad del hombro en el ángulo inclinado. Variante versátil sin barra ni mancuernas.",
+              "description": "Kettlebell en banco inclinado: el ángulo alto más la inestabilidad encienden el pecho superior. Variante exigente para rutinas distintas.",
               "efc": 4.2,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -3944,7 +3944,7 @@
           }
         ],
         "defaultConfigurationId": "incline_bench_press__barbell",
-        "description": "Empuje horizontal sobre banco inclinado que prioriza la parte alta del pectoral y el deltoides anterior. El implemento cambia la curva de tensión de cada variante.",
+        "description": "Press en banco inclinado: el ángulo sube el foco a la parte alta del pecho y al hombro delantero. La versión que más estética construye y la favorita para esculpir la parte de arriba.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

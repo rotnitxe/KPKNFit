@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla / cadera para completar la repetición."
               ],
-              "description": "Sentadilla a Cajón trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla / cadera. La participación secundaria corresponde a glúteos, isquiosurales. La configuración utiliza barra como implemento.",
+              "description": "Bajas sentándote en el cajón y subes sin rebote: profundidad segura y fuerza de cuádriceps. El maestro de la sentadilla.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -208,7 +208,7 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_cajon__default",
-        "description": "Sentadilla a Cajón trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla / cadera. La participación secundaria corresponde a glúteos, isquiosurales.",
+        "description": "Sentadilla a cajón: bajas sentándote en un cajón y te levantas sin rebote. Perfecta para aprender la profundidad y construir fuerza de cuádriceps con seguridad.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -249,7 +249,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla / cadera para completar la repetición."
               ],
-              "description": "Sentadilla Sumo Frontal trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla / cadera. La participación secundaria corresponde a aductores, glúteos, core. La configuración utiliza barra como implemento.",
+              "description": "Barra al frente con la postura amplia de sumo: torso erguido y piernas trabajando juntas.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -437,7 +437,7 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_sumo_frontal__default",
-        "description": "Sentadilla Sumo Frontal trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla / cadera. La participación secundaria corresponde a aductores, glúteos, core.",
+        "description": "Sentadilla sumo frontal: la barra al frente con la postura amplia de sumo. Torso erguido, cuádriceps y aductores trabajando juntos.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -478,7 +478,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla / cadera para completar la repetición."
               ],
-              "description": "Sentadilla Sumo Zercher trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla / cadera. La participación secundaria corresponde a aductores, glúteos, core. La configuración utiliza barra como implemento.",
+              "description": "Barra en los codos con postura sumo: la combinación exigente que trabaja piernas y torso.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -666,7 +666,7 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_sumo_zercher__default",
-        "description": "Sentadilla Sumo Zercher trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla / cadera. La participación secundaria corresponde a aductores, glúteos, core.",
+        "description": "Sentadilla sumo Zercher: la barra en los codos con la postura amplia. La combinación de sumo y Zercher: exigente y muy completa.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Balancear el cuerpo o subir los hombros para impulsar el peso."
               ],
-              "description": "Elevaciones Laterales Sentado con mancuernas: la carga libre permite ajustar el peso y el rango a la fuerza de cada deltoides lateral.",
+              "description": "Mancuernas sentado: el torso fijo elimina el impulso y el hombro trabaja limpio. La elevación estricta, la favorita de los que buscan detalle.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -227,7 +227,7 @@
               "commonMistakes": [
                 "Balancear el cuerpo o subir los hombros para impulsar el peso."
               ],
-              "description": "Elevaciones Laterales Sentado en polea: la tensión continua mantiene el deltoides lateral activo incluso en la fase de bajada.",
+              "description": "Polea sentado: tensión constante y sin impulso posible. El hombro lateral arde con la versión pulida.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -428,7 +428,7 @@
               "commonMistakes": [
                 "Balancear el cuerpo o subir los hombros para impulsar el peso."
               ],
-              "description": "Elevaciones Laterales Sentado en máquina: el recorrido guiado elimina el equilibrio y deja el foco en la contracción del deltoides lateral.",
+              "description": "Máquina sentado: el guiado lleva el trabajo directo al deltoides lateral. La opción más cómoda del press lateral sentado.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -629,7 +629,7 @@
               "commonMistakes": [
                 "Balancear el cuerpo o subir los hombros para impulsar el peso."
               ],
-              "description": "Elevaciones Laterales Sentado con kettlebell: la carga compacta resulta cómoda para sesiones de hombro y permite ritmos controlados.",
+              "description": "Kettlebell sentado: el agarre suma estabilidad extra al movimiento estricto. Variante exigente del press lateral sentado.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -812,7 +812,7 @@
           }
         ],
         "defaultConfigurationId": "seated_lateral_raise__dumbbells",
-        "description": "Abducción del brazo hasta la altura del hombro sentado, que elimina el impulso del cuerpo y aísla el deltoides lateral. El implemento define la curva de tensión de cada variante.",
+        "description": "Elevaciones laterales sentado: el torso fijo elimina el impulso y el hombro trabaja limpio. La versión estricta de la elevación lateral.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -857,7 +857,7 @@
               "commonMistakes": [
                 "Balancear el cuerpo o subir los hombros para impulsar el peso."
               ],
-              "description": "Elevaciones Laterales de Pie con mancuernas: la carga libre permite ajustar el peso y el rango a la fuerza de cada deltoides lateral.",
+              "description": "Mancuernas a los costados: subes hasta la altura del hombro con los brazos ligeramente abiertos. La elevación lateral clásica y más popular.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -1058,7 +1058,7 @@
               "commonMistakes": [
                 "Balancear el cuerpo o subir los hombros para impulsar el peso."
               ],
-              "description": "Elevaciones Laterales de Pie en polea: la tensión continua mantiene el deltoides lateral activo incluso en la fase de bajada.",
+              "description": "Polea lateral: la tensión constante mantiene el hombro cargado en todo el arco. La versión fina que no deja descansar al deltoides.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -1259,7 +1259,7 @@
               "commonMistakes": [
                 "Balancear el cuerpo o subir los hombros para impulsar el peso."
               ],
-              "description": "Elevaciones Laterales de Pie en máquina: el recorrido guiado elimina el equilibrio y deja el foco en la contracción del deltoides lateral.",
+              "description": "Máquina de elevaciones: el recorrido guiado aísla el deltoides lateral. Cómoda y efectiva para rematar el hombro.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -1460,7 +1460,7 @@
               "commonMistakes": [
                 "Balancear el cuerpo o subir los hombros para impulsar el peso."
               ],
-              "description": "Elevaciones Laterales de Pie con kettlebell: la carga compacta resulta cómoda para sesiones de hombro y permite ritmos controlados.",
+              "description": "Kettlebell a los costados: el agarre suma trabajo y el movimiento se siente distinto. Variante original de la elevación lateral.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -1643,7 +1643,7 @@
           }
         ],
         "defaultConfigurationId": "standing_lateral_raise__dumbbells",
-        "description": "Abducción del brazo hasta la altura del hombro de pie, que aísla el deltoides lateral con el tronco estable. El implemento define la curva de tensión de cada variante.",
+        "description": "Elevaciones laterales de pie: subes los brazos a los costados hasta la altura del hombro. El ejercicio que construye hombros anchos, el favorito de todos.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1688,7 +1688,7 @@
               "commonMistakes": [
                 "Compensar el final del rango elevando el hombro o arqueando el tronco."
               ],
-              "description": "Elevaciones laterales Super ROM en polea: la tensión continua acompaña el rango completo del deltoides lateral, incluido el tramo final sobre la altura del hombro.",
+              "description": "Polea con recorrido completo: subes más allá del hombro, por encima de la cabeza. El deltoides lateral trabaja en su rango máximo.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -1888,7 +1888,7 @@
               "commonMistakes": [
                 "Compensar el final del rango elevando el hombro o arqueando el tronco."
               ],
-              "description": "Elevaciones laterales Super ROM con mancuernas: el rango extendido sobre la cabeza exige carga ligera y control a lo largo del recorrido.",
+              "description": "Mancuernas con recorrido completo: subes por encima de la cabeza en cada repetición. La versión clásica de la Super ROM.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -2088,7 +2088,7 @@
               "commonMistakes": [
                 "Compensar el final del rango elevando el hombro o arqueando el tronco."
               ],
-              "description": "Elevaciones laterales Super ROM en máquina: el recorrido guiado sostiene el rango completo sin comprometer la estabilidad del hombro.",
+              "description": "Máquina con recorrido completo: el guiado acompaña el arco hasta arriba. La forma cómoda de llevar el hombro al límite.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -2270,7 +2270,7 @@
           }
         ],
         "defaultConfigurationId": "lateral_raise_super_rom__cable",
-        "description": "Elevaciones laterales con rango de recorrido completo, por encima de la altura del hombro, para reclutar el deltoides lateral en toda su amplitud de movimiento.",
+        "description": "Elevaciones laterales Super ROM: subes los brazos más allá de la horizontal, pasando por encima de la cabeza. La variante que lleva el hombro al límite de su recorrido.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

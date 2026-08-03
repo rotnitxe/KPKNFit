@@ -16,11 +16,12 @@ import kotlin.math.ceil
 class DatasetKnowledgeIntegrationTest {
     @Before
     fun loadDataset() {
-        if (!SemanticPortionRetriever.status().ready) {
-            val asset = File("src/main/assets/food_data/dataset_knowledge.bin")
-            DataInputStream(GZIPInputStream(FileInputStream(asset))).use { input ->
-                SemanticPortionRetriever.install(DatasetKnowledgeStore.decode(input))
-            }
+        // IT2: instalar SIEMPRE el dataset real. Antes se saltaba si ya había un
+        // snapshot, con lo que un test anterior podía dejar uno sintético/vacío y
+        // este suite corría contra datos equivocados (fuga de estado del singleton).
+        val asset = File("src/main/assets/food_data/dataset_knowledge.bin")
+        DataInputStream(GZIPInputStream(FileInputStream(asset))).use { input ->
+            SemanticPortionRetriever.install(DatasetKnowledgeStore.decode(input))
         }
     }
 

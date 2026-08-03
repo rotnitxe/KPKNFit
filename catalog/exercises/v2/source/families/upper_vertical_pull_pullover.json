@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
               ],
-              "description": "Pull Over en Banca con mancuerna: tumbado en el banco, el peso desciende por encima de la cabeza con los codos semiflexionados y vuelve sobre el pecho. El arco amplio estira el pectoral y el dorsal en cada repetición.",
+              "description": "Mancuerna acostado llevándola detrás de la cabeza: el dorsal se estira a fondo. La versión más popular del pullover.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -239,7 +239,7 @@
               "commonMistakes": [
                 "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
               ],
-              "description": "Pull Over en Banca con barra: el agarre fijo reparte la carga entre ambas manos y el arco respeta la línea del pecho. La barra permite progresar el peso de la familia con más control del rango.",
+              "description": "Barra acostado detrás de la cabeza: el arco largo con carga completa. El pullover clásico con barra.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -452,7 +452,7 @@
               "commonMistakes": [
                 "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
               ],
-              "description": "Pull Over en Banca con kettlebell: el peso compacto se sujeta con ambas manos por la empuñadura y el arco baja por encima de la cabeza. Variante accesible cuando no hay barra ni mancuernas disponibles.",
+              "description": "Kettlebell acostado detrás de la cabeza: la campana se siente distinta en el arco. Variante original del pullover.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -666,7 +666,7 @@
               "commonMistakes": [
                 "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
               ],
-              "description": "Pull Over en Banca en polea: la tensión continua acompaña el arco del brazo y sostiene la carga en la fase de estiramiento. El cable permite ajustar el peso con suavidad entre series.",
+              "description": "Polea acostado: la tensión constante estira el dorsal en todo el recorrido. La versión fina del pullover.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -880,7 +880,7 @@
               "commonMistakes": [
                 "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
               ],
-              "description": "Pull Over en Banca en máquina: el brazo guiado repite la trayectoria del arco con el tronco apoyado en el banco. La estación fija el pecho y simplifica la coordinación del movimiento.",
+              "description": "Máquina de pullover: el guiado acompaña el arco detrás de la cabeza. La opción cómoda y segura del ejercicio.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -1075,7 +1075,7 @@
           }
         ],
         "defaultConfigurationId": "lying_pullover__dumbbells",
-        "description": "Tirón vertical tumbado en el banco con el pectoral como motor principal y el dorsal como apoyo. El implemento define la curva de tensión de cada configuración.",
+        "description": "Pullover en banca: acostado, llevas el peso por detrás de la cabeza y lo vuelves sobre el pecho. El dorsal se estira a fondo: el ejercicio clásico de la espalda ancha.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1121,7 +1121,7 @@
               "commonMistakes": [
                 "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
               ],
-              "description": "Pull Over en polea con recorrido bilateral: el brazo desciende por encima de la cabeza contra la tensión continua del cable. La polea mantiene la carga en la fase de estiramiento del dorsal.",
+              "description": "Polea alta con ambas manos: el arco largo deja el dorsal estirado a fondo. El pullover de polea clásico.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -1336,7 +1336,7 @@
               "commonMistakes": [
                 "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
               ],
-              "description": "Pull Over en polea con recorrido unilateral: el brazo desciende por encima de la cabeza contra la tensión continua del cable. La polea mantiene la carga en la fase de estiramiento del dorsal.",
+              "description": "Polea con una mano: cada dorsal trabaja por separado con tensión constante. Ideal para corregir desequilibrios.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -1551,7 +1551,7 @@
               "commonMistakes": [
                 "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
               ],
-              "description": "Pull Over en máquina con recorrido bilateral: el brazo conserva la trayectoria guiada del brazo de la máquina. La estación fija el tronco y permite concentrarse en el dorsal sin equilibrio extra.",
+              "description": "Máquina con ambas manos: el guiado hace el arco estable y seguro. La opción cómoda del pullover.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -1766,7 +1766,7 @@
               "commonMistakes": [
                 "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
               ],
-              "description": "Pull Over en máquina con recorrido unilateral: el brazo conserva la trayectoria guiada del brazo de la máquina. La estación fija el tronco y permite concentrarse en el dorsal sin equilibrio extra.",
+              "description": "Máquina con una mano: un dorsal a la vez con el guiado. Perfecto para centrarse en cada lado.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -1962,7 +1962,7 @@
           }
         ],
         "defaultConfigurationId": "pullover__bilateral__cable",
-        "description": "Tirón vertical con el brazo que desciende por encima de la cabeza, con el dorsal como motor principal. La polea y la máquina definen la curva de tensión de cada variante.",
+        "description": "Pull over: acostado o de pie en polea, llevas el brazo por detrás de la cabeza y vuelves. Dorsales y pecho trabajando en un arco largo y profundo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

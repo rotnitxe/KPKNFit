@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón flexión tronco para completar la repetición."
               ],
-              "description": "Crunch en banco declinado abrazando disco al pecho.",
+              "description": "En el banco declinado el abdomen trabaja contra la gravedad en cada crunch y el disco en el pecho añade el extra que quieras.",
               "efc": 2.0,
               "equipmentId": "plate",
               "executionCues": [
@@ -193,7 +193,7 @@
           }
         ],
         "defaultConfigurationId": "core_crunch_banco_declinado_lastrado_disco__default",
-        "description": "Crunch en banco declinado abrazando disco al pecho.",
+        "description": "Crunch en banco declinado: la cabeza queda más baja que las caderas y el recorrido del abdomen se alarga. Puedes añadir un disco en el pecho cuando quieras más.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -235,7 +235,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón flexión tronco para completar la repetición."
               ],
-              "description": "Flexión de tronco de rodillas sujetando cuerda en polea alta.",
+              "description": "De rodillas frente a la polea alta, tiras de la cuerda desde la frente y crujes. La tensión constante hace que el abdomen trabaje en la subida y en la vuelta.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
@@ -400,7 +400,7 @@
           }
         ],
         "defaultConfigurationId": "core_crunch_en_polea_alta__default",
-        "description": "Flexión de tronco de rodillas sujetando cuerda en polea alta.",
+        "description": "Crunch de rodillas en polea alta: tiras de la cuerda desde la cabeza y crujes con tensión constante. El abdomen trabaja en todo el recorrido, no solo en la subida.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -440,7 +440,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón flexión tronco para completar la repetición."
               ],
-              "description": "Flexión abdominal guiada en máquina selectorizada.",
+              "description": "Sentado en la máquina con el peso ajustado, crujes con el recorrido guiado. Rápida de usar, cómoda para cargar y muy efectiva para el abdomen.",
               "efc": 2.0,
               "equipmentId": "machine",
               "executionCues": [
@@ -605,7 +605,7 @@
           }
         ],
         "defaultConfigurationId": "core_crunch_maquina__default",
-        "description": "Flexión abdominal guiada en máquina selectorizada.",
+        "description": "Crunch en máquina: ajustas el peso, te sientas y crujes con el recorrido guiado. La forma más cómoda de meter volumen de abdomen sin pensar en nada.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -645,7 +645,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón flexión tronco para completar la repetición."
               ],
-              "description": "Crunch Abdominal en Suelo trabaja principalmente abdomen mediante un patrón de flexión tronco. La configuración utiliza peso corporal como implemento.",
+              "description": "El crunch básico del suelo: rodillas dobladas, mirada al techo y contracción limpia del abdomen. La base de todo y el más difícil de hacer bien.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -811,7 +811,7 @@
           }
         ],
         "defaultConfigurationId": "core_crunch_suelo_peso_corporal__default",
-        "description": "Crunch Abdominal en Suelo trabaja principalmente abdomen mediante un patrón de flexión tronco.",
+        "description": "Crunch en el suelo: el ejercicio de abdomen más simple que existe y el que más gente domina mal. Rodillas dobladas, hombros hacia el techo y contracción limpia.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

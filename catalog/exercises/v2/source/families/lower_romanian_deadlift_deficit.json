@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón bisagra cadera / rdl déficit para completar la repetición."
               ],
-              "description": "Peso Muerto Rumano Sumo en Déficit trabaja principalmente isquiosurales mediante un patrón de bisagra cadera / rdl déficit. La participación secundaria corresponde a glúteos, aductores. La configuración utiliza barra como implemento.",
+              "description": "Postura sumo desde la plataforma: el rumano sumo con más recorrido y los glúteos trabajando de extra.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -208,7 +208,7 @@
           }
         ],
         "defaultConfigurationId": "hams_peso_muerto_rumano_sumo_deficit__default",
-        "description": "Peso Muerto Rumano Sumo en Déficit trabaja principalmente isquiosurales mediante un patrón de bisagra cadera / rdl déficit. La participación secundaria corresponde a glúteos, aductores.",
+        "description": "Peso muerto rumano sumo en déficit: la postura amplia desde la plataforma, con más recorrido y los glúteos trabajando de extra.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

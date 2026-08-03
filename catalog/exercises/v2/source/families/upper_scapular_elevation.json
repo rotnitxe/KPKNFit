@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar los brazos o el tronco en lugar de la elevación escapular."
               ],
-              "description": "Encogimientos con mancuernas: la carga libre a los costados permite cargar cómodo y ajustar el peso a cada lado.",
+              "description": "Mancuernas a los costados y hombros hacia arriba: el encogimiento clásico. La forma más popular de trabajar los trapecios.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -228,7 +228,7 @@
               "commonMistakes": [
                 "Usar los brazos o el tronco en lugar de la elevación escapular."
               ],
-              "description": "Encogimientos en máquina Smith: el recorrido guiado estabiliza la barra y permite usar cargas altas con seguridad.",
+              "description": "Smith y hombros hacia arriba: la barra guiada te permite cargar pesado. Cómoda para encogimientos con mucha carga.",
               "efc": 2.5,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -430,7 +430,7 @@
               "commonMistakes": [
                 "Usar los brazos o el tronco en lugar de la elevación escapular."
               ],
-              "description": "Encogimientos en polea: la tensión continua mantiene el trapecio activo a lo largo del recorrido.",
+              "description": "Polea y hombros hacia arriba: la tensión constante mantiene el trapecio cargado. La versión fina del encogimiento.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -632,7 +632,7 @@
               "commonMistakes": [
                 "Usar los brazos o el tronco en lugar de la elevación escapular."
               ],
-              "description": "Encogimientos con kettlebell: la carga compacta facilita el agarre y el control en series largas.",
+              "description": "Kettlebells y hombros hacia arriba: el agarre suma trabajo al movimiento. Variante completa de los encogimientos.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -834,7 +834,7 @@
               "commonMistakes": [
                 "Usar los brazos o el tronco en lugar de la elevación escapular."
               ],
-              "description": "Encogimientos con barra: la carga libre frente a los muslos permite progresar peso de forma simple.",
+              "description": "Barra al frente y hombros hacia arriba: el encogimiento clásico con barra. La opción de los que buscan cargar peso de verdad.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -1018,7 +1018,7 @@
           }
         ],
         "defaultConfigurationId": "back_encogimientos__dumbbells",
-        "description": "Encogimientos de trapecio. Ajustable en equipo y posición de barra.",
+        "description": "Encogimientos: subes los hombros hacia las orejas con el peso en las manos. El ejercicio directo de los trapecios, simple y efectivo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1063,7 +1063,7 @@
               "commonMistakes": [
                 "Levantar el tronco del apoyo para impulsar el encogimiento."
               ],
-              "description": "Kelso Shrugs con barra: el tronco inclinado sobre el banco deja caer la barra y sube los hombros con control.",
+              "description": "Barra por detrás del cuerpo: el Kelso shrug clásico con los brazos atrás. El trapecio trabaja desde un ángulo distinto.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -1264,7 +1264,7 @@
               "commonMistakes": [
                 "Levantar el tronco del apoyo para impulsar el encogimiento."
               ],
-              "description": "Kelso Shrugs en máquina: el apoyo y el recorrido guiado permiten concentrarse en el trapecio sin equilibrio.",
+              "description": "Máquina con los brazos detrás: el guiado hace el recorrido estable. La opción cómoda del Kelso shrug.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -1465,7 +1465,7 @@
               "commonMistakes": [
                 "Levantar el tronco del apoyo para impulsar el encogimiento."
               ],
-              "description": "Kelso Shrugs en polea: la tensión continua mantiene el trapecio trabajando desde la posición inclinada.",
+              "description": "Polea por detrás: la tensión constante acompaña el encogimiento trasero. La versión fina del Kelso.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -1666,7 +1666,7 @@
               "commonMistakes": [
                 "Levantar el tronco del apoyo para impulsar el encogimiento."
               ],
-              "description": "Kelso Shrugs con kettlebell: la carga compacta es cómoda desde la posición inclinada sobre el banco.",
+              "description": "Kettlebells por detrás: el agarre suma trabajo y el trapecio se enciende. Variante completa del Kelso shrug.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -1867,7 +1867,7 @@
               "commonMistakes": [
                 "Levantar el tronco del apoyo para impulsar el encogimiento."
               ],
-              "description": "Kelso Shrugs en máquina Smith: el guiado de la barra elimina el balanceo y facilita cargas altas.",
+              "description": "Smith por detrás: la barra guiada con los brazos atrás y mucha carga. Segura y muy efectiva para el trapecio.",
               "efc": 2.5,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -2050,7 +2050,7 @@
           }
         ],
         "defaultConfigurationId": "back_encogimientos_kelso__barbell",
-        "description": "Kelso shrugs. Ajustable en ángulo y equipo.",
+        "description": "Kelso shrugs: encogimientos con los brazos por detrás del cuerpo, pegados a la espalda. La variante que enciende los trapecios desde un ángulo distinto.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -2094,7 +2094,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón elevación escapular para completar la repetición."
               ],
-              "description": "Y-Raises trabaja principalmente trapecio, dorsales mediante un patrón de elevación escapular. La participación secundaria corresponde a deltoides, bíceps, erectores espinales. La configuración utiliza mancuernas como implemento.",
+              "description": "Subes los brazos en forma de Y desde el suelo: la espalda alta y el hombro trabajan con elegancia. Un ejercicio fino para la postura.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -2287,7 +2287,7 @@
           }
         ],
         "defaultConfigurationId": "back_y_raises__default",
-        "description": "Y-Raises trabaja principalmente trapecio, dorsales mediante un patrón de elevación escapular. La participación secundaria corresponde a deltoides, bíceps, erectores espinales.",
+        "description": "Y-raises: subes los brazos en forma de Y desde el suelo o el banco. La espalda alta y los hombros trabajando con un movimiento fino y elegante.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

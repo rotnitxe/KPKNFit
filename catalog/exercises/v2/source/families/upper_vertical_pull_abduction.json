@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón tirón vertical / abducción para completar la repetición."
               ],
-              "description": "Remo al Mentón trabaja principalmente deltoides mediante un patrón de tirón vertical / abducción. La participación secundaria corresponde a trapecio, bíceps. La configuración utiliza barra como implemento.",
+              "description": "Barra pegada al cuerpo hasta la barbilla: trapecios y hombros trabajando juntos. Clásico de los hombros, con el agarre medio para cuidar la articulación.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -207,7 +207,7 @@
           }
         ],
         "defaultConfigurationId": "deltoides_remo_menton__default",
-        "description": "Remo al Mentón trabaja principalmente deltoides mediante un patrón de tirón vertical / abducción. La participación secundaria corresponde a trapecio, bíceps.",
+        "description": "Remo al mentón: subes la barra pegada al cuerpo hasta la barbilla. Trapecios y hombros trabajando juntos, con cuidado de no forzar el hombro.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

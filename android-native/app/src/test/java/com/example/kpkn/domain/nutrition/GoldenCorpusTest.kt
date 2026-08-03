@@ -165,7 +165,7 @@ class GoldenCorpusTest {
         // ─── Porción presets ───────────────────────────────────────────────
         GoldenCase(
             "plato grande de arroz",
-            listOf(Expectation("arroz", portion = PortionPreset.EXTRA)),
+            listOf(Expectation("arroz", portion = PortionPreset.LARGE)),
         ),
 
         // ─── Cocción y entidades protegidas ────────────────────────────────
@@ -292,6 +292,30 @@ class GoldenCorpusTest {
 
         // ─── Nombres simples ───────────────────────────────────────────────
         GoldenCase("agua", listOf(Expectation("agua"))),
+
+        // ─── Iteración 1: regresiones de la auditoría ──────────────────────
+        GoldenCase(
+            "arroz 100g pollo 50g",
+            listOf(
+                Expectation("arroz", grams = 100.0, intent = AmountIntent.EXPLICIT_MASS),
+                Expectation("pollo", grams = 50.0, intent = AmountIntent.EXPLICIT_MASS),
+            ),
+        ),
+        GoldenCase(
+            "papas fritas",
+            listOf(Expectation("papa", cooking = CookingMethod.FRITO)),
+        ),
+        GoldenCase(
+            "tres leches con crema",
+            listOf(
+                Expectation("leches", quantity = 3.0),
+                Expectation("crema"),
+            ),
+        ),
+        GoldenCase(
+            "1 cucharadita de azúcar",
+            listOf(Expectation("azúcar", gramsPositive = true, intent = AmountIntent.RESOLVED_SUBJECTIVE)),
+        ),
     )
 
     @Test

@@ -80,6 +80,7 @@ internal fun InlineSetRow(
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
     onTechniqueConfigExpandedChange: (Boolean) -> Unit = {},
+    fillHeight: Boolean = true,
 ) {
     var showAmrapDialog by remember(set.id) { mutableStateOf(false) }
     var showIntensityMenu by remember(set.id) { mutableStateOf(false) }
@@ -197,12 +198,16 @@ internal fun InlineSetRow(
     SetEditorCard(
         accentColor = accentColor,
         density = setCardDensity,
-        modifier = Modifier.fillMaxWidth().fillMaxHeight(),
+        modifier = if (fillHeight) Modifier.fillMaxWidth().fillMaxHeight() else Modifier.fillMaxWidth(),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState()),
+            modifier = if (fillHeight) {
+                Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+            } else {
+                Modifier.fillMaxWidth()
+            },
             verticalArrangement = Arrangement.spacedBy(if (isNarrowScreen) 6.dp else 8.dp),
         ) {
             Row(

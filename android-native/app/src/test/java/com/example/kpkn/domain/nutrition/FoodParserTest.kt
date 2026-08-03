@@ -100,9 +100,16 @@ class FoodParserTest {
     // ─── Portion Preset ───────────────────────────────────────────────────
 
     @Test
-    fun `parse grande portion`() {
+    fun `parse plato grande portion es LARGE no EXTRA`() {
+        // B9: "plato grande" es LARGE; EXTRA queda solo para el adjetivo suelto.
         val result = parseMealDescription("plato grande de arroz")
         assertEquals(1, result.items.size)
+        assertEquals(PortionPreset.LARGE, result.items[0].portion)
+    }
+
+    @Test
+    fun `parse adjetivo grande suelto es EXTRA`() {
+        val result = parseMealDescription("porción grande de ensalada")
         assertEquals(PortionPreset.EXTRA, result.items[0].portion)
     }
 
@@ -186,7 +193,7 @@ class FoodParserTest {
     fun `parse plato grande de pollo con arroz`() {
         val result = parseMealDescription("plato grande de pollo con arroz")
         assertTrue(result.items.size >= 2)
-        assertEquals(PortionPreset.EXTRA, result.items[0].portion)
+        assertEquals(PortionPreset.LARGE, result.items[0].portion)
     }
 
     @Test
@@ -237,5 +244,80 @@ class FoodParserTest {
     fun `parse papas fritas con mayonesa as protected`() {
         val result = parseMealDescription("papas fritas con mayonesa")
         assertTrue(result.items.size == 1)
+    }
+
+    // ─── Iteración 1: regresiones de la auditoría ──────────────────────────
+
+    @Test
+    fun `B6 multi measure estilo A arroz 100g pollo 50g`() {
+        val result = parseMealDescription("arroz 100g pollo 50g")
+        assertEquals(2, result.items.size)
+        val arroz = result.items.firstOrNull { it.tag == "arroz" }
+        val pollo = result.items.firstOrNull { it.tag == "pollo" }
+        assertNotNull("arroz debe sobrevivir al split", arroz)
+        assertNotNull("pollo debe sobrevivir al split", pollo)
+        assertEquals(100.0, arroz!!.amountGrams ?: 0.0, 0.01)
+        assertEquals(50.0, pollo!!.amountGrams ?: 0.0, 0.01)
+    }
+
+    @Test
+    fun `B6 multi measure estilo B 100g arroz 50g pollo`() {
+        val result = parseMealDescription("100g arroz 50g pollo")
+        assertEquals(2, result.items.size)
+        val arroz = result.items.firstOrNull { it.tag == "arroz" }
+        val pollo = result.items.firstOrNull { it.tag == "pollo" }
+        assertNotNull(arroz)
+        assertNotNull(pollo)
+        assertEquals(100.0, arroz!!.amountGrams ?: 0.0, 0.01)
+        assertEquals(50.0, pollo!!.amountGrams ?: 0.0, 0.01)
+    }
+
+    @Test
+    fun `B7 cucharadita no se convierte en cucharada`() {
+        val result = parseMealDescription("1 cucharadita de azúcar")
+        assertEquals(1, result.items.size)
+        val grams = result.items[0].amountGrams ?: 0.0
+        assertTrue("cucharadita debe ser ~5g, fue $grams", grams in 3.0..8.0)
+    }
+
+    @Test
+    fun `B8 tres leches no se rompe por numeros palabra`() {
+        val normalized = TextNormalizer.normalize("tres leches con crema")
+        assertTrue("el plato debe preservar 'tres': $normalized", normalized.contains("tres"))
+        val result = parseMealDescription("tres leches con crema")
+        assertTrue("debe quedar el plato tres leches", result.items.any { it.tag.contains("leches") || it.tag.contains("tres") })
+    }
+
+    @Test
+    fun `B8 mil hojas no se convierte en 1000 hojas`() {
+        val normalized = TextNormalizer.normalize("mil hojas")
+        assertTrue("'mil' debe preservarse: $normalized", normalized.contains("mil"))
+        assertEquals(1.0, parseMealDescription("mil hojas").items.firstOrNull()?.quantity ?: 1.0, 0.01)
+    }
+
+    @Test
+    fun `B9 papas fritas detecta metodo FRITO`() {
+        val result = parseMealDescription("papas fritas")
+        assertEquals(1, result.items.size)
+        assertEquals(CookingMethod.FRITO, result.items[0].cookingMethod)
+    }
+
+    @Test
+    fun `B9 papa frita singular tambien detecta FRITO`() {
+        val result = parseMealDescription("papa frita")
+        assertEquals(CookingMethod.FRITO, result.items[0].cookingMethod)
+    }
+
+    @Test
+    fun `C12 idempotencia mismo input mismo output`() {
+        val desc = "200g pollo a la plancha, 150g arroz, ensalada grande"
+        val first = parseMealDescription(desc)
+        val second = parseMealDescription(desc)
+        val third = parseMealDescription(desc)
+        fun signature(r: ParsedMealDescription) = r.items.joinToString("|") {
+            "${it.tag}:${it.quantity}:${it.amountGrams}:${it.cookingMethod}:${it.portion}"
+        }
+        assertEquals(signature(first), signature(second))
+        assertEquals(signature(second), signature(third))
     }
 }

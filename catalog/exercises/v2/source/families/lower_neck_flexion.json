@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Acelerar el movimiento o usar el tronco para compensar la flexión cervical."
               ],
-              "description": "Flexiones de Cuello con arnés en polea: la tensión continua acompaña la flexión cervical a lo largo del recorrido.",
+              "description": "Arnés o polea: llevas la cabeza hacia delante contra la tensión. El trabajo frontal del cuello con resistencia constante.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
@@ -218,7 +218,7 @@
               "commonMistakes": [
                 "Acelerar el movimiento o usar el tronco para compensar la flexión cervical."
               ],
-              "description": "Flexiones de Cuello con disco: la carga libre permite ajustar el peso y el ritmo del ejercicio.",
+              "description": "Disco en la frente: flexionas la cabeza contra el peso. La versión clásica para la parte frontal del cuello.",
               "efc": 2.0,
               "equipmentId": "plate",
               "executionCues": [
@@ -392,7 +392,7 @@
           }
         ],
         "defaultConfigurationId": "neck_flexion_cuello__cable",
-        "description": "Flexión del cuello contra resistencia externa con arnés de polea o disco: aislamiento directo para la musculatura flexora cervical.",
+        "description": "Flexiones de cuello: llevas la cabeza hacia delante contra resistencia. El trabajo de la zona frontal del cuello, complemento perfecto de las extensiones.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

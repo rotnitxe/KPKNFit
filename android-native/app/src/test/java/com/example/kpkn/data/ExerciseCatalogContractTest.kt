@@ -32,8 +32,8 @@ class ExerciseCatalogContractTest {
         assertEquals(catalog.families.size, catalog.families.map { it.id }.distinct().size)
         assertEquals(definitions.size, definitions.map { it.id }.distinct().size)
         assertEquals(configurations.size, configurations.map { it.id }.distinct().size)
-        assertEquals(192, definitions.size)
-        assertEquals(504, configurations.size)
+        assertEquals(196, definitions.size)
+        assertEquals(518, configurations.size)
     }
 
     @Test

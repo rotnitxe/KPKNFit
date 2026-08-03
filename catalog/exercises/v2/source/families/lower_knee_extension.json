@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Lanzar el peso en la subida o dejar caer la bajada sin freno."
               ],
-              "description": "Extensión de Cuádriceps en Máquina con trabajo bilateral: el cuádriceps extiende ambas rodillas contra la resistencia guiada.",
+              "description": "Máquina con ambas piernas: estiras las rodillas contra la resistencia. El aislamiento clásico del cuádriceps, simple y efectivo.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -216,7 +216,7 @@
               "commonMistakes": [
                 "Lanzar el peso en la subida o dejar caer la bajada sin freno."
               ],
-              "description": "Extensión de Cuádriceps en Máquina con trabajo unilateral: cada rodilla trabaja por separado para igualar la fuerza de ambos cuádriceps.",
+              "description": "Máquina con una pierna: cada cuádriceps trabaja solo y corriges desequilibrios. La versión fina de la extensión.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -388,7 +388,7 @@
           }
         ],
         "defaultConfigurationId": "quads_extension_cuadriceps__machine__bilateral",
-        "description": "Extensión de cuádriceps trabaja principalmente cuádriceps mediante un patrón de extensión rodilla. La participación secundaria corresponde a antebrazo.",
+        "description": "Extensión de cuádriceps en máquina: sentado, estiras las piernas contra la resistencia. El aislamiento clásico del cuádriceps, ideal para rematar las piernas.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -432,7 +432,7 @@
               "commonMistakes": [
                 "Lanzar el peso en la subida o dejar caer la bajada sin freno."
               ],
-              "description": "Extensión de Cuádriceps de Pie en Polea con ambas piernas: la tensión continua de la polea acompaña la extensión de rodilla a lo largo del recorrido.",
+              "description": "Polea con ambas piernas: el tobillo enganchado y la rodilla estirando contra la tensión. Variante fina y constante.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -622,7 +622,7 @@
               "commonMistakes": [
                 "Lanzar el peso en la subida o dejar caer la bajada sin freno."
               ],
-              "description": "Extensión de Cuádriceps de Pie en Polea con una pierna: cada rodilla trabaja por separado con la polea baja y el tronco estable.",
+              "description": "Polea con una pierna: extensión unilateral con tensión continua. Perfecta para aislar un cuádriceps a la vez.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -794,7 +794,7 @@
           }
         ],
         "defaultConfigurationId": "quads_extension_cuadriceps_pie_polea__bilateral",
-        "description": "Extensión de rodilla de pie contra la polea baja: el cuádriceps aísla la extensión con tensión continua mientras el tronco permanece erguido.",
+        "description": "Extensión de cuádriceps de pie en polea: el tobillo enganchado, estiras la rodilla contra la tensión del cable. Variante fina que sorprende al cuádriceps.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón abducción / estabilización para completar la repetición."
               ],
-              "description": "Pasos laterales o diagonales en semi-sentadilla con banda. La configuración utiliza banda de resistencia como implemento.",
+              "description": "Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas. El calentamiento que hace llorar a los glúteos.",
               "efc": 2.8,
               "equipmentId": "band",
               "executionCues": [
@@ -193,7 +193,7 @@
           }
         ],
         "defaultConfigurationId": "glutes_monster_walk_banda__default",
-        "description": "Pasos laterales o diagonales en semi-sentadilla con banda.",
+        "description": "Caminata del monstruo con banda: con la banda alrededor de las rodillas o tobillos, caminas de lado sin dejar que la banda te cierre. El calentamiento favorito para despertar el glúteo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

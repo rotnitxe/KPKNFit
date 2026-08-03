@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón aducción dinámica para completar la repetición."
               ],
-              "description": "Elevación y descenso de cadera en plancha Copenhagen. La configuración utiliza peso corporal como implemento.",
+              "description": "Versión estática: pierna superior en el banco y cadera arriba todo el tiempo. Los aductores arden con una tensión que no se parece a nada.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -203,7 +203,7 @@
           }
         ],
         "defaultConfigurationId": "copenhagen_plank__default",
-        "description": "Elevación y descenso de cadera en plancha Copenhagen.",
+        "description": "Plancha Copenhague: lateral apoyado en antebrazo con la pierna de arriba en el banco, aguantando la cadera elevada. Los aductores trabajan de una forma que no encontrarás en ningún otro ejercicio.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -245,7 +245,7 @@
               "commonMistakes": [
                 "Usar impulso o un rango corto que no alcanza la máxima contracción."
               ],
-              "description": "Aducciones de pierna sentado en máquina con trabajo bilateral: la estación guiada aísla los aductores con tensión constante y recorrido controlado.",
+              "description": "Máquina sentado con ambas piernas: cierras las almohadillas juntando los muslos y los aductores se encienden. El clásico del muslo interno.",
               "efc": 2.0,
               "equipmentId": "machine",
               "executionCues": [
@@ -441,7 +441,7 @@
               "commonMistakes": [
                 "Usar impulso o un rango corto que no alcanza la máxima contracción."
               ],
-              "description": "Aducciones de pierna sentado en máquina con trabajo unilateral: permite aislar cada pierna y corregir desequilibrios de fuerza entre lados.",
+              "description": "Máquina sentado de un lado a la vez: cada aductor trabaja por separado y corriges desequilibrios. Útil para piernas parejas.",
               "efc": 2.0,
               "equipmentId": "machine",
               "executionCues": [
@@ -637,7 +637,7 @@
               "commonMistakes": [
                 "Usar impulso o un rango corto que no alcanza la máxima contracción."
               ],
-              "description": "Aducciones de pierna de pie en polea con trabajo bilateral: la tensión continua de la polea mantiene los aductores activos a lo largo del recorrido.",
+              "description": "Polea de pie con ambas piernas: juntas las piernas contra la tensión del cable. Variante fina que mantiene el aductor cargado.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
@@ -833,7 +833,7 @@
               "commonMistakes": [
                 "Usar impulso o un rango corto que no alcanza la máxima contracción."
               ],
-              "description": "Aducciones de pierna de pie en polea con trabajo unilateral: ideal para igualar la fuerza de cada pierna y sostener tensión en el punto de máxima contracción.",
+              "description": "Polea de pie con una pierna: el aductor trabaja aislado con tensión constante. Perfecto para centrarse en un lado.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
@@ -1029,7 +1029,7 @@
               "commonMistakes": [
                 "Usar impulso o un rango corto que no alcanza la máxima contracción."
               ],
-              "description": "Aducciones de pierna de pie con banda elástica y trabajo bilateral: la resistencia variable exige más esfuerzo al cerrar las piernas.",
+              "description": "Banda de pie con ambas piernas: juntas las piernas contra la resistencia elástica. Fácil de llevar a cualquier sitio.",
               "efc": 2.0,
               "equipmentId": "band",
               "executionCues": [
@@ -1225,7 +1225,7 @@
               "commonMistakes": [
                 "Usar impulso o un rango corto que no alcanza la máxima contracción."
               ],
-              "description": "Aducciones de pierna de pie con banda elástica y trabajo unilateral: permite trabajar cada pierna con su propia resistencia y detectar asimetrías.",
+              "description": "Banda en una pierna: aducciones contra la banda lado a lado. Ideal para activar el muslo interno antes de las sentadillas.",
               "efc": 2.0,
               "equipmentId": "band",
               "executionCues": [
@@ -1403,7 +1403,7 @@
           }
         ],
         "defaultConfigurationId": "hip_adduction__seated__machine__bilateral",
-        "description": "La pierna se acerca a la línea media del cuerpo con los aductores como motor principal. La estación y el implemento cambian la tensión y el rango de cada variante.",
+        "description": "Aducciones de pierna: juntas la pierna hacia el centro contra resistencia y los aductores del muslo interno se encienden. Clave para piernas equilibradas y una cadera estable.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1449,7 +1449,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón aducción dinámica para completar la repetición."
               ],
-              "description": "Plancha lateral dinámica con los pies apoyados en un banco: el movimiento de aducción de la pierna inferior añade trabajo concéntrico a los aductores durante la serie.",
+              "description": "Versión dinámica: subes y bajas la cadera con ritmo entre el banco y el suelo. El movimiento añade trabajo extra a los aductores y al core.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -1626,7 +1626,7 @@
           }
         ],
         "defaultConfigurationId": "copenhagen_plank_dynamic__default",
-        "description": "Plancha lateral con la pierna superior apoyada en un banco, versión dinámica: el movimiento de aducción añade trabajo concéntrico a los aductores además del soporte isométrico.",
+        "description": "Plancha Copenhague dinámica: como la clásica, pero bajando y subiendo la cadera con ritmo. La versión con movimiento que hace arder los aductores aún más rápido.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

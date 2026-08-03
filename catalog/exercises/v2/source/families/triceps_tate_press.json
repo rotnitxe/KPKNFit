@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
               ],
-              "description": "Tate Press con mancuernas: extensión de tríceps en banco con codos abiertos hacia fuera. Aísla tríceps con recorrido corto y controlado. La variante se define por: mancuernas.",
+              "description": "Mancuernas acostado juntando los codos: bajas y subes apretando las pesas. El Tate press clásico, con el tríceps aislado.",
               "efc": 2.2,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -216,7 +216,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
               ],
-              "description": "Tate Press en polea: misma mecánica que el Tate Press, con tensión más constante. Útil como finisher de tríceps. La variante se define por: polea.",
+              "description": "Polea acostado juntando los codos: la tensión constante hace el movimiento más exigente. La versión fina del Tate press.",
               "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
@@ -388,7 +388,7 @@
           }
         ],
         "defaultConfigurationId": "tate_press__dumbbells",
-        "description": "Tate press trabaja principalmente tríceps mediante un patrón de extensión codo.",
+        "description": "Tate press: acostado con mancuernas, las bajas juntando los codos hacia el pecho. Un movimiento poco común que aísla el tríceps con una sensación única.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

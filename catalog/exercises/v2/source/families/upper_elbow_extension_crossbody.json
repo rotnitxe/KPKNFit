@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Acompañar el movimiento con el hombro en lugar de aislar la extensión de codo."
               ],
-              "description": "Extensión de Tríceps Cruzada en Polea Alta con ambas manos: el recorrido cruzado mantiene tensión constante en el tríceps.",
+              "description": "Polea alta cruzando el cuerpo con ambas manos: tiras en diagonal hacia el lado contrario. El tríceps trabaja con un ángulo fresco.",
               "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
@@ -216,7 +216,7 @@
               "commonMistakes": [
                 "Acompañar el movimiento con el hombro en lugar de aislar la extensión de codo."
               ],
-              "description": "Extensión de Tríceps Cruzada en Polea Alta con un brazo: la variante unilateral aísla cada tríceps y permite un rango mayor de cruce.",
+              "description": "Polea alta con una mano cruzando el cuerpo: aislamiento total con tensión constante. Perfecto para centrarse en un brazo.",
               "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
@@ -388,7 +388,7 @@
           }
         ],
         "defaultConfigurationId": "crossbody_triceps__cable__bilateral",
-        "description": "Extensión de codo en polea alta con el brazo cruzado hacia el lado contrario del cuerpo, manteniendo el hombro estable y el foco en el tríceps.",
+        "description": "Extensión de tríceps cruzada en polea alta: tiras del cable cruzando el cuerpo en diagonal. El tríceps trabaja con un ángulo que sorprende y quema.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

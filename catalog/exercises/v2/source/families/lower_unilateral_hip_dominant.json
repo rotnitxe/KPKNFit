@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante cadera unilateral para completar la repetición."
               ],
-              "description": "Step-Up de Glúteo trabaja principalmente glúteos mediante un patrón de dominante cadera unilateral. La participación secundaria corresponde a isquiosurales. La configuración utiliza mancuernas como implemento.",
+              "description": "Subes a un cajón empujando con una pierna, con el glúteo protagonizando. Unilateral, exigente y perfecto para corregir desequilibrios.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -202,7 +202,7 @@
           }
         ],
         "defaultConfigurationId": "glutes_step_up_gluteo__default",
-        "description": "Step-Up de Glúteo trabaja principalmente glúteos mediante un patrón de dominante cadera unilateral. La participación secundaria corresponde a isquiosurales.",
+        "description": "Step-up de glúteo: subes a un cajón empujando con una sola pierna, con el glúteo haciendo el trabajo. Un ejercicio unilateral que corrige desequilibrios y enciende el glúteo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -243,7 +243,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante cadera unilateral para completar la repetición."
               ],
-              "description": "Zancada Cruzada trabaja principalmente glúteos mediante un patrón de dominante cadera unilateral. La participación secundaria corresponde a cuádriceps. La configuración utiliza mancuernas como implemento.",
+              "description": "El paso cruza por detrás de la otra pierna y bajas en diagonal. Glúteo y cadera trabajan con un ángulo que la zancada normal no toca.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -419,7 +419,7 @@
           }
         ],
         "defaultConfigurationId": "glutes_zancada_cruzada__default",
-        "description": "Zancada Cruzada trabaja principalmente glúteos mediante un patrón de dominante cadera unilateral. La participación secundaria corresponde a cuádriceps.",
+        "description": "Zancada cruzada: das un paso atrás y cruzado por detrás de la otra pierna, bajando en diagonal. Trabaja glúteo y caderas con un ángulo distinto a la zancada normal.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo Gironda con agarre ancho: la empuñadura amplia enfatiza la anchura del dorsal con el tronco reclinado sobre la polea. El estímulo se concentra en la parte externa de la espalda durante toda la tracción.",
+              "description": "Agarre amplio para el columpio Gironda: la espalda alta toma protagonismo con cada vaivén. Movimiento amplio que se siente muy distinto al remo tradicional.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -39,33 +39,28 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."
+                  "note": "Principal: el dorsal dirige el tirón y concentra el trabajo en todo el ancho de la espalda; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."
+                  "note": "Secundario: con el agarre amplio, el trapecio y la espalda alta participan más al llevar los codos hacia atrás; por eso suman 0.5."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal de los brazos en el agarre amplio; por eso suma 0.5."
                 },
                 {
-                  "muscleId": "core",
-                  "note": "Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."
+                  "muscleId": "rhomboids",
+                  "note": "Estabilizador: los romboides juntan las escápulas al final del tirón; por eso suman 0.4."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: el bíceps flexiona el codo con un brazo de palanca más corto en el agarre amplio; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "gironda_row__wide__remo_gironda",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -77,17 +72,16 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
-                    "rhomboids",
+                    "trapezius",
                     "deltoid"
                   ],
                   "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
-                    "core"
+                    "rhomboids",
+                    "biceps"
                   ],
                   "targetRegions": [
                     "latissimus_dorsi"
@@ -175,8 +169,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar trapezius dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -198,7 +191,7 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo trapezius."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -212,8 +205,7 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
-                "rhomboids",
+                "trapezius",
                 "deltoid"
               ],
               "setupCues": [
@@ -221,7 +213,8 @@
               ],
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "core"
+                "rhomboids",
+                "biceps"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -250,7 +243,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo Gironda con agarre medio: la posición intermedia equilibra el dorsal y el trapecio sobre la polea reclinada. Es la opción de referencia de la familia para el desarrollo global de la espalda.",
+              "description": "Agarre medio para el Gironda: el reparto entre dorsal y espalda media queda equilibrado. La puerta de entrada perfecta a este estilo de remo.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -263,33 +256,28 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."
+                  "note": "Principal: el dorsal dirige el tirón y concentra el trabajo en todo el ancho de la espalda; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."
+                  "note": "Secundario: el trapecio ayuda a retraer las escápulas al llevar los codos atrás; por eso suma 0.5."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."
+                  "note": "Secundario: los romboides juntan las escápulas al final del tirón; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo con el agarre medio y reparte el trabajo del brazo; por eso suma 0.5."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."
+                  "note": "Estabilizador: el deltoides posterior mantiene el hombro estable durante el tirón; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "gironda_row__medium__remo_gironda",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -301,17 +289,16 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
+                    "trapezius",
                     "rhomboids",
-                    "deltoid"
+                    "biceps"
                   ],
                   "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
-                    "core"
+                    "deltoid"
                   ],
                   "targetRegions": [
                     "latissimus_dorsi"
@@ -399,8 +386,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar trapezius dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -422,7 +408,7 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo trapezius."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -436,16 +422,16 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
+                "trapezius",
                 "rhomboids",
-                "deltoid"
+                "biceps"
               ],
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Remo Gironda» antes de iniciar; conserva una base estable."
               ],
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "core"
+                "deltoid"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -474,7 +460,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo Gironda con agarre cerrado: la empuñadura estrecha aumenta la retracción escapular y el trabajo del trapecio medio. La tracción hacia el pecho se completa con la escápula totalmente contraída.",
+              "description": "Agarre cerrado para el Gironda: el dorsal trabaja con máximo recorrido en cada balanceo. La variante más profunda de la familia Gironda.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -487,33 +473,24 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."
+                  "note": "Principal: el dorsal dirige el tirón y se estira más con los codos pegados al cuerpo; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."
+                  "note": "Secundario: con el agarre cerrado, los romboides retraen las escápulas con más recorrido; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps trabaja más con los codos cerca del cuerpo flexionando en posición de palanca larga; por eso suma 0.5."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."
+                  "note": "Estabilizador: el deltoides posterior mantiene el hombro estable durante el tirón; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "gironda_row__close__remo_gironda",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -525,17 +502,15 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
                     "rhomboids",
-                    "deltoid"
+                    "biceps"
                   ],
                   "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
-                    "core"
+                    "deltoid"
                   ],
                   "targetRegions": [
                     "latissimus_dorsi"
@@ -623,8 +598,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar trapezius dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -646,7 +620,7 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo trapezius."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -660,16 +634,15 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
                 "rhomboids",
-                "deltoid"
+                "biceps"
               ],
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Remo Gironda» antes de iniciar; conserva una base estable."
               ],
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "core"
+                "deltoid"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -680,7 +653,7 @@
           }
         ],
         "defaultConfigurationId": "gironda_row__medium",
-        "description": "Tirón horizontal en la estación de polea Gironda con el tronco reclinado y la tracción hacia el pecho. La amplitud del agarre es la única decisión visible y redistribuye el énfasis de la espalda.",
+        "description": "Remo al estilo Gironda: el torso se inclina hacia delante y hacia atrás siguiendo el peso, como un columpio de espalda. Un movimiento exigente que trabaja a fondo los dorsales con mucho recorrido.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

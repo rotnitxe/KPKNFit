@@ -157,6 +157,19 @@ v3. Son vinculantes para la siguiente pasada editorial.
    opciones que el Peso Muerto Convencional (barra, Smith, mancuernas, hex); el
    Peso Muerto Rumano Sumo usa las del Rumano. No se inventan implementos por
    variante ni se quitan opciones que el patrón base ya ofrece.
+10. **L10 — Descripciones para el usuario, no para biomecánicos**: texto
+    cercano, con carácter y que invite a probar el ejercicio. Prohibido el
+    argot técnico (bisagra, patrón, cadena cinética, ROM, excéntrica), las
+    plantillas ("X trabaja principalmente Y mediante un patrón de Z") y los
+    verbos instruccionales (ejecuta, mantén, configura, adopta, controla,
+    asegura, evita, sigue, selecciona). Cada configuración menciona el matiz
+    real de sus chips.
+11. **L11 — El involucramiento cambia de verdad con los chips**: si el agarre,
+    la altura o la postura alteran el estímulo, las listas musculares, las
+    notas y la descripción deben reflejarlo por configuración. Ejemplos reales
+    del catálogo: remos con agarre amplio → trapecio y espalda alta; agarre
+    cerrado → dorsal y bíceps; dominada supina → bíceps protagonista;
+    pronada/neutra → bíceps solo estabilizador.
 
 ## Ontología de músculos (21 IDs)
 
@@ -170,6 +183,8 @@ Notas:
   cálculo de volumen (misma normalización que las cabezas del deltoides).
 - `safety_bar` ("Barra de Seguridad") es un implemento válido del eje
   `implement` (Buenos Días, Buenos Días Sentado, sentadillas traseras).
+- `h_bar` ("Barra H") es un implemento válido del eje `implement` para los
+  curls con agarre neutro (Curl Martillo, Curl Invertido).
 
 ## Prohibiciones operativas
 

@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Impulsar con el tronco o arquear la espalda para ganar altura."
               ],
-              "description": "Elevaciones frontales en polea: la tensión continua mantiene el deltoides anterior activo a lo largo del recorrido.",
+              "description": "Polea al frente: subes los brazos contra la tensión constante. El deltoides anterior cargado en todo el arco.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -227,7 +227,7 @@
               "commonMistakes": [
                 "Impulsar con el tronco o arquear la espalda para ganar altura."
               ],
-              "description": "Elevaciones frontales con barra: la carga libre con ambas manos permite cargar más peso en un movimiento simple.",
+              "description": "Barra al frente: subes la barra hasta la altura del hombro. La elevación frontal clásica, con ambas manos a la vez.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -428,7 +428,7 @@
               "commonMistakes": [
                 "Impulsar con el tronco o arquear la espalda para ganar altura."
               ],
-              "description": "Elevaciones frontales con mancuernas: el trabajo con cada brazo facilita la simetría del deltoides anterior.",
+              "description": "Mancuernas al frente: subes cada brazo o ambos a la altura del hombro. La versión más popular de la elevación frontal.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -629,7 +629,7 @@
               "commonMistakes": [
                 "Impulsar con el tronco o arquear la espalda para ganar altura."
               ],
-              "description": "Elevaciones frontales con kettlebell: la carga compacta es cómoda para series de hombro y rangos controlados.",
+              "description": "Kettlebell al frente: el agarre suma trabajo y el hombro empuja. Variante original de la elevación frontal.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -812,7 +812,7 @@
           }
         ],
         "defaultConfigurationId": "deltoides_elevaciones_frontales__dumbbells",
-        "description": "Elevaciones Frontales trabaja principalmente deltoides mediante un patrón de flexión hombro. La participación secundaria corresponde a trapecio.",
+        "description": "Elevaciones frontales: subes los brazos al frente hasta la altura del hombro. El trabajo directo del deltoides anterior, simple y efectivo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

@@ -119,8 +119,11 @@ class FoodIndex {
         return foods.values
             .filter { normalized == it.normalizedName || normalized in it.normalizedAliases }
             .sortedWith(
+                // C12: desempate determinista — el orden de iteración de un
+                // ConcurrentHashMap no es estable entre procesos/dispositivos.
                 compareByDescending<IndexedFood> { it.source == "LOCAL" }
-                    .thenByDescending { it.sourcePriority },
+                    .thenByDescending { it.sourcePriority }
+                    .thenBy { it.foodId },
             )
     }
 

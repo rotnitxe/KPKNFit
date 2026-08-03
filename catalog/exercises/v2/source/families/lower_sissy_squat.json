@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Flexionar la cadera en lugar de dejar el trabajo en la rodilla."
               ],
-              "description": "Sentadilla Sissy con barra: la carga libre añade resistencia al patrón de rodilla dominante más exigente.",
+              "description": "Barra en el pecho o la espalda con rodillas al frente: el cuádriceps aislado con carga. La versión pesada del sissy, exigente de verdad.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -222,7 +222,7 @@
               "commonMistakes": [
                 "Flexionar la cadera en lugar de dejar el trabajo en la rodilla."
               ],
-              "description": "Sentadilla Sissy en máquina: la estación guiada sostiene el recorrido y permite concentrarse en el cuádriceps.",
+              "description": "Máquina sissy: los tobillos sujetos y el guiado te dejan bajar profundo. La forma más cómoda de exprimir el cuádriceps.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -418,7 +418,7 @@
               "commonMistakes": [
                 "Flexionar la cadera en lugar de dejar el trabajo en la rodilla."
               ],
-              "description": "Sentadilla Sissy en máquina Smith: el guiado de la barra facilita la posición y la progresión de carga.",
+              "description": "Smith sissy: el guiado de la barra acompaña la inclinación del torso. Segura para progresar en el movimiento.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -614,7 +614,7 @@
               "commonMistakes": [
                 "Flexionar la cadera en lugar de dejar el trabajo en la rodilla."
               ],
-              "description": "Sentadilla Sissy con mancuernas: la carga a los costados permite progresar con pesos ligeros y control total.",
+              "description": "Mancuerna en el pecho: el sissy con carga ligera y mucho control. Ideal para aprender el movimiento quemando cuádriceps.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -810,7 +810,7 @@
               "commonMistakes": [
                 "Flexionar la cadera en lugar de dejar el trabajo en la rodilla."
               ],
-              "description": "Sentadilla Sissy con disco: la carga en el pecho resulta cómoda para iniciarse en el patrón.",
+              "description": "Disco en el pecho: carga ligera para dominar la inclinación del sissy. Perfecto para empezar con el cuádriceps ardiendo.",
               "efc": 2.8,
               "equipmentId": "plate",
               "executionCues": [
@@ -988,7 +988,7 @@
           }
         ],
         "defaultConfigurationId": "sissy_squat__machine",
-        "description": "Sentadilla con las rodillas que avanzan sobre los dedos y el tronco inclinado hacia atrás, que mantiene el cuádriceps en longitud. El implemento define la carga de cada variante.",
+        "description": "Sentadilla Sissy: rodillas al frente y torso hacia atrás, bajando en línea como si te inclinaras. El ejercicio que aísla el cuádriceps con tu propio peso: pocas cosas queman tanto.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Hiperextender la zona lumbar arriba en lugar de terminar con la cadera."
               ],
-              "description": "Hiperextensiones a 45° para Glúteos con mancuerna: la carga libre abrazada al pecho permite ajustar el peso con precisión.",
+              "description": "Mancuerna en el pecho en el banco a 45: subes con la cadera y el glúteo dirige el movimiento. La variante accesible para sentir el glúteo.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -236,7 +236,7 @@
               "commonMistakes": [
                 "Hiperextender la zona lumbar arriba en lugar de terminar con la cadera."
               ],
-              "description": "Hiperextensiones a 45° para Glúteos con barra: la barra sobre la espalda permite cargar peso progresivamente.",
+              "description": "Barra en la espalda en el banco a 45: el glúteo empuja el peso con la cadera. La versión fuerte de la hiperextensión para glúteo.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -446,7 +446,7 @@
               "commonMistakes": [
                 "Hiperextender la zona lumbar arriba en lugar de terminar con la cadera."
               ],
-              "description": "Hiperextensiones a 45° para Glúteos con disco: la carga en el pecho resulta cómoda para rangos altos de repeticiones.",
+              "description": "Disco en el pecho en el banco a 45: carga ligera y control total del recorrido. Ideal para aprender a usar el glúteo en el banco.",
               "efc": 2.8,
               "equipmentId": "plate",
               "executionCues": [
@@ -656,7 +656,7 @@
               "commonMistakes": [
                 "Hiperextender la zona lumbar arriba en lugar de terminar con la cadera."
               ],
-              "description": "Hiperextensiones a 45° para Glúteos en máquina Smith: el guiado estabiliza la carga y permite concentrarse en el glúteo.",
+              "description": "Smith en el banco a 45: la barra guiada acompaña el movimiento y puedes cargar con confianza. Variante segura y productiva.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -848,7 +848,7 @@
           }
         ],
         "defaultConfigurationId": "glutes_hiperextension_45__plate",
-        "description": "Hiperextensión 45° trabaja principalmente glúteos mediante un patrón de extensión cadera. La participación secundaria corresponde a isquiosurales.",
+        "description": "Hiperextensiones a 45 grados para glúteos: en el banco inclinado, subes el cuerpo con la cadera y el glúteo dirige el movimiento. La variante del banco pensada para glúteo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -893,7 +893,7 @@
               "commonMistakes": [
                 "Arquear la zona lumbar para ganar recorrido en lugar de extender la cadera."
               ],
-              "description": "Patada de glúteo en polea con tensión continua: el glúteo mayor extiende la cadera hacia atrás a lo largo del recorrido, con la polea baja como punto de anclaje.",
+              "description": "Polea en el tobillo: empujas el talón atrás y arriba contra la tensión constante. El glúteo trabaja en todo el recorrido, sin descansos.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -1086,7 +1086,7 @@
               "commonMistakes": [
                 "Arquear la zona lumbar para ganar recorrido en lugar de extender la cadera."
               ],
-              "description": "Patada de glúteo con mancuerna detrás de la rodilla: la carga libre permite sentir bien la contracción del glúteo mayor al extender la cadera hacia atrás.",
+              "description": "Mancuerna detrás de la rodilla: la patada clásica con carga libre. Sencilla de montar y muy efectiva para sentir el glúteo.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -1279,7 +1279,7 @@
               "commonMistakes": [
                 "Arquear la zona lumbar para ganar recorrido en lugar de extender la cadera."
               ],
-              "description": "Patada de glúteo con banda elástica en el tobillo: la resistencia crece al final del recorrido, justo donde el glúteo mayor debe contraerse con más fuerza.",
+              "description": "Banda en el tobillo: la resistencia elástica sube al estirar la pierna. Perfecta para activar el glúteo en casa o como remate.",
               "efc": 2.8,
               "equipmentId": "band",
               "executionCues": [
@@ -1454,7 +1454,7 @@
           }
         ],
         "defaultConfigurationId": "glutes_patada_gluteo__cable",
-        "description": "Patada de Glúteo trabaja principalmente glúteos mediante un patrón de extensión cadera. La participación secundaria corresponde a isquiosurales.",
+        "description": "Patada de glúteo: empujas el talón hacia atrás y arriba contra resistencia, con el glúteo haciendo todo el trabajo. El ejercicio favorito para sentir y dar forma al glúteo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1499,7 +1499,7 @@
               "commonMistakes": [
                 "Despegar demasiado la zona lumbar o cortar el recorrido arriba sin contraer el glúteo."
               ],
-              "description": "Puente de glúteos con barra sobre la cadera y trabajo bilateral: la carga libre permite progresar la extensión de cadera con pesos altos y técnica simple.",
+              "description": "Barra en la cadera con ambas piernas: el puente clásico con carga. Glúteo trabajando a fondo desde el primer día.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -1694,7 +1694,7 @@
               "commonMistakes": [
                 "Despegar demasiado la zona lumbar o cortar el recorrido arriba sin contraer el glúteo."
               ],
-              "description": "Puente de glúteos con barra y apoyo en una pierna: el trabajo unilateral expone asimetrías de fuerza entre caderas y exige estabilidad pélvica.",
+              "description": "Barra en la cadera con una pierna: el glúteo de un lado hace todo el trabajo y el equilibrio suma reto. Avanzado y muy efectivo.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -1889,7 +1889,7 @@
               "commonMistakes": [
                 "Despegar demasiado la zona lumbar o cortar el recorrido arriba sin contraer el glúteo."
               ],
-              "description": "Puente de glúteos con mancuerna sobre la cadera y trabajo bilateral: opción cómoda para empezar a cargar sin depender de rack ni barra larga.",
+              "description": "Mancuerna en la cadera con ambas piernas: carga cómoda y recorrido libre. La puerta de entrada perfecta al puente con peso.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -2084,7 +2084,7 @@
               "commonMistakes": [
                 "Despegar demasiado la zona lumbar o cortar el recorrido arriba sin contraer el glúteo."
               ],
-              "description": "Puente de glúteos con mancuerna y apoyo en una pierna: combina carga cómoda con el reto de estabilizar la pelvis en cada repetición.",
+              "description": "Mancuerna con una pierna: el glúteo trabaja solo y el equilibrio se entrena de regalo. Ideal para corregir desequilibrios.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -2279,7 +2279,7 @@
               "commonMistakes": [
                 "Despegar demasiado la zona lumbar o cortar el recorrido arriba sin contraer el glúteo."
               ],
-              "description": "Puente de glúteos en máquina Smith con trabajo bilateral: el recorrido guiado simplifica la colocación y permite concentrarse en la contracción del glúteo.",
+              "description": "Smith en la cadera con ambas piernas: la barra guiada sube en línea recta y el glúteo se concentra en empujar. Muy cómodo con peso.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -2474,7 +2474,7 @@
               "commonMistakes": [
                 "Despegar demasiado la zona lumbar o cortar el recorrido arriba sin contraer el glúteo."
               ],
-              "description": "Puente de glúteos en máquina Smith con apoyo en una pierna: el guiado elimina el equilibrio y deja el foco en la fuerza de cada cadera.",
+              "description": "Smith con una pierna: el guiado sostiene la barra y el lado trabajado hace el esfuerzo. Variante fina para igualar glúteos.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -2651,7 +2651,7 @@
           }
         ],
         "defaultConfigurationId": "glutes_puente_gluteos__bilateral__barbell",
-        "description": "Puente de glúteos. Ajustable en lateralidad y equipo.",
+        "description": "Puente de glúteos: boca arriba con las rodillas dobladas, empujas la cadera hacia el techo. El ejercicio básico y brutal para sentir el glúteo trabajando desde el primer día.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -2697,7 +2697,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón extensión cadera para completar la repetición."
               ],
-              "description": "Reverse Hyper en máquina: el tronco se apoya y las piernas se elevan y descienden contra la resistencia, con el glúteo como motor principal y los erectores estabilizando la cadera. Especialidad única de la familia.",
+              "description": "En la máquina de reverse hyper: subes las piernas balanceando la cadera con la carga colgando. Descarga la espalda y enciende el glúteo a la vez.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -2882,7 +2882,7 @@
           }
         ],
         "defaultConfigurationId": "reverse_hyper__machine",
-        "description": "Reverse Hyper en máquina: el tronco se apoya y las piernas se elevan y descienden contra la resistencia, con el glúteo como motor principal y los erectores estabilizando la cadera. Especialidad única de la familia.",
+        "description": "Reverse hyper: acostado boca abajo, subes las piernas hacia atrás balanceando la cadera. Descarga la espalda baja mientras trabaja el glúteo: el secreto de muchos atletas.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -2924,7 +2924,7 @@
               "commonMistakes": [
                 "Dejar que la carga empuje el tronco hacia delante perdiendo la posición de inicio."
               ],
-              "description": "Hiperextensión a 45 grados con la barra sostenida en posición Zercher: la sujeción frontal del peso cambia la colocación y mantiene el énfasis en el glúteo.",
+              "description": "Carga en los codos frente al pecho en el banco a 45: el peso queda cerca del cuerpo y el glúteo hace el trabajo. Exigente y muy controlado.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -3108,7 +3108,7 @@
           }
         ],
         "defaultConfigurationId": "glutes_hiperextension_45_zercher__default",
-        "description": "Hiperextensión en banco a 45 grados con la carga sostenida en posición Zercher: la sujeción del peso contra el pecho cambia la colocación y mantiene el énfasis en el glúteo.",
+        "description": "Hiperextensión a 45 Zercher para glúteos: con la carga sujetada en los codos frente al pecho, el glúteo trabaja contra un peso que queda muy cómodo y controlado.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

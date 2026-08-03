@@ -1,8 +1,8 @@
 # Índice del catálogo de ejercicios v2
 
 Revisión: `v2-approved-2026-08-02-c` · Ontología: `wikilab-v2-2026-08-02`
-95 familias · 192 definiciones · 504 configuraciones
-Hash canónico: `b638995379f65d9a…`
+96 familias · 196 definiciones · 518 configuraciones
+Hash canónico: `944acdf3940f8a33…`
 
 Artefacto informativo generado por `scripts/merge_catalog_v2_families.py`.
 No editar a mano: se regenera en cada merge.
@@ -46,6 +46,8 @@ No editar a mano: se regenera en cada merge.
 | elbow_flexion_biceps_curl | preacher_curl | Curl Predicador | implement | 4 |
 | elbow_flexion_biceps_curl | spider_curl | Curl Araña | implement, grip_type | 9 |
 | elbow_flexion_biceps_curl | standing_biceps_curl | Curl de Bíceps de Pie | implement | 4 |
+| elbow_flexion_biceps_curl | hammer_curl | Curl Martillo | implement | 5 |
+| elbow_flexion_biceps_curl | reverse_curl | Curl Invertido | implement | 5 |
 | hinge_deadlift | conventional_deadlift | Peso Muerto Convencional | implement, laterality | 8 |
 | hinge_deadlift | sumo_deadlift | Peso Muerto Sumo | implement | 2 |
 | hinge_good_morning | good_morning | Buenos Días | implement, laterality | 10 |
@@ -145,6 +147,8 @@ No editar a mano: se regenera en cada merge.
 | lower_wrist_flexion | forearms_curl_muneca_de_pie_tras_espalda_barra | Curl de Muñeca de Pie Tras Espalda con Barra |  | 1 |
 | lower_wrist_flexion | forearms_curl_muneca_sentado | Curl de Muñeca | implement | 4 |
 | lower_wrist_flexion_extension | forearms_enrollamiento_muneca_rodillo | Enrollamiento de Muñeca con Rodillo y Cuerda |  | 1 |
+| lower_wrist_rotation | supination | Supinaciones | implement | 2 |
+| lower_wrist_rotation | pronation | Pronaciones | implement | 2 |
 | shoulder_arnold_press | arnold_press | Press Arnold | implement | 3 |
 | shoulder_lateral_raise | seated_lateral_raise | Elevaciones Laterales Sentado | implement | 4 |
 | shoulder_lateral_raise | standing_lateral_raise | Elevaciones Laterales de Pie | implement | 4 |

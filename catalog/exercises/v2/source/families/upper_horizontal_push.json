@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
               ],
-              "description": "Flexiones de Brazos trabaja principalmente pectorales mediante un patrón de empuje horizontal. La participación secundaria corresponde a tríceps, deltoides. La configuración utiliza peso corporal como implemento. La variante se define por: ángulo plano.",
+              "description": "Flexiones con el cuerpo recto y las manos al ancho del pecho: el clásico completo. Pecho, tríceps y core trabajando con tu propio peso.",
               "efc": 3.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -241,7 +241,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
               ],
-              "description": "Pies elevados sobre banco o caja. Mayor carga sobre la parte superior del pectoral. La configuración utiliza peso corporal como implemento. La variante se define por: pies elevados.",
+              "description": "Flexiones con los pies elevados: el ángulo sube el foco a la parte alta del pecho. La variante que intensifica el clásico sin pesas.",
               "efc": 3.2,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -436,7 +436,7 @@
           }
         ],
         "defaultConfigurationId": "push_up__flat",
-        "description": "Flexiones de brazos trabaja principalmente pectorales mediante un patrón de empuje horizontal. La participación secundaria corresponde a tríceps, deltoides.",
+        "description": "Flexiones de brazos: bajas y subes el cuerpo con los brazos, manteniéndolo recto. El ejercicio de pecho más simple y completo, disponible en cualquier parte.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -481,7 +481,7 @@
               "commonMistakes": [
                 "Usar el peso del cuerpo para completar el cruce en lugar de aislar el pectoral."
               ],
-              "description": "Cruce de poleas con las poleas en altura alta: el ángulo descendente pone el énfasis en la porción inferior del pectoral.",
+              "description": "Polea alta: el cruce desde arriba enfoca la parte baja del pecho. La altura que dibuja el pectoral inferior.",
               "efc": 2.4,
               "equipmentId": "cable",
               "executionCues": [
@@ -682,7 +682,7 @@
               "commonMistakes": [
                 "Usar el peso del cuerpo para completar el cruce en lugar de aislar el pectoral."
               ],
-              "description": "Cruce de poleas con las poleas a la altura media: el recorrido horizontal reparte el trabajo de forma equilibrada por el pectoral completo.",
+              "description": "Polea media: el cruce desde el centro reparte el trabajo por todo el pecho. La altura equilibrada y más popular.",
               "efc": 2.4,
               "equipmentId": "cable",
               "executionCues": [
@@ -883,7 +883,7 @@
               "commonMistakes": [
                 "Usar el peso del cuerpo para completar el cruce en lugar de aislar el pectoral."
               ],
-              "description": "Cruce de poleas con las poleas en altura baja: el ángulo ascendente pone el énfasis en la porción superior del pectoral.",
+              "description": "Polea baja: el cruce desde abajo enfoca la parte alta del pecho. La altura que esculpe la zona superior.",
               "efc": 2.4,
               "equipmentId": "cable",
               "executionCues": [
@@ -1066,7 +1066,7 @@
           }
         ],
         "defaultConfigurationId": "tren_superior_cruce_poleas__mid",
-        "description": "Aducción horizontal del pectoral en estación de poleas dobles. La altura de la polea cambia el enfoque del pecho: desde la altura alta el trabajo se concentra en la porción inferior del pectoral.",
+        "description": "Cruce de poleas: de pie entre dos poleas, llevas las manos de los lados al centro. El pectoral se aísla con tensión constante y la altura de la polea cambia el enfoque.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1113,7 +1113,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
               ],
-              "description": "Fondos trabaja principalmente pectorales mediante un patrón de empuje horizontal. La participación secundaria corresponde a tríceps, deltoides. La configuración utiliza peso corporal como implemento.",
+              "description": "Entre paralelas, bajas flexionando los codos hasta donde puedas y subes. Pecho y tríceps con el peso corporal: intensos de verdad.",
               "efc": 3.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -1306,7 +1306,7 @@
           }
         ],
         "defaultConfigurationId": "tren_superior_fondos__default",
-        "description": "Fondos trabaja principalmente pectorales mediante un patrón de empuje horizontal. La participación secundaria corresponde a tríceps, deltoides.",
+        "description": "Fondos en paralelas: te suspendes entre las barras y bajas flexionando los codos. Pecho y tríceps con el peso corporal, intensos y muy efectivos.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1349,7 +1349,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
               ],
-              "description": "Press con cadenas colgando. Resistencia variable que aumenta en el bloqueo. La configuración utiliza barra como implemento.",
+              "description": "Cadenas colgando de la barra: la resistencia crece al subir y se aligera al bajar. La tensión perfecta para el press.",
               "efc": 4.0,
               "equipmentId": "barbell",
               "executionCues": [
@@ -1531,7 +1531,7 @@
           }
         ],
         "defaultConfigurationId": "tren_superior_press_banca_cadenas__default",
-        "description": "Press con cadenas colgando. Resistencia variable que aumenta en el bloqueo.",
+        "description": "Press de banca con cadenas: las cadenas cuelgan de la barra y la resistencia crece al subir. La tensión se ajusta al punto más fuerte del press.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1571,7 +1571,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
               ],
-              "description": "Press de banca con bandas para resistencia variable. Mayor tensión en el punto de bloqueo. La configuración utiliza banda de resistencia como implemento.",
+              "description": "Bandas atadas a la barra: tensión extra arriba, justo donde empujas más. El press con resistencia variable.",
               "efc": 3.2,
               "equipmentId": "band",
               "executionCues": [
@@ -1753,7 +1753,7 @@
           }
         ],
         "defaultConfigurationId": "tren_superior_press_banda_resistencia__default",
-        "description": "Press de banca con bandas para resistencia variable. Mayor tensión en el punto de bloqueo.",
+        "description": "Press con banda de resistencia: la banda añade tensión variable al press. La resistencia crece arriba, justo donde el pecho está más fuerte.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1793,7 +1793,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
               ],
-              "description": "Máquina con brazos convergentes. Estabilidad máxima y aislamiento del pectoral.",
+              "description": "Máquina convergente: los brazos se juntan siguiendo el arco del pecho. Cómoda, segura y efectiva.",
               "efc": 3.2,
               "equipmentId": "machine",
               "executionCues": [
@@ -1976,7 +1976,7 @@
           }
         ],
         "defaultConfigurationId": "tren_superior_press_pecho_maquina_convergente__default",
-        "description": "Máquina con brazos convergentes. Estabilidad máxima y aislamiento del pectoral.",
+        "description": "Press plano en máquina convergente: los brazos se juntan al empujar, siguiendo el arco natural del pecho. Cómoda, segura y efectiva.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -2019,7 +2019,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
               ],
-              "description": "Variante de banca donde la barra hace pausa corta a 2-3 cm del pecho. Elimina rebote y trabaja punto muerto.",
+              "description": "Pausa corta a unos centímetros del pecho en cada repetición: sin rebote y con el punto débil trabajado. El press para romper estancamientos.",
               "efc": 4.0,
               "equipmentId": "barbell",
               "executionCues": [
@@ -2201,7 +2201,7 @@
           }
         ],
         "defaultConfigurationId": "tren_superior_press_spoto_barra__default",
-        "description": "Variante de banca donde la barra hace pausa corta a 2-3 cm del pecho. Elimina rebote y trabaja punto muerto.",
+        "description": "Press Spoto: como el press de banca, pero haciendo una pausa justo antes del pecho. Elimina el rebote y trabaja el punto débil del empuje.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -2241,7 +2241,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
               ],
-              "description": "Press con una mano en polea baja. Permite corrección de desbalances y trabajo unilateral.",
+              "description": "Una mano contra la polea baja: el pecho trabaja lado a lado y corriges desequilibrios. Press unilateral con tensión constante.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -2421,7 +2421,7 @@
           }
         ],
         "defaultConfigurationId": "tren_superior_press_unilateral_polea__default",
-        "description": "Press con una mano en polea baja. Permite corrección de desbalances y trabajo unilateral.",
+        "description": "Press unilateral en polea: empujas una sola mano contra la polea baja. Cada lado del pecho trabaja por separado y corriges desequilibrios.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -2461,7 +2461,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
               ],
-              "description": "Press con mancuernas manteniendo palmas enfrentadas y comprimiendo. Tensión continua en pectoral.",
+              "description": "Mancuernas apretadas entre sí mientras empujas: la contracción del pecho es máxima. Un press con sensación única.",
               "efc": 3.0,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -2641,7 +2641,7 @@
           }
         ],
         "defaultConfigurationId": "tren_superior_squeeze_press_mancuernas__default",
-        "description": "Press con mancuernas manteniendo palmas enfrentadas y comprimiendo. Tensión continua en pectoral.",
+        "description": "Squeeze press: presionas las mancuernas juntas mientras empujas. El pectoral se contrae al máximo en cada repetición.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -2681,7 +2681,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
               ],
-              "description": "Press de pecho inclinado en máquina convergente: el ángulo del banco enfatiza la porción superior del pectoral con el recorrido guiado de la máquina.",
+              "description": "Máquina convergente inclinada: el ángulo sube el foco a la parte alta del pecho. La versión fina del press en máquina.",
               "efc": 3.2,
               "equipmentId": "machine",
               "executionCues": [
@@ -2863,7 +2863,7 @@
           }
         ],
         "defaultConfigurationId": "tren_superior_press_inclinado_maquina_convergente__default",
-        "description": "Press de pecho en banco inclinado dentro de una máquina convergente: el ángulo desplaza el trabajo hacia la porción superior del pectoral manteniendo el recorrido guiado.",
+        "description": "Press inclinado en máquina convergente: el ángulo sube el foco a la parte alta del pecho con el guiado de la máquina.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla para completar la repetición."
               ],
-              "description": "Sentadilla con carga al cinturón en máquina Belt Squat. La variante se define por: bilateral.",
+              "description": "Máquina Belt Squat con ambas piernas: la carga cuelga de la cintura y la espalda descansa. Sentadillas profundas sin peso sobre los hombros.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -224,7 +224,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral para completar la repetición."
               ],
-              "description": "Sentadilla a 1 pierna con carga al cinturón en máquina Belt Squat. La variante se define por: unilateral.",
+              "description": "Belt Squat con una pierna: la carga cuelga de la cintura y un lado hace todo el trabajo. Ideal para corregir desequilibrios de pierna con seguridad.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -404,7 +404,7 @@
           }
         ],
         "defaultConfigurationId": "belt_squat__bilateral",
-        "description": "Sentadilla Belt Squat trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla. La participación secundaria corresponde a glúteos.",
+        "description": "Sentadilla en máquina Belt Squat: la carga cuelga de la cintura con un cinturón, sin peso en la espalda. La espalda se libera por completo y las piernas hacen todo el trabajo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

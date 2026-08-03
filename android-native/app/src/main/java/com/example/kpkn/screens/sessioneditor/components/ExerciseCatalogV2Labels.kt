@@ -105,6 +105,7 @@ internal fun exerciseCatalogOptionLabel(value: String, definitionId: String? = n
     "zercher" -> "Zercher"
     "smith_machine" -> "Máquina Smith"
     "hex_bar" -> "Barra hexagonal"
+    "h_bar" -> "Barra H"
     "t_bar" -> "Barra T"
     "ghd" -> "Máquina GHD"
     else -> controlledIdLabel(value)
@@ -129,6 +130,7 @@ internal fun exerciseCatalogVariantTagLabel(value: String, definitionId: String?
     "cable" -> if (definitionId == "triceps_pushdown") "En Polea Alta" else "En Polea"
     "kettlebell" -> "Con Kettlebell"
     "hex_bar" -> "Con Barra Hexagonal"
+    "h_bar" -> "Con Barra H"
     "t_bar" -> "En Barra T"
     "band" -> "Con Banda"
     "bodyweight" -> "Peso Corporal"
@@ -177,6 +179,7 @@ internal fun exerciseCatalogEquipmentLabel(id: String, definitionId: String? = n
     "ez_bar" -> "Barra EZ"
     "ghd" -> "Máquina GHD"
     "hex_bar" -> "Barra hexagonal"
+    "h_bar" -> "Barra H"
     "kettlebell" -> "Kettlebell"
     "machine" -> if (definitionId in BENCH_PRESS_DEFINITION_IDS) "Máquina Convergente" else "Máquina"
     "plate" -> "Disco"

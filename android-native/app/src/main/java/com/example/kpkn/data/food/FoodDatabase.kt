@@ -162,7 +162,7 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     FoodItem(id = "gen009p", name = "Salmón (plancha)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 218.0, protein = 20.0, carbs = 0.0, fats = 12.4, searchAliases = listOf("salmon a la plancha")),
     FoodItem(id = "gen009h", name = "Salmón (horno)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 212.0, protein = 20.0, carbs = 0.0, fats = 12.7, searchAliases = listOf("salmon al horno")),
     // Papa
-    FoodItem(id = "gen021f", name = "Papa (frita)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 312.0, protein = 3.4, carbs = 41.0, fats = 15.0, searchAliases = listOf("papa frita", "papas fritas")),
+    FoodItem(id = "gen021f", name = "Papa (frita)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 312.0, protein = 3.4, carbs = 41.0, fats = 15.0, searchAliases = listOf("papa frita", "papas fritas", "papa fritas")),
     FoodItem(id = "gen021h", name = "Papa (horno)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 93.0, protein = 2.5, carbs = 21.0, fats = 0.1, searchAliases = listOf("papa al horno", "papas al horno")),
     FoodItem(id = "gen021p", name = "Papa (puré)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 110.0, protein = 2.0, carbs = 18.0, fats = 3.5, searchAliases = listOf("pure de papa", "pure")),
     // Pasta
@@ -350,7 +350,6 @@ val FOOD_ALIASES: Map<String, String> = mapOf(
     "asado" to "filete de vacuno",
     "bife" to "filete de vacuno", "bife de chorizo" to "filete de vacuno",
     "provoleta" to "queso cheddar",
-    "dulce de leche" to "miel",
     // Perú
     "ceviche" to "merluza (cocida)", "cebiche" to "merluza (cocida)",
     "lomo saltado" to "filete de vacuno",
@@ -368,8 +367,6 @@ val FOOD_ALIASES: Map<String, String> = mapOf(
     "burguer" to "hamburguesa", "burger" to "hamburguesa",
     "hotdog" to "salchicha tipo viena", "hot dog" to "salchicha tipo viena",
     "nuggets" to "pechuga de pollo",
-    "papas fritas" to "papa",
-    "papitas" to "papa",
     "galleta" to "pan blanco", "galletas" to "pan blanco",
     "cereal" to "avena",
     "batido" to "leche entera",
@@ -408,8 +405,6 @@ val FOOD_ALIASES: Map<String, String> = mapOf(
     "café de máquina" to "café (negro)",
     "café con leche" to "leche entera",
     // Postres / dulces
-    "manjar" to "miel",
-    "dulce de leche" to "miel",
     "arroz con leche" to "arroz con leche",
     "leche asada" to "leche asada",
     // Preparaciones
@@ -422,6 +417,36 @@ val FOOD_ALIASES: Map<String, String> = mapOf(
     "sopaipillas pasadas" to "sopaipillas pasadas",
     "calzones rotos" to "calzones rotos",
 )
+
+/**
+ * Alias que NO son el mismo alimento que la consulta (aproximación): el destino
+ * es lo "más parecido" del catálogo, no la identidad del plato escrito
+ * ("torta" ≈ pan blanco, "ensalada" ≈ lechuga, "ceviche" ≈ merluza cocida).
+ * Estos NUNCA se auto-confirman: pasan a revisión con aviso visible.
+ * Las claves se normalizan sin tildes y en minúsculas.
+ */
+val FOOD_ALIASES_APPROXIMATION: Set<String> = setOf(
+    // Chile
+    "choripan", "sanguche", "sanduche", "sandwich", "once", "lomito",
+    // México
+    "torta", "torta de jamon", "gordita", "quesadilla", "chilaquiles", "pozole",
+    // Argentina / Uruguay
+    "milanga", "milanesa", "milanesa napolitana", "facturas", "medialunas", "asado", "provoleta",
+    // Perú
+    "ceviche", "cebiche", "lomo saltado", "aji de gallina", "causa", "anticucho",
+    // Colombia / Venezuela
+    "arepa", "arepa reina pepiada", "cachapa", "pabellon", "tequeños", "bandeja paisa",
+    "empanada colombiana",
+    // Internacionales / conceptos generales
+    "galleta", "galletas", "cereal", "batido", "smoothie", "ensalada", "trigo",
+    "cafe con leche", "nuggets",
+)
+
+/** True si el texto es un alias de aproximación (identidad distinta a lo escrito). */
+fun isApproximationAlias(text: String): Boolean {
+    val normalized = stripAccents(text.trim().lowercase())
+    return normalized in FOOD_ALIASES_APPROXIMATION
+}
 
 // ─── Portion References (grams per unit) ─────────────────────────────────────
 

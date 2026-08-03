@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón flexión pelvis / cadera para completar la repetición."
               ],
-              "description": "Elevación Piernas trabaja principalmente abdomen mediante un patrón de flexión pelvis / cadera. La participación secundaria corresponde a flexores cadera. La configuración utiliza peso corporal como implemento.",
+              "description": "Colgado de la barra, subes las piernas rectas o dobladas hasta la cintura. El abdomen trabaja de verdad porque no puede hacer trampa con el impulso.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -201,7 +201,7 @@
           }
         ],
         "defaultConfigurationId": "core_elevacion_piernas__default",
-        "description": "Elevación Piernas trabaja principalmente abdomen mediante un patrón de flexión pelvis / cadera. La participación secundaria corresponde a flexores cadera.",
+        "description": "Elevación de piernas colgado de la barra: subes las piernas mientras el abdomen trabaja para mantenerte quieto. La versión más honesta y difícil del trabajo abdominal.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

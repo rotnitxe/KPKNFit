@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón abducción completa para completar la repetición."
               ],
-              "description": "LU-Raises trabaja principalmente deltoides mediante un patrón de abducción completa. La participación secundaria corresponde a trapecio. La configuración utiliza mancuernas como implemento.",
+              "description": "Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento. Un ejercicio poco común que cuida y fortalece el hombro.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -201,7 +201,7 @@
           }
         ],
         "defaultConfigurationId": "deltoides_lu_raises__default",
-        "description": "LU-Raises trabaja principalmente deltoides mediante un patrón de abducción completa. La participación secundaria corresponde a trapecio.",
+        "description": "LU-raises: subes los brazos con los codos doblados en forma de L y U. Un movimiento poco común que trabaja el manguito rotador y el hombro.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Mover el tronco o elevar los hombros para completar el recorrido."
               ],
-              "description": "Elevaciones posteriores con mancuernas: la carga libre permite ajustar el peso y el rango al deltoides posterior de cada lado.",
+              "description": "Mancuernas inclinado: abres los brazos hacia los lados con el torso paralelo al suelo. El deltoides posterior trabajando a fondo.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -232,7 +232,7 @@
               "commonMistakes": [
                 "Mover el tronco o elevar los hombros para completar el recorrido."
               ],
-              "description": "Elevaciones posteriores en polea: la tensión continua mantiene el deltoides posterior activo a lo largo del recorrido.",
+              "description": "Polea posterior: la tensión constante abre los brazos y el hombro trasero queda cargado. La versión fina de las elevaciones posteriores.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -438,7 +438,7 @@
               "commonMistakes": [
                 "Mover el tronco o elevar los hombros para completar el recorrido."
               ],
-              "description": "Elevaciones posteriores en máquina: el recorrido guiado aísla el deltoides posterior sin exigir estabilidad extra.",
+              "description": "Máquina de deltoides posterior: el guiado aísla la espalda alta del hombro. Cómoda y muy efectiva para completar el hombro.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -626,7 +626,7 @@
           }
         ],
         "defaultConfigurationId": "rear_delt_raise__dumbbells",
-        "description": "Abducción horizontal de hombros con énfasis en el deltoides posterior. Mancuernas, polea y máquina cubren las estaciones más útiles para trabajar la espalda alta y la cara posterior del hombro.",
+        "description": "Elevaciones posteriores: inclinado, abres los brazos hacia los lados trabajando el deltoides trasero. El ejercicio que completa el hombro y corrige la postura.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

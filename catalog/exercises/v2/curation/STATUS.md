@@ -2,7 +2,24 @@
 
 Fecha de corte: 2026-08-02 (curaduría integral v3)
 Revisión: `v2-approved-2026-08-02-c`
-Hash canónico compartido: `b638995379f65d9a0ddc47cc3a728bc79cce7958760d5841684e15808adec7fa`
+Hash canónico compartido: `944acdf3940f8a33ba0e2e5954f48e891f27facf34883c3ecf176958c6fcc5d9`
+
+## Curaduría v4 (2026-08-03): descripciones amigables, involucramiento adaptativo y ejercicios nuevos
+
+- **Descripciones reescritas para el usuario final** en las 196 definiciones y
+  518 configuraciones: texto cercano, con carácter y que invita a probar el
+  ejercicio. Fuera la jerga biomecánica (bisagra, patrón, cadena) y las
+  plantillas genéricas. Regla L10.
+- **Involucramiento muscular adaptativo real por chips**: remos con agarre
+  amplio → trapecio/espalda alta, cerrado → dorsal/bíceps; dominadas supinas →
+  bíceps protagonista, pronadas/neutras → estabilizador. Regla L11.
+- **Ejercicios nuevos**: Curl Martillo y Curl Invertido (Barra H, Mancuernas,
+  Polea, Máquina, Banda) y la familia Rotaciones de Antebrazo (Supinaciones y
+  Pronaciones con Mancuerna y Polea). Implemento nuevo `h_bar` ("Barra H") con
+  label en Android.
+- Conteos nuevos: **96 familias / 196 definiciones / 518 configuraciones**.
+- Gate: la palabra "todo" ya no se trata como placeholder (falso positivo del
+  español en las descripciones nuevas).
 
 ## Correcciones posteriores al corte (-c, 2026-08-03)
 
@@ -14,14 +31,14 @@ Hash canónico compartido: `b638995379f65d9a0ddc47cc3a728bc79cce7958760d5841684e
 - UI picker v2: la descripción queda solo arriba de los chips (se eliminó la
   duplicada debajo) y cuando hay ≤7 chips en total, todos los ejes comparten una
   sola fila horizontal en vez de una fila vacía por eje.
-- Conteos nuevos: 192 definiciones / 504 configuraciones.
+- Conteos nuevos: 192 definiciones / 504 configuraciones (antes de la v4).
 
 ## Resultado del corte
 
 El catálogo quedó generado desde fuente editorial determinista y es el único
 catálogo que se empaqueta como runtime Android. El corte contiene:
 
-- **95 familias, 192 definiciones y 504 configuraciones** enumeradas.
+- **96 familias, 196 definiciones y 518 configuraciones** enumeradas.
 - Curaduría integral v2 aplicada: reestructura de bisagras (Convencional, Sumo,
   Rumano, Rumano Sumo, Piernas Rígidas, Buenos Días), remos (Convencional,
   Pendlay, Barra T, Gironda, Pecho Apoyado), curls de isquiosurales (Sentado,
@@ -43,7 +60,7 @@ catálogo que se empaqueta como runtime Android. El corte contiene:
   adaptativos por agarre y amplitud; eliminación de duplicados (curl inclinado,
   press de hombros de pie, plancha Copenhagen isométrica, hiperextensiones
   redundantes, Super ROM duplicada) y renombres Title Case sin relleno.
-- `muscleNotes` completas en las 504 configuraciones: una nota por músculo
+- `muscleNotes` completas en las 518 configuraciones: una nota por músculo
   listado (sin huérfanos ni faltantes), validada por compilador, gate y backend.
 - Equivalencias fijas por rol: Principal 1.0 / Secundario 0.5 / Estabilizador
   0.4; no se guardan números en el JSON, UI y contadores derivan del rol.
@@ -76,8 +93,8 @@ catálogo que se empaqueta como runtime Android. El corte contiene:
 ## Gates ejecutados (corte curado)
 
 - `python scripts/catalog_v2_gate.py --strict` → `status=READY`.
-- `python scripts/compile_exercise_catalog_v2_cli.py --check` → 192 definiciones,
-  504 configuraciones, hash canónico coincidente.
+- `python scripts/compile_exercise_catalog_v2_cli.py --check` → 196 definiciones,
+  518 configuraciones, hash canónico coincidente.
 - `python scripts/compile_exercise_catalog_v2_cli.py --write` → asset Android
   regenerado (y copia idéntica a iOS).
 - Backend: 7 pruebas Python → `OK`.

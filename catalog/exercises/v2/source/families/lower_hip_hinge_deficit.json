@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón bisagra cadera / déficit para completar la repetición."
               ],
-              "description": "Peso Muerto Convencional en Déficit trabaja principalmente isquiosurales mediante un patrón de bisagra cadera / déficit. La participación secundaria corresponde a glúteos, erectores espinales. La configuración utiliza barra como implemento.",
+              "description": "Desde la plataforma, la barra parte más abajo y el recorrido crece. Isquios y glúteos con un estiramiento extra desde el primer tirón.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -208,7 +208,7 @@
           }
         ],
         "defaultConfigurationId": "hams_peso_muerto_convencional_deficit__default",
-        "description": "Peso Muerto Convencional en Déficit trabaja principalmente isquiosurales mediante un patrón de bisagra cadera / déficit. La participación secundaria corresponde a glúteos, erectores espinales.",
+        "description": "Peso muerto convencional en déficit: subido a una plataforma, el recorrido es más largo desde el suelo. Isquios y glúteos trabajan con un estiramiento extra.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -249,7 +249,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón bisagra cadera / déficit para completar la repetición."
               ],
-              "description": "Peso Muerto Piernas Rígidas en Déficit trabaja principalmente isquiosurales mediante un patrón de bisagra cadera / déficit. La participación secundaria corresponde a glúteos, erectores espinales. La configuración utiliza barra como implemento.",
+              "description": "Plataforma más piernas casi rectas: el estiramiento de los isquios llega al límite. El peso muerto más profundo que existe.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -431,7 +431,7 @@
           }
         ],
         "defaultConfigurationId": "hams_peso_muerto_piernas_rigidas_deficit__default",
-        "description": "Peso Muerto Piernas Rígidas en Déficit trabaja principalmente isquiosurales mediante un patrón de bisagra cadera / déficit. La participación secundaria corresponde a glúteos, erectores espinales.",
+        "description": "Peso muerto piernas rígidas en déficit: desde la plataforma y con las piernas casi rectas, el estiramiento de los isquios llega al máximo. Muy exigente.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -472,7 +472,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón bisagra cadera / déficit para completar la repetición."
               ],
-              "description": "Peso Muerto Sumo en Déficit trabaja principalmente isquiosurales mediante un patrón de bisagra cadera / déficit. La participación secundaria corresponde a glúteos, aductores. La configuración utiliza barra como implemento.",
+              "description": "Postura amplia desde la plataforma: más recorrido que el sumo normal y más trabajo para glúteos y aductores.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -654,7 +654,7 @@
           }
         ],
         "defaultConfigurationId": "hams_peso_muerto_sumo_deficit__default",
-        "description": "Peso Muerto Sumo en Déficit trabaja principalmente isquiosurales mediante un patrón de bisagra cadera / déficit. La participación secundaria corresponde a glúteos, aductores.",
+        "description": "Peso muerto sumo en déficit: postura amplia desde la plataforma, con más recorrido que el sumo normal. Glúteos y aductores con trabajo extra.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

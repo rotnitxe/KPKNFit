@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón flexión lateral tronco para completar la repetición."
               ],
-              "description": "Inclinación Lateral trabaja principalmente abdomen mediante un patrón de flexión lateral tronco. La configuración utiliza mancuernas como implemento.",
+              "description": "De pie o sentado, te inclinas hacia el lado cargando el oblicuo. Movimiento corto, sensación larga: ideal para terminar el día de abdomen.",
               "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -192,7 +192,7 @@
           }
         ],
         "defaultConfigurationId": "core_inclinacion_lateral__default",
-        "description": "Inclinación Lateral trabaja principalmente abdomen mediante un patrón de flexión lateral tronco.",
+        "description": "Inclinación lateral: te doblas hacia un lado y vuelves, trabajando los oblicuos de forma aislada. El movimiento pequeño que define la cintura cuando se hace con paciencia.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Separar el codo del cuerpo o arquear la espalda para ganar recorrido."
               ],
-              "description": "Extensión Katana en polea con trabajo bilateral: la tensión continua acompaña la extensión de codo por encima de la cabeza.",
+              "description": "Polea a un lado con ambas manos: tiras en diagonal abriendo como una katana. El tríceps se enciende desde un ángulo moderno.",
               "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
@@ -218,7 +218,7 @@
               "commonMistakes": [
                 "Separar el codo del cuerpo o arquear la espalda para ganar recorrido."
               ],
-              "description": "Extensión Katana en polea con trabajo unilateral: cada brazo trabaja por separado con tensión constante.",
+              "description": "Polea con una mano en diagonal: cada tríceps trabaja por separado. Ideal para centrarse en un brazo a la vez.",
               "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
@@ -410,7 +410,7 @@
               "commonMistakes": [
                 "Separar el codo del cuerpo o arquear la espalda para ganar recorrido."
               ],
-              "description": "Extensión Katana con banda elástica y trabajo bilateral: la resistencia crece al extender el codo hacia arriba.",
+              "description": "Banda anclada a un lado con ambas manos: la resistencia crece al estirar en diagonal. La versión portátil de la katana.",
               "efc": 2.2,
               "equipmentId": "band",
               "executionCues": [
@@ -584,7 +584,7 @@
           }
         ],
         "defaultConfigurationId": "katana_extension__cable__bilateral",
-        "description": "Extensión Katana trabaja principalmente tríceps mediante un patrón de extensión codo.",
+        "description": "Extensión Katana: la polea a un lado y tiras en diagonal abriendo el brazo como una katana. Un movimiento moderno y exigente que enciende el tríceps desde otro ángulo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

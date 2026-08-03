@@ -2,6 +2,11 @@ package com.example.kpkn.screens.sessioneditor.components
 
 import android.graphics.Color as AndroidColor
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -12,16 +17,20 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -51,7 +60,9 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import java.util.UUID
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.exercises.displayNameWithSelectedChips
 import com.example.kpkn.domain.exercises.*
@@ -60,6 +71,7 @@ import com.example.kpkn.screens.sessioneditor.resolvePartAccent
 import com.example.kpkn.screens.sessioneditor.exerciseCardBrush
 import com.example.kpkn.screens.sessioneditor.DarkEditorSurface
 import com.example.kpkn.screens.sessioneditor.DarkChoiceChip
+import com.example.kpkn.ui.components.KpknAlertDialog
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 
@@ -96,6 +108,7 @@ internal fun SupersetGroupEditorCard(
 ) {
     var expanded by rememberSaveable(group.id) { mutableStateOf(false) }
     var configExerciseId by rememberSaveable(group.id) { mutableStateOf<String?>(null) }
+    var showOptionalInfo by rememberSaveable(group.id) { mutableStateOf(false) }
     val accent = remember(accentHex) { resolvePartAccent(accentHex) }
     val accentColor = accent.primary
     val rounds = (group.rounds ?: exercises.maxOfOrNull { it.sets.size } ?: 1).coerceAtLeast(1)
@@ -208,7 +221,9 @@ internal fun SupersetGroupEditorCard(
                     Surface(
                         shape = RoundedCornerShape(999.dp),
                         color = if (configExerciseId == exercise.id) accentColor.copy(alpha = 0.22f) else accentColor.copy(alpha = 0.10f),
-                        modifier = Modifier.clickable { configExerciseId = exercise.id },
+                        modifier = Modifier.clickable {
+                            configExerciseId = if (configExerciseId == exercise.id) null else exercise.id
+                        },
                     ) {
                         Row(
                             modifier = Modifier.padding(start = 10.dp, end = 4.dp, top = 5.dp, bottom = 5.dp),
@@ -255,17 +270,23 @@ internal fun SupersetGroupEditorCard(
                 }
             }
 
-            exercises.firstOrNull { it.id == configExerciseId }?.let { selected ->
-                SupersetExerciseConfigOverlay(
-                    exercise = selected,
-                    accentColor = accentColor,
-                    relationshipAnchorName = relationshipAnchorName(selected),
-                    onUpdateExercise = { updater -> onUpdateExercise(selected.id, updater) },
-                    onUpdateSet = { setId, updater -> onUpdateSet(selected.id, setId, updater) },
-                    onOpenRelationshipPicker = { onOpenRelationshipPicker(selected.id) },
-                    onClearRelationship = { onClearRelationship(selected.id) },
-                    onDismiss = { configExerciseId = null },
-                )
+            AnimatedVisibility(
+                visible = configExerciseId != null,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut(),
+            ) {
+                exercises.firstOrNull { it.id == configExerciseId }?.let { selected ->
+                    SupersetExerciseConfigOverlay(
+                        exercise = selected,
+                        accentColor = accentColor,
+                        relationshipAnchorName = relationshipAnchorName(selected),
+                        onUpdateExercise = { updater -> onUpdateExercise(selected.id, updater) },
+                        onUpdateSet = { setId, updater -> onUpdateSet(selected.id, setId, updater) },
+                        onOpenRelationshipPicker = { onOpenRelationshipPicker(selected.id) },
+                        onClearRelationship = { onClearRelationship(selected.id) },
+                        onDismiss = { configExerciseId = null },
+                    )
+                }
             }
 
             SupersetRoundsCarousel(
@@ -277,20 +298,66 @@ internal fun SupersetGroupEditorCard(
                 onUpdateSet = onUpdateSet,
                 onRemoveSet = onRemoveSet,
                 onMoveSet = onMoveSet,
+                onRestoreSet = { exerciseId, roundIndex ->
+                    onUpdateExercise(exerciseId) { current ->
+                        val template = current.sets.getOrNull((roundIndex - 1).coerceAtLeast(0))
+                        val restored = template?.copy(id = UUID.randomUUID().toString())
+                            ?: ExerciseSet(id = UUID.randomUUID().toString(), targetReps = 8)
+                        current.copy(sets = current.sets.toMutableList().apply { add(roundIndex, restored) })
+                    }
+                },
                 onAddRound = onAddRound,
                 onRemoveRound = onRemoveRound,
             )
 
             Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                Surface(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(42.dp)
+                        .clip(RoundedCornerShape(999.dp))
+                        .clickable { showOptionalInfo = true },
+                    shape = RoundedCornerShape(999.dp),
+                    color = if (group.isOptional) accentColor.copy(alpha = 0.22f) else accentColor.copy(alpha = 0.10f),
+                    border = if (group.isOptional) {
+                        BorderStroke(1.dp, accentColor.copy(alpha = 0.40f))
+                    } else {
+                        null
+                    },
                 ) {
-                    DarkChoiceChip("OPCIONAL", group.isOptional, accentColor = accentColor) { onToggleOptional(group.id) }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 12.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        if (group.isOptional) {
+                            Icon(
+                                Icons.Default.Check,
+                                contentDescription = null,
+                                tint = accentColor,
+                                modifier = Modifier.size(14.dp),
+                            )
+                            Spacer(Modifier.width(4.dp))
+                        }
+                        Text(
+                            text = if (group.isOptional) {
+                                "Superset opcional activo"
+                            } else {
+                                "Convertir en Superset opcional"
+                            },
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = accentColor,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                 }
                 TextButton(onClick = { onDissolve(group.id) }) {
                     Text("Disolver", fontWeight = FontWeight.Bold)
@@ -298,6 +365,46 @@ internal fun SupersetGroupEditorCard(
             }
         }
         }
+    }
+
+    if (showOptionalInfo) {
+        KpknAlertDialog(
+            onDismissRequest = { showOptionalInfo = false },
+            title = {
+                Text(
+                    if (group.isOptional) "Superset opcional" else "Convertir en Superset opcional",
+                    fontWeight = FontWeight.Black,
+                )
+            },
+            text = {
+                Text(
+                    "Un Superset opcional es un tipo de superset que se muestra únicamente cuando lo activas " +
+                        "desde tu sesión de entreno; si no lo invocas, te mostrará los ejercicios separados. " +
+                        "Esto puede ser útil si quieres usar el superset únicamente para cuando tienes poco tiempo " +
+                        "y no como parte de tu programación recurrente.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onToggleOptional(group.id)
+                        showOptionalInfo = false
+                    },
+                ) {
+                    Text(
+                        if (group.isOptional) "Dejar de ser opcional" else "Convertir",
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showOptionalInfo = false }) {
+                    Text("Cancelar")
+                }
+            },
+        )
     }
 
 }

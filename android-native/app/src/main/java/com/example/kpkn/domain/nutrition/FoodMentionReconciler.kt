@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.nutrition
 
 import com.example.kpkn.data.food.findFoodExactByNormalized
+import com.example.kpkn.data.food.isApproximationAlias
 import com.example.kpkn.data.models.AmountIntent
 import com.example.kpkn.data.models.AnalysisSource
 import com.example.kpkn.data.models.MacroOverrides
@@ -18,6 +19,13 @@ fun reconcileParsedFoodItems(items: List<ParsedMealItem>): List<ParsedMealItem> 
     var index = 0
     while (index < items.size) {
         val current = items[index]
+        // Las aproximaciones ("torta" ≈ pan blanco) NO se reescriben como match
+        // exacto: deben pasar por revisión para que el usuario elija el alimento.
+        if (isApproximationAlias(current.tag)) {
+            reconciled += current
+            index++
+            continue
+        }
         val direct = exactCanonicalItem(current)
         if (direct != null) {
             reconciled += direct
@@ -38,7 +46,9 @@ fun reconcileParsedFoodItems(items: List<ParsedMealItem>): List<ParsedMealItem> 
                     add("salsa de tomate")
                 }
             }
-            val food = candidates.firstNotNullOfOrNull { findFoodExactByNormalized(it) }
+            val food = candidates.firstNotNullOfOrNull {
+                if (isApproximationAlias(it)) null else findFoodExactByNormalized(it)
+            }
             if (food != null) {
                 bestEnd = end
                 bestFoodName = food.name

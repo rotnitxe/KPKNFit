@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón bisagra cadera explosiva para completar la repetición."
               ],
-              "description": "Extensión explosiva de cadera con kettlebell a 2 manos.",
+              "description": "Impulsas la campana entre las piernas y la lanzas al pecho con la cadera. Potencia, glúteos y un subidón de energía en cada repetición.",
               "efc": 2.8,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -207,7 +207,7 @@
           }
         ],
         "defaultConfigurationId": "hams_swing_kettlebell_dos_manos__default",
-        "description": "Extensión explosiva de cadera con kettlebell a 2 manos.",
+        "description": "Swing con kettlebell a dos manos: impulsas la campana entre las piernas y la lanzas hasta la altura del pecho con la cadera. Potencia, glúteos y mucha energía.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -247,7 +247,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón bisagra cadera explosiva para completar la repetición."
               ],
-              "description": "Swing con Kettlebell a Una Mano trabaja principalmente isquiosurales mediante un patrón de bisagra cadera explosiva. La participación secundaria corresponde a glúteos, core.",
+              "description": "La campana viaja con una sola mano y el torso aguanta el giro. Variante avanzada que suma estabilidad al swing clásico.",
               "efc": 2.8,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -428,7 +428,7 @@
           }
         ],
         "defaultConfigurationId": "hams_swing_kettlebell_unilateral__default",
-        "description": "Swing con Kettlebell a Una Mano trabaja principalmente isquiosurales mediante un patrón de bisagra cadera explosiva. La participación secundaria corresponde a glúteos, core.",
+        "description": "Swing con kettlebell a una mano: el impulso de cadera con una sola mano, con el torso aguantando el giro. Variante avanzada que añade estabilidad al swing clásico.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

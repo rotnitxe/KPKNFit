@@ -83,9 +83,12 @@ object FoodIdentity {
     fun stateFor(value: String): FoodState {
         val normalized = normalize(value)
         return when {
+            // B12: RAW primero — "Asado de Tira (crudo)" contiene "asado" (que
+            // también está en COOKED_PATTERN) y antes se marcaba COOKED, penalizando
+            // con −0.35 la query correcta "asado de tira crudo".
+            RAW_PATTERN.containsMatchIn(normalized) -> FoodState.RAW
             COOKED_PATTERN.containsMatchIn(normalized) -> FoodState.COOKED
             HYDRATED_PATTERN.containsMatchIn(normalized) -> FoodState.HYDRATED
-            RAW_PATTERN.containsMatchIn(normalized) -> FoodState.RAW
             else -> FoodState.UNKNOWN
         }
     }

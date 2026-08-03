@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Dejar caer la rodilla hacia adentro, acortar el paso o empujar con la pierna trasera para completar la repetición."
               ],
-              "description": "Step-Up a cajón con barra: la barra sobre la espalda y un pie apoyado en la plataforma elevan el cuerpo hasta la extensión completa. El patrón concentra el trabajo en la pierna que sube.",
+              "description": "Barra en la espalda y subida al cajón: fuerza y estabilidad en cada paso. El step-up clásico con carga.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -239,7 +239,7 @@
               "commonMistakes": [
                 "Dejar caer la rodilla hacia adentro, acortar el paso o empujar con la pierna trasera para completar la repetición."
               ],
-              "description": "Step-Up a cajón en Smith: la barra guiada acompaña la subida al cajón con el riel fijo. La máquina reduce el equilibrio del paso.",
+              "description": "Smith y subida al cajón: el guiado cuida el equilibrio mientras subes. Segura para cargar peso en el step-up.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -452,7 +452,7 @@
               "commonMistakes": [
                 "Dejar caer la rodilla hacia adentro, acortar el paso o empujar con la pierna trasera para completar la repetición."
               ],
-              "description": "Step-Up a cajón con mancuernas: las cargas a los lados acompañan la subida a la plataforma. Variante de referencia para aprender el patrón.",
+              "description": "Mancuernas y subida al cajón: la versión más equilibrada y cómoda del step-up. La favorita para trabajar piernas y glúteos.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -665,7 +665,7 @@
               "commonMistakes": [
                 "Dejar caer la rodilla hacia adentro, acortar el paso o empujar con la pierna trasera para completar la repetición."
               ],
-              "description": "Step-Up a cajón con kettlebell: el peso sostenido acompaña la subida al cajón. Variante versátil del patrón de subida.",
+              "description": "Kettlebell y subida al cajón: el agarre suma trabajo al movimiento. Variante completa para pierna y antebrazos.",
               "efc": 2.8,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -878,7 +878,7 @@
               "commonMistakes": [
                 "Dejar caer la rodilla hacia adentro, acortar el paso o empujar con la pierna trasera para completar la repetición."
               ],
-              "description": "Step-Up a cajón en polea: las manijas del cable añaden tensión a la subida a la plataforma. La polea sostiene la carga durante el paso.",
+              "description": "Polea y subida al cajón: la tensión constante añade exigencia a cada paso. Un step-up fino para variar la rutina de pierna.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -1073,7 +1073,7 @@
           }
         ],
         "defaultConfigurationId": "step_up__dumbbells",
-        "description": "Subida a una plataforma con una pierna que concentra el trabajo en la pierna que asciende. El implemento define la carga de cada variante.",
+        "description": "Step-up a cajón: subes a un cajón empujando con una pierna y bajas con control. El ejercicio de pierna que corrige desequilibrios y enciende los glúteos.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

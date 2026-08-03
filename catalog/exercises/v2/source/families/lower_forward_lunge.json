@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Dejar caer la rodilla hacia adentro, acortar el paso o empujar con la pierna trasera para completar la repetición."
               ],
-              "description": "Zancada frontal con barra: la barra descansa sobre la espalda y el paso avanza con el tronco erguido. El implemento permite progresar la carga del patrón de zancada.",
+              "description": "Barra en la espalda y paso al frente: la zancada clásica con carga. Piernas y glúteos trabajando con estabilidad.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -239,7 +239,7 @@
               "commonMistakes": [
                 "Dejar caer la rodilla hacia adentro, acortar el paso o empujar con la pierna trasera para completar la repetición."
               ],
-              "description": "Zancada frontal en Smith: la barra guiada por el riel acompaña el paso hacia adelante. La máquina reduce el equilibrio del desplazamiento.",
+              "description": "Smith y paso al frente: el guiado da seguridad y puedes concentrarte en la bajada. Ideal para aprender la zancada con peso.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -452,7 +452,7 @@
               "commonMistakes": [
                 "Dejar caer la rodilla hacia adentro, acortar el paso o empujar con la pierna trasera para completar la repetición."
               ],
-              "description": "Zancada frontal con mancuernas: las cargas cuelgan a los lados y el paso avanza con el tronco estable. Variante de referencia para aprender el patrón de zancada.",
+              "description": "Mancuernas a los costados y paso al frente: la versión más equilibrada y cómoda. La favorita para series largas de zancada.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -665,7 +665,7 @@
               "commonMistakes": [
                 "Dejar caer la rodilla hacia adentro, acortar el paso o empujar con la pierna trasera para completar la repetición."
               ],
-              "description": "Zancada frontal con kettlebell: el peso se sujeta frente al pecho o a los lados y el paso avanza controlado. Variante versátil del patrón de zancada.",
+              "description": "Kettlebells y paso al frente: el agarre suma trabajo al ejercicio. Variante completa para piernas y antebrazos.",
               "efc": 2.8,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -878,7 +878,7 @@
               "commonMistakes": [
                 "Dejar caer la rodilla hacia adentro, acortar el paso o empujar con la pierna trasera para completar la repetición."
               ],
-              "description": "Zancada frontal en polea: las manijas del cable añaden tensión al paso hacia adelante. La polea mantiene la resistencia constante en cada zancada.",
+              "description": "Polea y paso al frente: la tensión constante añade exigencia a la zancada. Un cambio de estímulo que se siente en cada repetición.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -1073,7 +1073,7 @@
           }
         ],
         "defaultConfigurationId": "forward_lunge__dumbbells",
-        "description": "Zancada con el paso hacia adelante y el tronco erguido, que concentra el trabajo en la pierna delantera. El implemento define la carga de cada variante.",
+        "description": "Zancada frontal: das un paso al frente y bajas con ambas rodillas. Piernas, glúteos y equilibrio trabajando en un movimiento simple y efectivo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

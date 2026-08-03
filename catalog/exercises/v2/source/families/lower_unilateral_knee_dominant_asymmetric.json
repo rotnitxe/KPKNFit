@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral asimétrico para completar la repetición."
               ],
-              "description": "Sentadilla Búlgara Jefferson trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla unilateral asimétrico. La participación secundaria corresponde a aductores, glúteos. La configuración utiliza barra como implemento.",
+              "description": "Pie trasero en el banco y barra en posición Jefferson: dos ejercicios duros combinados en uno.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -210,7 +210,7 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_bulgara_jefferson__default",
-        "description": "Sentadilla Búlgara Jefferson trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla unilateral asimétrico. La participación secundaria corresponde a aductores, glúteos.",
+        "description": "Sentadilla búlgara Jefferson: pie trasero en el banco y la barra en posición Jefferson. La combinación de dos ejercicios duros en uno.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Dejar caer la rodilla hacia adentro, acortar el paso o empujar con la pierna trasera para completar la repetición."
               ],
-              "description": "Zancada inversa con barra: el paso retrocede y la rodilla trasera desciende con el tronco erguido. El retroceso reduce la tensión sobre la rodilla delantera frente a la zancada frontal.",
+              "description": "Barra y paso atrás: la zancada inversa con carga, estable y amable con la rodilla. Perfecta para cargar peso con confianza.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -239,7 +239,7 @@
               "commonMistakes": [
                 "Dejar caer la rodilla hacia adentro, acortar el paso o empujar con la pierna trasera para completar la repetición."
               ],
-              "description": "Zancada inversa en Smith: el riel guiado acompaña el paso hacia atrás con la barra sobre la espalda. La máquina fija el plano del retroceso.",
+              "description": "Smith y paso atrás: el guiado sostiene la barra mientras bajas. Segura y cómoda para series pesadas.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -452,7 +452,7 @@
               "commonMistakes": [
                 "Dejar caer la rodilla hacia adentro, acortar el paso o empujar con la pierna trasera para completar la repetición."
               ],
-              "description": "Zancada inversa con mancuernas: el paso atrás desciende la rodilla trasera con las cargas a los lados. Es la variante más accesible del patrón inverso.",
+              "description": "Mancuernas y paso atrás: equilibrio natural y trabajo completo de pierna. La versión más popular de la zancada inversa.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -665,7 +665,7 @@
               "commonMistakes": [
                 "Dejar caer la rodilla hacia adentro, acortar el paso o empujar con la pierna trasera para completar la repetición."
               ],
-              "description": "Zancada inversa con kettlebell: la carga sostenida acompaña el retroceso del paso. Variante portátil para el patrón de zancada inversa.",
+              "description": "Kettlebells y paso atrás: la carga al costado suma agarre y estabilidad. Variante completa y original.",
               "efc": 2.8,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -878,7 +878,7 @@
               "commonMistakes": [
                 "Dejar caer la rodilla hacia adentro, acortar el paso o empujar con la pierna trasera para completar la repetición."
               ],
-              "description": "Zancada inversa en polea: las manijas del cable añaden tensión al paso hacia atrás. La polea sostiene la carga en el descenso del retroceso.",
+              "description": "Polea y paso atrás: la tensión constante acompaña la bajada y la subida. Una zancada inversa fina para cambiar el estímulo.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -1073,7 +1073,7 @@
           }
         ],
         "defaultConfigurationId": "reverse_lunge__dumbbells",
-        "description": "Zancada con el paso hacia atrás, que reduce la tensión sobre la rodilla delantera y mantiene el énfasis en la pierna de apoyo. El implemento define la carga de cada variante.",
+        "description": "Zancada inversa: el paso va hacia atrás, más amable para la rodilla y muy estable. La variante favorita de muchos para cargar peso con confianza.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

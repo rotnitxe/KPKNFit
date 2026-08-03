@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón empuje vertical para completar la repetición."
               ],
-              "description": "Press de hombros con rotación de muñeca. La configuración utiliza mancuernas como implemento. La variante se define por: mancuernas.",
+              "description": "Mancuernas con el giro de Arnold: subes girando las palmas hasta arriba. El press completo del hombro, directo del legendario.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -225,7 +225,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón empuje vertical para completar la repetición."
               ],
-              "description": "Press Arnold con Kettlebell trabaja principalmente deltoides mediante un patrón de empuje vertical. La participación secundaria corresponde a tríceps. La variante se define por: kettlebell.",
+              "description": "Kettlebells con el giro de Arnold: el movimiento rotatorio con campanas exige más estabilidad. Variante avanzada del press de Arnold.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -424,7 +424,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón empuje vertical para completar la repetición."
               ],
-              "description": "Press Arnold en Polea trabaja principalmente deltoides mediante un patrón de empuje vertical. La participación secundaria corresponde a tríceps. La variante se define por: polea.",
+              "description": "Polea con el giro de Arnold: la tensión constante acompaña el giro y el empuje. La versión pulida del press de Arnold.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -605,7 +605,7 @@
           }
         ],
         "defaultConfigurationId": "arnold_press__dumbbells",
-        "description": "Press Arnold trabaja principalmente deltoides mediante un patrón de empuje vertical. La participación secundaria corresponde a tríceps.",
+        "description": "Press Arnold: empiezas con las palmas hacia ti y vas girando mientras subes. El press que trabaja el hombro completo en un solo movimiento, directo de Arnold.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Dejar caer la rodilla hacia adentro, acortar el paso o empujar con la pierna trasera para completar la repetición."
               ],
-              "description": "Zancada caminando con barra: cada paso avanza de forma alterna con la barra sobre la espalda. El desplazamiento continuo suma demanda de equilibrio al patrón de zancada.",
+              "description": "Barra en la espalda y pasos al frente: la zancada caminando clásica, avanzando por el gimnasio. Piernas, glúteos y mucha fuerza mental.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -239,7 +239,7 @@
               "commonMistakes": [
                 "Dejar caer la rodilla hacia adentro, acortar el paso o empujar con la pierna trasera para completar la repetición."
               ],
-              "description": "Zancada caminando en Smith: la barra guiada acompaña el avance alterno de los pasos. La máquina reduce el equilibrio del desplazamiento.",
+              "description": "Smith y pasos al frente: el guiado da estabilidad mientras avanzas. Cómoda para caminar con carga sin miedo.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -452,7 +452,7 @@
               "commonMistakes": [
                 "Dejar caer la rodilla hacia adentro, acortar el paso o empujar con la pierna trasera para completar la repetición."
               ],
-              "description": "Zancada caminando con mancuernas: los pasos avanzan de forma alterna con las cargas a los lados. La versión de referencia del patrón caminando.",
+              "description": "Mancuernas y pasos al frente: la versión más equilibrada para caminar con zancadas. La favorita para series largas.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -665,7 +665,7 @@
               "commonMistakes": [
                 "Dejar caer la rodilla hacia adentro, acortar el paso o empujar con la pierna trasera para completar la repetición."
               ],
-              "description": "Zancada caminando con kettlebell: los pasos avanzan con el peso sostenido frente al cuerpo. Variante versátil del desplazamiento con carga.",
+              "description": "Kettlebells y pasos al frente: el agarre trabaja mientras las piernas avanzan. Variante completa para todo el cuerpo.",
               "efc": 2.8,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -878,7 +878,7 @@
               "commonMistakes": [
                 "Dejar caer la rodilla hacia adentro, acortar el paso o empujar con la pierna trasera para completar la repetición."
               ],
-              "description": "Zancada caminando en polea: las manijas del cable acompañan cada paso hacia adelante. La tensión constante sostiene la carga durante el desplazamiento.",
+              "description": "Polea y pasos al frente: la tensión constante hace cada zancada más exigente. Una caminata que se recuerda al día siguiente.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -1073,7 +1073,7 @@
           }
         ],
         "defaultConfigurationId": "walking_lunge__dumbbells",
-        "description": "Zancada con pasos alternos hacia adelante, que suma demanda de equilibrio al patrón de desplazamiento. El implemento define la carga de cada variante.",
+        "description": "Zancada caminando: das pasos al frente sin parar, avanzando por el gimnasio. Piernas, glúteos y una resistencia mental que se entrena a la vez.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

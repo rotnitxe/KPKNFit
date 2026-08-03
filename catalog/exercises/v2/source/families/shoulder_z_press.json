@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón empuje vertical para completar la repetición."
               ],
-              "description": "Press Z sentado en el suelo con barra recta. La variante se define por: barra.",
+              "description": "Barra sentado en el suelo: sin respaldo, el core aguanta y los hombros empujan. El press Z más puro, exigente y revelador.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -232,7 +232,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón empuje vertical para completar la repetición."
               ],
-              "description": "Press Z sentado en el suelo con barra EZ. La variante se define por: barra EZ.",
+              "description": "Barra EZ sentado en el suelo: agarre cómodo y misma exigencia de postura. La opción amable del press Z.",
               "efc": 2.5,
               "equipmentId": "ez_bar",
               "executionCues": [
@@ -438,7 +438,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón empuje vertical para completar la repetición."
               ],
-              "description": "Press Z sentado en el suelo con mancuernas. La variante se define por: mancuernas.",
+              "description": "Mancuernas sentado en el suelo: cada brazo trabaja solo con el torso libre. El press Z con el mejor equilibrio entre brazos.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -644,7 +644,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón empuje vertical para completar la repetición."
               ],
-              "description": "Press Z sentado en el suelo con kettlebells. La variante se define por: kettlebell.",
+              "description": "Kettlebell sentado en el suelo: el empuje inestable suma trabajo al core. La variante más exigente del press Z.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -832,7 +832,7 @@
           }
         ],
         "defaultConfigurationId": "z_press__barbell",
-        "description": "Press Z trabaja principalmente deltoides mediante un patrón de empuje vertical. La participación secundaria corresponde a core, tríceps.",
+        "description": "Press Z: sentado en el suelo sin respaldo, empujas la barra arriba. El core y la postura aguantan mientras los hombros empujan: exigente y revelador.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

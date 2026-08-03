@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla para completar la repetición."
               ],
-              "description": "Sentadilla guiada en máquina de péndulo. La variante se define por: bilateral.",
+              "description": "Máquina pendular con ambas piernas: el balanceo guiado lleva el cuádriceps a fondo. Exigente, profunda y adictiva.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -225,7 +225,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral para completar la repetición."
               ],
-              "description": "Sentadilla a 1 pierna en máquina de péndulo. La variante se define por: unilateral.",
+              "description": "Pendular con una pierna: un lado a la vez con el guiado de la máquina. La forma más seria de igualar ambas piernas.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -406,7 +406,7 @@
           }
         ],
         "defaultConfigurationId": "pendulum_squat__bilateral",
-        "description": "Sentadilla péndulo trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla. La participación secundaria corresponde a glúteos.",
+        "description": "Sentadilla en máquina pendular: la plataforma se balancea y el cuerpo baja casi en caída libre guiada. Una de las máquinas de cuádriceps más exigentes que existen.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

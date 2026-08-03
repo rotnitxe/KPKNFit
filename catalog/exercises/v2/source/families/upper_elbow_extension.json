@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
               ],
-              "description": "Extensión de Tríceps trabaja principalmente tríceps mediante un patrón de extensión codo. La participación secundaria corresponde a deltoides. La configuración utiliza TRX como implemento.",
+              "description": "Colgado del TRX con los codos extendiendo: tu peso carga el tríceps y el core aguanta el cuerpo. Ideal para casa o viaje.",
               "efc": 2.2,
               "equipmentId": "trx",
               "executionCues": [
@@ -202,7 +202,7 @@
           }
         ],
         "defaultConfigurationId": "triceps_extension__default",
-        "description": "Extensión de Tríceps trabaja principalmente tríceps mediante un patrón de extensión codo. La participación secundaria corresponde a deltoides.",
+        "description": "Extensión de tríceps en TRX: colgado de las cuerdas, estiras los brazos con tu peso. El tríceps trabaja con equilibrio incluido, ideal para casa o viaje.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -244,7 +244,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
               ],
-              "description": "Extensión overhead de tríceps con mancuerna en estilo PJR (codo alto, énfasis cabeza larga). Útil como aislamiento de tríceps tras presses. La configuración utiliza mancuernas como implemento.",
+              "description": "Mancuerna bajando hacia la cadera con un brazo: el tríceps se estira y se aísla a la vez. La variante que los entendidos usan.",
               "efc": 2.2,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -419,7 +419,7 @@
           }
         ],
         "defaultConfigurationId": "triceps_extension_pjr_mancuerna__default",
-        "description": "Extensión overhead de tríceps con mancuerna en estilo PJR (codo alto, énfasis cabeza larga). Útil como aislamiento de tríceps tras presses.",
+        "description": "Extensión de tríceps PJR con mancuerna: un brazo a la vez con la mancuerna bajando hacia la cadera. Variante que combina estiramiento y aislamiento.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -460,7 +460,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
               ],
-              "description": "Extensiones de tríceps en el suelo desde posición de plancha apoyando antebrazos. La configuración utiliza peso corporal como implemento.",
+              "description": "Flexiones con los codos pegados y apuntando atrás: el tríceps hace el trabajo completo. Pura fuerza con el peso corporal.",
               "efc": 2.2,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -628,7 +628,7 @@
           }
         ],
         "defaultConfigurationId": "triceps_flexiones_esfinge__default",
-        "description": "Extensiones de tríceps en el suelo desde posición de plancha apoyando antebrazos.",
+        "description": "Flexiones esfinge: como la flexión normal pero con los codos pegados y hacia atrás. El tríceps hace todo el trabajo con tu propio peso.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -670,7 +670,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
               ],
-              "description": "Fondos apoyando manos en un banco y pies en otro para tríceps. La configuración utiliza peso corporal como implemento.",
+              "description": "Manos en el banco y cuerpo bajando: el tríceps sube y baja todo el peso. Fácil de escalar y muy exigente.",
               "efc": 2.2,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -859,7 +859,7 @@
           }
         ],
         "defaultConfigurationId": "triceps_fondos_entre_bancos__default",
-        "description": "Fondos apoyando manos en un banco y pies en otro para tríceps.",
+        "description": "Fondos entre bancos: las manos en un banco y bajas el cuerpo flexionando los codos. Tríceps a tope con el peso corporal, fácil de escalar.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -900,7 +900,7 @@
               "commonMistakes": [
                 "Separar los codos hacia los lados, lo que traslada el trabajo fuera del tríceps."
               ],
-              "description": "Press Francés con mancuerna: la carga libre permite ajustar el peso y la comodidad de cada muñeca.",
+              "description": "Mancuernas acostado: bajas hacia la frente flexionando los codos. El francés más equilibrado y cómodo.",
               "efc": 2.2,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -1093,7 +1093,7 @@
               "commonMistakes": [
                 "Separar los codos hacia los lados, lo que traslada el trabajo fuera del tríceps."
               ],
-              "description": "Press Francés con barra recta: la barra permite cargar peso progresivamente con ambas manos.",
+              "description": "Barra acostado: bajas la barra hacia la frente y estiras. El press francés clásico con carga completa.",
               "efc": 2.2,
               "equipmentId": "barbell",
               "executionCues": [
@@ -1286,7 +1286,7 @@
               "commonMistakes": [
                 "Separar los codos hacia los lados, lo que traslada el trabajo fuera del tríceps."
               ],
-              "description": "Press Francés con barra EZ: el agarre angulado alivia las muñecas y mantiene el énfasis en el tríceps.",
+              "description": "Barra EZ acostado: el agarre girado cuida los codos y las muñecas. La variante más popular del press francés.",
               "efc": 2.2,
               "equipmentId": "ez_bar",
               "executionCues": [
@@ -1479,7 +1479,7 @@
               "commonMistakes": [
                 "Separar los codos hacia los lados, lo que traslada el trabajo fuera del tríceps."
               ],
-              "description": "Press Francés en polea: la tensión continua mantiene el tríceps activo incluso en el tramo de máxima elongación.",
+              "description": "Polea acostado: la tensión constante estira el tríceps en todo el recorrido. La versión fina del francés.",
               "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
@@ -1672,7 +1672,7 @@
               "commonMistakes": [
                 "Separar los codos hacia los lados, lo que traslada el trabajo fuera del tríceps."
               ],
-              "description": "Press Francés con kettlebell: la carga compacta facilita sostener el peso sobre la cabeza con ambas manos.",
+              "description": "Kettlebell acostado: la campana baja hacia la frente con un agarre distinto. Variante original y exigente.",
               "efc": 2.2,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -1847,7 +1847,7 @@
           }
         ],
         "defaultConfigurationId": "triceps_press_frances__ez_bar",
-        "description": "Press Francés trabaja principalmente tríceps mediante un patrón de extensión codo.",
+        "description": "Press francés: acostado, bajas la barra hacia la frente flexionando los codos. El tríceps se estira a fondo en cada repetición: clásico y muy efectivo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1891,7 +1891,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
               ],
-              "description": "Press/empuje de tríceps en máquina guiada.",
+              "description": "Máquina de tríceps: empujas la palanca con el recorrido guiado. La forma más cómoda de aislar el tríceps.",
               "efc": 2.2,
               "equipmentId": "machine",
               "executionCues": [
@@ -2057,7 +2057,7 @@
           }
         ],
         "defaultConfigurationId": "triceps_press_maquina__default",
-        "description": "Press/empuje de tríceps en máquina guiada.",
+        "description": "Press de tríceps en máquina: empujas la palanca hacia abajo con el recorrido guiado. La forma más cómoda de aislar el tríceps.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -2097,7 +2097,7 @@
               "commonMistakes": [
                 "Separar los codos del tronco o usar el impulso del cuerpo para extender."
               ],
-              "description": "Extensión de Tríceps en polea alta con trabajo bilateral: la tensión continua de la polea mantiene el tríceps activo a lo largo del recorrido.",
+              "description": "Polea alta con ambas manos: estiras los brazos hacia abajo con los codos pegados. El ejercicio de tríceps más popular y efectivo.",
               "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
@@ -2291,7 +2291,7 @@
               "commonMistakes": [
                 "Separar los codos del tronco o usar el impulso del cuerpo para extender."
               ],
-              "description": "Extensión de Tríceps en polea alta con trabajo unilateral: permite igualar la fuerza de ambos tríceps y corregir asimetrías.",
+              "description": "Polea alta con una mano: cada tríceps trabaja por separado con tensión constante. Ideal para igualar ambos brazos.",
               "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
@@ -2485,7 +2485,7 @@
               "commonMistakes": [
                 "Separar los codos del tronco o usar el impulso del cuerpo para extender."
               ],
-              "description": "Extensión de Tríceps en máquina con trabajo bilateral: el recorrido guiado estabiliza el movimiento y deja el foco en la contracción del tríceps.",
+              "description": "Máquina de tríceps con ambas manos: la palanca baja guiada y el tríceps aislado. La opción más cómoda del pushdown.",
               "efc": 2.2,
               "equipmentId": "machine",
               "executionCues": [
@@ -2679,7 +2679,7 @@
               "commonMistakes": [
                 "Separar los codos del tronco o usar el impulso del cuerpo para extender."
               ],
-              "description": "Extensión de Tríceps en máquina con trabajo unilateral: ideal para trabajar cada brazo por separado con recorrido estable.",
+              "description": "Máquina con una mano: un tríceps a la vez con el guiado de la palanca. Perfecto para corregir desequilibrios.",
               "efc": 2.2,
               "equipmentId": "machine",
               "executionCues": [
@@ -2873,7 +2873,7 @@
               "commonMistakes": [
                 "Separar los codos del tronco o usar el impulso del cuerpo para extender."
               ],
-              "description": "Extensión de Tríceps con banda elástica y trabajo bilateral: la resistencia crece al extender, justo donde el tríceps debe contraerse con más fuerza.",
+              "description": "Banda anclada arriba con ambas manos: la resistencia crece al estirar. Tríceps cargado en cualquier sitio con una banda.",
               "efc": 2.2,
               "equipmentId": "band",
               "executionCues": [
@@ -3067,7 +3067,7 @@
               "commonMistakes": [
                 "Separar los codos del tronco o usar el impulso del cuerpo para extender."
               ],
-              "description": "Extensión de Tríceps con banda elástica y trabajo unilateral: opción ligera y portable para trabajar cada tríceps con su propia resistencia.",
+              "description": "Banda con una mano: tensión progresiva en un tríceps a la vez. Variante sencilla y muy efectiva para rematar.",
               "efc": 2.2,
               "equipmentId": "band",
               "executionCues": [
@@ -3243,7 +3243,7 @@
           }
         ],
         "defaultConfigurationId": "triceps_pushdown__bilateral__cable",
-        "description": "Extensión de codo en polea alta, máquina o banda elástica, con trabajo bilateral o unilateral. Es la base para aislar el tríceps con tensión continua.",
+        "description": "Extensión de tríceps: con los codos pegados al cuerpo, estiras los brazos hacia abajo. El ejercicio básico y favorito para el tríceps, simple y muy efectivo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -3289,7 +3289,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
               ],
-              "description": "Rolling Extension de Tríceps trabaja principalmente tríceps mediante un patrón de extensión codo. La configuración utiliza mancuernas como implemento.",
+              "description": "Barra que rueda por los muslos mientras extiendes: una variante rara con una sensación fresca. El tríceps trabaja con recorrido completo.",
               "efc": 2.2,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -3456,7 +3456,7 @@
           }
         ],
         "defaultConfigurationId": "triceps_rolling_extension__default",
-        "description": "Rolling Extension de Tríceps trabaja principalmente tríceps mediante un patrón de extensión codo.",
+        "description": "Rolling extension de tríceps: con la barra, extiendes los codos dejando que ruede por los muslos. Una variante rara que se siente fresca y exigente.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

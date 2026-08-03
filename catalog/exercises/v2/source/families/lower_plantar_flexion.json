@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
               ],
-              "description": "Elevación de Talones en máquina con trabajo bilateral: la estación guiada permite cargar fuerte en un rango completo de flexión plantar.",
+              "description": "Máquina de pantorrillas con ambas piernas: subes y bajas con la espalda apoyada. La forma más popular de trabajar las pantorrillas.",
               "efc": 2.0,
               "equipmentId": "machine",
               "executionCues": [
@@ -222,7 +222,7 @@
               "commonMistakes": [
                 "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
               ],
-              "description": "Elevación de Talones en máquina con trabajo unilateral: cada pantorrilla trabaja por separado para igualar la fuerza de ambos lados.",
+              "description": "Máquina con una pierna: cada pantorrilla trabaja sola y corriges desequilibrios. La versión fina de la elevación de talones.",
               "efc": 2.0,
               "equipmentId": "machine",
               "executionCues": [
@@ -418,7 +418,7 @@
               "commonMistakes": [
                 "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
               ],
-              "description": "Elevación de Talones con barra y trabajo bilateral: la barra sobre la espalda añade carga libre al patrón de pie.",
+              "description": "Barra en la espalda con ambas piernas: subes a la punta de los pies con la carga. El clásico de pantorrillas del gimnasio.",
               "efc": 2.0,
               "equipmentId": "barbell",
               "executionCues": [
@@ -614,7 +614,7 @@
               "commonMistakes": [
                 "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
               ],
-              "description": "Elevación de Talones con barra y trabajo unilateral: el apoyo en una pierna con la barra exige más estabilidad y aísla cada pantorrilla.",
+              "description": "Barra en una pierna: la pantorrilla de un lado hace todo el trabajo. Avanzado y muy efectivo para igualar gemelos.",
               "efc": 2.0,
               "equipmentId": "barbell",
               "executionCues": [
@@ -810,7 +810,7 @@
               "commonMistakes": [
                 "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
               ],
-              "description": "Elevación de Talones en máquina Smith con trabajo bilateral: el guiado de la barra simplifica la colocación sobre los trapecios.",
+              "description": "Smith con ambas piernas: la barra guiada sobre los hombros y subes a la punta de los pies. Cómoda y segura para cargar peso.",
               "efc": 2.0,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -1006,7 +1006,7 @@
               "commonMistakes": [
                 "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
               ],
-              "description": "Elevación de Talones en máquina Smith con trabajo unilateral: el guiado reduce el equilibrio y deja el foco en cada pantorrilla.",
+              "description": "Smith con una pierna: un gemelo trabaja solo con la barra estable. Perfecta para pantorrillas parejas.",
               "efc": 2.0,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -1202,7 +1202,7 @@
               "commonMistakes": [
                 "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
               ],
-              "description": "Elevación de Talones en polea con trabajo bilateral: la tensión continua mantiene la pantorrilla activa a lo largo del recorrido.",
+              "description": "Polea con ambas piernas: la tensión constante sube los talones con la pantorrilla cargada. Variante fina y suave con la espalda.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
@@ -1398,7 +1398,7 @@
               "commonMistakes": [
                 "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
               ],
-              "description": "Elevación de Talones en polea con trabajo unilateral: la polea permite trabajar cada pierna con tensión constante y carga ligera.",
+              "description": "Polea con una pierna: tensión continua en una pantorrilla a la vez. Ideal para un trabajo fino y equilibrado.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
@@ -1576,7 +1576,7 @@
           }
         ],
         "defaultConfigurationId": "calf_raise__bilateral__machine",
-        "description": "Elevación de talones trabaja principalmente pantorrillas mediante un patrón de flexión plantar. La participación secundaria corresponde a pantorrillas.",
+        "description": "Elevación de talones: subes a la punta de los pies y bajas con control, con la pantorrilla haciendo todo el trabajo. El ejercicio pequeño que construye pantorrillas grandes.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

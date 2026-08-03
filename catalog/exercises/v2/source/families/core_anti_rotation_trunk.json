@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón anti-rotación tronco para completar la repetición."
               ],
-              "description": "Press Pallof trabaja principalmente core mediante un patrón de anti-rotación tronco. La participación secundaria corresponde a abdomen. La configuración utiliza polea como implemento.",
+              "description": "Polea a la altura del pecho y cuerpo firme: llevas la cuerda al frente resistiendo el giro. El ejercicio que enseña a tu core a no girarse cuando no debe.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
@@ -200,7 +200,7 @@
           }
         ],
         "defaultConfigurationId": "core_press_pallof__default",
-        "description": "Press Pallof trabaja principalmente core mediante un patrón de anti-rotación tronco. La participación secundaria corresponde a abdomen.",
+        "description": "Press Pallof: de pie frente a la polea, llevas la cuerda de un lado a otro del pecho resistiendo el giro. Enseña a tu abdomen a frenar rotaciones, algo que pagas con creces en sentadillas y pesos muertos.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón flexión muñeca para completar la repetición."
               ],
-              "description": "Curl de muñeca de pie sosteniendo la barra por detrás de la cadera.",
+              "description": "Barra tras la espalda con los antebrazos extendidos: flexionas la muñeca contra la barra. Estiramiento y trabajo profundo del antebrazo.",
               "efc": 2.0,
               "equipmentId": "barbell",
               "executionCues": [
@@ -201,7 +201,7 @@
           }
         ],
         "defaultConfigurationId": "forearms_curl_muneca_de_pie_tras_espalda_barra__default",
-        "description": "Curl de muñeca de pie sosteniendo la barra por detrás de la cadera.",
+        "description": "Curl de muñeca de pie con la barra tras la espalda: los antebrazos están extendidos y la muñeca flexiona contra la barra. Variante clásica que estira y trabaja el antebrazo a fondo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -241,7 +241,7 @@
               "commonMistakes": [
                 "Levantar los antebrazos del banco para ganar recorrido."
               ],
-              "description": "Curl de Muñeca con mancuerna: la carga libre permite trabajar cada muñeca por separado y ajustar el peso con precisión.",
+              "description": "Mancuernas con los antebrazos apoyados: subes la muñeca con la palma arriba. La versión más cómoda y popular del curl de muñeca.",
               "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -434,7 +434,7 @@
               "commonMistakes": [
                 "Levantar los antebrazos del banco para ganar recorrido."
               ],
-              "description": "Curl de Muñeca con barra recta: la barra reparte la carga entre ambas muñecas y permite progresar peso.",
+              "description": "Barra con los antebrazos apoyados: las dos muñecas suben juntas contra la barra. El curl de muñeca clásico del gimnasio.",
               "efc": 2.0,
               "equipmentId": "barbell",
               "executionCues": [
@@ -627,7 +627,7 @@
               "commonMistakes": [
                 "Levantar los antebrazos del banco para ganar recorrido."
               ],
-              "description": "Curl de Muñeca con barra EZ: el agarre angulado resulta más cómodo para las muñecas con sensibilidades.",
+              "description": "Barra EZ con los antebrazos apoyados: el agarre girado alivia la muñeca y el trabajo permanece total. La opción cómoda.",
               "efc": 2.0,
               "equipmentId": "ez_bar",
               "executionCues": [
@@ -820,7 +820,7 @@
               "commonMistakes": [
                 "Levantar los antebrazos del banco para ganar recorrido."
               ],
-              "description": "Curl de Muñeca en polea: la tensión continua mantiene los flexores activos a lo largo del recorrido.",
+              "description": "Polea con los antebrazos apoyados: la tensión constante mantiene la muñeca cargada en todo el recorrido. Variante fina y efectiva.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
@@ -995,7 +995,7 @@
           }
         ],
         "defaultConfigurationId": "forearms_curl_muneca_sentado__dumbbells",
-        "description": "Curl de muñeca sentado trabaja principalmente antebrazo mediante un patrón de flexión muñeca. La participación secundaria corresponde a bíceps.",
+        "description": "Curl de muñeca: con los antebrazos apoyados, subes y bajas la muñeca con la palma hacia arriba. El ejercicio base para unos antebrazos fuertes y un agarre de acero.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

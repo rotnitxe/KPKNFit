@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón estiramiento biarticular para completar la repetición."
               ],
-              "description": "Inclinación atrás de rodillas en el suelo aislando el recto femoral. La configuración utiliza peso corporal como implemento.",
+              "description": "De rodillas, te inclinas hacia atrás frenando con los cuádriceps y vuelves. El reverse nordic: intenso, raro y muy efectivo.",
               "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -203,7 +203,7 @@
           }
         ],
         "defaultConfigurationId": "quads_reverse_nordic_peso_corporal__default",
-        "description": "Inclinación atrás de rodillas en el suelo aislando el recto femoral.",
+        "description": "Reverse Nordic curl: de rodillas, te inclinas hacia atrás sin doblar el cuerpo. El cuádriceps frena la caída: intenso, raro y sorprendentemente bueno.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

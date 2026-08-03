@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo con pecho apoyado en mancuernas y agarre ancho: la amplitud enfatiza la anchura del dorsal con el tronco descansado sobre el banco. El apoyo elimina la exigencia de la zona lumbar y aísla la espalda.",
+              "description": "Con mancuernas y agarre amplio, la espalda alta y el trapecio entran a trabajar con ganas. El banco te deja exprimir el remo sin cargar la zona baja.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -39,29 +39,28 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tracciona el brazo hacia el tronco con el pecho apoyado y sin impulso; por eso suma la serie completa (1.0)."
+                  "note": "Principal: el dorsal dirige el tirón y concentra el trabajo en todo el ancho de la espalda; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio retrae la escápula sobre el apoyo y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo durante la tracción; por eso suma 0.5."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula hacia la columna; por eso suman 0.5."
+                  "note": "Secundario: con el agarre amplio, el trapecio y la espalda alta participan más al llevar los codos hacia atrás; por eso suman 0.5."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal de los brazos en el agarre amplio; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Estabilizador: los romboides juntan las escápulas al final del tirón; por eso suman 0.4."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: el bíceps flexiona el codo con un brazo de palanca más corto en el agarre amplio; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "chest_supported_row__dumbbells__wide__remo_pecho_apoyado",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_supported",
               "replacementPriority": 3,
@@ -73,16 +72,17 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
-                    "rhomboids",
+                    "trapezius",
                     "deltoid"
                   ],
                   "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "rhomboids",
+                    "biceps"
+                  ],
                   "targetRegions": [
                     "latissimus_dorsi"
                   ],
@@ -171,8 +171,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -194,7 +193,7 @@
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_row_supported",
                   "replacementPriority": 3
@@ -208,15 +207,17 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
-                "rhomboids",
+                "trapezius",
                 "deltoid"
               ],
               "setupCues": [
                 "Configura mancuernas y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "rhomboids",
+                "biceps"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -245,7 +246,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo con pecho apoyado en kettlebell y agarre ancho: la amplitud enfatiza la anchura del dorsal con el tronco descansado sobre el banco. El apoyo elimina la exigencia de la zona lumbar y aísla la espalda.",
+              "description": "Con kettlebell y agarre amplio, el peso cuelga más bajo y el estiramiento de la espalda alta se siente al empezar cada tirón. Distinto, exigente y muy completo.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -258,29 +259,28 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tracciona el brazo hacia el tronco con el pecho apoyado y sin impulso; por eso suma la serie completa (1.0)."
+                  "note": "Principal: el dorsal dirige el tirón y concentra el trabajo en todo el ancho de la espalda; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio retrae la escápula sobre el apoyo y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo durante la tracción; por eso suma 0.5."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula hacia la columna; por eso suman 0.5."
+                  "note": "Secundario: con el agarre amplio, el trapecio y la espalda alta participan más al llevar los codos hacia atrás; por eso suman 0.5."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal de los brazos en el agarre amplio; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Estabilizador: los romboides juntan las escápulas al final del tirón; por eso suman 0.4."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: el bíceps flexiona el codo con un brazo de palanca más corto en el agarre amplio; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "chest_supported_row__kettlebell__wide__remo_pecho_apoyado",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_supported",
               "replacementPriority": 3,
@@ -292,16 +292,17 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
-                    "rhomboids",
+                    "trapezius",
                     "deltoid"
                   ],
                   "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "rhomboids",
+                    "biceps"
+                  ],
                   "targetRegions": [
                     "latissimus_dorsi"
                   ],
@@ -390,8 +391,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -413,7 +413,7 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_row_supported",
                   "replacementPriority": 3
@@ -427,15 +427,17 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
-                "rhomboids",
+                "trapezius",
                 "deltoid"
               ],
               "setupCues": [
                 "Configura kettlebell y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "rhomboids",
+                "biceps"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -464,7 +466,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo con pecho apoyado en la máquina y agarre ancho: la amplitud enfatiza la anchura del dorsal con el tronco descansado sobre el banco. El apoyo elimina la exigencia de la zona lumbar y aísla la espalda.",
+              "description": "En máquina con agarre amplio, el recorrido viene guiado y puedes cargar peso de verdad sin distracciones. Perfecta para meter volumen de espalda en serio.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -477,29 +479,28 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tracciona el brazo hacia el tronco con el pecho apoyado y sin impulso; por eso suma la serie completa (1.0)."
+                  "note": "Principal: el dorsal dirige el tirón y concentra el trabajo en todo el ancho de la espalda; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio retrae la escápula sobre el apoyo y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo durante la tracción; por eso suma 0.5."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula hacia la columna; por eso suman 0.5."
+                  "note": "Secundario: con el agarre amplio, el trapecio y la espalda alta participan más al llevar los codos hacia atrás; por eso suman 0.5."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal de los brazos en el agarre amplio; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Estabilizador: los romboides juntan las escápulas al final del tirón; por eso suman 0.4."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: el bíceps flexiona el codo con un brazo de palanca más corto en el agarre amplio; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "chest_supported_row__machine__wide__remo_pecho_apoyado",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_supported",
               "replacementPriority": 3,
@@ -511,16 +512,17 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
-                    "rhomboids",
+                    "trapezius",
                     "deltoid"
                   ],
                   "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "rhomboids",
+                    "biceps"
+                  ],
                   "targetRegions": [
                     "latissimus_dorsi"
                   ],
@@ -609,8 +611,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -632,7 +633,7 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_row_supported",
                   "replacementPriority": 3
@@ -646,15 +647,17 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
-                "rhomboids",
+                "trapezius",
                 "deltoid"
               ],
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "rhomboids",
+                "biceps"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -683,7 +686,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo con pecho apoyado en polea alta y agarre ancho: la tracción llega desde arriba y enfatiza la parte superior del dorsal. El banco fija el tronco y el cable mantiene la tensión en el estiramiento.",
+              "description": "Polea alta con agarre amplio: el ángulo del tirón llega desde arriba y la espalda alta aguanta tensión constante. Excelente para finalizar la sesión de espalda.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -696,29 +699,28 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tracciona el brazo hacia el tronco con el pecho apoyado y sin impulso; por eso suma la serie completa (1.0)."
+                  "note": "Principal: el dorsal dirige el tirón y concentra el trabajo en todo el ancho de la espalda; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio retrae la escápula sobre el apoyo y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo durante la tracción; por eso suma 0.5."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula hacia la columna; por eso suman 0.5."
+                  "note": "Secundario: con el agarre amplio, el trapecio y la espalda alta participan más al llevar los codos hacia atrás; por eso suman 0.5."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal de los brazos en el agarre amplio; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Estabilizador: los romboides juntan las escápulas al final del tirón; por eso suman 0.4."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: el bíceps flexiona el codo con un brazo de palanca más corto en el agarre amplio; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "chest_supported_row__cable__wide__remo_pecho_apoyado",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_supported",
               "replacementPriority": 2,
@@ -730,16 +732,17 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
-                    "rhomboids",
+                    "trapezius",
                     "deltoid"
                   ],
                   "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "rhomboids",
+                    "biceps"
+                  ],
                   "targetRegions": [
                     "latissimus_dorsi"
                   ],
@@ -829,8 +832,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -852,7 +854,7 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_row_supported",
                   "replacementPriority": 2
@@ -866,15 +868,17 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
-                "rhomboids",
+                "trapezius",
                 "deltoid"
               ],
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "rhomboids",
+                "biceps"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -904,7 +908,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo con pecho apoyado en polea media y agarre ancho: la altura del cable reparte la tracción entre el dorsal y el trapecio. El apoyo del pecho elimina la demanda lumbar del tirón.",
+              "description": "Polea media con agarre amplio: tensión pareja en todo el recorrido y la espalda alta protagonizando el tirón. Una forma suave y constante de trabajar los dorsales.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -917,29 +921,28 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tracciona el brazo hacia el tronco con el pecho apoyado y sin impulso; por eso suma la serie completa (1.0)."
+                  "note": "Principal: el dorsal dirige el tirón y concentra el trabajo en todo el ancho de la espalda; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio retrae la escápula sobre el apoyo y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo durante la tracción; por eso suma 0.5."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula hacia la columna; por eso suman 0.5."
+                  "note": "Secundario: con el agarre amplio, el trapecio y la espalda alta participan más al llevar los codos hacia atrás; por eso suman 0.5."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal de los brazos en el agarre amplio; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Estabilizador: los romboides juntan las escápulas al final del tirón; por eso suman 0.4."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: el bíceps flexiona el codo con un brazo de palanca más corto en el agarre amplio; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "chest_supported_row__cable__wide__remo_pecho_apoyado",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_supported",
               "replacementPriority": 2,
@@ -951,16 +954,17 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
-                    "rhomboids",
+                    "trapezius",
                     "deltoid"
                   ],
                   "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "rhomboids",
+                    "biceps"
+                  ],
                   "targetRegions": [
                     "latissimus_dorsi"
                   ],
@@ -1050,8 +1054,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1073,7 +1076,7 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_row_supported",
                   "replacementPriority": 2
@@ -1087,15 +1090,17 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
-                "rhomboids",
+                "trapezius",
                 "deltoid"
               ],
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "rhomboids",
+                "biceps"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -1125,7 +1130,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo con pecho apoyado en polea baja y agarre ancho: la tracción llega desde abajo y estira el dorsal con tensión continua. El banco inclinado fija el tronco y aísla la espalda.",
+              "description": "Polea baja con agarre amplio: el tirón sale de abajo y el trapecio junto a la espalda alta reciben el estímulo principal. Cambio de ángulo que se agradece.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -1138,29 +1143,28 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tracciona el brazo hacia el tronco con el pecho apoyado y sin impulso; por eso suma la serie completa (1.0)."
+                  "note": "Principal: el dorsal dirige el tirón y concentra el trabajo en todo el ancho de la espalda; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio retrae la escápula sobre el apoyo y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo durante la tracción; por eso suma 0.5."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula hacia la columna; por eso suman 0.5."
+                  "note": "Secundario: con el agarre amplio, el trapecio y la espalda alta participan más al llevar los codos hacia atrás; por eso suman 0.5."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal de los brazos en el agarre amplio; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Estabilizador: los romboides juntan las escápulas al final del tirón; por eso suman 0.4."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: el bíceps flexiona el codo con un brazo de palanca más corto en el agarre amplio; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "chest_supported_row__cable__wide__remo_pecho_apoyado",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_supported",
               "replacementPriority": 2,
@@ -1172,16 +1176,17 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
-                    "rhomboids",
+                    "trapezius",
                     "deltoid"
                   ],
                   "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "rhomboids",
+                    "biceps"
+                  ],
                   "targetRegions": [
                     "latissimus_dorsi"
                   ],
@@ -1271,8 +1276,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1294,7 +1298,7 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_row_supported",
                   "replacementPriority": 2
@@ -1308,15 +1312,17 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
-                "rhomboids",
+                "trapezius",
                 "deltoid"
               ],
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "rhomboids",
+                "biceps"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -1346,7 +1352,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo con pecho apoyado en mancuernas y agarre medio: la posición intermedia reparte el estímulo entre dorsal y trapecio. Es la variante equilibrada para progresar la carga del tirón horizontal.",
+              "description": "Con mancuernas y agarre medio, el trabajo se reparte entre el dorsal y la espalda media de forma equilibrada. El remo más completo y natural de la familia.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -1359,29 +1365,28 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tracciona el brazo hacia el tronco con el pecho apoyado y sin impulso; por eso suma la serie completa (1.0)."
+                  "note": "Principal: el dorsal dirige el tirón y concentra el trabajo en todo el ancho de la espalda; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio retrae la escápula sobre el apoyo y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo durante la tracción; por eso suma 0.5."
+                  "note": "Secundario: el trapecio ayuda a retraer las escápulas al llevar los codos atrás; por eso suma 0.5."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula hacia la columna; por eso suman 0.5."
+                  "note": "Secundario: los romboides juntan las escápulas al final del tirón; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo con el agarre medio y reparte el trabajo del brazo; por eso suma 0.5."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                  "note": "Estabilizador: el deltoides posterior mantiene el hombro estable durante el tirón; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "chest_supported_row__dumbbells__medium__remo_pecho_apoyado",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_supported",
               "replacementPriority": 3,
@@ -1393,16 +1398,17 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
+                    "trapezius",
                     "rhomboids",
-                    "deltoid"
+                    "biceps"
                   ],
                   "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "deltoid"
+                  ],
                   "targetRegions": [
                     "latissimus_dorsi"
                   ],
@@ -1491,8 +1497,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1514,7 +1519,7 @@
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_row_supported",
                   "replacementPriority": 3
@@ -1528,15 +1533,17 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
+                "trapezius",
                 "rhomboids",
-                "deltoid"
+                "biceps"
               ],
               "setupCues": [
                 "Configura mancuernas y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "deltoid"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -1565,7 +1572,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo con pecho apoyado en kettlebell y agarre medio: la posición intermedia reparte el estímulo entre dorsal y trapecio. Es la variante equilibrada para progresar la carga del tirón horizontal.",
+              "description": "Con kettlebell y agarre medio, cada tirón arranca desde un estiramiento profundo del dorsal. La campana añade un matiz de agarre que sienta de maravilla.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -1578,29 +1585,28 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tracciona el brazo hacia el tronco con el pecho apoyado y sin impulso; por eso suma la serie completa (1.0)."
+                  "note": "Principal: el dorsal dirige el tirón y concentra el trabajo en todo el ancho de la espalda; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio retrae la escápula sobre el apoyo y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo durante la tracción; por eso suma 0.5."
+                  "note": "Secundario: el trapecio ayuda a retraer las escápulas al llevar los codos atrás; por eso suma 0.5."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula hacia la columna; por eso suman 0.5."
+                  "note": "Secundario: los romboides juntan las escápulas al final del tirón; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo con el agarre medio y reparte el trabajo del brazo; por eso suma 0.5."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                  "note": "Estabilizador: el deltoides posterior mantiene el hombro estable durante el tirón; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "chest_supported_row__kettlebell__medium__remo_pecho_apoyado",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_supported",
               "replacementPriority": 3,
@@ -1612,16 +1618,17 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
+                    "trapezius",
                     "rhomboids",
-                    "deltoid"
+                    "biceps"
                   ],
                   "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "deltoid"
+                  ],
                   "targetRegions": [
                     "latissimus_dorsi"
                   ],
@@ -1710,8 +1717,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1733,7 +1739,7 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_row_supported",
                   "replacementPriority": 3
@@ -1747,15 +1753,17 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
+                "trapezius",
                 "rhomboids",
-                "deltoid"
+                "biceps"
               ],
               "setupCues": [
                 "Configura kettlebell y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "deltoid"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -1784,7 +1792,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo con pecho apoyado en la máquina y agarre medio: la posición intermedia reparte el estímulo entre dorsal y trapecio. Es la variante equilibrada para progresar la carga del tirón horizontal.",
+              "description": "En máquina con agarre medio, la carga va directa a la espalda media y al dorsal sin desgaste innecesario. Ideal para acumular series con buena técnica.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -1797,29 +1805,28 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tracciona el brazo hacia el tronco con el pecho apoyado y sin impulso; por eso suma la serie completa (1.0)."
+                  "note": "Principal: el dorsal dirige el tirón y concentra el trabajo en todo el ancho de la espalda; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio retrae la escápula sobre el apoyo y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo durante la tracción; por eso suma 0.5."
+                  "note": "Secundario: el trapecio ayuda a retraer las escápulas al llevar los codos atrás; por eso suma 0.5."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula hacia la columna; por eso suman 0.5."
+                  "note": "Secundario: los romboides juntan las escápulas al final del tirón; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo con el agarre medio y reparte el trabajo del brazo; por eso suma 0.5."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                  "note": "Estabilizador: el deltoides posterior mantiene el hombro estable durante el tirón; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "chest_supported_row__machine__medium__remo_pecho_apoyado",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_supported",
               "replacementPriority": 3,
@@ -1831,16 +1838,17 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
+                    "trapezius",
                     "rhomboids",
-                    "deltoid"
+                    "biceps"
                   ],
                   "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "deltoid"
+                  ],
                   "targetRegions": [
                     "latissimus_dorsi"
                   ],
@@ -1929,8 +1937,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1952,7 +1959,7 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_row_supported",
                   "replacementPriority": 3
@@ -1966,15 +1973,17 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
+                "trapezius",
                 "rhomboids",
-                "deltoid"
+                "biceps"
               ],
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "deltoid"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -2003,7 +2012,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo con pecho apoyado en polea alta y agarre medio: la altura del cable reparte el trabajo entre el dorsal y la retracción escapular. El apoyo del pecho simplifica la posición del tronco.",
+              "description": "Polea alta con agarre medio: el tirón diagonal trabaja el dorsal con tensión constante. Buen cambio de estímulo para mitad de sesión.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -2016,29 +2025,28 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tracciona el brazo hacia el tronco con el pecho apoyado y sin impulso; por eso suma la serie completa (1.0)."
+                  "note": "Principal: el dorsal dirige el tirón y concentra el trabajo en todo el ancho de la espalda; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio retrae la escápula sobre el apoyo y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo durante la tracción; por eso suma 0.5."
+                  "note": "Secundario: el trapecio ayuda a retraer las escápulas al llevar los codos atrás; por eso suma 0.5."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula hacia la columna; por eso suman 0.5."
+                  "note": "Secundario: los romboides juntan las escápulas al final del tirón; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo con el agarre medio y reparte el trabajo del brazo; por eso suma 0.5."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                  "note": "Estabilizador: el deltoides posterior mantiene el hombro estable durante el tirón; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "chest_supported_row__cable__medium__remo_pecho_apoyado",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_supported",
               "replacementPriority": 2,
@@ -2050,16 +2058,17 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
+                    "trapezius",
                     "rhomboids",
-                    "deltoid"
+                    "biceps"
                   ],
                   "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "deltoid"
+                  ],
                   "targetRegions": [
                     "latissimus_dorsi"
                   ],
@@ -2149,8 +2158,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -2172,7 +2180,7 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_row_supported",
                   "replacementPriority": 2
@@ -2186,15 +2194,17 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
+                "trapezius",
                 "rhomboids",
-                "deltoid"
+                "biceps"
               ],
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "deltoid"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -2224,7 +2234,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo con pecho apoyado en polea media y agarre medio: la posición intermedia equilibra el dorsal, el trapecio y el bíceps. Es la configuración de referencia de la familia para progresar la carga.",
+              "description": "Polea media con agarre medio: la tensión no se suelta en ningún punto del recorrido y el dorsal se mantiene activo siempre. Muy cómodo para series largas.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -2237,29 +2247,28 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tracciona el brazo hacia el tronco con el pecho apoyado y sin impulso; por eso suma la serie completa (1.0)."
+                  "note": "Principal: el dorsal dirige el tirón y concentra el trabajo en todo el ancho de la espalda; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio retrae la escápula sobre el apoyo y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo durante la tracción; por eso suma 0.5."
+                  "note": "Secundario: el trapecio ayuda a retraer las escápulas al llevar los codos atrás; por eso suma 0.5."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula hacia la columna; por eso suman 0.5."
+                  "note": "Secundario: los romboides juntan las escápulas al final del tirón; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo con el agarre medio y reparte el trabajo del brazo; por eso suma 0.5."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                  "note": "Estabilizador: el deltoides posterior mantiene el hombro estable durante el tirón; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "chest_supported_row__cable__medium__remo_pecho_apoyado",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_supported",
               "replacementPriority": 2,
@@ -2271,16 +2280,17 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
+                    "trapezius",
                     "rhomboids",
-                    "deltoid"
+                    "biceps"
                   ],
                   "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "deltoid"
+                  ],
                   "targetRegions": [
                     "latissimus_dorsi"
                   ],
@@ -2370,8 +2380,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -2393,7 +2402,7 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_row_supported",
                   "replacementPriority": 2
@@ -2407,15 +2416,17 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
+                "trapezius",
                 "rhomboids",
-                "deltoid"
+                "biceps"
               ],
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "deltoid"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -2445,7 +2456,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo con pecho apoyado en polea baja y agarre medio: la tracción desde abajo acentúa el estiramiento del dorsal en cada repetición. El banco fija el tronco durante el recorrido.",
+              "description": "Polea baja con agarre medio: el remo clásico en polea, con tensión constante desde el primer tirón. La base de muchas rutinas de espalda por una razón.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -2458,29 +2469,28 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tracciona el brazo hacia el tronco con el pecho apoyado y sin impulso; por eso suma la serie completa (1.0)."
+                  "note": "Principal: el dorsal dirige el tirón y concentra el trabajo en todo el ancho de la espalda; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio retrae la escápula sobre el apoyo y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo durante la tracción; por eso suma 0.5."
+                  "note": "Secundario: el trapecio ayuda a retraer las escápulas al llevar los codos atrás; por eso suma 0.5."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula hacia la columna; por eso suman 0.5."
+                  "note": "Secundario: los romboides juntan las escápulas al final del tirón; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo con el agarre medio y reparte el trabajo del brazo; por eso suma 0.5."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                  "note": "Estabilizador: el deltoides posterior mantiene el hombro estable durante el tirón; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "chest_supported_row__cable__medium__remo_pecho_apoyado",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_supported",
               "replacementPriority": 2,
@@ -2492,16 +2502,17 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
+                    "trapezius",
                     "rhomboids",
-                    "deltoid"
+                    "biceps"
                   ],
                   "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "deltoid"
+                  ],
                   "targetRegions": [
                     "latissimus_dorsi"
                   ],
@@ -2591,8 +2602,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -2614,7 +2624,7 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_row_supported",
                   "replacementPriority": 2
@@ -2628,15 +2638,17 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
+                "trapezius",
                 "rhomboids",
-                "deltoid"
+                "biceps"
               ],
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "deltoid"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -2666,7 +2678,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo con pecho apoyado en mancuernas y agarre cerrado: la empuñadura estrecha acentúa la retracción escapular y el trapecio medio. El codo queda pegado al tronco durante toda la tracción.",
+              "description": "Con mancuernas y agarre cerrado, los codos viajan pegados al cuerpo y el dorsal se estira más en cada repetición. Sensación profunda en la parte baja de la espalda.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -2679,29 +2691,24 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tracciona el brazo hacia el tronco con el pecho apoyado y sin impulso; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Principal: el trapecio retrae la escápula sobre el apoyo y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo durante la tracción; por eso suma 0.5."
+                  "note": "Principal: el dorsal dirige el tirón y se estira más con los codos pegados al cuerpo; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula hacia la columna; por eso suman 0.5."
+                  "note": "Secundario: con el agarre cerrado, los romboides retraen las escápulas con más recorrido; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps trabaja más con los codos cerca del cuerpo flexionando en posición de palanca larga; por eso suma 0.5."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                  "note": "Estabilizador: el deltoides posterior mantiene el hombro estable durante el tirón; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "chest_supported_row__dumbbells__close__remo_pecho_apoyado",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_supported",
               "replacementPriority": 3,
@@ -2713,16 +2720,16 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
                     "rhomboids",
-                    "deltoid"
+                    "biceps"
                   ],
                   "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "deltoid"
+                  ],
                   "targetRegions": [
                     "latissimus_dorsi"
                   ],
@@ -2811,8 +2818,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -2834,7 +2840,7 @@
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_row_supported",
                   "replacementPriority": 3
@@ -2848,15 +2854,16 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
                 "rhomboids",
-                "deltoid"
+                "biceps"
               ],
               "setupCues": [
                 "Configura mancuernas y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "deltoid"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -2885,7 +2892,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo con pecho apoyado en kettlebell y agarre cerrado: la empuñadura estrecha acentúa la retracción escapular y el trapecio medio. El codo queda pegado al tronco durante toda la tracción.",
+              "description": "Con kettlebell y agarre cerrado, la espalda media trabaja con mucho recorrido y el dorsal siente el estiramiento completo. Un remo exigente que rinde bien.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -2898,29 +2905,24 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tracciona el brazo hacia el tronco con el pecho apoyado y sin impulso; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Principal: el trapecio retrae la escápula sobre el apoyo y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo durante la tracción; por eso suma 0.5."
+                  "note": "Principal: el dorsal dirige el tirón y se estira más con los codos pegados al cuerpo; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula hacia la columna; por eso suman 0.5."
+                  "note": "Secundario: con el agarre cerrado, los romboides retraen las escápulas con más recorrido; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps trabaja más con los codos cerca del cuerpo flexionando en posición de palanca larga; por eso suma 0.5."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                  "note": "Estabilizador: el deltoides posterior mantiene el hombro estable durante el tirón; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "chest_supported_row__kettlebell__close__remo_pecho_apoyado",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_supported",
               "replacementPriority": 3,
@@ -2932,16 +2934,16 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
                     "rhomboids",
-                    "deltoid"
+                    "biceps"
                   ],
                   "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "deltoid"
+                  ],
                   "targetRegions": [
                     "latissimus_dorsi"
                   ],
@@ -3030,8 +3032,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -3053,7 +3054,7 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_row_supported",
                   "replacementPriority": 3
@@ -3067,15 +3068,16 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
                 "rhomboids",
-                "deltoid"
+                "biceps"
               ],
               "setupCues": [
                 "Configura kettlebell y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "deltoid"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -3104,7 +3106,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo con pecho apoyado en la máquina y agarre cerrado: la empuñadura estrecha acentúa la retracción escapular y el trapecio medio. El codo queda pegado al tronco durante toda la tracción.",
+              "description": "En máquina con agarre cerrado, los codos pegados hacen que el dorsal trabaje como aislado. Perfecta para concentrar el esfuerzo en la espalda sin pensar en nada más.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -3117,29 +3119,24 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tracciona el brazo hacia el tronco con el pecho apoyado y sin impulso; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Principal: el trapecio retrae la escápula sobre el apoyo y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo durante la tracción; por eso suma 0.5."
+                  "note": "Principal: el dorsal dirige el tirón y se estira más con los codos pegados al cuerpo; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula hacia la columna; por eso suman 0.5."
+                  "note": "Secundario: con el agarre cerrado, los romboides retraen las escápulas con más recorrido; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps trabaja más con los codos cerca del cuerpo flexionando en posición de palanca larga; por eso suma 0.5."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                  "note": "Estabilizador: el deltoides posterior mantiene el hombro estable durante el tirón; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "chest_supported_row__machine__close__remo_pecho_apoyado",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_supported",
               "replacementPriority": 3,
@@ -3151,16 +3148,16 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
                     "rhomboids",
-                    "deltoid"
+                    "biceps"
                   ],
                   "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "deltoid"
+                  ],
                   "targetRegions": [
                     "latissimus_dorsi"
                   ],
@@ -3249,8 +3246,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -3272,7 +3268,7 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_row_supported",
                   "replacementPriority": 3
@@ -3286,15 +3282,16 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
                 "rhomboids",
-                "deltoid"
+                "biceps"
               ],
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "deltoid"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -3323,7 +3320,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo con pecho apoyado en polea alta y agarre cerrado: la empuñadura estrecha aumenta la retracción escapular y la participación del trapecio medio. El tronco queda fijo sobre el banco inclinado.",
+              "description": "Polea alta con agarre cerrado: el tirón llega desde arriba y el dorsal queda tenso en todo momento. Buen ejercicio para rematar la sesión de espalda.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -3336,29 +3333,24 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tracciona el brazo hacia el tronco con el pecho apoyado y sin impulso; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Principal: el trapecio retrae la escápula sobre el apoyo y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo durante la tracción; por eso suma 0.5."
+                  "note": "Principal: el dorsal dirige el tirón y se estira más con los codos pegados al cuerpo; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula hacia la columna; por eso suman 0.5."
+                  "note": "Secundario: con el agarre cerrado, los romboides retraen las escápulas con más recorrido; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps trabaja más con los codos cerca del cuerpo flexionando en posición de palanca larga; por eso suma 0.5."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                  "note": "Estabilizador: el deltoides posterior mantiene el hombro estable durante el tirón; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "chest_supported_row__cable__close__remo_pecho_apoyado",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_supported",
               "replacementPriority": 2,
@@ -3370,16 +3362,16 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
                     "rhomboids",
-                    "deltoid"
+                    "biceps"
                   ],
                   "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "deltoid"
+                  ],
                   "targetRegions": [
                     "latissimus_dorsi"
                   ],
@@ -3469,8 +3461,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -3492,7 +3483,7 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_row_supported",
                   "replacementPriority": 2
@@ -3506,15 +3497,16 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
                 "rhomboids",
-                "deltoid"
+                "biceps"
               ],
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "deltoid"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -3544,7 +3536,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo con pecho apoyado en polea media y agarre cerrado: la altura media y la empuñadura estrecha concentran el estímulo en el trapecio y los romboides. El apoyo del pecho permite un recorrido completo y controlado.",
+              "description": "Polea media con agarre cerrado: tensión continua con los codos pegados, poniendo el foco en el dorsal. Variación fina que se siente al final de la serie.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -3557,29 +3549,24 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tracciona el brazo hacia el tronco con el pecho apoyado y sin impulso; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Principal: el trapecio retrae la escápula sobre el apoyo y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo durante la tracción; por eso suma 0.5."
+                  "note": "Principal: el dorsal dirige el tirón y se estira más con los codos pegados al cuerpo; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula hacia la columna; por eso suman 0.5."
+                  "note": "Secundario: con el agarre cerrado, los romboides retraen las escápulas con más recorrido; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps trabaja más con los codos cerca del cuerpo flexionando en posición de palanca larga; por eso suma 0.5."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                  "note": "Estabilizador: el deltoides posterior mantiene el hombro estable durante el tirón; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "chest_supported_row__cable__close__remo_pecho_apoyado",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_supported",
               "replacementPriority": 2,
@@ -3591,16 +3578,16 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
                     "rhomboids",
-                    "deltoid"
+                    "biceps"
                   ],
                   "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "deltoid"
+                  ],
                   "targetRegions": [
                     "latissimus_dorsi"
                   ],
@@ -3690,8 +3677,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -3713,7 +3699,7 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_row_supported",
                   "replacementPriority": 2
@@ -3727,15 +3713,16 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
                 "rhomboids",
-                "deltoid"
+                "biceps"
               ],
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "deltoid"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -3765,7 +3752,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo con pecho apoyado en polea baja y agarre cerrado: la tracción desde abajo con agarre estrecho enfatiza la retracción de la escápula. El banco fija el tronco y el cable sostiene la tensión en la fase final.",
+              "description": "Polea baja con agarre cerrado: el tirón arranca desde abajo y el dorsal dirige todo el recorrido. Un clásico que nunca decepciona para la espalda media.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -3778,29 +3765,24 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tracciona el brazo hacia el tronco con el pecho apoyado y sin impulso; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Principal: el trapecio retrae la escápula sobre el apoyo y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo durante la tracción; por eso suma 0.5."
+                  "note": "Principal: el dorsal dirige el tirón y se estira más con los codos pegados al cuerpo; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula hacia la columna; por eso suman 0.5."
+                  "note": "Secundario: con el agarre cerrado, los romboides retraen las escápulas con más recorrido; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps trabaja más con los codos cerca del cuerpo flexionando en posición de palanca larga; por eso suma 0.5."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                  "note": "Estabilizador: el deltoides posterior mantiene el hombro estable durante el tirón; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "chest_supported_row__cable__close__remo_pecho_apoyado",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_supported",
               "replacementPriority": 2,
@@ -3812,16 +3794,16 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
                     "rhomboids",
-                    "deltoid"
+                    "biceps"
                   ],
                   "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "deltoid"
+                  ],
                   "targetRegions": [
                     "latissimus_dorsi"
                   ],
@@ -3911,8 +3893,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -3934,7 +3915,7 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_row_supported",
                   "replacementPriority": 2
@@ -3948,15 +3929,16 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
                 "rhomboids",
-                "deltoid"
+                "biceps"
               ],
               "setupCues": [
                 "Configura la polea y adopta la posición específica de «Remo con Pecho Apoyado» antes de iniciar; conserva una base estable."
               ],
               "ssc": 0.4,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "deltoid"
+              ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
             },
@@ -3968,7 +3950,7 @@
           }
         ],
         "defaultConfigurationId": "chest_supported_row__dumbbells__medium",
-        "description": "Tirón horizontal con el pecho apoyado en un banco inclinado, que elimina la demanda lumbar y aísla la espalda. El implemento y la amplitud del agarre son las decisiones visibles de cada variante.",
+        "description": "Remo apoyado en el banco con el pecho acostado: la espalda trabaja a fondo sin que la zona baja te frene. Elige el agarre y el peso que quieras, que el banco hace el resto del trabajo de equilibrio.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

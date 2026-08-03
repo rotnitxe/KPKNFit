@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo Pendlay con barra: cada repetición sale del suelo con el tronco casi paralelo y sin impulso de cadera. Es un remo básico libre que desarrolla fuerza de espalda desde el suelo.",
+              "description": "Con barra y cada repetición desde el suelo: explosión, control y espalda a tope. El remo de los que entrenan fuerza de verdad.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -258,7 +258,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo Pendlay con mancuernas: la carga vuelve al suelo en cada repetición y el torso mantiene la inclinación paralela. Permite trabajar la salida del dorsal sin la rigidez de la barra.",
+              "description": "Con mancuernas, la salida desde el suelo es más libre y corriges lado a lado. Poco habitual, muy exigente y brutal para la espalda.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -488,7 +488,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo Pendlay en máquina: el apoyo del pecho fija el tronco y la tracción parte de un recorrido horizontal. Una forma de practicar la mecánica del Pendlay con menor exigencia de espalda baja.",
+              "description": "En máquina, puedes reproducir la explosividad del pendlay sin la parte de equilibrio. Una forma segura de entrenar la espalda con potencia.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -720,7 +720,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo Pendlay en Smith: el riel guiado mantiene la trayectoria de la barra y el tronco queda libre para la inclinación. Alternativa estable para progresar la carga del remo desde el suelo.",
+              "description": "En Smith, la barra sube guiada y el movimiento explosivo queda más controlado. Ideal para aprender el pendlay o cargar algo más de peso.",
               "efc": 2.5,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -952,7 +952,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo Pendlay con kettlebell: la empuñadura central permite un agarre neutro y la carga vuelve al suelo en cada repetición. Variante cómoda para la mecánica Pendlay sin barra.",
+              "description": "Con kettlebell, el tirón desde el suelo se siente natural y el agarre suma trabajo. Variante completa para espalda y antebrazos.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -1184,7 +1184,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo Pendlay en polea: la tensión continua acompaña el recorrido y la carga no descansa en el suelo entre repeticiones. Permite un ritmo constante de tracción desde el estiramiento del dorsal.",
+              "description": "En polea, la tensión constante cambia el pendlay: menos explosión, más tensión sostenida. Un final de sesión excelente para los dorsales.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -1396,7 +1396,7 @@
           }
         ],
         "defaultConfigurationId": "pendlay_row__barbell",
-        "description": "Tirón horizontal desde el suelo con el tronco casi paralelo al banco o al suelo y sin impulso de cadera. Cada repetición parte del reposo completo, lo que desarrolla la fuerza de arranque del dorsal.",
+        "description": "Remo explosivo desde el suelo: el peso parte de cero en cada repetición y vuelve a tocar el piso. Pura fuerza de espalda, con una pizca de potencia que no encuentras en otros remos.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

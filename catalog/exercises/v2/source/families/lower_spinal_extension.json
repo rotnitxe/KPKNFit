@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón extensión columna para completar la repetición."
               ],
-              "description": "Extensión Lumbar trabaja principalmente erectores espinales mediante un patrón de extensión columna. La participación secundaria corresponde a glúteos. La configuración utiliza máquina como implemento.",
+              "description": "En el banco de hiperextensiones: bajas el torso y subes con la espalda trabajando. El ejercicio base para una espalda fuerte.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -203,7 +203,7 @@
           }
         ],
         "defaultConfigurationId": "back_extension_lumbar__default",
-        "description": "Extensión Lumbar trabaja principalmente erectores espinales mediante un patrón de extensión columna. La participación secundaria corresponde a glúteos.",
+        "description": "Hiperextensiones de espalda baja: en el banco, bajas el torso y subes con la espalda trabajando. El ejercicio base para una espalda fuerte y sin molestias.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -245,7 +245,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón extensión columna para completar la repetición."
               ],
-              "description": "Extensión isométrica lumbar tumbado en el suelo. La configuración utiliza peso corporal como implemento.",
+              "description": "Boca abajo en el suelo: levantas brazos y piernas a la vez y aguantas un momento. Espalda baja y core trabajando sin máquinas.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -426,7 +426,7 @@
           }
         ],
         "defaultConfigurationId": "back_superman_suelo__default",
-        "description": "Extensión isométrica lumbar tumbado en el suelo.",
+        "description": "Superman en el suelo: boca abajo, levantas brazos y piernas del piso a la vez. La espalda baja trabaja sin máquinas y el core también se enciende.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -466,7 +466,7 @@
               "commonMistakes": [
                 "Redondear la espalda al final del recorrido para ganar profundidad."
               ],
-              "description": "Hiperextensión a 45 grados en posición Zercher orientada a la espalda baja: los erectores sostienen la columna contra la flexión controlada con la carga frontal.",
+              "description": "Carga en los codos en el banco a 45: subes el torso con la espalda baja haciendo el trabajo. Exigente y controlada.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -642,7 +642,7 @@
           }
         ],
         "defaultConfigurationId": "back_hiperextension_45_zercher_espalda_baja__default",
-        "description": "Hiperextensión en banco a 45 grados con la carga en posición Zercher orientada a la espalda baja: los erectores sostienen la columna contra la flexión controlada.",
+        "description": "Hiperextensión a 45 Zercher para espalda baja: la carga en los codos mientras subes el torso en el banco inclinado. Exigente y controlada.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

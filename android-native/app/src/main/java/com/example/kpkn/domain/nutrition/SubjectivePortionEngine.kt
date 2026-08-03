@@ -43,10 +43,13 @@ object SubjectivePortionEngine {
     private val UTENSIL_PATTERNS = listOf(
         // Cucharadas
         Triple(Regex("""\b(un|una|1)\s+cucharaditas?\b""", RegexOption.IGNORE_CASE), 5.0, "cucharadita"),
-        Triple(Regex("""\b(un|una|1)\s+cucharadas?\s+(?:de\s+)?(?:postre)?\b""", RegexOption.IGNORE_CASE), 10.0, "cucharada_postre"),
+        // B7: la cucharada de postre requiere "de postre" explícito; antes el patrón
+        // la hacía opcional y "una cucharada" (15 ml) resolvía como postre (10 ml).
+        Triple(Regex("""\b(un|una|1)\s+cucharadas?\s+de\s+postre\b""", RegexOption.IGNORE_CASE), 10.0, "cucharada_postre"),
         Triple(Regex("""\b(un|una|1)\s+cucharadas?\s+soperas?\b""", RegexOption.IGNORE_CASE), 20.0, "cucharada_sopera"),
         Triple(Regex("""\b(un|una|1)\s+cucharadas?\s+colmadas?\b""", RegexOption.IGNORE_CASE), 25.0, "cucharada_colmada"),
         Triple(Regex("""\b(un|una|1)\s+cucharadas?\s+generosas?\b""", RegexOption.IGNORE_CASE), 22.0, "cucharada_generosa"),
+        Triple(Regex("""\b(un|una|1)\s+cucharadas?\b""", RegexOption.IGNORE_CASE), 15.0, "cucharada"),
         Triple(Regex("""\b(\d+(?:[.,]\d+)?)\s+cucharaditas?\b""", RegexOption.IGNORE_CASE), 5.0, "cucharadita_multi"),
         Triple(Regex("""\b(\d+(?:[.,]\d+)?)\s+cucharadas?\b""", RegexOption.IGNORE_CASE), 15.0, "cucharada_multi"),
         Triple(Regex("""\bmedia\s+cucharadita\b""", RegexOption.IGNORE_CASE), 2.5, "media_cucharadita"),

@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Flexionar demasiado las rodillas o redondear la espalda para bajar más."
               ],
-              "description": "Peso Muerto Piernas Rígidas con barra y trabajo bilateral: el énfasis está en la elongación de los isquios con la cadera atrás y las piernas casi rectas.",
+              "description": "Barra con ambas piernas casi rectas: el estiramiento de los isquios marca el recorrido. El peso muerto de piernas rígidas clásico.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -242,7 +242,7 @@
               "commonMistakes": [
                 "Flexionar demasiado las rodillas o redondear la espalda para bajar más."
               ],
-              "description": "Peso Muerto Piernas Rígidas con barra y apoyo en una pierna: el trabajo unilateral exige más equilibrio y expone asimetrías de isquios.",
+              "description": "Barra en una pierna casi recta: el isquio estirado a fondo y el equilibrio en cada repetición. Avanzado y muy revelador.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -458,7 +458,7 @@
               "commonMistakes": [
                 "Flexionar demasiado las rodillas o redondear la espalda para bajar más."
               ],
-              "description": "Peso Muerto Piernas Rígidas en máquina Smith con trabajo bilateral: el guiado mantiene la barra en línea y simplifica la bisagra.",
+              "description": "Smith con ambas piernas: el guiado te deja bajar hasta el estiramiento máximo con seguridad. Ideal para series profundas.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -674,7 +674,7 @@
               "commonMistakes": [
                 "Flexionar demasiado las rodillas o redondear la espalda para bajar más."
               ],
-              "description": "Peso Muerto Piernas Rígidas en máquina Smith con apoyo en una pierna: el guiado elimina el equilibrio y deja el foco en la cadena posterior.",
+              "description": "Smith en una pierna: estabilidad del guiado y estiramiento unilateral del isquio. Perfecto para corregir desequilibrios.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -890,7 +890,7 @@
               "commonMistakes": [
                 "Flexionar demasiado las rodillas o redondear la espalda para bajar más."
               ],
-              "description": "Peso Muerto Piernas Rígidas con mancuernas y trabajo bilateral: la carga a los costados facilita el agarre y la progresión ligera.",
+              "description": "Mancuernas con ambas piernas: la carga a los costados con recorrido libre. La versión accesible del peso muerto de piernas rígidas.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -1106,7 +1106,7 @@
               "commonMistakes": [
                 "Flexionar demasiado las rodillas o redondear la espalda para bajar más."
               ],
-              "description": "Peso Muerto Piernas Rígidas con mancuernas y apoyo en una pierna: variante unilateral cómoda para trabajar cada isquio por separado.",
+              "description": "Mancuerna en una pierna: el estiramiento del isquio se siente en cada bajada. El favorito para isquios y equilibrio.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -1322,7 +1322,7 @@
               "commonMistakes": [
                 "Flexionar demasiado las rodillas o redondear la espalda para bajar más."
               ],
-              "description": "Peso Muerto Piernas Rígidas con barra hexagonal y trabajo bilateral: el agarre neutro alivia la zona lumbar y permite cargar con comodidad.",
+              "description": "Barra hexagonal con ambas piernas: carga estable y estiramiento profundo. Cómoda, segura y muy efectiva para los isquios.",
               "efc": 2.8,
               "equipmentId": "hex_bar",
               "executionCues": [
@@ -1538,7 +1538,7 @@
               "commonMistakes": [
                 "Flexionar demasiado las rodillas o redondear la espalda para bajar más."
               ],
-              "description": "Peso Muerto Piernas Rígidas con barra hexagonal y apoyo en una pierna: la barra trapecio reduce la exigencia de equilibrio frente a la variante con barra.",
+              "description": "Barra hexagonal en una pierna: la carga estable más el reto del equilibrio. Variante exigente para la parte trasera de la pierna.",
               "efc": 2.8,
               "equipmentId": "hex_bar",
               "executionCues": [
@@ -1736,7 +1736,7 @@
           }
         ],
         "defaultConfigurationId": "stiff_leg_deadlift__bilateral__barbell",
-        "description": "Bisagra de cadera con las rodillas casi extendidas que maximiza el estiramiento de los isquiosurales y limita la participación del cuádriceps. El implemento cambia el equilibrio y la curva de resistencia de cada variante.",
+        "description": "Peso muerto piernas rígidas: piernas casi rectas y la barra bajando hasta el estiramiento máximo de los isquios. El ejercicio más profundo para la parte trasera de la pierna.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Balancear las piernas o acortar el rango inferior del tirón."
               ],
-              "description": "Dominadas con agarre prono y amplitud wide: la empuñadura amplia desplaza el trabajo hacia el trapecio y la espalda alta, y reduce la participación del bíceps.",
+              "description": "Agarre amplio y palmas al frente: la dominada clásica, con la espalda alta tomando protagonismo. La favorita para la espalda ancha.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -39,29 +39,28 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal ancho aduce el húmero y concentra el tirón vertical; por eso suma la serie completa (1.0)."
+                  "note": "Principal: el dorsal extiende y aduce el hombro para subir el pecho a la barra; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: con el agarre abierto el trapecio fija y rota la escápula y comparte el trabajo de la subida; por eso suma la serie completa (1.0)."
+                  "note": "Secundario: el agarre amplio reparte más trabajo a la espalda alta y el trapecio; por eso suma 0.5."
                 },
                 {
                   "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo y asiste al dorsal durante la subida; por eso suma 0.5."
+                  "note": "Estabilizador: con el agarre pronado, el bíceps solo asiste la flexión del codo; por eso suma 0.4."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."
+                  "note": "Estabilizador: los romboides retraen las escápulas al final del tirón; por eso suman 0.4."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco firme y sin balanceos durante la serie; por eso suma 0.4."
+                  "note": "Estabilizador: el core mantiene el cuerpo firme y evita el balanceo durante la dominada; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "pull_up__pronated__wide",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_pullup_pronated",
               "replacementPriority": 1,
@@ -73,15 +72,15 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
-                    "rhomboids"
+                    "trapezius"
                   ],
                   "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
+                    "biceps",
+                    "rhomboids",
                     "core"
                   ],
                   "targetRegions": [
@@ -174,7 +173,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar la espalda y el bíceps con el tirón vertical de las dominadas."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -196,7 +195,7 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva el tirón vertical y el reparto muscular del agarre elegido."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_pullup_pronated",
                   "replacementPriority": 1
@@ -210,14 +209,15 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
-                "rhomboids"
+                "trapezius"
               ],
               "setupCues": [
                 "Cuelga de la barra con el agarre elegido y los hombros activados."
               ],
               "ssc": 0.4,
               "stabilizerMuscles": [
+                "biceps",
+                "rhomboids",
                 "core"
               ],
               "technicalDifficulty": 4.0,
@@ -248,7 +248,7 @@
               "commonMistakes": [
                 "Balancear las piernas o acortar el rango inferior del tirón."
               ],
-              "description": "Dominadas con agarre prono y amplitud medium: la posición intermedia reparte el esfuerzo de forma equilibrada entre el dorsal y la espalda alta, con buena participación del bíceps.",
+              "description": "Agarre medio y palmas al frente: el punto equilibrado entre fuerza y espalda. La dominada de referencia para la mayoría.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -261,23 +261,19 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal ancho aduce el húmero y concentra el tirón vertical; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Secundario: el trapecio fija la escápula y asiste la subida; por eso suma 0.5."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo y asiste al dorsal durante la subida; por eso suma 0.5."
+                  "note": "Principal: el dorsal extiende y aduce el hombro para subir el pecho a la barra; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."
+                  "note": "Estabilizador: los romboides retraen las escápulas al final del tirón; por eso suman 0.4."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: con el agarre pronado, el bíceps solo asiste la flexión del codo; por eso suma 0.4."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco firme y sin balanceos durante la serie; por eso suma 0.4."
+                  "note": "Estabilizador: el core mantiene el cuerpo firme y evita el balanceo durante la dominada; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "pull_up__pronated__medium",
@@ -296,13 +292,11 @@
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
-                  "secondaryMuscles": [
-                    "trapezius",
-                    "biceps",
-                    "rhomboids"
-                  ],
+                  "secondaryMuscles": [],
                   "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
+                    "biceps",
+                    "rhomboids",
                     "core"
                   ],
                   "targetRegions": [
@@ -394,7 +388,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar la espalda y el bíceps con el tirón vertical de las dominadas."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -416,7 +410,7 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva el tirón vertical y el reparto muscular del agarre elegido."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_pullup_pronated",
                   "replacementPriority": 1
@@ -429,16 +423,14 @@
                   "risks": []
                 }
               },
-              "secondaryMuscles": [
-                "trapezius",
-                "biceps",
-                "rhomboids"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Cuelga de la barra con el agarre elegido y los hombros activados."
               ],
               "ssc": 0.4,
               "stabilizerMuscles": [
+                "biceps",
+                "rhomboids",
                 "core"
               ],
               "technicalDifficulty": 4.0,
@@ -469,7 +461,7 @@
               "commonMistakes": [
                 "Balancear las piernas o acortar el rango inferior del tirón."
               ],
-              "description": "Dominadas con agarre prono y amplitud close: la empuñadura estrecha acerca el codo al tronco y concentra el trabajo en el dorsal ancho, con más ayuda del bíceps.",
+              "description": "Agarre cerrado y palmas al frente: el dorsal se estira más con los codos bajos. La variante profunda para la espalda media.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -482,19 +474,19 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal ancho aduce el húmero y concentra el tirón vertical; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo y asiste al dorsal durante la subida; por eso suma 0.5."
+                  "note": "Principal: el dorsal extiende y aduce el hombro para subir el pecho a la barra; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."
+                  "note": "Estabilizador: los romboides retraen las escápulas al final del tirón; por eso suman 0.4."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: con el agarre pronado, el bíceps solo asiste la flexión del codo; por eso suma 0.4."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco firme y sin balanceos durante la serie; por eso suma 0.4."
+                  "note": "Estabilizador: el core mantiene el cuerpo firme y evita el balanceo durante la dominada; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "pull_up__pronated__close",
@@ -513,12 +505,11 @@
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
-                  "secondaryMuscles": [
-                    "biceps",
-                    "rhomboids"
-                  ],
+                  "secondaryMuscles": [],
                   "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
+                    "biceps",
+                    "rhomboids",
                     "core"
                   ],
                   "targetRegions": [
@@ -610,7 +601,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar la espalda y el bíceps con el tirón vertical de las dominadas."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -632,7 +623,7 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva el tirón vertical y el reparto muscular del agarre elegido."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_pullup_pronated",
                   "replacementPriority": 1
@@ -645,15 +636,14 @@
                   "risks": []
                 }
               },
-              "secondaryMuscles": [
-                "biceps",
-                "rhomboids"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Cuelga de la barra con el agarre elegido y los hombros activados."
               ],
               "ssc": 0.4,
               "stabilizerMuscles": [
+                "biceps",
+                "rhomboids",
                 "core"
               ],
               "technicalDifficulty": 4.0,
@@ -684,7 +674,7 @@
               "commonMistakes": [
                 "Balancear las piernas o acortar el rango inferior del tirón."
               ],
-              "description": "Dominadas con agarre supino y amplitud wide: la empuñadura amplia desplaza el trabajo hacia el trapecio y la espalda alta, y reduce la participación del bíceps. El agarre supino añade una participación notable del bíceps.",
+              "description": "Agarre amplio y palmas hacia ti: el bíceps ayuda más con la palma supina. Chin-up amplio que combina espalda y brazo.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -697,30 +687,28 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal ancho aduce el húmero y concentra el tirón vertical; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Principal: con el agarre abierto el trapecio fija y rota la escápula y comparte el trabajo de la subida; por eso suma la serie completa (1.0)."
+                  "note": "Principal: el dorsal extiende y aduce el hombro para subir el pecho a la barra; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "biceps",
-                  "note": "Principal: con el agarre supino el bíceps flexiona el codo y participa de forma notable en la subida; por eso suma la serie completa (1.0)."
+                  "note": "Secundario: con el agarre supino, el bíceps trabaja mucho más porque parte más flexionado y tira en su postura más fuerte; por eso suma 0.5."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."
+                  "note": "Estabilizador: los romboides retraen las escápulas al final del tirón; por eso suman 0.4."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Estabilizador: con el agarre amplio, la espalda alta ayuda a controlar el descenso; por eso suma 0.4."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco firme y sin balanceos durante la serie; por eso suma 0.4."
+                  "note": "Estabilizador: el core mantiene el cuerpo firme y evita el balanceo durante la dominada; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "pull_up__supinated__wide",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius",
-                "biceps"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_pullup_pronated",
               "replacementPriority": 1,
@@ -732,16 +720,16 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius",
-                    "biceps"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "rhomboids"
+                    "biceps"
                   ],
                   "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
-                    "core"
+                    "rhomboids",
+                    "core",
+                    "trapezius"
                   ],
                   "targetRegions": [
                     "latissimus_dorsi",
@@ -834,7 +822,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar la espalda y el bíceps con el tirón vertical de las dominadas."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -856,7 +844,7 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva el tirón vertical y el reparto muscular del agarre elegido."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_pullup_pronated",
                   "replacementPriority": 1
@@ -870,14 +858,16 @@
                 }
               },
               "secondaryMuscles": [
-                "rhomboids"
+                "biceps"
               ],
               "setupCues": [
                 "Cuelga de la barra con el agarre elegido y los hombros activados."
               ],
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "core"
+                "rhomboids",
+                "core",
+                "trapezius"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -907,7 +897,7 @@
               "commonMistakes": [
                 "Balancear las piernas o acortar el rango inferior del tirón."
               ],
-              "description": "Dominadas con agarre supino y amplitud medium: la posición intermedia reparte el esfuerzo de forma equilibrada entre el dorsal y la espalda alta, con buena participación del bíceps. El agarre supino añade una participación notable del bíceps.",
+              "description": "Agarre medio y palmas hacia ti: el bíceps trabaja de más y la subida se siente más fuerte. La dominada favorita de muchos.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -920,29 +910,24 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal ancho aduce el húmero y concentra el tirón vertical; por eso suma la serie completa (1.0)."
+                  "note": "Principal: el dorsal extiende y aduce el hombro para subir el pecho a la barra; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "biceps",
-                  "note": "Principal: con el agarre supino el bíceps flexiona el codo y participa de forma notable en la subida; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Secundario: el trapecio fija la escápula y asiste la subida; por eso suma 0.5."
+                  "note": "Secundario: con el agarre supino, el bíceps trabaja mucho más porque parte más flexionado y tira en su postura más fuerte; por eso suma 0.5."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."
+                  "note": "Estabilizador: los romboides retraen las escápulas al final del tirón; por eso suman 0.4."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco firme y sin balanceos durante la serie; por eso suma 0.4."
+                  "note": "Estabilizador: el core mantiene el cuerpo firme y evita el balanceo durante la dominada; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "pull_up__supinated__medium",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "biceps"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_pullup_pronated",
               "replacementPriority": 1,
@@ -954,15 +939,14 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "biceps"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "trapezius",
-                    "rhomboids"
+                    "biceps"
                   ],
                   "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
+                    "rhomboids",
                     "core"
                   ],
                   "targetRegions": [
@@ -1055,7 +1039,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar la espalda y el bíceps con el tirón vertical de las dominadas."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1077,7 +1061,7 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva el tirón vertical y el reparto muscular del agarre elegido."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_pullup_pronated",
                   "replacementPriority": 1
@@ -1091,14 +1075,14 @@
                 }
               },
               "secondaryMuscles": [
-                "trapezius",
-                "rhomboids"
+                "biceps"
               ],
               "setupCues": [
                 "Cuelga de la barra con el agarre elegido y los hombros activados."
               ],
               "ssc": 0.4,
               "stabilizerMuscles": [
+                "rhomboids",
                 "core"
               ],
               "technicalDifficulty": 4.0,
@@ -1129,7 +1113,7 @@
               "commonMistakes": [
                 "Balancear las piernas o acortar el rango inferior del tirón."
               ],
-              "description": "Dominadas con agarre supino y amplitud close: la empuñadura estrecha acerca el codo al tronco y concentra el trabajo en el dorsal ancho, con más ayuda del bíceps. El agarre supino añade una participación notable del bíceps.",
+              "description": "Agarre cerrado y palmas hacia ti: la chin-up por excelencia, con el bíceps cargado. La mejor vía para progresar hacia la dominada.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -1142,25 +1126,24 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal ancho aduce el húmero y concentra el tirón vertical; por eso suma la serie completa (1.0)."
+                  "note": "Principal: el dorsal extiende y aduce el hombro para subir el pecho a la barra; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "biceps",
-                  "note": "Principal: con el agarre supino el bíceps flexiona el codo y participa de forma notable en la subida; por eso suma la serie completa (1.0)."
+                  "note": "Secundario: con el agarre supino, el bíceps trabaja mucho más porque parte más flexionado y tira en su postura más fuerte; por eso suma 0.5."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."
+                  "note": "Estabilizador: los romboides retraen las escápulas al final del tirón; por eso suman 0.4."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco firme y sin balanceos durante la serie; por eso suma 0.4."
+                  "note": "Estabilizador: el core mantiene el cuerpo firme y evita el balanceo durante la dominada; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "pull_up__supinated__close",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "biceps"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_pullup_pronated",
               "replacementPriority": 1,
@@ -1172,14 +1155,14 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "biceps"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "rhomboids"
+                    "biceps"
                   ],
                   "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
+                    "rhomboids",
                     "core"
                   ],
                   "targetRegions": [
@@ -1272,7 +1255,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar la espalda y el bíceps con el tirón vertical de las dominadas."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1294,7 +1277,7 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva el tirón vertical y el reparto muscular del agarre elegido."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_pullup_pronated",
                   "replacementPriority": 1
@@ -1308,13 +1291,14 @@
                 }
               },
               "secondaryMuscles": [
-                "rhomboids"
+                "biceps"
               ],
               "setupCues": [
                 "Cuelga de la barra con el agarre elegido y los hombros activados."
               ],
               "ssc": 0.4,
               "stabilizerMuscles": [
+                "rhomboids",
                 "core"
               ],
               "technicalDifficulty": 4.0,
@@ -1345,7 +1329,7 @@
               "commonMistakes": [
                 "Balancear las piernas o acortar el rango inferior del tirón."
               ],
-              "description": "Dominadas con agarre neutro y amplitud wide: la empuñadura amplia desplaza el trabajo hacia el trapecio y la espalda alta, y reduce la participación del bíceps.",
+              "description": "Agarre amplio con palmas enfrentadas: el punto medio cómodo para el hombro. Variante estable de la dominada amplia.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -1358,29 +1342,28 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal ancho aduce el húmero y concentra el tirón vertical; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Principal: con el agarre abierto el trapecio fija y rota la escápula y comparte el trabajo de la subida; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo y asiste al dorsal durante la subida; por eso suma 0.5."
+                  "note": "Principal: el dorsal extiende y aduce el hombro para subir el pecho a la barra; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."
+                  "note": "Estabilizador: los romboides retraen las escápulas al final del tirón; por eso suman 0.4."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: el bíceps asiste la flexión del codo con agarre neutro sin protagonizar el tirón; por eso suma 0.4."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Estabilizador: con el agarre amplio, la espalda alta ayuda a controlar el descenso; por eso suma 0.4."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco firme y sin balanceos durante la serie; por eso suma 0.4."
+                  "note": "Estabilizador: el core mantiene el cuerpo firme y evita el balanceo durante la dominada; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "pull_up__neutral__wide",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_pullup_pronated",
               "replacementPriority": 1,
@@ -1392,15 +1375,14 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
-                  "secondaryMuscles": [
-                    "biceps",
-                    "rhomboids"
-                  ],
+                  "secondaryMuscles": [],
                   "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
+                    "trapezius",
+                    "biceps",
+                    "rhomboids",
                     "core"
                   ],
                   "targetRegions": [
@@ -1493,7 +1475,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar la espalda y el bíceps con el tirón vertical de las dominadas."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1515,7 +1497,7 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva el tirón vertical y el reparto muscular del agarre elegido."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_pullup_pronated",
                   "replacementPriority": 1
@@ -1528,15 +1510,15 @@
                   "risks": []
                 }
               },
-              "secondaryMuscles": [
-                "biceps",
-                "rhomboids"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Cuelga de la barra con el agarre elegido y los hombros activados."
               ],
               "ssc": 0.4,
               "stabilizerMuscles": [
+                "trapezius",
+                "biceps",
+                "rhomboids",
                 "core"
               ],
               "technicalDifficulty": 4.0,
@@ -1567,7 +1549,7 @@
               "commonMistakes": [
                 "Balancear las piernas o acortar el rango inferior del tirón."
               ],
-              "description": "Dominadas con agarre neutro y amplitud medium: la posición intermedia reparte el esfuerzo de forma equilibrada entre el dorsal y la espalda alta, con buena participación del bíceps.",
+              "description": "Agarre medio con palmas enfrentadas: equilibrio entre espalda y brazo con hombros cómodos. La versión más amable de la dominada.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -1580,23 +1562,19 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal ancho aduce el húmero y concentra el tirón vertical; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Secundario: el trapecio fija la escápula y asiste la subida; por eso suma 0.5."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo y asiste al dorsal durante la subida; por eso suma 0.5."
+                  "note": "Principal: el dorsal extiende y aduce el hombro para subir el pecho a la barra; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."
+                  "note": "Estabilizador: los romboides retraen las escápulas al final del tirón; por eso suman 0.4."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: el bíceps asiste la flexión del codo con agarre neutro sin protagonizar el tirón; por eso suma 0.4."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco firme y sin balanceos durante la serie; por eso suma 0.4."
+                  "note": "Estabilizador: el core mantiene el cuerpo firme y evita el balanceo durante la dominada; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "pull_up__neutral__medium",
@@ -1615,13 +1593,11 @@
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
-                  "secondaryMuscles": [
-                    "trapezius",
-                    "biceps",
-                    "rhomboids"
-                  ],
+                  "secondaryMuscles": [],
                   "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
+                    "biceps",
+                    "rhomboids",
                     "core"
                   ],
                   "targetRegions": [
@@ -1713,7 +1689,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar la espalda y el bíceps con el tirón vertical de las dominadas."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1735,7 +1711,7 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva el tirón vertical y el reparto muscular del agarre elegido."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_pullup_pronated",
                   "replacementPriority": 1
@@ -1748,16 +1724,14 @@
                   "risks": []
                 }
               },
-              "secondaryMuscles": [
-                "trapezius",
-                "biceps",
-                "rhomboids"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Cuelga de la barra con el agarre elegido y los hombros activados."
               ],
               "ssc": 0.4,
               "stabilizerMuscles": [
+                "biceps",
+                "rhomboids",
                 "core"
               ],
               "technicalDifficulty": 4.0,
@@ -1788,7 +1762,7 @@
               "commonMistakes": [
                 "Balancear las piernas o acortar el rango inferior del tirón."
               ],
-              "description": "Dominadas con agarre neutro y amplitud close: la empuñadura estrecha acerca el codo al tronco y concentra el trabajo en el dorsal ancho, con más ayuda del bíceps.",
+              "description": "Agarre cerrado con palmas enfrentadas: el dorsal trabaja con mucho recorrido. Variante profunda y cómoda para el hombro.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -1801,19 +1775,19 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal ancho aduce el húmero y concentra el tirón vertical; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo y asiste al dorsal durante la subida; por eso suma 0.5."
+                  "note": "Principal: el dorsal extiende y aduce el hombro para subir el pecho a la barra; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."
+                  "note": "Estabilizador: los romboides retraen las escápulas al final del tirón; por eso suman 0.4."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: el bíceps asiste la flexión del codo con agarre neutro sin protagonizar el tirón; por eso suma 0.4."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco firme y sin balanceos durante la serie; por eso suma 0.4."
+                  "note": "Estabilizador: el core mantiene el cuerpo firme y evita el balanceo durante la dominada; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "pull_up__neutral__close",
@@ -1832,12 +1806,11 @@
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
-                  "secondaryMuscles": [
-                    "biceps",
-                    "rhomboids"
-                  ],
+                  "secondaryMuscles": [],
                   "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
+                    "biceps",
+                    "rhomboids",
                     "core"
                   ],
                   "targetRegions": [
@@ -1929,7 +1902,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar la espalda y el bíceps con el tirón vertical de las dominadas."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1951,7 +1924,7 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva el tirón vertical y el reparto muscular del agarre elegido."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_pullup_pronated",
                   "replacementPriority": 1
@@ -1964,15 +1937,14 @@
                   "risks": []
                 }
               },
-              "secondaryMuscles": [
-                "biceps",
-                "rhomboids"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Cuelga de la barra con el agarre elegido y los hombros activados."
               ],
               "ssc": 0.4,
               "stabilizerMuscles": [
+                "biceps",
+                "rhomboids",
                 "core"
               ],
               "technicalDifficulty": 4.0,
@@ -1985,7 +1957,7 @@
           }
         ],
         "defaultConfigurationId": "pull_up__pronated__medium",
-        "description": "Tirón vertical con el peso corporal donde la elección del agarre y la amplitud cambian el reparto del estímulo: más cerrado concentra el dorsal, más abierto involucra trapecio y espalda alta, y el agarre supino suma bíceps.",
+        "description": "Dominadas: te cuelgas de la barra y subes el pecho hasta ella. El ejercicio de espalda por excelencia: sin máquinas, sin excusas y muy gratificante.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

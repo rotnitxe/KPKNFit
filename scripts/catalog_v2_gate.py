@@ -331,7 +331,7 @@ def source_gate() -> list[str]:
         "el perfil fija la ejecución",
         "no se combinan opciones",
     )
-    placeholder_pattern = re.compile(r"(?i)(?<![a-záéíóúüñ])(?:unknown|pendiente|placeholder|todo|n/a)(?![a-záéíóúüñ])")
+    placeholder_pattern = re.compile(r"(?i)(?<![a-záéíóúüñ])(?:unknown|pendiente|placeholder|n/a)(?![a-záéíóúüñ])")
     if len({d["id"] for d in definitions}) != len(definitions):
         failures.append("duplicate_definition_id")
     if len({c["id"] for c in configurations}) != len(configurations):

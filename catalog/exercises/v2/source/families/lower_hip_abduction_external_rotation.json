@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón abducción / rotación externa cadera para completar la repetición."
               ],
-              "description": "Rotación externa de cadera recostado de lado. La configuración utiliza banda de resistencia como implemento.",
+              "description": "Acostado de lado con la banda en las rodillas: abres la rodilla superior contra la resistencia. El activador perfecto del glúteo medio antes de entrenar.",
               "efc": 2.8,
               "equipmentId": "band",
               "executionCues": [
@@ -193,7 +193,7 @@
           }
         ],
         "defaultConfigurationId": "glutes_clamshells_banda__default",
-        "description": "Rotación externa de cadera recostado de lado.",
+        "description": "Almejas con banda: acostado de lado, abres la rodilla superior contra la resistencia de la banda. Pequeño en tamaño, enorme para activar el glúteo medio antes de entrenar.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

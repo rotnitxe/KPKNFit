@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón empuje vertical para completar la repetición."
               ],
-              "description": "Push Press trabaja principalmente deltoides mediante un patrón de empuje vertical. La participación secundaria corresponde a cuádriceps, tríceps. La configuración utiliza barra como implemento.",
+              "description": "Impulso de piernas y empuje de hombros: la barra vuela hasta arriba. Potencia de todo el cuerpo en un movimiento explosivo.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -207,7 +207,7 @@
           }
         ],
         "defaultConfigurationId": "deltoides_push_press__default",
-        "description": "Push Press trabaja principalmente deltoides mediante un patrón de empuje vertical. La participación secundaria corresponde a cuádriceps, tríceps.",
+        "description": "Push press: impulsas la barra con las piernas y terminas el empuje con los hombros. Potencia de todo el cuerpo para mover cargas pesadas por encima de la cabeza.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

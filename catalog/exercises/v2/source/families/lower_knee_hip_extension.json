@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Caer de golpe en la fase excéntrica o extender la cadera antes de tiempo."
               ],
-              "description": "Glute Ham Raise en banco GHD: el patrón exige a los isquios frenar la extensión de rodilla y al glúteo extender la cadera, sin necesidad de opciones de carga.",
+              "description": "Espinillas apoyadas y cuerpo bajando extendido: isquios y glúteo frenan y suben el peso. El ejercicio de los atletas serios, brutal y adictivo.",
               "efc": 2.8,
               "equipmentId": "ghd",
               "executionCues": [
@@ -212,7 +212,7 @@
           }
         ],
         "defaultConfigurationId": "glute_ham_raise__default",
-        "description": "Glute-Ham Raise trabaja principalmente isquiosurales mediante un patrón de extensión rodilla / cadera. La participación secundaria corresponde a glúteos, erectores espinales.",
+        "description": "Glute ham raise: la espinilla apoyada en la máquina, bajas el cuerpo extendido y subes con isquios y glúteos. El ejercicio de los atletas serios, exigente de principio a fin.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

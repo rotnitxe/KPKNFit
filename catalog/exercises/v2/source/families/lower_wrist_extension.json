@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Mover el antebrazo entero en lugar de aislar la muñeca."
               ],
-              "description": "Extensión de muñeca en polea: la tensión continua mantiene los extensores del antebrazo activos a lo largo del recorrido.",
+              "description": "Polea con las palmas abajo: subes la mano contra la tensión del cable. La extensión de muñeca con resistencia constante.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
@@ -219,7 +219,7 @@
               "commonMistakes": [
                 "Mover el antebrazo entero en lugar de aislar la muñeca."
               ],
-              "description": "Extensión de muñeca con mancuerna: la carga libre permite ajustar el peso con precisión y trabajar cada muñeca por separado.",
+              "description": "Mancuernas con las palmas abajo: subes la muñeca contra el peso. La versión cómoda y popular de la extensión de muñeca.",
               "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -412,7 +412,7 @@
               "commonMistakes": [
                 "Mover el antebrazo entero en lugar de aislar la muñeca."
               ],
-              "description": "Extensión de muñeca con barra recta: la barra reparte la carga entre ambas muñecas con un agarre sencillo.",
+              "description": "Barra con las palmas abajo: las dos muñecas suben juntas contra la barra. El clásico para el antebrazo posterior.",
               "efc": 2.0,
               "equipmentId": "barbell",
               "executionCues": [
@@ -605,7 +605,7 @@
               "commonMistakes": [
                 "Mover el antebrazo entero en lugar de aislar la muñeca."
               ],
-              "description": "Extensión de muñeca con barra EZ: el agarre angulado resulta más cómodo para las muñecas con sensibilidades.",
+              "description": "Barra EZ con las palmas abajo: agarre cómodo y trabajo directo del antebrazo. La opción amable con las muñecas.",
               "efc": 2.0,
               "equipmentId": "ez_bar",
               "executionCues": [
@@ -780,7 +780,7 @@
           }
         ],
         "defaultConfigurationId": "forearms_curl_muneca_inverso_sentado__dumbbells",
-        "description": "Curl de Muñeca Inverso Sentado trabaja principalmente antebrazo mediante un patrón de extensión muñeca.",
+        "description": "Extensión de muñeca: con los antebrazos apoyados y las palmas hacia abajo, subes la mano contra resistencia. El complemento ideal para antebrazos equilibrados y muñecas sanas.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

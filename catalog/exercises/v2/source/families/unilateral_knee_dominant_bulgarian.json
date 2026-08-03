@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
               ],
-              "description": "Sentadilla búlgara con barra: el pie trasero descansa en el banco y la barra sobre la espalda reparte la carga entre ambas manos. La profundidad del descenso y el apoyo trasero concentran el trabajo en el cuádriceps de la pierna delantera.",
+              "description": "Barra y pie trasero en el banco: la búlgara clásica con carga. El ejercicio unilateral más efectivo para las piernas.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -231,7 +231,7 @@
               "commonMistakes": [
                 "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
               ],
-              "description": "Sentadilla búlgara en Smith: el pie trasero apoya en el banco y el riel guiado fija el plano del descenso. La máquina reduce el equilibrio del patrón unilateral.",
+              "description": "Smith y pie trasero en el banco: el guiado da seguridad en la bajada. Cómoda para cargar peso en la búlgara.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -436,7 +436,7 @@
               "commonMistakes": [
                 "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
               ],
-              "description": "Sentadilla búlgara en máquina: el apoyo del pie trasero se ajusta en la estación y el recorrido guiado acompaña la pierna delantera. La máquina simplifica la coordinación del patrón.",
+              "description": "Máquina de búlgara: el guiado y el apoyo fijo hacen el ejercicio más estable. La opción cómoda para series exigentes.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -641,7 +641,7 @@
               "commonMistakes": [
                 "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
               ],
-              "description": "Sentadilla búlgara con mancuernas: el pie trasero apoya en el banco y las cargas cuelgan a los lados del cuerpo. La empuñadura libre permite ajustar el equilibrio del patrón unilateral.",
+              "description": "Mancuernas y pie trasero en el banco: la versión más equilibrada y popular. La favorita de todos para trabajar la pierna.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -846,7 +846,7 @@
               "commonMistakes": [
                 "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
               ],
-              "description": "Sentadilla búlgara en polea: el pie trasero apoya en el banco y las manijas del cable añaden tensión continua al descenso. La polea ofrece una resistencia constante en el patrón unilateral.",
+              "description": "Polea y pie trasero en el banco: la tensión constante se suma a la búlgara. Variante fina que mantiene el estímulo al máximo.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -1051,7 +1051,7 @@
               "commonMistakes": [
                 "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
               ],
-              "description": "Sentadilla búlgara con kettlebell: el pie trasero apoya en el banco y el peso se sujeta frente al pecho. Variante accesible que mantiene el énfasis del cuádriceps delantero.",
+              "description": "Kettlebell y pie trasero en el banco: el agarre suma trabajo al ejercicio. Variante completa para pierna y antebrazos.",
               "efc": 2.8,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -1238,7 +1238,7 @@
           }
         ],
         "defaultConfigurationId": "bulgarian_split_squat__dumbbells",
-        "description": "Sentadilla unilateral con el pie trasero apoyado en un banco, que concentra el trabajo en la pierna delantera. El implemento define la carga y el equilibrio de cada variante.",
+        "description": "Sentadilla búlgara: el pie trasero apoyado en un banco y bajando con la pierna delantera. El ejercicio unilateral más temido y más efectivo para las piernas.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1282,7 +1282,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral para completar la repetición."
               ],
-              "description": "Sentadilla Búlgara Zercher trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla unilateral. La participación secundaria corresponde a glúteos, core. La configuración utiliza barra como implemento.",
+              "description": "Barra en los codos con el pie trasero en el banco: la búlgara con el torso trabajando de extra. Exigente y muy completa.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -1465,7 +1465,7 @@
           }
         ],
         "defaultConfigurationId": "bulgarian_zercher__barbell__zercher",
-        "description": "Sentadilla búlgara Zercher trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla unilateral. La participación secundaria corresponde a glúteos, core.",
+        "description": "Sentadilla búlgara Zercher: la búlgara con la carga en los codos frente al pecho. El torso trabaja de extra mientras la pierna delantera hace el trabajo pesado.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

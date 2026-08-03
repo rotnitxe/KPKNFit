@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Bajar los codos, perder el arco del brazo o usar impulso del tronco para completar la repetición."
               ],
-              "description": "Aperturas declinadas con mancuernas: el banco baja la cabeza y los brazos se abren en arco desde la parte baja del pecho. El ángulo enfatiza el pectoral inferior con mayor recorrido.",
+              "description": "Mancuernas en apertura declinada: el arco baja y el pectoral inferior se estira a fondo. La variante que completa la parte baja del pecho.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -224,7 +224,7 @@
               "commonMistakes": [
                 "Bajar los codos, perder el arco del brazo o usar impulso del tronco para completar la repetición."
               ],
-              "description": "Aperturas declinadas en polea: los brazos se abren en arco con el banco declinado y la tensión continua del cable. La polea sostiene la carga en la parte baja del recorrido.",
+              "description": "Polea en apertura declinada: tensión constante en el pectoral inferior de punta a punta. Cambio de ángulo que se siente como una novedad refrescante.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -422,7 +422,7 @@
               "commonMistakes": [
                 "Bajar los codos, perder el arco del brazo o usar impulso del tronco para completar la repetición."
               ],
-              "description": "Aperturas declinadas en máquina pec deck: los brazos se cierran con el banco declinado y el recorrido guiado. La estación fija el ángulo y aísla el pectoral inferior.",
+              "description": "Máquina declinada de aperturas: el guiado apunta directo a la parte baja del pecho. Cómoda, estable y muy efectiva para completar el pecho.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -602,7 +602,7 @@
           }
         ],
         "defaultConfigurationId": "decline_chest_fly__dumbbells",
-        "description": "Aperturas con los brazos en arco sobre banco declinadas, que aíslan el pectoral con la articulación del hombro como eje. El implemento define la curva de tensión de cada variante.",
+        "description": "Aperturas en banco declinado: el arco baja y el pectoral inferior toma el protagonismo. Ideal para completar el pecho con un estiramiento profundo que se siente de maravilla.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -646,7 +646,7 @@
               "commonMistakes": [
                 "Bajar los codos, perder el arco del brazo o usar impulso del tronco para completar la repetición."
               ],
-              "description": "Aperturas planas con mancuernas: los brazos se abren en arco desde el pecho y vuelven a juntarse por encima del banco. El pectoral mayor trabaja con el tronco apoyado en posición plana.",
+              "description": "Mancuernas en aperturas planas: el arco amplio estira el pecho en cada bajada. La sensación de abrir el pecho al máximo no tiene comparación.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -844,7 +844,7 @@
               "commonMistakes": [
                 "Bajar los codos, perder el arco del brazo o usar impulso del tronco para completar la repetición."
               ],
-              "description": "Aperturas planas en polea: los brazos se abren en arco contra la tensión continua del cable y vuelven hacia la línea media. La polea mantiene la carga en la fase de estiramiento del pectoral.",
+              "description": "Polea en aperturas planas: la tensión nunca se suelta y el pectoral trabaja de punta a punta. El clásico de los gimnasios para un pecho definido.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -1042,7 +1042,7 @@
               "commonMistakes": [
                 "Bajar los codos, perder el arco del brazo o usar impulso del tronco para completar la repetición."
               ],
-              "description": "Aperturas planas en máquina pec deck: los brazos presionan los cojines y se cierran hacia la línea media con recorrido guiado. La estación fija la posición y aísla el pectoral.",
+              "description": "Máquina de aperturas: recorrido guiado y tensión constante en el pecho. La opción más cómoda para concentrarte solo en abrir y cerrar.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -1222,7 +1222,7 @@
           }
         ],
         "defaultConfigurationId": "flat_chest_fly__dumbbells",
-        "description": "Aperturas con los brazos en arco sobre banco planas, que aíslan el pectoral con la articulación del hombro como eje. El implemento define la curva de tensión de cada variante.",
+        "description": "Aperturas planas: abres y cierras los brazos en arco sobre el pecho, como abrazando un árbol grande. Aísla el pectoral como ningún press y la sensación de tensión en el pecho es incomparable.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1266,7 +1266,7 @@
               "commonMistakes": [
                 "Bajar los codos, perder el arco del brazo o usar impulso del tronco para completar la repetición."
               ],
-              "description": "Aperturas inclinadas con mancuernas: el banco sube entre 30 y 45 grados y los brazos se abren en arco desde la parte alta del pecho. El ángulo enfatiza el pectoral alto y el deltoides anterior.",
+              "description": "Mancuernas en apertura inclinada: el arco se eleva y la parte alta del pecho toma el mando. Trabajo fino para definir la zona superior.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -1464,7 +1464,7 @@
               "commonMistakes": [
                 "Bajar los codos, perder el arco del brazo o usar impulso del tronco para completar la repetición."
               ],
-              "description": "Aperturas inclinadas en polea: los brazos se abren en arco con el banco inclinado y la tensión continua del cable. La polea sostiene la carga en la fase de estiramiento del pectoral alto.",
+              "description": "Polea en apertura inclinada: el ángulo alto con tensión continua esculpe la parte alta. Una combinación que sienta el pecho desde el primer tirón.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -1662,7 +1662,7 @@
               "commonMistakes": [
                 "Bajar los codos, perder el arco del brazo o usar impulso del tronco para completar la repetición."
               ],
-              "description": "Aperturas inclinadas en máquina pec deck: los brazos se cierran hacia la línea media con el banco inclinado y recorrido guiado. La estación fija el ángulo y aísla el pectoral alto.",
+              "description": "Máquina inclinada de aperturas: el guiado sube el foco a la zona alta sin esfuerzo extra. Fácil de cargar y muy efectiva para definir.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -1842,7 +1842,7 @@
           }
         ],
         "defaultConfigurationId": "incline_chest_fly__dumbbells",
-        "description": "Aperturas con los brazos en arco sobre banco inclinadas, que aíslan el pectoral con la articulación del hombro como eje. El implemento define la curva de tensión de cada variante.",
+        "description": "Aperturas en banco inclinado: el arco de los brazos se inclina y el foco sube a la parte alta del pecho. Trabajo fino de apertura para definir y dar forma a la zona superior.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1886,7 +1886,7 @@
               "commonMistakes": [
                 "Subir los hombros o mover el tronco en lugar de aislar la abducción horizontal."
               ],
-              "description": "Aperturas inversas en máquina pec deck con trabajo bilateral: el recorrido guiado aísla el deltoides posterior de forma segura y constante.",
+              "description": "Máquina Pec Deck invertida con ambos brazos: el deltoides posterior y la espalda alta trabajan juntos en cada apertura. El ejercicio más popular para corregir postura.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -2096,7 +2096,7 @@
               "commonMistakes": [
                 "Subir los hombros o mover el tronco en lugar de aislar la abducción horizontal."
               ],
-              "description": "Aperturas inversas en máquina pec deck con trabajo unilateral: permite igualar la fuerza del deltoides posterior entre ambos hombros.",
+              "description": "Máquina Pec Deck invertida de un lado a la vez: aísla cada deltoides posterior y corrige desequilibrios entre hombros. Muy útil para quien entrena asimétrico.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -2306,7 +2306,7 @@
               "commonMistakes": [
                 "Subir los hombros o mover el tronco en lugar de aislar la abducción horizontal."
               ],
-              "description": "Aperturas inversas en polea con trabajo bilateral: la tensión continua mantiene el deltoides posterior activo a lo largo del recorrido.",
+              "description": "Polea cruzada con ambos brazos: la tensión continua hace arder el deltoides posterior. Variante fina para completar el trabajo del hombro.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -2516,7 +2516,7 @@
               "commonMistakes": [
                 "Subir los hombros o mover el tronco en lugar de aislar la abducción horizontal."
               ],
-              "description": "Aperturas inversas en polea con trabajo unilateral: ideal para trabajar cada deltoides posterior por separado con tensión constante.",
+              "description": "Polea con un solo brazo: cada hombro posterior trabaja por separado con tensión constante. Perfecto para igualar ambos lados.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -2726,7 +2726,7 @@
               "commonMistakes": [
                 "Subir los hombros o mover el tronco en lugar de aislar la abducción horizontal."
               ],
-              "description": "Aperturas inversas con mancuernas y trabajo bilateral: el peso libre permite ajustar el rango y la carga a cada nivel de fuerza del deltoides posterior.",
+              "description": "Mancuernas con ambos brazos: apertura inversa clásica, con estiramiento al frente. El movimiento de corrección postural por excelencia.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -2936,7 +2936,7 @@
               "commonMistakes": [
                 "Subir los hombros o mover el tronco en lugar de aislar la abducción horizontal."
               ],
-              "description": "Aperturas inversas con mancuerna y trabajo unilateral: la carga libre expone asimetrías de fuerza entre los dos deltoides posteriores.",
+              "description": "Mancuerna con un solo brazo: deltoides posterior aislado con máximo control. Excelente para centrarse en un lado a la vez.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -3128,7 +3128,7 @@
           }
         ],
         "defaultConfigurationId": "reverse_pec_fly__bilateral__machine",
-        "description": "Abducción horizontal de hombros que enfatiza de forma específica el deltoides posterior. Las opciones cubren máquina pec deck, polea y mancuernas, en trabajo bilateral o unilateral.",
+        "description": "Aperturas invertidas: llevas los brazos hacia atrás abriendo el pecho, en máquina Pec Deck, polea o mancuernas. Es el ejercicio estrella para el deltoides posterior y la espalda alta: corrige postura y da forma al hombro.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

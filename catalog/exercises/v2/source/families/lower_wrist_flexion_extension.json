@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón flexión/extensión muñeca para completar la repetición."
               ],
-              "description": "Enrollar y desenrollar peso con rodillo de muñeca.",
+              "description": "Rodillo con cuerda y peso: enrollas la cuerda girando las muñecas hasta arriba y bajas lento. El ejercicio de la vieja escuela.",
               "efc": 2.0,
               "equipmentId": "wrist_roller",
               "executionCues": [
@@ -193,7 +193,7 @@
           }
         ],
         "defaultConfigurationId": "forearms_enrollamiento_muneca_rodillo__default",
-        "description": "Enrollar y desenrollar peso con rodillo de muñeca.",
+        "description": "Enrollamiento de muñeca con rodillo: enrollas y desenrollas una cuerda con peso girando la muñeca. El ejercicio de la vieja escuela para antebrazos brutales.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

@@ -41,6 +41,7 @@ import com.example.kpkn.data.remote.DeepSeekV4FlashClient
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.data.secure.DeepSeekCredentialStore
 import com.example.kpkn.data.remote.AiNutritionRequest
+import com.example.kpkn.data.remote.AiNutritionResult
 import com.example.kpkn.domain.nutrition.SmartFoodResolver
 import com.example.kpkn.domain.nutrition.CookingStateResolver
 import com.example.kpkn.domain.nutrition.scaleFoodByPortion
@@ -261,6 +262,13 @@ fun FoodLoggerDrawer(
     var analysisStartedAtMs by remember { mutableStateOf(0L) }
     var analysisNotice by remember { mutableStateOf<AnalysisNotice?>(null) }
 
+    // D14 (beta): comparación con IA — panel de SOLO LECTURA. La IA entrega su
+    // propia interpretación en paralelo; no toca tags, aprendizaje ni templates.
+    // Se eliminará cuando el sistema local sea plenamente operativo.
+    var aiComparison by remember { mutableStateOf<AiNutritionResult?>(null) }
+    var isAiComparing by remember { mutableStateOf(false) }
+    var aiComparisonError by remember { mutableStateOf<String?>(null) }
+
     // Modo de análisis: siempre determinístico con API externa opcional
     var showApiKey by remember { mutableStateOf(false) }
     var showApiConfigDialog by remember { mutableStateOf(false) }
@@ -438,15 +446,19 @@ fun FoodLoggerDrawer(
                     cookingMethod = food.cookingMethod,
                     foodItem = foodItem,
                     loggedFood = food.copy(analysisSource = AnalysisSource.USER_MEMORY),
-                    isResolved = true,
+                    // A3: la memoria del usuario es una SUGERENCIA, nunca una
+                    // autoconfirmación: un log erróneo no puede propagarse en silencio.
+                    isResolved = false,
                     isFuzzyMatch = true,
                     analysisSource = AnalysisSource.USER_MEMORY,
-                    statusText = "",
+                    statusText = "Coincide con tu comida habitual: revisa los alimentos y cantidades antes de guardar.",
+                    resolutionStatus = FoodResolutionStatus.NEEDS_CONFIRMATION,
                 )
             }
             lastAnalyzedDescription = description
             analysisStage = null
             analysisStartedAtMs = 0L
+            reviewRequired = true
             return
         }
 
@@ -524,7 +536,7 @@ fun FoodLoggerDrawer(
                                     parseMealDescription(description, descriptionRetrieval)
                                 }
                                 fallback.copy(
-                                    analysisEngine = "deepseek-v4-flash-failed-fallback"
+                                    analysisEngine = "external-api-failed-fallback-deepseek"
                                 )
                             } else {
                                 ParsedMealDescription(
@@ -597,9 +609,50 @@ fun FoodLoggerDrawer(
         }
     }
 
+    /**
+     * D14 (beta): consulta la IA por separado y muestra SU interpretación como
+     * referencia de solo lectura. No persiste nada, no alimenta aprendizaje y
+     * no modifica los tags del registro local.
+     */
+    fun compareWithAi() {
+        if (description.isBlank() || isAiComparing) return
+        isAiComparing = true
+        aiComparison = null
+        aiComparisonError = null
+        scope.launch {
+            try {
+                val apiService = DeepSeekV4FlashClient(context)
+                val request = AiNutritionRequest(description = description)
+                val result = withContext(Dispatchers.IO) {
+                    apiService.analyzeNutrition(request)
+                }
+                result.fold(
+                    onSuccess = { aiComparison = it },
+                    onFailure = { aiComparisonError = it.message ?: "La IA no respondió." },
+                )
+            } catch (e: Exception) {
+                aiComparisonError = e.message ?: "Error al consultar la IA."
+            } finally {
+                isAiComparing = false
+            }
+        }
+    }
+
     fun resolveFood(tagId: String, food: FoodItem) {
         val portionAdj = detectedContext?.portionAdjustment ?: 1.0
         val proteinB = detectedContext?.proteinAdjustment ?: 0.0
+        // IT2: conectar el aprendizaje del resolver — una corrección manual del
+        // usuario debe persistir para futuras resoluciones (antes era código muerto).
+        val targetTag = tags.firstOrNull { it.id == tagId }
+        if (targetTag != null) {
+            nutritionRepo.recordLearnedResolution(
+                query = targetTag.tag,
+                brandHint = null,
+                foodId = food.id,
+                portionGrams = targetTag.amountGrams,
+                cookingMethod = targetTag.cookingMethod?.name,
+            )
+        }
         tags = tags.map { tag ->
             if (tag.id == tagId) {
                 val (adj, boost) = scalingForIntent(tag.amountIntent, portionAdj, proteinB)
@@ -1206,6 +1259,36 @@ fun FoodLoggerDrawer(
                             analysisNotice?.let { notice ->
                                 AnalysisNoticeCard(notice = notice)
                             }
+                        }
+
+                        // D14 (beta): comparación con IA — referencia paralela de solo lectura.
+                        OutlinedButton(
+                            onClick = { compareWithAi() },
+                            enabled = description.isNotBlank() && !isAiComparing && !isAnalyzing,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = PRO_COLOR,
+                            ),
+                        ) {
+                            if (isAiComparing) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(14.dp),
+                                    strokeWidth = 2.dp,
+                                    color = PRO_COLOR,
+                                )
+                            } else {
+                                Icon(Icons.Default.AutoAwesome, null, modifier = Modifier.size(16.dp))
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(if (isAiComparing) "Consultando IA…" else "Comparar con IA (beta)")
+                        }
+                        if (aiComparison != null || aiComparisonError != null || isAiComparing) {
+                            AiComparisonPanel(
+                                result = aiComparison,
+                                isLoading = isAiComparing,
+                                error = aiComparisonError,
+                            )
                         }
                     }
                 }
@@ -1827,10 +1910,14 @@ private fun TagCard(
                     }
 
                     if (tag.amountGrams != null || tag.loggedFood != null) {
-                        Text("Gramos (${kotlin.math.round(tag.amountGrams ?: tag.loggedFood?.amount ?: 100.0).toInt()}g)", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold)
+                        val currentGrams = tag.amountGrams ?: tag.loggedFood?.amount ?: 100.0
+                        val gramsLabel = kotlin.math.round(currentGrams).toInt()
+                        Text("Gramos (${gramsLabel}g)", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold)
+                        // B11: tope dinámico — "1.5 kg de arroz" (1500g) no debe colapsar a 500g.
+                        val gramsMax = maxOf(600.0, kotlin.math.round(currentGrams * 2.0))
                         Slider(
-                            value = ((tag.amountGrams ?: tag.loggedFood?.amount ?: 100.0) / 500.0).toFloat().coerceIn(0f, 1f),
-                            onValueChange = { onGramsChange(kotlin.math.round(it * 500.0)) },
+                            value = (currentGrams / gramsMax).toFloat().coerceIn(0f, 1f),
+                            onValueChange = { onGramsChange(kotlin.math.round(it * gramsMax)) },
                             valueRange = 0f..1f,
                         )
                     }
@@ -2085,6 +2172,108 @@ private fun MacroOverrideCol(label: String, value: Double, step: Double = 1.0, o
             )
             IconButton(onClick = { onChange((value + step).coerceAtMost(9999.0)) }, modifier = Modifier.size(24.dp)) {
                 Icon(Icons.Default.Add, null, modifier = Modifier.size(12.dp))
+            }
+        }
+    }
+}
+
+/**
+ * D14 (beta): panel de SOLO LECTURA con la interpretación de la IA para la misma
+ * descripción. No guarda nada: sirve de referencia/contraste con el registro
+ * local mientras el sistema local no sea plenamente operativo.
+ */
+@Composable
+private fun AiComparisonPanel(
+    result: AiNutritionResult?,
+    isLoading: Boolean,
+    error: String?,
+) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = if (error != null) {
+            MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f)
+        } else {
+            MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.4f)
+        },
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(Icons.Default.AutoAwesome, null, modifier = Modifier.size(14.dp), tint = PRO_COLOR)
+                Text(
+                    text = if (error != null) "La IA no pudo responder" else "Interpretación de la IA (solo lectura)",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.ExtraBold,
+                )
+            }
+            when {
+                isLoading -> {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    LinearProgressIndicator(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(4.dp)
+                            .clip(RoundedCornerShape(2.dp)),
+                    )
+                    Text(
+                        text = "La IA está interpretando la descripción…",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                error != null -> {
+                    Text(
+                        text = error,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+                result?.items.isNullOrEmpty() -> {
+                    Text(
+                        text = "La IA no reconoció alimentos en esta descripción.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                else -> {
+                    result!!.items.forEach { item ->
+                        val name = item.canonicalName.ifBlank { item.rawText }
+                        val grams = item.grams
+                        val macros = item.nutritionPer100g
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            Text(
+                                text = name.trim().replaceFirstChar { it.uppercase() },
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            Text(
+                                text = buildString {
+                                    if (grams != null) append("${kotlin.math.round(grams).toInt()} g")
+                                    macros?.let { m ->
+                                        if (grams != null) append(" · ")
+                                        append("${kotlin.math.round(m.calories * (grams ?: 100.0) / 100.0).toInt()} kcal")
+                                    }
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                    val model = result.modelVersion
+                    if (!model.isNullOrBlank()) {
+                        Text(
+                            text = "Modelo: $model · no se guarda en tu registro",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        )
+                    }
+                }
             }
         }
     }

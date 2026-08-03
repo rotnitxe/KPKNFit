@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón extensión/abducción cadera para completar la repetición."
               ],
-              "description": "Patada trasera a 45º para glúteo medio en polea.",
+              "description": "Polea baja con el cable cruzando el cuerpo: la patada viaja en diagonal con tensión constante. Un ángulo que sorprende al glúteo.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -193,7 +193,7 @@
           }
         ],
         "defaultConfigurationId": "glutes_patada_gluteo_polea_diagonal__default",
-        "description": "Patada trasera a 45º para glúteo medio en polea.",
+        "description": "Patada de glúteo en polea diagonal: el cable cruza el cuerpo y la tensión viaja con la pierna en diagonal. Variante que sorprende al glúteo con un ángulo nuevo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

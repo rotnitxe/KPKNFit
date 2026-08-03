@@ -55,6 +55,8 @@ class ExerciseCatalogV2LabelsTest {
         assertEquals("Polea Baja", exerciseCatalogOptionLabel("low", definitionId = "tren_superior_cruce_poleas"))
         assertEquals("Barra de Seguridad", exerciseCatalogOptionLabel("safety_bar"))
         assertEquals("Con Barra de Seguridad", exerciseCatalogVariantTagLabel("safety_bar"))
+        assertEquals("Barra H", exerciseCatalogOptionLabel("h_bar"))
+        assertEquals("Con Barra H", exerciseCatalogVariantTagLabel("h_bar"))
         assertEquals("Glúteo Medio", exerciseCatalogMuscleLabel("gluteus_medius"))
         assertFalse(exerciseCatalogOptionLabel("dumbbells").equals("dumbbells", ignoreCase = true))
     }

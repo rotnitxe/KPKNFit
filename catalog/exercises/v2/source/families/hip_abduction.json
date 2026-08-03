@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso o un recorrido demasiado corto que evita el rango completo de la abducción."
               ],
-              "description": "Abducciones de pierna sentado en máquina con trabajo bilateral: la estación guiada aísla el glúteo medio con tensión constante y recorrido controlado.",
+              "description": "Máquina sentado con ambas piernas: abres y cierras contra las almohadillas con el glúteo medio aislado. El clásico de las máquinas de cadera.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -231,7 +231,7 @@
               "commonMistakes": [
                 "Usar impulso o apoyarte en el respaldo para compensar el lado trabajado."
               ],
-              "description": "Abducciones de pierna sentado en máquina con trabajo unilateral: permite aislar cada cadera por separado y corregir desequilibrios de fuerza entre lados.",
+              "description": "Máquina sentado de un lado a la vez: aísla cada glúteo medio y corrige desequilibrios entre caderas. Muy útil para quien entrena asimétrico.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -436,7 +436,7 @@
               "commonMistakes": [
                 "Balancear el tronco para mover la pierna en lugar de aislar la abducción de cadera."
               ],
-              "description": "Abducciones de pierna de pie en polea con trabajo bilateral: la tensión continua de la polea mantiene el glúteo medio activo a lo largo del recorrido.",
+              "description": "Polea de pie con ambas piernas: la tensión constante acompaña la apertura y el glúteo medio trabaja todo el recorrido. Variante fina y efectiva.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -641,7 +641,7 @@
               "commonMistakes": [
                 "Perder el control de la pelvis y compensar con inclinación del tronco."
               ],
-              "description": "Abducciones de pierna de pie en polea con trabajo unilateral: ideal para igualar la fuerza de cada cadera y sostener tensión en el punto de máxima contracción.",
+              "description": "Polea de pie con una pierna: el glúteo medio trabaja aislado con tensión continua. Ideal para igualar ambos lados de la cadera.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -846,7 +846,7 @@
               "commonMistakes": [
                 "Reducir el rango al final del movimiento, donde la banda ofrece mayor resistencia."
               ],
-              "description": "Abducciones de pierna de pie con banda elástica y trabajo bilateral: la resistencia variable exige más esfuerzo al final del recorrido, donde más trabaja el glúteo medio.",
+              "description": "Banda de pie con ambas piernas: la resistencia elástica aumenta en el punto más amplio. Sencilla de montar y muy efectiva para calentar o rematar.",
               "efc": 2.8,
               "equipmentId": "band",
               "executionCues": [
@@ -1051,7 +1051,7 @@
               "commonMistakes": [
                 "Compensar con la cadera en vez de aislar la abducción con la pierna de trabajo."
               ],
-              "description": "Abducciones de pierna de pie con banda elástica y trabajo unilateral: permite trabajar cada cadera con su propia resistencia y detectar asimetrías de fuerza.",
+              "description": "Banda en una pierna: aperturas contra la resistencia elástica lado a lado. Perfecta para activar el glúteo medio antes de entrenar.",
               "efc": 2.8,
               "equipmentId": "band",
               "executionCues": [
@@ -1238,7 +1238,7 @@
           }
         ],
         "defaultConfigurationId": "hip_abduction__seated__machine__bilateral",
-        "description": "La pierna se aleja de la línea media del cuerpo con los abductores como motor principal. La estación y el implemento cambian la tensión y el rango de cada variante.",
+        "description": "Abducciones de pierna: separas la pierna hacia el lado contra resistencia y el glúteo medio hace el trabajo. El ejercicio que da forma a la cadera, protege las rodillas y mejora tu estabilidad.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

@@ -59,6 +59,7 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -69,7 +70,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.min
 import com.example.kpkn.screens.sessioneditor.components.InlineSetRow
-import com.example.kpkn.screens.sessioneditor.components.SupersetRestWheelRow
+import com.example.kpkn.screens.sessioneditor.components.launchNativeRestPickerChain
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.example.kpkn.ui.components.KpknAlertDialog
@@ -132,34 +133,17 @@ internal fun RestBundleDialog(
     onDismiss: () -> Unit,
     onConfirm: (Int, Int?) -> Unit,
 ) {
-    var primaryMinutes by rememberSaveable(initialPrimarySeconds) { mutableStateOf((initialPrimarySeconds / 60).coerceIn(0, 59)) }
-    var primarySeconds by rememberSaveable(initialPrimarySeconds) { mutableStateOf((initialPrimarySeconds % 60).coerceIn(0, 59)) }
-    var sideMinutes by rememberSaveable(initialSideSeconds) { mutableStateOf(((initialSideSeconds ?: 0) / 60).coerceIn(0, 59)) }
-    var sideSeconds by rememberSaveable(initialSideSeconds) { mutableStateOf(((initialSideSeconds ?: 0) % 60).coerceIn(0, 59)) }
-
-    KpknAlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Descansos", fontWeight = FontWeight.Black) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                SupersetRestWheelRow(primaryLabel, primaryMinutes, primarySeconds, accentColor, { primaryMinutes = it }, { primarySeconds = it })
-                if (initialSideSeconds != null) {
-                    SupersetRestWheelRow("Entre lados", sideMinutes, sideSeconds, accentColor, { sideMinutes = it }, { sideSeconds = it })
-                }
-            }
-        },
-        confirmButton = {
-            FilledTonalButton(
-                onClick = {
-                    onConfirm(
-                        primaryMinutes * 60 + primarySeconds,
-                        initialSideSeconds?.let { sideMinutes * 60 + sideSeconds },
-                    )
-                },
-            ) { Text("Aplicar") }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
-    )
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        launchNativeRestPickerChain(
+            context = context,
+            primaryLabel = primaryLabel,
+            primarySeconds = initialPrimarySeconds,
+            sideSeconds = initialSideSeconds,
+            onResult = { primary, side -> onConfirm(primary, side) },
+            onCancel = onDismiss,
+        )
+    }
 }
 
 @Composable

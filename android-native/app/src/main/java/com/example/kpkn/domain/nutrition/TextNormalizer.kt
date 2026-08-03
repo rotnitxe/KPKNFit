@@ -165,7 +165,7 @@ object TextNormalizer {
 
     // ─── Shorthand / chat abbreviations ───────────────────────────────────
     private val SHORTHAND_PATTERN = Regex(
-        """\b(xq|pq|porq|q|ke|tmb|tb|grs?|gramit[oa]s|gramines?|gramos?|gr|kilit[oa]s|kls|kgs|mililitr[oa]s|mlts|cdas?|cdita|cucharadita)\b""",
+        """\b(xq|pq|porq|q|ke|tmb|tb|grs?|gramit[oa]s|gramines?|gramos?|gr|kilit[oa]s|kls|kgs|mililitr[oa]s|mlts|cdas?|cdita|cucharaditas?)\b""",
         RegexOption.IGNORE_CASE
     )
 
@@ -201,6 +201,20 @@ object TextNormalizer {
         """\b(medio\s+kilo|cuarto\s+kilo|un\s+kilo\s+y\s+medio)\b""",
         RegexOption.IGNORE_CASE
     )
+
+    // B8: nombres de platos que contienen números-palabra. Convertir "tres leches"
+    // → "3 leches" rompería el plato; se enmascaran antes de convertNumberWords.
+    private val NUMBER_WORD_PLATES = listOf(
+        "tres leches", "cuatro leches", "mil hojas", "cuatro quesos",
+        "tres quesos", "dos quesos", "cinco quesos",
+    )
+
+    private val NUMBER_WORD_PLATES_REGEX by lazy {
+        Regex(
+            NUMBER_WORD_PLATES.joinToString("|") { "\\b${Regex.escape(it)}\\b" },
+            RegexOption.IGNORE_CASE,
+        )
+    }
 
     private val SPACES_PATTERN = Regex("\\s+")
     private val MULTISPACE_PATTERN = Regex("\\s{2,}")
@@ -383,13 +397,28 @@ object TextNormalizer {
         // 9. Expand fractional patterns
         text = expandFractions(text)
 
-        // 10. Convert number words to digits
-        text = convertNumberWords(text)
+        // 10. Convert number words to digits (B8: protegiendo nombres de platos
+        //     como "tres leches" o "mil hojas" que contienen números-palabra).
+        text = convertNumberWordsProtectingPlates(text)
 
         // 11. Final cleanup: collapse multiple spaces
         text = text.replace(MULTISPACE_PATTERN, " ").trim()
 
         return text
+    }
+
+    private fun convertNumberWordsProtectingPlates(text: String): String {
+        val masks = mutableListOf<Pair<String, String>>()
+        val masked = NUMBER_WORD_PLATES_REGEX.replace(text) { match ->
+            val token = "__NUMBERPLATE_${masks.size}__"
+            masks.add(token to match.value)
+            token
+        }
+        var result = convertNumberWords(masked)
+        for ((token, original) in masks) {
+            result = result.replace(token, original)
+        }
+        return result
     }
 
     /**
@@ -477,7 +506,9 @@ object TextNormalizer {
                 word == "gr" || word == "g" || word == "grs" || word == "gramos" || word.startsWith("gramit") || word.startsWith("gramin") -> "g"
                 word == "kls" || word == "kgs" || word.startsWith("kilit") -> "kg"
                 word == "ml" || word == "mlts" || word.startsWith("mililitr") -> "ml"
-                word == "cdita" || word == "cucharadita" || word.startsWith("cda") -> "cucharada"
+                // B7: "cucharadita" es 5g, NO "cucharada" (15g). "cdita" y "cda" son abreviaturas distintas.
+                word == "cdita" || word == "cucharadita" || word.startsWith("cucharadita") -> "cucharadita"
+                word == "cda" || word == "cucharada" || word.startsWith("cda") -> "cucharada"
                 else -> word
             }
         }

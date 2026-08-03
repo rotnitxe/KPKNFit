@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."
               ],
-              "description": "Remo Seal acostado boca abajo en banco elevado. La configuración utiliza barra como implemento. La variante se define por: barra.",
+              "description": "Con barra acostado en el banco: aislamiento total de la espalda y cero trampas. De los remos más honestos que existen, con una contracción que se siente clarísima.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -244,7 +244,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."
               ],
-              "description": "Remo Seal acostado boca abajo con mancuernas. La variante se define por: mancuernas.",
+              "description": "Con mancuernas acostado en el banco: cada brazo trabaja solo y el dorsal se estira a fondo. Perfecto para sentir la espalda de verdad y corregir desequilibrios.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -444,7 +444,7 @@
           }
         ],
         "defaultConfigurationId": "seal_row__barbell",
-        "description": "Remo Seal trabaja principalmente dorsales mediante un patrón de tirón horizontal. La participación secundaria corresponde a trapecio, deltoides, bíceps, erectores espinales.",
+        "description": "Remo acostado boca abajo sobre el banco, con los brazos colgando hacia el suelo. Aisla la espalda al máximo y es de los pocos remos donde no puedes hacer trampa con el cuerpo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

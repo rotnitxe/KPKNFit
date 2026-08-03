@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón abducción diagonal para completar la repetición."
               ],
-              "description": "Y-Raises Sentado en Banco Inclinado trabaja principalmente deltoides mediante un patrón de abducción diagonal. La participación secundaria corresponde a trapecio. La configuración utiliza mancuernas como implemento.",
+              "description": "Boca abajo en el banco inclinado, subes los brazos en forma de Y. La espalda alta y el hombro trabajan con mucha elegancia.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -201,7 +201,7 @@
           }
         ],
         "defaultConfigurationId": "deltoides_y_raises_sentado_banco_inclinado__default",
-        "description": "Y-Raises Sentado en Banco Inclinado trabaja principalmente deltoides mediante un patrón de abducción diagonal. La participación secundaria corresponde a trapecio.",
+        "description": "Y-raises en banco inclinado: acostado boca abajo, subes los brazos en forma de Y. El ejercicio fino para la espalda alta y el hombro.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

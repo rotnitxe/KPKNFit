@@ -48,10 +48,12 @@ private val LITERAL_QUANTITIES = mapOf(
 )
 
 private val PORTION_PATTERNS = listOf(
-    Triple(Regex("""\b(grande|generoso|generosa)\b""", RegexOption.IGNORE_CASE), PortionPreset.EXTRA, "extra"),
+    // Los patrones con "plato" deben evaluarse ANTES que el adjetivo suelto:
+    // "un plato grande de arroz" es LARGE, no EXTRA (B9).
     Triple(Regex("""\bplato\s+grande\b""", RegexOption.IGNORE_CASE), PortionPreset.LARGE, "large"),
     Triple(Regex("""\bplato\s+mediano\b""", RegexOption.IGNORE_CASE), PortionPreset.MEDIUM, "medium"),
     Triple(Regex("""\bplato\s+(?:chico|pequeño|pequeña)\b""", RegexOption.IGNORE_CASE), PortionPreset.SMALL, "small"),
+    Triple(Regex("""\b(grande|generoso|generosa)\b""", RegexOption.IGNORE_CASE), PortionPreset.EXTRA, "extra"),
     Triple(Regex("""\b(mediano|mediana)\b""", RegexOption.IGNORE_CASE), PortionPreset.MEDIUM, "medium"),
     Triple(Regex("""\b(pequeño|pequeña|chico|chica)\b""", RegexOption.IGNORE_CASE), PortionPreset.SMALL, "small"),
 )
@@ -121,7 +123,6 @@ private val GROUP_PATTERN = Regex("^(.+?)\\s*\\((.+)\\)\\s*$")
 private val STARTS_WITH_DIGIT = Regex("""^\d""")
 private val NEGATION_PATTERN = Regex("""\b(?:sin|menos|no)\b""", RegexOption.IGNORE_CASE)
 private val GRAM_UNIT_PATTERN = Regex("""(\d+(?:[.,]\d+)?)\s*($GRAM_UNITS)\b""", RegexOption.IGNORE_CASE)
-private val GRAM_POSITION_LOOKAHEAD = Regex("""(?=(?<!\d)(?<![.,])\d+(?:[.,]\d+)?\s*(?:$GRAM_UNITS)\b)""", RegexOption.IGNORE_CASE)
 private val KG_LITER_PATTERN = Regex("kg|kilos?|l$|litros?")
 private val OZ_PATTERN = Regex("oz|onzas?")
 private val LB_PATTERN = Regex("lb|libras?")
@@ -158,7 +159,7 @@ private val REFERENCE_KEYWORDS_FAST = listOf(
 
 private val COOKING_KEYWORDS_FAST = listOf(
     "empaniz", "apanad", "breaded", "empanad", "plancha", "horno", "horn",
-    "baked", "airfryer", "air fryer", "frito", "freid", "freíd", "revuelt",
+    "baked", "airfryer", "air fryer", "frit", "freid", "freíd", "freir", "revuelt",
     "saltea", "sofrit", "soffrit", "fried", "cocid", "hervid", "sancoch",
     "boiled", "estofad", "crud", "fresc", "raw", "vapor", "steamed", "olla",
     "parrill", "grilled", "asado", "carbón", "carbon", "guisad", "cazuel",
@@ -371,20 +372,65 @@ private fun splitByListConnectors(description: String): List<String> {
         }
     }.filter { it.isNotEmpty() }
 
-    // Split fragments containing multiple explicit measures ("100g arroz 50g pollo")
+    // Split fragments containing multiple explicit measures.
+    // B6: la segmentación antigua cortaba DESDE cada medida ("arroz 100g pollo 50g"
+    // → "100g pollo" + "50g", perdiendo "arroz" y desalineando gramos). Ahora se
+    // intentan dos interpretaciones y se elige la que deja un alimento por medida:
+    //   - Estilo A (alimento precede a la medida):  "arroz 100g pollo 50g" → [arroz 100g][pollo 50g]
+    //   - Estilo B (medida precede al alimento):    "100g arroz 50g pollo" → [100g arroz][50g pollo]
     parts = parts.flatMap { part ->
-        val positions = GRAM_POSITION_LOOKAHEAD.findAll(part).map { it.range.first }.toList()
-        if (positions.size <= 1) {
-            listOf(part)
-        } else {
-            positions.mapIndexed { index, start ->
-                val end = positions.getOrNull(index + 1) ?: part.length
-                part.substring(start, end).trim()
-            }
-        }
+        splitMultiMeasure(part)
     }.filter { it.isNotEmpty() }
 
     return parts
+}
+
+/** Divide un fragmento con ≥2 medidas explícitas en fragmentos de una sola medida. */
+private fun splitMultiMeasure(part: String): List<String> {
+    val measures = GRAM_UNIT_PATTERN.findAll(part).toList()
+    if (measures.size <= 1) return listOf(part)
+
+    fun cleanFragments(fragments: List<String>): List<String> = fragments
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
+
+    fun measureCount(fragment: String): Int = GRAM_UNIT_PATTERN.findAll(fragment).count()
+
+    /** True si tras quitar la (única) medida queda un alimento de ≥2 caracteres. */
+    fun hasFood(fragment: String): Boolean {
+        if (measureCount(fragment) != 1) return false
+        val withoutMeasure = GRAM_UNIT_PATTERN.find(fragment)?.let { m ->
+            fragment.removeRange(m.range)
+        } ?: fragment
+        return withoutMeasure.trim().length >= 2
+    }
+
+    // Estilo A: cada medida toma el texto que la precede (fin de la medida anterior).
+    val styleA = cleanFragments(
+        measures.mapIndexed { index, m ->
+            val start = if (index == 0) 0 else measures[index - 1].range.last + 1
+            part.substring(start, m.range.last + 1)
+        }
+    )
+    if (styleA.isNotEmpty() && styleA.all { hasFood(it) }) return styleA
+
+    // Estilo B: cada medida toma el texto que la sigue (inicio de la siguiente medida).
+    val styleB = cleanFragments(
+        measures.mapIndexed { index, m ->
+            val end = if (index == measures.lastIndex) part.length else measures[index + 1].range.first
+            part.substring(m.range.first, end)
+        }
+    )
+    if (styleB.isNotEmpty() && styleB.all { hasFood(it) }) return styleB
+
+    // Fallback: comportamiento histórico (cortar desde cada medida).
+    return cleanFragments(
+        measures.mapIndexed { index, m ->
+            val start = m.range.first
+            val end = measures.getOrNull(index + 1)?.range?.first ?: part.length
+            part.substring(start, end)
+        }
+    )
 }
 
 // ─── Extract Grams ───────────────────────────────────────────────────────────

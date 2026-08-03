@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón flexión dorsal para completar la repetición."
               ],
-              "description": "Tibial Anterior trabaja principalmente tibial anterior mediante un patrón de flexión dorsal. La configuración utiliza peso corporal como implemento.",
+              "description": "Con banda o disco sobre los pies: llevas la punta hacia arriba contra resistencia. La espinilla trabaja a fondo para tobillos fuertes.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -194,7 +194,7 @@
           }
         ],
         "defaultConfigurationId": "calves_tibial_anterior__default",
-        "description": "Tibial Anterior trabaja principalmente tibial anterior mediante un patrón de flexión dorsal.",
+        "description": "Tibial anterior: llevas la punta del pie hacia arriba contra resistencia. El músculo olvidado de la espinilla, clave para tobillos sanos y pantorrillas completas.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

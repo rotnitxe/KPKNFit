@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón depresión escapular para completar la repetición."
               ],
-              "description": "Depresión y retracción escapular colgado de la barra. La configuración utiliza peso corporal como implemento.",
+              "description": "Colgado de la barra moviendo solo los omóplatos: la espalda se activa sin doblarte. El ejercicio de preparación que todo el mundo debería hacer.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -212,7 +212,7 @@
           }
         ],
         "defaultConfigurationId": "back_dominadas_escapulares__default",
-        "description": "Depresión y retracción escapular colgado de la barra.",
+        "description": "Dominadas escapulares: te cuelgas de la barra y solo mueves los omóplatos, sin doblar los codos. El ejercicio de activación de la espalda que todo el mundo necesita.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

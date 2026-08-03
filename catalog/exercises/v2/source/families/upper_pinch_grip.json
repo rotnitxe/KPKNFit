@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón fuerza agarre pinza para completar la repetición."
               ],
-              "description": "Pinza de Discos trabaja principalmente antebrazo mediante un patrón de fuerza agarre pinza.",
+              "description": "Dos discos lisos entre los dedos y el pulgar: aguanta el mayor tiempo posible. La fuerza de agarre más pura que existe.",
               "efc": 2.0,
               "equipmentId": "plate",
               "executionCues": [
@@ -193,7 +193,7 @@
           }
         ],
         "defaultConfigurationId": "forearms_pinza_de_discos__default",
-        "description": "Pinza de Discos trabaja principalmente antebrazo mediante un patrón de fuerza agarre pinza.",
+        "description": "Pinza de discos: agarras dos discos lisos con los dedos y los sostienes el mayor tiempo posible. El ejercicio de fuerza de agarre más puro que existe.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

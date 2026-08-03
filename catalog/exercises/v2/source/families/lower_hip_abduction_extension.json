@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Girar el tronco para ganar altura en lugar de aislar la abducción de cadera."
               ],
-              "description": "Patada de glúteo lateral en polea baja: el glúteo medio abduce la pierna hacia un lado con tensión continua a lo largo del recorrido.",
+              "description": "Polea lateral: abres la pierna hacia el lado con tensión constante en el glúteo medio. La versión pulida de la patada lateral.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -219,7 +219,7 @@
               "commonMistakes": [
                 "Girar el tronco para ganar altura en lugar de aislar la abducción de cadera."
               ],
-              "description": "Patada de glúteo lateral con mancuerna: la carga libre aísla el glúteo medio al abducir la pierna hacia el costado.",
+              "description": "Mancuerna en la cadera o el tobillo: apertura lateral con carga libre. Fácil de hacer en cualquier gimnasio y muy directa al glúteo.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -412,7 +412,7 @@
               "commonMistakes": [
                 "Girar el tronco para ganar altura en lugar de aislar la abducción de cadera."
               ],
-              "description": "Patada de glúteo lateral con banda elástica: la resistencia máxima llega al final del recorrido, donde el glúteo medio trabaja más.",
+              "description": "Banda alrededor de los tobillos: abres la pierna contra la resistencia elástica. El clásico de las rutinas de glúteo en casa.",
               "efc": 2.8,
               "equipmentId": "band",
               "executionCues": [
@@ -587,7 +587,7 @@
           }
         ],
         "defaultConfigurationId": "glutes_patada_gluteo_lateral__cable",
-        "description": "Patada de Glúteo Lateral trabaja principalmente glúteos mediante un patrón de abducción/extensión cadera.",
+        "description": "Patada de glúteo lateral: llevas la pierna hacia el lado contra resistencia, enfocando el glúteo medio y el lateral de la cadera. Ideal para redondear el glúteo completo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

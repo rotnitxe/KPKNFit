@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón bisagra cadera / rdl para completar la repetición."
               ],
-              "description": "Bisagra de cadera con barra y dos piernas de apoyo: la carga viaja frente a los muslos y el isquio y el glúteo trabajan en conjunto. Es la configuración de referencia para progresar el peso de forma estable.",
+              "description": "Barra con ambas piernas: el rumano clásico deslizando la barra por los muslos. Isquios y glúteos cargados con la máxima tensión.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -242,7 +242,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón bisagra cadera / rdl para completar la repetición."
               ],
-              "description": "Bisagra de cadera con barra y una pierna de apoyo: la pierna libre apenas toca el suelo y el trabajo recae sobre el isquio y el glúteo del lado activo. Exige control de la pelvis para no rotar el tronco.",
+              "description": "Barra en una pierna: el rumano con equilibrio, el isquio estirado a fondo y el glúteo trabajando en cada repetición. Avanzado y muy completo.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -464,7 +464,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón bisagra cadera / rdl para completar la repetición."
               ],
-              "description": "Bisagra de cadera en la máquina Smith con dos piernas: el recorrido guiado libera parte del equilibrio y permite concentrarse en el estiramiento de los isquiosurales. Buena opción para aislar el patrón con menos coordinación.",
+              "description": "Smith con ambas piernas: el guiado te deja estirar los isquios con total seguridad. Perfecto para series exigentes sin pensarlo.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -680,7 +680,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón bisagra cadera / rdl para completar la repetición."
               ],
-              "description": "Bisagra de cadera en la Smith con una pierna de apoyo: el riel guiado reduce la exigencia de equilibrio y deja el énfasis sobre el isquio y el glúteo del lado activo. Adecuada para unilaterales con carga estable.",
+              "description": "Smith en una pierna: estabilidad del guiado más el reto del apoyo único. Variante fina para corregir desequilibrios.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -902,7 +902,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón bisagra cadera / rdl para completar la repetición."
               ],
-              "description": "Bisagra de cadera con mancuernas y dos piernas: la carga cuelga a los lados del cuerpo y permite un rango de recorrido cómodo con la espalda neutra. La empuñadura libre favorece la posición natural de los hombros.",
+              "description": "Mancuernas con ambas piernas: la carga viaja por delante de los muslos con recorrido libre. La versión accesible del rumano.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -1118,7 +1118,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón bisagra cadera / rdl para completar la repetición."
               ],
-              "description": "Bisagra de cadera con mancuernas y apoyo asimétrico: el peso se reparte en ambas manos mientras una pierna sostiene el patrón y la otra acompaña en punta. Ayuda a corregir asimetrías con carga moderada.",
+              "description": "Mancuerna en una pierna: el estiramiento del isquio se siente en cada bajada. El favorito para equilibrio y fuerza trasera.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -1340,7 +1340,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón bisagra cadera / rdl para completar la repetición."
               ],
-              "description": "Bisagra de cadera con barra hexagonal y dos piernas: el agarre neutro y el centro de gravedad centrado alivian la demanda lumbar frente a la barra recta. Permite manejar cargas mayores con menos tensión sobre la espalda.",
+              "description": "Barra hexagonal con ambas piernas: carga estable y estiramiento profundo de isquios. Cómoda, segura y muy efectiva.",
               "efc": 2.8,
               "equipmentId": "hex_bar",
               "executionCues": [
@@ -1556,7 +1556,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón bisagra cadera / rdl para completar la repetición."
               ],
-              "description": "Bisagra de cadera con barra hexagonal y una pierna de apoyo: el agarre neutro facilita el equilibrio y el isquio del lado activo asume la mayor parte del trabajo. Combina la comodidad del hexágono con el estímulo unipodal.",
+              "description": "Barra hexagonal en una pierna: la estabilidad de la carga más el trabajo de equilibrio. Variante exigente para la cadena posterior.",
               "efc": 2.8,
               "equipmentId": "hex_bar",
               "executionCues": [
@@ -1760,7 +1760,7 @@
           }
         ],
         "defaultConfigurationId": "romanian_deadlift__bilateral__barbell",
-        "description": "Bisagra de cadera que prioriza isquiosurales y glúteos con las rodillas semiflexionadas y la espalda neutra. El implemento y el apoyo de piernas definen la intensidad y el énfasis de cada variante.",
+        "description": "Peso muerto rumano: con las piernas casi rectas, deslizas la barra por los muslos hasta sentir el estiramiento y subes empujando la cadera. El rey de los isquios y los glúteos.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1808,7 +1808,7 @@
               "commonMistakes": [
                 "Bajar la carga a las rodillas en lugar de dejarla caer entre las piernas por la bisagra."
               ],
-              "description": "Peso Muerto Rumano Sumo con barra y postura amplia: la bisagra con las piernas casi rectas mantiene el foco en la cadena posterior.",
+              "description": "Barra en postura sumo con ambas piernas: el estiramiento de isquios con la base amplia cambia el foco hacia los glúteos.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -2026,7 +2026,7 @@
               "commonMistakes": [
                 "Bajar la carga a las rodillas en lugar de dejarla caer entre las piernas por la bisagra."
               ],
-              "description": "Peso Muerto Rumano Sumo con barra y apoyo asimétrico: la postura amplia de una pierna exige más estabilidad y expone desequilibrios.",
+              "description": "Barra sumo en una pierna: la base amplia y el apoyo único exigen estabilidad y cargan el glúteo. Variante avanzada y muy completa.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -2244,7 +2244,7 @@
               "commonMistakes": [
                 "Bajar la carga a las rodillas en lugar de dejarla caer entre las piernas por la bisagra."
               ],
-              "description": "Peso Muerto Rumano Sumo en máquina Smith con postura amplia: el guiado mantiene la barra en línea y simplifica la bisagra.",
+              "description": "Smith sumo con ambas piernas: el guiado cuida la postura amplia y el estiramiento de isquios. Segura para cargar peso.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -2462,7 +2462,7 @@
               "commonMistakes": [
                 "Bajar la carga a las rodillas en lugar de dejarla caer entre las piernas por la bisagra."
               ],
-              "description": "Peso Muerto Rumano Sumo en máquina Smith con apoyo asimétrico: el guiado reduce el equilibrio y deja el foco en cada lado de la cadena posterior.",
+              "description": "Smith sumo en una pierna: estabilidad y trabajo profundo del glúteo lado a lado. Ideal para corregir desequilibrios.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -2680,7 +2680,7 @@
               "commonMistakes": [
                 "Bajar la carga a las rodillas en lugar de dejarla caer entre las piernas por la bisagra."
               ],
-              "description": "Peso Muerto Rumano Sumo con mancuernas y postura amplia: la carga a los costados facilita el agarre y la progresión ligera.",
+              "description": "Mancuernas en postura sumo: la base amplia y la carga a los costados. Versión accesible del rumano sumo.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -2898,7 +2898,7 @@
               "commonMistakes": [
                 "Bajar la carga a las rodillas en lugar de dejarla caer entre las piernas por la bisagra."
               ],
-              "description": "Peso Muerto Rumano Sumo con mancuernas y apoyo asimétrico: variante unilateral cómoda para trabajar cada isquio por separado.",
+              "description": "Mancuerna sumo en una pierna: equilibrio, glúteo y estiramiento profundo. Un ejercicio que se siente en cada repetición.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -3116,7 +3116,7 @@
               "commonMistakes": [
                 "Bajar la carga a las rodillas en lugar de dejarla caer entre las piernas por la bisagra."
               ],
-              "description": "Peso Muerto Rumano Sumo con barra hexagonal y postura amplia: el agarre neutro alivia la zona lumbar durante la bisagra.",
+              "description": "Barra hexagonal sumo: la carga estable con la base amplia de pies. Cómoda y muy efectiva para glúteos e isquios.",
               "efc": 2.8,
               "equipmentId": "hex_bar",
               "executionCues": [
@@ -3334,7 +3334,7 @@
               "commonMistakes": [
                 "Bajar la carga a las rodillas en lugar de dejarla caer entre las piernas por la bisagra."
               ],
-              "description": "Peso Muerto Rumano Sumo con barra hexagonal y apoyo asimétrico: la barra trapecio reduce la exigencia de equilibrio frente a la barra recta.",
+              "description": "Barra hexagonal sumo en una pierna: estabilidad de la carga y reto de equilibrio a la vez. Variante exigente para la cadena posterior.",
               "efc": 2.8,
               "equipmentId": "hex_bar",
               "executionCues": [
@@ -3534,7 +3534,7 @@
           }
         ],
         "defaultConfigurationId": "romanian_sumo_deadlift__bilateral__barbell",
-        "description": "Bisagra de cadera en postura sumo con piernas casi rectas: la posición amplia reduce el recorrido de la carga y cambia el énfasis del trabajo hacia los glúteos y los isquios mediales.",
+        "description": "Peso muerto rumano sumo: la postura amplia de pies con piernas casi rectas cambia el enfoque hacia los glúteos y el interior de los muslos. Variante fresca del rumano clásico.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

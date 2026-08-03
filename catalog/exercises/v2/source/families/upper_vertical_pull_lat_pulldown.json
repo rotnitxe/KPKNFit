@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
               ],
-              "description": "Jalón al pecho en polea con recorrido bilateral: la barra desciende hacia la clavícula con tensión continua del cable. La polea mantiene la carga en la fase de estiramiento del dorsal.",
+              "description": "Polea alta con ambas manos: tiras de la barra hacia el pecho. El jalón clásico que construye dorsales.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -247,7 +247,7 @@
               "commonMistakes": [
                 "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
               ],
-              "description": "Jalón al pecho en polea con recorrido unilateral: la barra desciende hacia la clavícula con tensión continua del cable. La polea mantiene la carga en la fase de estiramiento del dorsal.",
+              "description": "Polea alta con una mano: cada dorsal trabaja por separado con tensión constante. Ideal para corregir desequilibrios.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -468,7 +468,7 @@
               "commonMistakes": [
                 "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
               ],
-              "description": "Jalón al pecho en máquina con recorrido bilateral: el brazo guiado repite la trayectoria vertical con el tronco fijo. La estación simplifica la coordinación y aísla el dorsal.",
+              "description": "Máquina de jalón con ambas manos: el guiado hace el recorrido más estable. La opción cómoda para cargar espalda.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -689,7 +689,7 @@
               "commonMistakes": [
                 "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
               ],
-              "description": "Jalón al pecho en máquina con recorrido unilateral: el brazo guiado repite la trayectoria vertical con el tronco fijo. La estación simplifica la coordinación y aísla el dorsal.",
+              "description": "Máquina con una mano: un dorsal a la vez con el guiado. Perfecto para igualar ambos lados.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -910,7 +910,7 @@
               "commonMistakes": [
                 "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
               ],
-              "description": "Jalón al pecho con banda y recorrido bilateral: la resistencia crece al estirar la banda en la parte final. Variante portátil para entrenar el dorsal sin máquina.",
+              "description": "Banda anclada arriba con ambas manos: la resistencia crece al estirar. Jalón portable para casa o parque.",
               "efc": 2.5,
               "equipmentId": "band",
               "executionCues": [
@@ -1131,7 +1131,7 @@
               "commonMistakes": [
                 "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
               ],
-              "description": "Jalón al pecho con banda y recorrido unilateral: la resistencia crece al estirar la banda en la parte final. Variante portátil para entrenar el dorsal sin máquina.",
+              "description": "Banda con una mano: tensión progresiva en un dorsal a la vez. Variante sencilla y muy efectiva.",
               "efc": 2.5,
               "equipmentId": "band",
               "executionCues": [
@@ -1334,7 +1334,7 @@
           }
         ],
         "defaultConfigurationId": "lat_pulldown__bilateral__cable",
-        "description": "Tirón vertical con la barra o el agarre que desciende hacia la clavícula, con dorsal y trapecio como motores. El implemento y la lateralidad definen cada configuración.",
+        "description": "Jalón al pecho: sentado en la polea, tiras de la barra hacia el pecho. El ejercicio más popular para los dorsales y la forma más fácil de empezar con la espalda.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

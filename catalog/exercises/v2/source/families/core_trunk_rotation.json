@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón rotación tronco para completar la repetición."
               ],
-              "description": "Lenador en Polea trabaja principalmente abdomen mediante un patrón de rotación tronco. La participación secundaria corresponde a abdomen.",
+              "description": "Polea alta y movimiento de leñador: tiras en diagonal cruzando el cuerpo de arriba abajo. Oblicuos y abdomen completo rotando con potencia en cada repetición.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
@@ -194,7 +194,7 @@
           }
         ],
         "defaultConfigurationId": "core_lenador_polea__default",
-        "description": "Lenador en Polea trabaja principalmente abdomen mediante un patrón de rotación tronco. La participación secundaria corresponde a abdomen.",
+        "description": "Leñador en polea: como partir leña, llevas la cuerda en diagonal de arriba abajo cruzando el cuerpo. Oblicuos y abdomen completo rotando con potencia.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

@@ -328,23 +328,40 @@ class SmartFoodResolver(
                 sameIdentity.maxWithOrNull(
                     compareBy<ResolutionCandidate> { it.score }
                         .thenBy { it.source == "LOCAL" }
-                        .thenBy { it.brand != null },
+                        .thenBy { it.brand != null }
+                        .thenBy { it.foodId },
                 )
             }
             .sortedWith(
+                // C12: desempate total determinista (score → local → id) para que
+                // empates exactos ("atún" agua vs aceite, "cazuela") no dependan del
+                // orden de almacenamiento de la DB ni de la iteración del mapa.
                 compareByDescending<ResolutionCandidate> { it.score }
-                    .thenByDescending { it.source == "LOCAL" },
+                    .thenByDescending { it.source == "LOCAL" }
+                    .thenBy { it.foodId },
             )
 
         val top = candidates.take(4)
-        if (top.isEmpty() || top.first().score < 0.25) {
+        // C12: usar el umbral mínimo declarado. Antes un 0.25 hardcodeado descartaba
+        // candidatos reales (0.18–0.25) en favor del fallback inventado.
+        if (top.isEmpty() || top.first().score < MIN_THRESHOLD) {
             return resolveDatasetOrHeuristicFallback(originalQuery, normalizedQuery)
         }
 
+        // Anti-auto-refuerzo (IT2): el boost aprendido NO cuenta para su propio
+        // umbral. Sin esto, una corrección aprendida inflaba el score a ≥0.74 y
+        // se auto-seleccionaba "para siempre", consolidando errores.
+        val learnedBoostApplied = learned?.let { learnedEntry ->
+            if (learnedEntry.foodId == top.first().foodId) {
+                learnedBoostFor(learnedEntry, normalizedQuery, FoodIdentity.normalize(top.first().name))
+            } else 0.0
+        } ?: 0.0
+        val baseTopScore = top.first().score - learnedBoostApplied
+
         val decision = when {
             FoodIdentity.isAmbiguousStateQuery(originalQuery) -> Decision.NEEDS_REVIEW
-            learned != null && top.first().score >= LEARNED_AUTO_THRESHOLD -> Decision.AUTO_SELECT
-            top.first().score >= HIGH_THRESHOLD && (top.size == 1 || top.first().score - top[1].score >= SAFE_GAP) -> Decision.AUTO_SELECT
+            learned != null && baseTopScore >= LEARNED_AUTO_THRESHOLD -> Decision.AUTO_SELECT
+            baseTopScore >= HIGH_THRESHOLD && (top.size == 1 || top.first().score - top[1].score >= SAFE_GAP) -> Decision.AUTO_SELECT
             top.first().score >= MEDIUM_THRESHOLD -> Decision.NEEDS_REVIEW
             else -> Decision.NEEDS_REVIEW
         }
@@ -376,9 +393,11 @@ class SmartFoodResolver(
             topSemanticScore >= DATASET_MIN_MATCH_SCORE
         ) {
             val candidateScore = (semantic.confidence * 0.9).coerceIn(0.0, 0.85)
+            // A4: el candidato sintético NO debe parecer un alimento real de la base:
+            // su nombre lleva la marca "≈ (aprox.)" para que el usuario no lo confunda.
             val candidate = ResolutionCandidate(
                 foodId = "dataset_${normalizedQuery.replace(" ", "_")}",
-                name = query.replaceFirstChar { it.uppercase() },
+                name = "${query.trim()} (aprox. del dataset)",
                 brand = "Dataset KPKN (19.4K)",
                 score = candidateScore,
                 confidence = if (candidateScore >= MEDIUM_THRESHOLD) Confidence.MEDIUM else Confidence.LOW,
@@ -407,7 +426,7 @@ class SmartFoodResolver(
         val profile = NutritionHeuristicEstimator.estimatePer100g(query)
         val fallbackCandidate = ResolutionCandidate(
             foodId = "heuristic_${normalizedQuery.replace(" ", "_")}",
-            name = query.replaceFirstChar { it.uppercase() },
+            name = "${query.trim()} (estimado)",
             brand = "Estimación KPKN",
             score = 0.45,
             confidence = Confidence.MEDIUM,
@@ -521,13 +540,7 @@ class SmartFoodResolver(
 
         // 8. Learned resolution boost: +0.32 + min(count,3)×0.02
         if (learned != null && learned.foodId == food.foodId) {
-            val queryIsCombo = normalizedQuery.contains(" con ") || normalizedQuery.contains(" y ") || normalizedQuery.contains(" e ")
-            val foodIsCombo = food.normalizedName.contains(" con ") || food.normalizedName.contains(" y ") || food.normalizedName.contains(" e ")
-
-            // No permitir boost de historial si la consulta es simple pero el alimento es combinado (ej: "arroz" -> "arroz con huevo")
-            if (queryIsCombo || !foodIsCombo) {
-                score += 0.32 + minOf(learned.count, 3) * 0.02
-            }
+            score += learnedBoostFor(learned, normalizedQuery, food.normalizedName)
         }
 
         // 9. Data completeness bonus: +0.01
@@ -550,6 +563,21 @@ class SmartFoodResolver(
             FoodIdentity.normalize(candidate.brand.orEmpty())
         }
         return "${familyOrName}:${candidate.state.name}:${brandKey}"
+    }
+
+    /**
+     * Boost aprendido para un candidato. Fuente única de la magnitud, usado tanto
+     * por computeScore como por la decisión (anti-auto-refuerzo). No permite boost
+     * si la consulta es simple pero el alimento es combinado ("arroz" → "arroz con huevo").
+     * [normalizedFoodName] debe venir normalizado (sin tildes, minúsculas).
+     */
+    private fun learnedBoostFor(learned: LearnedEntry, normalizedQuery: String, normalizedFoodName: String): Double {
+        val queryIsCombo = normalizedQuery.contains(" con ") || normalizedQuery.contains(" y ") || normalizedQuery.contains(" e ")
+        val foodIsCombo = normalizedFoodName.contains(" con ") || normalizedFoodName.contains(" y ") || normalizedFoodName.contains(" e ")
+        if (queryIsCombo || !foodIsCombo) {
+            return 0.32 + minOf(learned.count, 3) * 0.02
+        }
+        return 0.0
     }
 
     private fun hasPlausibleMacros(food: FoodIndex.IndexedFood): Boolean {
@@ -709,7 +737,9 @@ class SmartFoodResolver(
     }
 
     private fun buildLearnedKey(normalizedQuery: String, brandHint: String?): String {
-        return if (brandHint.isNullOrBlank()) "v2|$normalizedQuery" else "v2|$normalizedQuery|$brandHint"
+        // IT2: el brandHint se normaliza — "Watt's" y "watts" son la misma clave.
+        val normalizedBrand = brandHint?.takeIf { it.isNotBlank() }?.let { FoodIndex.normalizeSearch(it) }
+        return if (normalizedBrand.isNullOrBlank()) "v2|$normalizedQuery" else "v2|$normalizedQuery|$normalizedBrand"
     }
 
     companion object {

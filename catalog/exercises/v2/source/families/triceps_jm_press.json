@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Separar los codos o usar el pecho en lugar del tríceps para empujar."
               ],
-              "description": "JM Press con barra recta: el recorrido corto de codo pegado al cuerpo aísla el tríceps con carga libre.",
+              "description": "Barra bajando hasta el mentón con codos pegados: el JM press original, cargado de tríceps. El híbrido de press y francés que construye fuerza.",
               "efc": 2.2,
               "equipmentId": "barbell",
               "executionCues": [
@@ -226,7 +226,7 @@
               "commonMistakes": [
                 "Separar los codos o usar el pecho en lugar del tríceps para empujar."
               ],
-              "description": "JM Press con barra EZ: el agarre angulado alivia las muñecas y mantiene el énfasis en el tríceps.",
+              "description": "Barra EZ bajando al mentón: el agarre girado cuida los codos con el mismo estímulo. La variante cómoda del JM press.",
               "efc": 2.2,
               "equipmentId": "ez_bar",
               "executionCues": [
@@ -426,7 +426,7 @@
               "commonMistakes": [
                 "Separar los codos o usar el pecho en lugar del tríceps para empujar."
               ],
-              "description": "JM Press con mancuernas: cada brazo trabaja por separado y la carga se ajusta con precisión.",
+              "description": "Mancuernas bajando al mentón: cada brazo trabaja por separado. La versión equilibrada del JM press.",
               "efc": 2.2,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -626,7 +626,7 @@
               "commonMistakes": [
                 "Separar los codos o usar el pecho en lugar del tríceps para empujar."
               ],
-              "description": "JM Press en máquina Smith: el recorrido guiado elimina el equilibrio y permite concentrarse en el tríceps.",
+              "description": "Smith bajando al mentón: la barra guiada te permite cargar peso con seguridad. El JM press con el recorrido estable.",
               "efc": 2.2,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -826,7 +826,7 @@
               "commonMistakes": [
                 "Separar los codos o usar el pecho en lugar del tríceps para empujar."
               ],
-              "description": "JM Press en polea: la tensión continua mantiene el tríceps activo a lo largo del recorrido del press corto.",
+              "description": "Polea bajando al mentón: la tensión constante acompaña el movimiento. La versión fina del JM press.",
               "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
@@ -1008,7 +1008,7 @@
           }
         ],
         "defaultConfigurationId": "jm_press__ez_bar",
-        "description": "JM press trabaja principalmente tríceps mediante un patrón de extensión codo. La participación secundaria corresponde a pectorales, deltoides.",
+        "description": "JM Press: acostado, bajas la barra hasta el mentón con los codos pegados y empujas. Un híbrido entre press y francés que carga el tríceps con fuerza bruta.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

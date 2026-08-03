@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.nutrition
 
+import com.example.kpkn.data.food.isApproximationAlias
 import com.example.kpkn.data.models.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -98,7 +99,11 @@ class TagResolver(private val port: FoodResolutionPort) {
                     port.getFoodById(smartCandidate.foodId) ?: staticFood
                 }
                 smartResult.decision == SmartFoodResolver.Decision.NEEDS_REVIEW && smartCandidate != null -> {
-                    port.getFoodById(smartCandidate.foodId)
+                    // IT2: si el candidato smart es sintético (heuristic_*/dataset_*)
+                    // y no resuelve por ID, preferir la fila real estática en vez de
+                    // dejar el ítem sin alimento ("xyzwlkr" no debe quedar NO_RESOLVED
+                    // si el catálogo tiene una fila razonable).
+                    port.getFoodById(smartCandidate.foodId) ?: staticFood
                 }
                 else -> staticFood
             }
@@ -139,6 +144,8 @@ class TagResolver(private val port: FoodResolutionPort) {
                 item.tag, effectiveFood, item.cookingMethod,
             )
             val needsClarify = clarifyKind != CookingStateResolver.ClarificationKind.NONE
+            // A1: alias de aproximación ("torta" ≈ pan blanco) → NUNCA autoconfirmar.
+            val approximationAlias = isApproximationAlias(item.tag)
             val assumeStatus = if (needsClarify) {
                 CookingStateResolver.assumedStateStatus(item.tag, effectiveFood)
             } else null
@@ -155,13 +162,14 @@ class TagResolver(private val port: FoodResolutionPort) {
             val foodState = effectiveFood?.let { FoodIdentity.stateFor(it) }
                 ?: FoodIdentity.stateFor(item.tag)
             val resolutionConfidence = when {
-                staticIsExact -> 1.0
+                staticIsExact && !approximationAlias -> 1.0
                 smartCandidate != null -> smartCandidate.score
                 else -> item.analysisConfidence
 
             }
             val resolutionStatus = when {
                 needsClarify -> FoodResolutionStatus.NEEDS_STATE
+                approximationAlias -> FoodResolutionStatus.NEEDS_CONFIRMATION
                 localAuthority && !requiresCandidateReview -> FoodResolutionStatus.AUTO
                 effectiveFood != null -> FoodResolutionStatus.NEEDS_CONFIRMATION
                 else -> FoodResolutionStatus.NO_RESOLVED
@@ -245,6 +253,7 @@ class TagResolver(private val port: FoodResolutionPort) {
                 val warningText = listOfNotNull(
                     validated.warnings.firstOrNull()?.takeIf { it.isNotBlank() && !needsClarify },
                     if (needsClarify) "Falta el estado: selecciona seco o cocido para calcular los macros." else assumeStatus,
+                    if (approximationAlias) "«${item.tag}» es un plato general: elegí el alimento más parecido (${effectiveFood.name}). Cámbialo si no era eso." else null,
                     if (requiresCandidateReview && !needsClarify) "Coincidencia aproximada: revisa el alimento seleccionado." else null,
                     interpretation?.let { "Entendí: $it" },
                 ).joinToString(" ")
@@ -258,7 +267,7 @@ class TagResolver(private val port: FoodResolutionPort) {
                     foodItem = effectiveFood,
                     loggedFood = oiled.takeUnless { needsClarify },
                     isResolved = resolutionStatus == FoodResolutionStatus.AUTO,
-                    isFuzzyMatch = isSmartMatch && smartCandidate?.confidence != SmartFoodResolver.Confidence.HIGH,
+                    isFuzzyMatch = approximationAlias || (isSmartMatch && smartCandidate?.confidence != SmartFoodResolver.Confidence.HIGH),
                     analysisSource = AnalysisSource.DATABASE,
                     statusText = warningText,
                     oilLevel = effectiveOilLevel,
@@ -299,7 +308,13 @@ class TagResolver(private val port: FoodResolutionPort) {
                     else -> NutritionSourceKind.HEURISTIC_ESTIMATE
                 }
                 var logged = createLoggedFood(
-                    foodName = item.tag,
+                    // A4: el nombre persistido marca la estimación para que nunca
+                    // parezca un alimento real encontrado en la base.
+                    foodName = when (estimatedCandidate?.source) {
+                        "LOCAL_HEURISTIC" -> "${item.tag} (estimado)"
+                        "DATASET_SEMANTIC" -> "${item.tag} (aprox. del dataset)"
+                        else -> item.tag
+                    },
                     amount = item.amountGrams,
                     calories = finalCal,
                     protein = finalProt,
@@ -347,6 +362,7 @@ class TagResolver(private val port: FoodResolutionPort) {
                 val fallbackStatus = listOfNotNull(
                     when {
                         needsClarify -> "Falta el estado: selecciona seco o cocido para calcular los macros."
+                        approximationAlias -> "«${item.tag}» es un plato general: los macros son una estimación, revísalos."
                         mac != null -> "Estimación externa: confirma estos macros antes de guardar."
                         estimatedCandidate?.source == "DATASET_SEMANTIC" ->
                             "Prior del dataset (${bestMatch?.sampleCount ?: 0} ejemplos): revisa los macros."
@@ -410,9 +426,13 @@ class TagResolver(private val port: FoodResolutionPort) {
         // Composite food context capping
         val combination = FoodCombinationParser.parse(parsed.rawDescription)
 
-        if (combination.confidence >= 0.70 && combination.accompaniments.isNotEmpty()) {
+        // A5: el capping recorta acompañamientos; jamás debe castigar un plato
+        // protegido que se resolvió como un solo tag ("arroz con pollo" = 1 ítem
+        // y no se recorta "pollo" a 60g) ni descuadrar el único alimento.
+        val isSingleTagPlate = resolvedTags.size == 1
+
+        if (!isSingleTagPlate && combination.confidence >= 0.70 && combination.accompaniments.isNotEmpty()) {
             val totalGrams = resolvedTags.sumOf { it.loggedFood?.amount ?: 0.0 }
-            val baseGrams = combination.baseProportion * totalGrams
 
             for (accomp in combination.accompaniments) {
                 val matching = resolvedTags.filter { tag ->
@@ -422,6 +442,13 @@ class TagResolver(private val port: FoodResolutionPort) {
                 for (match in matching) {
                     val existingFood = match.foodItem ?: continue
                     val existingLogged = match.loggedFood ?: continue
+
+                    // Saltar tags compuestos protegidos ("arroz con leche", "pollo con papas"…):
+                    // el substring del acompañante matchearía dentro del plato completo.
+                    val tagLower = match.tag.lowercase()
+                    if (tagLower.contains(" con ") || tagLower.contains(" y ") || tagLower.contains(" e ")) {
+                        continue
+                    }
 
                     val maxAllowedGrams = when (accomp.role) {
                         FoodCombinationParser.Role.SAUCE -> {

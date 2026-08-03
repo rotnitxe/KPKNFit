@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
               ],
-              "description": "Press California con Barra Recta trabaja principalmente tríceps mediante un patrón de extensión codo. La participación secundaria corresponde a pectorales. La variante se define por: barra.",
+              "description": "Barra bajando al pecho con codos hacia dentro: el press California clásico. El pecho y el tríceps trabajan juntos.",
               "efc": 2.2,
               "equipmentId": "barbell",
               "executionCues": [
@@ -225,7 +225,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
               ],
-              "description": "Press California con Barra EZ trabaja principalmente tríceps mediante un patrón de extensión codo. La participación secundaria corresponde a pectorales. La variante se define por: barra EZ.",
+              "description": "Barra EZ con codos hacia dentro: agarre cómodo y mismo trabajo de pecho y tríceps. La variante amable del California.",
               "efc": 2.2,
               "equipmentId": "ez_bar",
               "executionCues": [
@@ -424,7 +424,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
               ],
-              "description": "Press California con Mancuernas trabaja principalmente tríceps mediante un patrón de extensión codo. La participación secundaria corresponde a pectorales. La variante se define por: mancuernas.",
+              "description": "Mancuernas con codos hacia dentro: cada brazo trabaja solo. La versión equilibrada del press California.",
               "efc": 2.2,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -605,7 +605,7 @@
           }
         ],
         "defaultConfigurationId": "california_press__barbell",
-        "description": "Press California trabaja principalmente tríceps mediante un patrón de extensión codo. La participación secundaria corresponde a pectorales.",
+        "description": "Press California: acostado, bajas la barra al pecho y empujas con los codos hacia adentro. El tríceps y el pecho trabajan juntos en un press con más tríceps.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

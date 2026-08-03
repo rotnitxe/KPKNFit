@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla lateral para completar la repetición."
               ],
-              "description": "Sentadilla Cosaca trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla lateral. La participación secundaria corresponde a aductores. La configuración utiliza peso corporal como implemento.",
+              "description": "Paso amplio al lado y bajada lateral con la otra pierna extendida: movilidad y fuerza de piernas en un movimiento elegante.",
               "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -202,7 +202,7 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_cosaca__default",
-        "description": "Sentadilla Cosaca trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla lateral. La participación secundaria corresponde a aductores.",
+        "description": "Sentadilla cosaca: das un paso muy amplio al lado y bajas hacia un lado con la otra pierna extendida. Movilidad, aductores y cuádriceps en un solo movimiento.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla asimétrico para completar la repetición."
               ],
-              "description": "Sentadilla Jefferson trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla asimétrico. La participación secundaria corresponde a aductores, glúteos. La configuración utiliza barra como implemento.",
+              "description": "De pie sobre la barra, un extremo al frente y otro atrás: bajas en diagonal. Un ejercicio raro, exigente y sorprendentemente bueno.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -210,7 +210,7 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_jefferson__default",
-        "description": "Sentadilla Jefferson trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla asimétrico. La participación secundaria corresponde a aductores, glúteos.",
+        "description": "Sentadilla Jefferson: de pie sobre la barra, agarras un extremo por delante y otro por detrás y bajas en diagonal. Un ejercicio raro, exigente y sorprendentemente bueno.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

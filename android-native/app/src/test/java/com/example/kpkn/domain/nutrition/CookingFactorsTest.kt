@@ -129,4 +129,16 @@ class CookingFactorsTest {
         assert(!isLikelyLiquid("arroz"))
         assert(!isLikelyLiquid("manzana"))
     }
+
+    @Test
+    fun `B10 isLikelyLiquid no false positives por substring te`() {
+        assert(!isLikelyLiquid("tomate"))
+        assert(!isLikelyLiquid("lentejas"))
+        assert(!isLikelyLiquid("filete de pollo"))
+        assert(!isLikelyLiquid("mantequilla"))
+        assert(!isLikelyLiquid("palta"))
+        assert(isLikelyLiquid("te"))
+        assert(isLikelyLiquid("té"))
+        assert(isLikelyLiquid("leche descremada"))
+    }
 }

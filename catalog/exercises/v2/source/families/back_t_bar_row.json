@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo en barra T con agarre ancho en la máquina: la empuñadura amplia reparte el trabajo entre dorsal y trapecio con un estímulo de espalda alta. La carga se fija en un extremo y el recorrido es estable y controlado.",
+              "description": "Máquina de barra T con agarre amplio: el guiado te permite cargar peso sin pensar en equilibrio. La vía más cómoda hacia una espalda alta potente.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -39,37 +39,28 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."
+                  "note": "Principal: el dorsal dirige el tirón y concentra el trabajo en todo el ancho de la espalda; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."
+                  "note": "Secundario: con el agarre amplio, el trapecio y la espalda alta participan más al llevar los codos hacia atrás; por eso suman 0.5."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal de los brazos en el agarre amplio; por eso suma 0.5."
                 },
                 {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."
+                  "muscleId": "rhomboids",
+                  "note": "Estabilizador: los romboides juntan las escápulas al final del tirón; por eso suman 0.4."
                 },
                 {
-                  "muscleId": "core",
-                  "note": "Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: el bíceps flexiona el codo con un brazo de palanca más corto en el agarre amplio; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "t_bar_row__machine__wide__remo_barra_t",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_tbar",
               "replacementPriority": null,
@@ -81,18 +72,16 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
-                    "rhomboids",
+                    "trapezius",
                     "deltoid"
                   ],
                   "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
-                    "erector_spinae",
-                    "core"
+                    "rhomboids",
+                    "biceps"
                   ],
                   "targetRegions": [
                     "latissimus_dorsi"
@@ -182,8 +171,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar trapezius dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -205,7 +193,7 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo trapezius."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_row_tbar",
                   "replacementPriority": null
@@ -219,8 +207,7 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
-                "rhomboids",
+                "trapezius",
                 "deltoid"
               ],
               "setupCues": [
@@ -228,8 +215,8 @@
               ],
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "erector_spinae",
-                "core"
+                "rhomboids",
+                "biceps"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -259,7 +246,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo en barra T con agarre ancho en barra T: la empuñadura amplia reparte el trabajo entre dorsal y trapecio con un estímulo de espalda alta. La carga se fija en un extremo y el recorrido es estable y controlado.",
+              "description": "Barra T con agarre amplio: la carga anclada y las manos abiertas reparten el trabajo a la espalda alta. El remo de gimnasio serio con el que se construye grosor.",
               "efc": 2.5,
               "equipmentId": "t_bar",
               "executionCues": [
@@ -272,37 +259,28 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."
+                  "note": "Principal: el dorsal dirige el tirón y concentra el trabajo en todo el ancho de la espalda; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."
+                  "note": "Secundario: con el agarre amplio, el trapecio y la espalda alta participan más al llevar los codos hacia atrás; por eso suman 0.5."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal de los brazos en el agarre amplio; por eso suma 0.5."
                 },
                 {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."
+                  "muscleId": "rhomboids",
+                  "note": "Estabilizador: los romboides juntan las escápulas al final del tirón; por eso suman 0.4."
                 },
                 {
-                  "muscleId": "core",
-                  "note": "Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: el bíceps flexiona el codo con un brazo de palanca más corto en el agarre amplio; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "t_bar_row__t_bar__wide__remo_barra_t",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_tbar",
               "replacementPriority": null,
@@ -314,18 +292,16 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
-                    "rhomboids",
+                    "trapezius",
                     "deltoid"
                   ],
                   "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
-                    "erector_spinae",
-                    "core"
+                    "rhomboids",
+                    "biceps"
                   ],
                   "targetRegions": [
                     "latissimus_dorsi"
@@ -415,8 +391,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar trapezius dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -438,7 +413,7 @@
                     "t_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo trapezius."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_row_tbar",
                   "replacementPriority": null
@@ -452,8 +427,7 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
-                "rhomboids",
+                "trapezius",
                 "deltoid"
               ],
               "setupCues": [
@@ -461,8 +435,8 @@
               ],
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "erector_spinae",
-                "core"
+                "rhomboids",
+                "biceps"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -492,7 +466,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo en barra T con agarre medio en la máquina: la posición intermedia reparte el énfasis entre la anchura del dorsal y la retracción escapular. Es la opción equilibrada de la familia para progresar carga con técnica consistente.",
+              "description": "Máquina de barra T con agarre medio: recorrido guiado y tensión constante en la espalda media. Rápida de montar y muy productiva para volumen.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -505,37 +479,28 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."
+                  "note": "Principal: el dorsal dirige el tirón y concentra el trabajo en todo el ancho de la espalda; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."
+                  "note": "Secundario: el trapecio ayuda a retraer las escápulas al llevar los codos atrás; por eso suma 0.5."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."
+                  "note": "Secundario: los romboides juntan las escápulas al final del tirón; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo con el agarre medio y reparte el trabajo del brazo; por eso suma 0.5."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."
+                  "note": "Estabilizador: el deltoides posterior mantiene el hombro estable durante el tirón; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "t_bar_row__machine__medium__remo_barra_t",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_tbar",
               "replacementPriority": null,
@@ -547,18 +512,16 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
+                    "trapezius",
                     "rhomboids",
-                    "deltoid"
+                    "biceps"
                   ],
                   "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
-                    "erector_spinae",
-                    "core"
+                    "deltoid"
                   ],
                   "targetRegions": [
                     "latissimus_dorsi"
@@ -648,8 +611,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar trapezius dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -671,7 +633,7 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo trapezius."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_row_tbar",
                   "replacementPriority": null
@@ -685,17 +647,16 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
+                "trapezius",
                 "rhomboids",
-                "deltoid"
+                "biceps"
               ],
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Remo en Barra T» antes de iniciar; conserva una base estable."
               ],
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "erector_spinae",
-                "core"
+                "deltoid"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -725,7 +686,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo en barra T con agarre medio en barra T: la posición intermedia reparte el énfasis entre la anchura del dorsal y la retracción escapular. Es la opción equilibrada de la familia para progresar carga con técnica consistente.",
+              "description": "Barra T con agarre medio: dorsal y espalda media reparten el trabajo en el tirón clásico. El agarre de siempre, el ejercicio de siempre, la espalda de siempre.",
               "efc": 2.5,
               "equipmentId": "t_bar",
               "executionCues": [
@@ -738,37 +699,28 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."
+                  "note": "Principal: el dorsal dirige el tirón y concentra el trabajo en todo el ancho de la espalda; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."
+                  "note": "Secundario: el trapecio ayuda a retraer las escápulas al llevar los codos atrás; por eso suma 0.5."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."
+                  "note": "Secundario: los romboides juntan las escápulas al final del tirón; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo con el agarre medio y reparte el trabajo del brazo; por eso suma 0.5."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."
+                  "note": "Estabilizador: el deltoides posterior mantiene el hombro estable durante el tirón; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "t_bar_row__t_bar__medium__remo_barra_t",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_tbar",
               "replacementPriority": null,
@@ -780,18 +732,16 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
+                    "trapezius",
                     "rhomboids",
-                    "deltoid"
+                    "biceps"
                   ],
                   "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
-                    "erector_spinae",
-                    "core"
+                    "deltoid"
                   ],
                   "targetRegions": [
                     "latissimus_dorsi"
@@ -881,8 +831,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar trapezius dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -904,7 +853,7 @@
                     "t_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo trapezius."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_row_tbar",
                   "replacementPriority": null
@@ -918,17 +867,16 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
+                "trapezius",
                 "rhomboids",
-                "deltoid"
+                "biceps"
               ],
               "setupCues": [
                 "Configura la barra T y adopta la posición específica de «Remo en Barra T» antes de iniciar; conserva una base estable."
               ],
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "erector_spinae",
-                "core"
+                "deltoid"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -958,7 +906,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo en barra T con agarre cerrado en la máquina: la empuñadura estrecha acentúa la retracción de la escápula y la participación del trapecio medio. El brazo queda más pegado al tronco durante toda la tracción.",
+              "description": "Máquina de barra T con agarre cerrado: el dorsal trabaja aislado y el banco sujeta el pecho. Cómoda, segura y muy efectiva para la espalda media.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -971,37 +919,24 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."
+                  "note": "Principal: el dorsal dirige el tirón y se estira más con los codos pegados al cuerpo; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."
+                  "note": "Secundario: con el agarre cerrado, los romboides retraen las escápulas con más recorrido; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps trabaja más con los codos cerca del cuerpo flexionando en posición de palanca larga; por eso suma 0.5."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."
+                  "note": "Estabilizador: el deltoides posterior mantiene el hombro estable durante el tirón; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "t_bar_row__machine__close__remo_barra_t",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_tbar",
               "replacementPriority": null,
@@ -1013,18 +948,15 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
                     "rhomboids",
-                    "deltoid"
+                    "biceps"
                   ],
                   "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
-                    "erector_spinae",
-                    "core"
+                    "deltoid"
                   ],
                   "targetRegions": [
                     "latissimus_dorsi"
@@ -1114,8 +1046,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar trapezius dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1137,7 +1068,7 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo trapezius."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_row_tbar",
                   "replacementPriority": null
@@ -1151,17 +1082,15 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
                 "rhomboids",
-                "deltoid"
+                "biceps"
               ],
               "setupCues": [
                 "Configura la máquina y adopta la posición específica de «Remo en Barra T» antes de iniciar; conserva una base estable."
               ],
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "erector_spinae",
-                "core"
+                "deltoid"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -1191,7 +1120,7 @@
               "commonMistakes": [
                 "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
               ],
-              "description": "Remo en barra T con agarre cerrado en barra T: la empuñadura estrecha acentúa la retracción de la escápula y la participación del trapecio medio. El brazo queda más pegado al tronco durante toda la tracción.",
+              "description": "Barra T con agarre cerrado: los codos pegados llevan el foco al dorsal con más recorrido. La variante que más profundo se siente en la espalda.",
               "efc": 2.5,
               "equipmentId": "t_bar",
               "executionCues": [
@@ -1204,37 +1133,24 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."
+                  "note": "Principal: el dorsal dirige el tirón y se estira más con los codos pegados al cuerpo; por eso suma la serie completa (1.0)."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."
+                  "note": "Secundario: con el agarre cerrado, los romboides retraen las escápulas con más recorrido; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps trabaja más con los codos cerca del cuerpo flexionando en posición de palanca larga; por eso suma 0.5."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."
+                  "note": "Estabilizador: el deltoides posterior mantiene el hombro estable durante el tirón; por eso suma 0.4."
                 }
               ],
               "performanceProfileId": "t_bar_row__t_bar__close__remo_barra_t",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_tbar",
               "replacementPriority": null,
@@ -1246,18 +1162,15 @@
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
                     "rhomboids",
-                    "deltoid"
+                    "biceps"
                   ],
                   "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
-                    "erector_spinae",
-                    "core"
+                    "deltoid"
                   ],
                   "targetRegions": [
                     "latissimus_dorsi"
@@ -1347,8 +1260,7 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar trapezius dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1370,7 +1282,7 @@
                     "t_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo trapezius."
+                    "Conserva el patrón y el objetivo latissimus_dorsi."
                   ],
                   "replacementGroup": "back_row_tbar",
                   "replacementPriority": null
@@ -1384,17 +1296,15 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
                 "rhomboids",
-                "deltoid"
+                "biceps"
               ],
               "setupCues": [
                 "Configura la barra T y adopta la posición específica de «Remo en Barra T» antes de iniciar; conserva una base estable."
               ],
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "erector_spinae",
-                "core"
+                "deltoid"
               ],
               "technicalDifficulty": 4.0,
               "ttc": 1.8
@@ -1406,7 +1316,7 @@
           }
         ],
         "defaultConfigurationId": "t_bar_row__t_bar__medium",
-        "description": "Tirón horizontal con la carga fijada en un extremo de la barra, que permite un agarre neutral y un recorrido estable. La amplitud del agarre redistribuye el énfasis entre dorsal y trapecio.",
+        "description": "Remo en barra T: la carga va anclada al suelo y tú haces el trabajo de subirla con la espalda. Un clásico de los gimnasios serios para darle grosor a la espalda media.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

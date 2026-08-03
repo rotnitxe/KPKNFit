@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón fuerza agarre isométrica para completar la repetición."
               ],
-              "description": "Colgarse de barra fija a dos manos midiendo tiempo. La configuración utiliza peso corporal como implemento.",
+              "description": "Cuélgate de la barra y aguanta el mayor tiempo posible. Sin florituras: agarre, antebrazos y resistencia pura.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -201,7 +201,7 @@
           }
         ],
         "defaultConfigurationId": "forearms_suspension_isometrica_barra_fija__default",
-        "description": "Colgarse de barra fija a dos manos midiendo tiempo.",
+        "description": "Suspensión isométrica en barra fija: te cuelgas de la barra el mayor tiempo posible. El ejercicio más simple y más honesto para el agarre.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -241,7 +241,7 @@
               "commonMistakes": [
                 "Inclinar el tronco o acortar la zancada perdiendo la postura erguida."
               ],
-              "description": "Paseo del Granjero con mancuernas: el agarre de la mancuerna es la puerta de entrada natural al patrón de marcha con carga.",
+              "description": "Mancuernas pesadas en cada mano y a caminar: aguanta el paseo sin soltar. El paseo del granjero clásico con mancuernas.",
               "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -450,7 +450,7 @@
               "commonMistakes": [
                 "Inclinar el tronco o acortar la zancada perdiendo la postura erguida."
               ],
-              "description": "Paseo del Granjero con kettlebell: la carga compacta exige un agarre fuerte y permite desplazarse con comodidad.",
+              "description": "Kettlebells en cada mano y a caminar: el agarre sufre un poco más. Variante exigente del paseo del granjero.",
               "efc": 2.0,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -659,7 +659,7 @@
               "commonMistakes": [
                 "Inclinar el tronco o acortar la zancada perdiendo la postura erguida."
               ],
-              "description": "Paseo del Granjero con discos: pellizcar el disco añade un reto extra de agarre a la marcha.",
+              "description": "Discos en cada mano y a caminar: los discos lisos ponen el agarre a prueba. El paseo que más trabaja los dedos.",
               "efc": 2.0,
               "equipmentId": "plate",
               "executionCues": [
@@ -868,7 +868,7 @@
               "commonMistakes": [
                 "Inclinar el tronco o acortar la zancada perdiendo la postura erguida."
               ],
-              "description": "Paseo del Granjero con barra hexagonal: la barra trapecio reparte la carga y permite cargar más peso que con mancuernas.",
+              "description": "Barra hexagonal cargada y a caminar: la barra en el centro reparte el peso. El paseo más cómodo para cargas muy pesadas.",
               "efc": 2.0,
               "equipmentId": "hex_bar",
               "executionCues": [
@@ -1059,7 +1059,7 @@
           }
         ],
         "defaultConfigurationId": "forearms_paseo_del_granjero__dumbbells",
-        "description": "Marcha con carga a los costados que exige sostener el agarre, la postura erguida y el core firme durante la distancia recorrida.",
+        "description": "Paseo del granjero: caminas con un peso pesado en cada mano el mayor tiempo posible. Agarre, hombros, core y resistencia mental en un solo paseo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
               ],
-              "description": "Sentadilla frontal con barra: la barra descansa sobre los hombros con los codos altos y el tronco permanece vertical. La posición frontal exige movilidad de muñeca y reduce la carga de la columna frente a la barra trasera.",
+              "description": "Barra al frente sobre los hombros: el torso erguido y los cuádriceps a fondo. La sentadilla frontal clásica, exigente y elegante.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -237,7 +237,7 @@
               "commonMistakes": [
                 "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
               ],
-              "description": "Sentadilla frontal en Smith: la barra sobre los hombros con los codos altos y el riel guiado fija el descenso vertical. La máquina simplifica el equilibrio del patrón frontal.",
+              "description": "Smith con la barra al frente: el guiado te permite enfocarte en los cuádriceps sin preocuparte por el equilibrio. Segura para progresar.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -448,7 +448,7 @@
               "commonMistakes": [
                 "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
               ],
-              "description": "Sentadilla frontal con mancuernas: las cargas descansan sobre los hombros en la posición de rack y el tronco queda erguido. Variante accesible para practicar el patrón frontal sin barra.",
+              "description": "Mancuernas sobre los hombros: la versión accesible de la sentadilla frontal. Cómoda de cargar y muy amable para aprender la postura.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -659,7 +659,7 @@
               "commonMistakes": [
                 "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
               ],
-              "description": "Sentadilla frontal con kettlebell: el peso descansa sobre los hombros en la posición de rack y el codo apunta hacia el frente. Variante versátil para el patrón frontal con movilidad limitada de muñeca.",
+              "description": "Kettlebells en los hombros: el rack con campanas exige estabilidad y trabajan los cuádriceps igual de profundo. Variante original.",
               "efc": 2.8,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -870,7 +870,7 @@
               "commonMistakes": [
                 "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
               ],
-              "description": "Sentadilla frontal en polea baja: la barra o el agarre del cable descansa delante del pecho y la tensión continua acompaña el descenso. La polea ofrece una progresión estable del patrón frontal.",
+              "description": "Polea baja con la barra al frente: la tensión constante acompaña toda la sentadilla. Variante suave que mantiene el estímulo de cuádriceps.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -1063,7 +1063,7 @@
           }
         ],
         "defaultConfigurationId": "front_squat__barbell",
-        "description": "Sentadilla con la carga delante del cuerpo y el tronco vertical, que enfatiza el cuádriceps y alivia la columna. El implemento define la curva de tensión de cada variante.",
+        "description": "Sentadilla frontal: la barra descansa sobre los hombros delanteros y el torso queda más erguido. Los cuádriceps trabajan a fondo mientras el core aguanta la barra.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1107,7 +1107,7 @@
               "commonMistakes": [
                 "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
               ],
-              "description": "Sentadilla trasera con barra alta: la barra descansa sobre el trapecio superior y el tronco permanece más vertical. La posición favorece un descenso más profundo con mayor demanda de cuádriceps.",
+              "description": "Barra sobre los trapecios: la sentadilla reina, bajando profundo con el torso erguido. Cuádriceps y fuerza total en el movimiento más completo.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -1319,7 +1319,7 @@
               "commonMistakes": [
                 "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
               ],
-              "description": "Sentadilla trasera con barra alta en Smith: la barra descansa sobre el trapecio superior y el riel guiado fija el plano del descenso. La máquina reduce el equilibrio lateral para concentrarse en el cuádriceps.",
+              "description": "Smith con barra alta: el guiado te deja bajar profundo con seguridad. Perfecta para aprender la sentadilla o cargar pesado en solitario.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -1531,7 +1531,7 @@
               "commonMistakes": [
                 "Despegar los talones o dejar caer el pecho durante el descenso."
               ],
-              "description": "Sentadilla trasera con barra de seguridad: los agarres frontales de la safety bar resultan más cómodos para hombros y muñecas sensibles.",
+              "description": "Barra de seguridad con barra alta: los agarres frontales hacen la posición más cómoda y estable. La versión moderna que adoran los que cuidan los hombros.",
               "efc": 2.8,
               "equipmentId": "safety_bar",
               "executionCues": [
@@ -1722,7 +1722,7 @@
           }
         ],
         "defaultConfigurationId": "high_bar_back_squat__barbell",
-        "description": "Sentadilla con la barra sobre el trapecio superior, que permite un tronco más vertical y un descenso profundo con énfasis en el cuádriceps. La barra libre y la Smith son las estaciones de cada variante.",
+        "description": "Sentadilla trasera con barra alta: la barra sobre los trapecios y el torso erguido, bajando profundo. La sentadilla reina para cuádriceps y fuerza total.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1767,7 +1767,7 @@
               "commonMistakes": [
                 "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
               ],
-              "description": "Sentadilla trasera con barra baja: la barra descansa sobre los deltoides posteriores y el tronco se inclina algo más. La posición recluta más cadena posterior y permite cargas mayores que la barra alta.",
+              "description": "Barra baja en la espalda: la cadera empuja atrás y puedes cargar más peso. La elección de los levantadores para sentadillas pesadas.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -1979,7 +1979,7 @@
               "commonMistakes": [
                 "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
               ],
-              "description": "Sentadilla trasera con barra baja en Smith: la barra descansa sobre los deltoides posteriores y el riel guiado fija la trayectoria del descenso. La máquina simplifica el equilibrio y mantiene el énfasis posterior.",
+              "description": "Smith con barra baja: el guiado sostiene la barra y tú empujas con la cadera. Segura para series pesadas de sentadilla.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -2191,7 +2191,7 @@
               "commonMistakes": [
                 "Despegar los talones o dejar caer el pecho durante el descenso."
               ],
-              "description": "Sentadilla trasera con barra de seguridad: los agarres frontales de la safety bar resultan más cómodos para hombros y muñecas sensibles.",
+              "description": "Barra de seguridad con barra baja: comodidad del agarre y postura de barra baja. La opción estable para sentadillas profundas.",
               "efc": 2.8,
               "equipmentId": "safety_bar",
               "executionCues": [
@@ -2382,7 +2382,7 @@
           }
         ],
         "defaultConfigurationId": "low_bar_back_squat__barbell",
-        "description": "Sentadilla con la barra sobre los deltoides posteriores, que inclina algo más el tronco y suma cadena posterior al patrón. La barra libre y la Smith son las estaciones de cada variante.",
+        "description": "Sentadilla trasera con barra baja: la barra descansa más abajo y la cadera empuja hacia atrás. Permite cargar más peso y reparte el trabajo entre cuádriceps y glúteos.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -2427,7 +2427,7 @@
               "commonMistakes": [
                 "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
               ],
-              "description": "Prensa de piernas con ambas piernas: los pies apoyan en la plataforma y la cadera y la rodilla se flexionan contra la resistencia guiada. Es la referencia de la familia para desarrollar cuádriceps con el tronco fijo.",
+              "description": "Prensa con ambos pies: empujas la plataforma con toda la planta. La forma más cómoda de cargar mucho peso en las piernas.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -2632,7 +2632,7 @@
               "commonMistakes": [
                 "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
               ],
-              "description": "Prensa de piernas con una pierna: un solo pie presiona la plataforma y la rodilla activa realiza el recorrido completo. Permite corregir asimetrías con la misma estabilidad del asiento.",
+              "description": "Prensa con una pierna: un lado trabaja solo y corriges desequilibrios. Variante exigente que se siente en el cuádriceps de inmediato.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -2819,7 +2819,7 @@
           }
         ],
         "defaultConfigurationId": "quads_prensa_piernas__bilateral",
-        "description": "Empuje de rodilla en máquina con el tronco fijo, que aísla cuádriceps y glúteo sin carga sobre la columna. La lateralidad define cada configuración.",
+        "description": "Prensa de piernas: sentado en la máquina, empujas la plataforma con los pies. Carga pesada con la espalda protegida: la favorita para meter volumen de pierna.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -2863,7 +2863,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla para completar la repetición."
               ],
-              "description": "Sentadilla Anderson trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla. La participación secundaria corresponde a glúteos, core. La configuración utiliza barra como implemento.",
+              "description": "Desde sentado en el suelo sin rebote, te levantas con la barra. La sentadilla que elimina el impulso y construye fuerza pura.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -3045,7 +3045,7 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_anderson__default",
-        "description": "Sentadilla Anderson trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla. La participación secundaria corresponde a glúteos, core.",
+        "description": "Sentadilla Anderson: desde la posición sentada en el suelo, sin rebote, te levantas con la barra. La sentadilla que elimina el impulso y construye fuerza pura desde cero.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -3086,7 +3086,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla para completar la repetición."
               ],
-              "description": "Sentadilla frontal iniciada desde posición muerta sobre pines. La configuración utiliza barra como implemento.",
+              "description": "Barra al frente y salida desde el suelo sin rebote: los cuádriceps y el core exigen fuerza desde cero.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -3263,7 +3263,7 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_anderson_frontal_barra_recta__default",
-        "description": "Sentadilla frontal iniciada desde posición muerta sobre pines.",
+        "description": "Sentadilla Anderson frontal: la barra al frente, sentado en el suelo y levantando sin impulso. Cuádriceps y core exigidos al máximo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -3305,7 +3305,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla para completar la repetición."
               ],
-              "description": "Sentadilla Bazuca trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla. La participación secundaria corresponde a core, glúteos. La configuración utiliza barra como implemento.",
+              "description": "Pies juntos y puntas al frente: el foco va al cuádriceps externo. La sentadilla que da forma a las piernas.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -3487,7 +3487,7 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_bazuca__default",
-        "description": "Sentadilla Bazuca trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla. La participación secundaria corresponde a core, glúteos.",
+        "description": "Sentadilla bazuca: sentadilla con los pies muy juntos y las puntas hacia delante. El foco se va al cuádriceps externo y a darle forma a las piernas.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -3528,7 +3528,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla para completar la repetición."
               ],
-              "description": "Sentadilla Copa trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla. La participación secundaria corresponde a glúteos. La configuración utiliza mancuernas como implemento.",
+              "description": "Mancuerna o kettlebell al pecho como una copa: la sentadilla perfecta para aprender, con el core trabajando de extra.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -3704,7 +3704,7 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_copa__default",
-        "description": "Sentadilla Copa trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla. La participación secundaria corresponde a glúteos.",
+        "description": "Sentadilla copa: sujetas una mancuerna o kettlebell frente al pecho como una copa. La sentadilla perfecta para aprender, con el core trabajando de extra.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -3745,7 +3745,7 @@
               "commonMistakes": [
                 "Despegar los talones o cortar el rango para aliviar la tensión del cuádriceps."
               ],
-              "description": "Sentadilla Hack en máquina: el respaldo fijo y el recorrido guiado permiten cargar fuerte con el foco en el cuádriceps.",
+              "description": "Máquina hack: espalda apoyada y recorrido guiado, el cuádriceps aislado. La versión más popular y la que más peso permite con seguridad.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -3945,7 +3945,7 @@
               "commonMistakes": [
                 "Despegar los talones o cortar el rango para aliviar la tensión del cuádriceps."
               ],
-              "description": "Sentadilla Hack con barra a la espalda: la carga libre exige más estabilidad y trabaja el cuádriceps con el torso erguido.",
+              "description": "Hack con barra por detrás: sin máquina, el equilibrio suma trabajo al cuádriceps. Variante exigente para quien busca algo distinto.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -4145,7 +4145,7 @@
               "commonMistakes": [
                 "Despegar los talones o cortar el rango para aliviar la tensión del cuádriceps."
               ],
-              "description": "Sentadilla Hack en máquina Smith: el guiado de la barra simplifica la colocación y mantiene el énfasis en el cuádriceps.",
+              "description": "Smith en posición hack: el guiado sostiene la barra y las piernas empujan. Un punto intermedio cómodo entre barra y máquina.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -4327,7 +4327,7 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_hack__machine",
-        "description": "Sentadilla Hack trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla. La participación secundaria corresponde a glúteos.",
+        "description": "Sentadilla hack: la espalda apoyada en la máquina y el recorrido guiado hacia abajo. Cuádriceps aislados con la espalda cuidada: la máquina de las piernas serias.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -4371,7 +4371,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla para completar la repetición."
               ],
-              "description": "Sentadilla mirando hacia la estructura en máquina Hack.",
+              "description": "De espaldas a la hack: la carga queda al frente y el cuádriceps bajo trabaja a fondo. Variante invertida y exigente.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -4546,7 +4546,7 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_hack_invertida_maquina__default",
-        "description": "Sentadilla mirando hacia la estructura en máquina Hack.",
+        "description": "Sentadilla invertida en máquina hack: de espaldas al aparato, el peso queda al frente y el trabajo se corre a la parte baja del cuádriceps.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -4586,7 +4586,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla para completar la repetición."
               ],
-              "description": "Sentadilla Somersault trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla. La participación secundaria corresponde a glúteos. La configuración utiliza barra como implemento.",
+              "description": "La barra cruza los brazos por delante y bajas profundo: una variante rara que carga el torso y exige movilidad.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -4764,7 +4764,7 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_somersault__default",
-        "description": "Sentadilla Somersault trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla. La participación secundaria corresponde a glúteos.",
+        "description": "Sentadilla Somersault: la barra cruza los brazos por delante del pecho y baja profundo. Una variante rara que carga el torso y exige movilidad.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -4805,7 +4805,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla para completar la repetición."
               ],
-              "description": "Sentadilla en V-Squat trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla. La participación secundaria corresponde a glúteos. La configuración utiliza máquina como implemento.",
+              "description": "Máquina V-Squat: el cuerpo en ángulo fijo y la carga guiada detrás. Cuádriceps profundo con la espalda descansando.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -4982,7 +4982,7 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_v_squat__default",
-        "description": "Sentadilla en V-Squat trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla. La participación secundaria corresponde a glúteos.",
+        "description": "Sentadilla en máquina V-Squat: el cuerpo en ángulo fijo y la carga guiada detrás. Los cuádriceps trabajan con mucha profundidad y la espalda descansa.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -5024,7 +5024,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla para completar la repetición."
               ],
-              "description": "Sentadilla en máquina V-Squat mirando hacia la estructura.",
+              "description": "V-Squat invertida: la posición cambia el ángulo y el estímulo cae en el cuádriceps inferior.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -5199,7 +5199,7 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_v_squat_invertida_maquina__default",
-        "description": "Sentadilla en máquina V-Squat mirando hacia la estructura.",
+        "description": "Sentadilla invertida en máquina V-Squat: la posición invertida cambia el ángulo y el estímulo cae en el cuádriceps inferior.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -5239,7 +5239,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla para completar la repetición."
               ],
-              "description": "Sentadilla profunda con barra en el pliegue de codos.",
+              "description": "Barra en los codos y sentadilla profunda: el core y los brazos aguantan mientras los cuádriceps trabajan.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -5420,7 +5420,7 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_zercher_barra_recta__default",
-        "description": "Sentadilla profunda con barra en el pliegue de codos.",
+        "description": "Sentadilla Zercher: la barra en los codos frente al pecho, bajando profundo. El core y los brazos aguantan la carga mientras los cuádriceps trabajan.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -5460,7 +5460,7 @@
               "commonMistakes": [
                 "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
               ],
-              "description": "Sentadilla sumo con barra: la postura ancha con las puntas hacia afuera y la barra trasera reparten el trabajo entre cuádriceps y aductores. La base amplia permite una posición estable con cargas altas.",
+              "description": "Barra con pies amplios: la sentadilla sumo clásica con la carga en la espalda. Glúteos y aductores trabajando con los cuádriceps.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -5673,7 +5673,7 @@
               "commonMistakes": [
                 "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
               ],
-              "description": "Sentadilla sumo con mancuerna: la carga se sostiene frente al pecho y la postura ancha guía el descenso con las rodillas abiertas. Variante accesible para el patrón sumo sin barra.",
+              "description": "Mancuernas en postura sumo: la carga a los costados con la base amplia. Accesible y muy efectiva para glúteos y piernas.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -5886,7 +5886,7 @@
               "commonMistakes": [
                 "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
               ],
-              "description": "Sentadilla sumo con kettlebell: el peso descansa frente al cuerpo y la postura ancha con las puntas abiertas dirige la rodilla hacia la línea del pie. El kettlebell ofrece una progresión estable del patrón sumo.",
+              "description": "Kettlebell en postura sumo: la campana al frente o en copa con pies amplios. Variante dinámica que suma agarre al trabajo de pierna.",
               "efc": 2.8,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -6081,7 +6081,7 @@
           }
         ],
         "defaultConfigurationId": "sumo_squat__barbell",
-        "description": "Sentadilla con la postura ancha y las puntas de los pies hacia afuera, que suma los aductores al trabajo de cuádriceps y glúteo. El implemento define cada configuración.",
+        "description": "Sentadilla sumo: pies amplios y puntas hacia fuera, bajando con la cadera. Glúteos, aductores y cuádriceps trabajando juntos con un estímulo distinto.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

@@ -319,6 +319,54 @@ class NutritionResolutionConsistencyTest {
         assertEquals("alimento raro", FoodIdentity.normalize(result.candidates.single().name))
     }
 
+    @Test
+    fun `A1 approximation alias torta never autoconfirms to pan blanco`() = runBlocking {
+        val panBlanco = findFoodExactByNormalized("pan blanco")
+        assertNotNull(panBlanco)
+        val port = RecordingPort(staticFood = panBlanco, staticExact = true)
+
+        val (tags, _) = TagResolver(port).resolveAll(
+            ParsedMealDescription(
+                items = listOf(
+                    ParsedMealItem(
+                        tag = "torta",
+                        amountGrams = 100.0,
+                        amountIntent = AmountIntent.EXPLICIT_MASS,
+                    ),
+                ),
+                rawDescription = "100g torta",
+            ),
+        )
+
+        val tag = tags.single()
+        assertFalse("la aproximación nunca se auto-confirma", tag.isResolved)
+        assertEquals(FoodResolutionStatus.NEEDS_CONFIRMATION, tag.resolutionStatus)
+        assertTrue(tag.isFuzzyMatch)
+        assertNotNull(tag.foodItem)
+        assertTrue(tag.statusText.contains("parecido", ignoreCase = true))
+    }
+
+    @Test
+    fun `A1 papas fritas resuelve a papa frita con alias exacto`() {
+        val cookedPotato = findFoodExactByNormalized("papas fritas")
+        val normalizedForm = findFoodExactByNormalized("papa fritas")
+        assertNotNull("papas fritas debe resolver a Papa (frita)", cookedPotato)
+        assertNotNull("la forma normalizada 'papa fritas' también debe resolver", normalizedForm)
+        assertEquals("gen021f", cookedPotato?.id)
+        assertEquals("gen021f", normalizedForm?.id)
+    }
+
+    @Test
+    fun `A1 manjar resuelve a manjar dulce de leche y no a miel`() {
+        val manjar = findFoodExactByNormalized("manjar")
+        val dulceDeLeche = findFoodExactByNormalized("dulce de leche")
+        assertNotNull(manjar)
+        assertNotNull(dulceDeLeche)
+        assertEquals("gen109", manjar?.id)
+        assertEquals("gen109", dulceDeLeche?.id)
+        assertTrue("no debe ser miel", manjar?.name?.contains("Manjar") == true)
+    }
+
     @Suppress("UNCHECKED_CAST")
     private fun noOpNutritionDao(): com.example.kpkn.data.db.NutritionDao {
         return java.lang.reflect.Proxy.newProxyInstance(

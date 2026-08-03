@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón bisagra cadera / rdl para completar la repetición."
               ],
-              "description": "Peso Muerto Rumano en Déficit trabaja principalmente isquiosurales mediante un patrón de bisagra cadera / rdl. La participación secundaria corresponde a glúteos, erectores espinales. La configuración utiliza barra como implemento.",
+              "description": "Desde la plataforma, la barra baja por los muslos con más recorrido. El rumano con estiramiento extra para los isquios.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -208,7 +208,7 @@
           }
         ],
         "defaultConfigurationId": "hams_peso_muerto_rumano_deficit__default",
-        "description": "Peso Muerto Rumano en Déficit trabaja principalmente isquiosurales mediante un patrón de bisagra cadera / rdl. La participación secundaria corresponde a glúteos, erectores espinales.",
+        "description": "Peso muerto rumano en déficit: subido a una plataforma, la barra baja por los muslos con más recorrido. El rumano clásico con un estiramiento extra de isquios.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

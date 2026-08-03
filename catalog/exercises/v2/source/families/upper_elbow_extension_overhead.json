@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
               ],
-              "description": "Extensión de Tríceps Overhead trabaja principalmente tríceps mediante un patrón de extensión codo. La configuración utiliza barra como implemento. La variante se define por: barra.",
+              "description": "Barra detrás de la cabeza: bajas y subes con los codos apuntando arriba. El press francés overhead clásico con barra.",
               "efc": 2.2,
               "equipmentId": "barbell",
               "executionCues": [
@@ -216,7 +216,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
               ],
-              "description": "Extensión de Tríceps Overhead en Máquina trabaja principalmente tríceps mediante un patrón de extensión codo. La variante se define por: máquina.",
+              "description": "Máquina overhead: el guiado acompaña el recorrido detrás de la cabeza. La opción cómoda y segura del tríceps overhead.",
               "efc": 2.2,
               "equipmentId": "machine",
               "executionCues": [
@@ -407,7 +407,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
               ],
-              "description": "Extensión de tríceps overhead trabaja principalmente tríceps mediante un patrón de extensión codo. La configuración utiliza mancuernas como implemento. La variante se define por: mancuernas.",
+              "description": "Mancuerna o mancuernas detrás de la cabeza: el estiramiento del tríceps es enorme. La versión favorita del overhead para la mayoría.",
               "efc": 2.2,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -598,7 +598,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
               ],
-              "description": "Extensión de tríceps overhead trabaja principalmente tríceps mediante un patrón de extensión codo. La configuración utiliza polea como implemento. La variante se define por: polea.",
+              "description": "Polea overhead: la tensión constante estira y carga el tríceps en todo el recorrido. La versión pulida del tríceps detrás de la cabeza.",
               "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
@@ -770,7 +770,7 @@
           }
         ],
         "defaultConfigurationId": "overhead_triceps__barbell",
-        "description": "Extensión de tríceps overhead trabaja principalmente tríceps mediante un patrón de extensión codo.",
+        "description": "Extensión de tríceps overhead: con los brazos arriba, flexionas y estiras detrás de la cabeza. Estira el tríceps a fondo: el ejercicio de la parte larga del brazo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

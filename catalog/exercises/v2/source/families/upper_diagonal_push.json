@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón empuje diagonal para completar la repetición."
               ],
-              "description": "Press diagonal a un brazo en esquina landmine. La configuración utiliza barra como implemento.",
+              "description": "Barra anclada al suelo y empuje en diagonal con un brazo. El hombro trabaja con el torso estable y sin forzar.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -200,7 +200,7 @@
           }
         ],
         "defaultConfigurationId": "deltoides_press_landmine_unilateral__default",
-        "description": "Press diagonal a un brazo en esquina landmine.",
+        "description": "Press landmine unilateral: una punta de la barra anclada al suelo y empujas con un brazo en diagonal. Fuerza de hombro con el torso estable.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

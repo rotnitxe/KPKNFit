@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
               ],
-              "description": "Press de hombros sentado con barra: el empuje parte desde los hombros con la espalda apoyada en el respaldo. La postura sentada reduce la participación de las piernas y aísla el deltoides.",
+              "description": "Barra sentado con respaldo: el torso fijo y los hombros haciendo todo el empuje. El press sentado clásico con barra.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -225,7 +225,7 @@
               "commonMistakes": [
                 "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
               ],
-              "description": "Press de hombros sentado con mancuernas: cada brazo empuja de forma independiente con el respaldo detrás de la espalda. La carga libre permite adaptar el recorrido a la comodidad del hombro.",
+              "description": "Mancuernas sentado: el respaldo fija el torso y cada brazo trabaja solo. La versión más popular del press de hombros.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -424,7 +424,7 @@
               "commonMistakes": [
                 "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
               ],
-              "description": "Press de hombros sentado en Smith: el riel guiado fija la trayectoria de la barra sobre el respaldo. La máquina reduce el equilibrio del empuje sentado.",
+              "description": "Smith sentado: barra guiada y respaldo firme, aislar el hombro es sencillo. Cómoda para progresar con peso.",
               "efc": 2.5,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -623,7 +623,7 @@
               "commonMistakes": [
                 "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
               ],
-              "description": "Press de hombros sentado en máquina: los brazos empujan por encima de la cabeza con el recorrido guiado del asiento. La estación aísla el deltoides sin coordinación extra.",
+              "description": "Máquina sentada: el guiado lleva el trabajo directo al hombro. La opción más segura y cómoda del press sentado.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -822,7 +822,7 @@
               "commonMistakes": [
                 "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
               ],
-              "description": "Press de hombros sentado en polea: los empujes parten desde los hombros con la tensión continua del cable. La polea sostiene la carga en la fase final del empuje.",
+              "description": "Polea sentado: la tensión constante mantiene el hombro activo en todo el empuje. Variante fina para terminar el día de hombro.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -1021,7 +1021,7 @@
               "commonMistakes": [
                 "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
               ],
-              "description": "Press de hombros sentado con kettlebell: el peso se empuja desde la posición de rack con el tronco apoyado. Variante versátil del empuje vertical sentado.",
+              "description": "Kettlebell sentado: el empuje inestable suma trabajo al core. Variante exigente y muy completa.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -1202,7 +1202,7 @@
           }
         ],
         "defaultConfigurationId": "seated_shoulder_press__barbell",
-        "description": "Empuje vertical sentado con la espalda apoyada, que aísla el deltoides y limita la participación del resto del cuerpo. El implemento define la curva de tensión de cada variante.",
+        "description": "Press de hombros sentado: el banco con respaldo fija el torso y aísla los hombros. La opción cómoda para cargar peso sin balancear el cuerpo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

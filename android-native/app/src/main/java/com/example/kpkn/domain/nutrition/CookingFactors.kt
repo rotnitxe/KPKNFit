@@ -70,6 +70,8 @@ fun applyCookingToMacros(
 
 /**
  * Detect if a food name is a liquid (for unit display as ml instead of g).
+ * B10: matching por palabra completa con límites de palabra; antes "te" hacía
+ * match por substring y "tomate"/"lenteja"/"filete"/"mantequilla" mostraban ml.
  */
 fun isLikelyLiquid(foodName: String, category: String? = null): Boolean {
     val lower = foodName.lowercase().trim()
@@ -82,12 +84,31 @@ fun isLikelyLiquid(foodName: String, category: String? = null): Boolean {
         "champán", "champagne", "sidra", "cava", "prosecco",
         "yogurt", "yogur", "kéfir", "kefir",
     )
-    if (liquidKeywords.any { lower.contains(it) }) return true
+    val liquidRegex = LIQUID_KEYWORD_REGEX
+    if (liquidRegex.containsMatchIn(lower)) return true
     if (category != null) {
         val liquidCategories = listOf("beverage", "bebida", "drink", "dairy drink", "juice")
         if (liquidCategories.any { category.lowercase().contains(it) }) return true
     }
     return false
+}
+
+private val LIQUID_KEYWORD_REGEX: Regex by lazy {
+    val keywords = listOf(
+        "agua", "jugo", "zumo", "leche", "bebida", "refresco", "gaseosa",
+        "café", "cafe", "té", "te", "cerveza", "vino", "licor", "ron", "whisky",
+        "aceite", "vinagre", "salsa de soya", "salsa de soja", "caldo", "sopa",
+        "batido", "smoothie", "malteada", "horchata", "ponche", "néctar", "nectar",
+        "energética", "energetica", "isotónica", "isotonica", "cóctel", "coctel",
+        "champán", "champagne", "sidra", "cava", "prosecco",
+        "yogurt", "yogur", "kéfir", "kefir",
+    )
+    Regex(
+        // (?U): sin UNICODE_CHARACTER_CLASS, \b trata "é"/"ñ" como no-palabra y
+        // \bté\b jamás matchea (B10).
+        "(?U)" + keywords.joinToString("|") { "\\b${Regex.escape(it)}\\b" },
+        RegexOption.IGNORE_CASE,
+    )
 }
 
 data class Quadruple(

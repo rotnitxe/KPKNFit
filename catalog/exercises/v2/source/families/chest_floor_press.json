@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
               ],
-              "description": "Press tumbado en el suelo. Los codos tocan el suelo limitando el recorrido. Enfatiza tríceps y bloqueo. La configuración utiliza barra como implemento. La variante se define por: barra.",
+              "description": "Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas con hombros felices. Un press plano camuflado de seguro.",
               "efc": 3.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -231,7 +231,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
               ],
-              "description": "Floor press con mancuernas. Mayor libertad y trabajo estabilizador que con barra. La variante se define por: mancuernas.",
+              "description": "Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado. Ideal para ganar fuerza de pecho cuidando el hombro.",
               "efc": 3.2,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -416,7 +416,7 @@
           }
         ],
         "defaultConfigurationId": "floor_press__barbell",
-        "description": "Floor press trabaja principalmente pectorales mediante un patrón de empuje horizontal. La participación secundaria corresponde a tríceps, deltoides.",
+        "description": "Press de pecho acostado en el suelo, con los codos tocando el piso en cada repetición. Reduce el recorrido, protege el hombro y te deja mover cargas pesadas con confianza.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

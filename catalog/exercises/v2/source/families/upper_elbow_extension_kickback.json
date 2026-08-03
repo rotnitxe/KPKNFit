@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
               ],
-              "description": "Patada de Tríceps trabaja principalmente tríceps mediante un patrón de extensión codo. La configuración utiliza mancuernas como implemento. La variante se define por: mancuernas · bilateral.",
+              "description": "Mancuernas inclinado con ambas manos: estiras los brazos atrás con el codo fijo. La patada de tríceps clásica.",
               "efc": 2.2,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -219,7 +219,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
               ],
-              "description": "Patada de tríceps trabaja principalmente tríceps mediante un patrón de extensión codo. La configuración utiliza polea como implemento. La variante se define por: polea · bilateral.",
+              "description": "Polea inclinado con ambas manos: la tensión constante acompaña la patada. La versión fina que no deja descansar al tríceps.",
               "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
@@ -412,7 +412,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
               ],
-              "description": "Patada de tríceps trabaja principalmente tríceps mediante un patrón de extensión codo. La configuración utiliza mancuernas como implemento. La variante se define por: mancuernas · unilateral.",
+              "description": "Mancuerna con una mano apoyado en el banco: un tríceps a la vez con el codo firme. Ideal para igualar ambos brazos.",
               "efc": 2.2,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -586,7 +586,7 @@
           }
         ],
         "defaultConfigurationId": "triceps_patada__dumbbells__bilateral",
-        "description": "Patada de tríceps trabaja principalmente tríceps mediante un patrón de extensión codo.",
+        "description": "Patada de tríceps: inclinado, estiras el brazo hacia atrás con el codo fijo. El aislamiento clásico del tríceps, ideal para terminar el brazo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

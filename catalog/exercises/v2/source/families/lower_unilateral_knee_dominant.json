@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral para completar la repetición."
               ],
-              "description": "Sentadilla Búlgara Somersault trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla unilateral. La participación secundaria corresponde a glúteos. La configuración utiliza barra como implemento.",
+              "description": "Pie trasero en el banco y barra cruzando los brazos: la búlgara con un extra de equilibrio. Avanzada y exigente.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -204,7 +204,7 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_bulgara_somersault__default",
-        "description": "Sentadilla Búlgara Somersault trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla unilateral. La participación secundaria corresponde a glúteos.",
+        "description": "Sentadilla búlgara Somersault: el pie trasero en el banco y la barra cruzando los brazos. Variante rara de la búlgara que exige mucho equilibrio.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -245,7 +245,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral para completar la repetición."
               ],
-              "description": "Sentadilla Pistola trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla unilateral. La participación secundaria corresponde a glúteos, core. La configuración utiliza peso corporal como implemento.",
+              "description": "En una sola pierna bajas hasta el suelo con la otra extendida: equilibrio, movilidad y fuerza. El ejercicio que lo demuestra todo.",
               "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -429,7 +429,7 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_pistola__default",
-        "description": "Sentadilla Pistola trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla unilateral. La participación secundaria corresponde a glúteos, core.",
+        "description": "Sentadilla pistola: en una sola pierna, bajas hasta el suelo con la otra extendida. Equilibrio, movilidad y fuerza: el ejercicio que lo demuestra todo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -470,7 +470,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral para completar la repetición."
               ],
-              "description": "Sentadilla Pistola Asistida en TRX trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla unilateral. La participación secundaria corresponde a glúteos.",
+              "description": "Sujetándote del TRX, bajas a una pierna con apoyo: la vía segura para conquistar la pistola.",
               "efc": 2.8,
               "equipmentId": "trx",
               "executionCues": [
@@ -647,7 +647,7 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_pistola_asistida_trx__default",
-        "description": "Sentadilla Pistola Asistida en TRX trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla unilateral. La participación secundaria corresponde a glúteos.",
+        "description": "Sentadilla pistola asistida en TRX: sujetándote de las cuerdas, bajas a una pierna con apoyo. La vía para conquistar la pistola sin miedo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -687,7 +687,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral para completar la repetición."
               ],
-              "description": "Step-Up a Cajón Frontal trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla unilateral. La participación secundaria corresponde a glúteos. La configuración utiliza barra como implemento.",
+              "description": "Subida al cajón con el peso al frente: el cuádriceps hace el trabajo y el glúteo acompaña.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -863,7 +863,7 @@
           }
         ],
         "defaultConfigurationId": "quads_step_up_cajon_frontal__default",
-        "description": "Step-Up a Cajón Frontal trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla unilateral. La participación secundaria corresponde a glúteos.",
+        "description": "Step-up frontal a cajón: subes con una pierna llevando el peso al frente. Cuádriceps a fondo y glúteo trabajando en la subida.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -904,7 +904,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral para completar la repetición."
               ],
-              "description": "Step-Up a Cajón Zercher trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla unilateral. La participación secundaria corresponde a glúteos. La configuración utiliza barra como implemento.",
+              "description": "Carga en los codos y subida al cajón: el core aguanta mientras la pierna sube con todo.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -1080,7 +1080,7 @@
           }
         ],
         "defaultConfigurationId": "quads_step_up_cajon_zercher__default",
-        "description": "Step-Up a Cajón Zercher trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla unilateral. La participación secundaria corresponde a glúteos.",
+        "description": "Step-up Zercher a cajón: la carga en los codos y el paso arriba. El core aguanta mientras la pierna sube con todo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1121,7 +1121,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral para completar la repetición."
               ],
-              "description": "Zancadas avanzantes con barra en posición frontal.",
+              "description": "Pasos al frente con la barra en el pecho: piernas y torso trabajando en movimiento.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -1296,7 +1296,7 @@
           }
         ],
         "defaultConfigurationId": "quads_zancada_caminando_frontal_barra_recta__default",
-        "description": "Zancadas avanzantes con barra en posición frontal.",
+        "description": "Zancada caminando con barra recta al frente: pasos adelante con la barra en el pecho. Piernas y torso trabajando en movimiento.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1336,7 +1336,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral para completar la repetición."
               ],
-              "description": "Zancadas avanzantes con barra en pliegue de codos.",
+              "description": "Pasos al frente con la barra en los codos: la versión más exigente de la zancada caminando.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -1511,7 +1511,7 @@
           }
         ],
         "defaultConfigurationId": "quads_zancada_caminando_zercher_barra_recta__default",
-        "description": "Zancadas avanzantes con barra en pliegue de codos.",
+        "description": "Zancada caminando Zercher: pasos al frente con la barra en los codos. La versión más exigente de la zancada caminando.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1551,7 +1551,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral para completar la repetición."
               ],
-              "description": "Zancada Frontal Zercher trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla unilateral. La participación secundaria corresponde a glúteos. La configuración utiliza barra como implemento.",
+              "description": "Paso al frente con la carga en los codos: equilibrio, piernas y core en un mismo movimiento.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -1727,7 +1727,7 @@
           }
         ],
         "defaultConfigurationId": "quads_zancada_frontal_zercher__default",
-        "description": "Zancada Frontal Zercher trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla unilateral. La participación secundaria corresponde a glúteos.",
+        "description": "Zancada frontal Zercher: el paso al frente con la carga en los codos. Equilibrio, piernas y core en un mismo movimiento.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1768,7 +1768,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral para completar la repetición."
               ],
-              "description": "Zancada Inversa Frontal trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla unilateral. La participación secundaria corresponde a glúteos. La configuración utiliza barra como implemento.",
+              "description": "Paso atrás con la barra al frente del pecho: estable, amable con la rodilla y muy completa.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -1944,7 +1944,7 @@
           }
         ],
         "defaultConfigurationId": "quads_zancada_inversa_frontal__default",
-        "description": "Zancada Inversa Frontal trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla unilateral. La participación secundaria corresponde a glúteos.",
+        "description": "Zancada inversa frontal: el paso atrás con la barra al frente del pecho. Estable, amable con la rodilla y muy completa para las piernas.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1985,7 +1985,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral para completar la repetición."
               ],
-              "description": "Zancada hacia atrás en la plataforma de la máquina Hack.",
+              "description": "Paso atrás con el guiado de la hack: la estabilidad de la máquina con el trabajo de la zancada.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -2160,7 +2160,7 @@
           }
         ],
         "defaultConfigurationId": "quads_zancada_inversa_maquina_hack__default",
-        "description": "Zancada hacia atrás en la plataforma de la máquina Hack.",
+        "description": "Zancada inversa en máquina hack: el paso atrás con el guiado de la hack. La estabilidad de la máquina con el trabajo de la zancada.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -2200,7 +2200,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral para completar la repetición."
               ],
-              "description": "Zancada hacia atrás en la máquina V-Squat.",
+              "description": "Paso atrás con la plataforma V-Squat guiada: unilateral, profunda y con la espalda protegida.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -2375,7 +2375,7 @@
           }
         ],
         "defaultConfigurationId": "quads_zancada_inversa_maquina_v_squat__default",
-        "description": "Zancada hacia atrás en la máquina V-Squat.",
+        "description": "Zancada inversa en máquina V-Squat: paso atrás con la plataforma guiada. Unilateral, profundo y con la espalda protegida.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -2415,7 +2415,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral para completar la repetición."
               ],
-              "description": "Zancada Inversa Zercher trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla unilateral. La participación secundaria corresponde a glúteos. La configuración utiliza barra como implemento.",
+              "description": "Paso atrás con la barra en los codos: la combinación exigente que trabaja piernas y torso.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -2591,7 +2591,7 @@
           }
         ],
         "defaultConfigurationId": "quads_zancada_inversa_zercher__default",
-        "description": "Zancada Inversa Zercher trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla unilateral. La participación secundaria corresponde a glúteos.",
+        "description": "Zancada inversa Zercher: el paso atrás con la barra en los codos. La combinación exigente que trabaja piernas y torso.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

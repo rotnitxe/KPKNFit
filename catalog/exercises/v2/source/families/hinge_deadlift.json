@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar la bisagra de cadera para completar la repetición."
               ],
-              "description": "Peso muerto convencional con barra y dos piernas: la cadera se desplaza atrás y la barra sube pegada al cuerpo desde el suelo hasta el bloqueo. Es la referencia del tren posterior para progresar fuerza total.",
+              "description": "Barra con ambas piernas: el peso muerto más puro que existe, desde el suelo con las dos manos. El movimiento que más fuerza construye.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -248,7 +248,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar la bisagra de cadera para completar la repetición."
               ],
-              "description": "Peso muerto convencional con barra y una pierna de apoyo: la pierna libre se extiende atrás y el isquio del lado activo frena el descenso. Sirve para corregir asimetrías con menos carga que la versión bilateral.",
+              "description": "Barra en apoyo de una sola pierna: el equilibrio se convierte en protagonista y la cadera trabaja a fondo. Ideal para corregir desequilibrios.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -476,7 +476,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar la bisagra de cadera para completar la repetición."
               ],
-              "description": "Peso muerto en máquina Smith con dos piernas: el riel guiado sostiene la trayectoria de la barra y reduce la coordinación necesaria. Permite concentrarse en la extensión de cadera con apoyo estable.",
+              "description": "Smith con ambas piernas: la barra sube guiada y puedes concentrarte en empujar sin pensar en el equilibrio. Segura para series pesadas.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -692,7 +692,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar la bisagra de cadera para completar la repetición."
               ],
-              "description": "Peso muerto en Smith con una pierna de apoyo: el guiado vertical libera el equilibrio del riel y deja el estímulo sobre el glúteo e isquio del lado activo. Buena progresión hacia la versión libre unilateral.",
+              "description": "Smith en una pierna: el guiado te permite trabajar un lado a la vez con estabilidad. Perfecto para igualar piernas y cadera.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -914,7 +914,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar la bisagra de cadera para completar la repetición."
               ],
-              "description": "Peso muerto convencional con mancuernas y dos piernas: la carga cuelga a los lados del cuerpo y permite un rango de recorrido cómodo. La empuñadura libre facilita aprender el patrón antes de la barra.",
+              "description": "Mancuernas con ambas piernas: las pesas viajan por fuera de las rodillas y el recorrido es más libre. La versión amable del peso muerto.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -1136,7 +1136,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar la bisagra de cadera para completar la repetición."
               ],
-              "description": "Peso muerto a una pierna con mancuernas: el peso viaja junto al cuerpo mientras la pierna de apoyo mantiene el equilibrio. Concentra el trabajo en glúteo e isquio y exige control de pelvis.",
+              "description": "Mancuerna en una pierna: equilibrio, isquios y glúteo trabajando juntos. El ejercicio de corrección de desequilibrios por excelencia.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -1364,7 +1364,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar la bisagra de cadera para completar la repetición."
               ],
-              "description": "Peso muerto con barra hexagonal y dos piernas: el agarre neutro y el centro de gravedad centrado alivian la tensión lumbar frente a la barra recta. Permite manejar cargas altas con postura más vertical.",
+              "description": "Barra hexagonal con ambas piernas: el cuerpo queda dentro de la carga y el recorrido es más vertical. Cómoda, segura y muy efectiva.",
               "efc": 2.8,
               "equipmentId": "hex_bar",
               "executionCues": [
@@ -1586,7 +1586,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar la bisagra de cadera para completar la repetición."
               ],
-              "description": "Peso muerto en barra hexagonal con una pierna de apoyo: la empuñadura neutra facilita el equilibrio unipodal y el tronco permanece más vertical. Alternativa cómoda para el trabajo unilateral de cadera.",
+              "description": "Barra hexagonal en una pierna: la carga estable y el trabajo de equilibrio de la cadera. Variante exigente que se siente en el glúteo.",
               "efc": 2.8,
               "equipmentId": "hex_bar",
               "executionCues": [
@@ -1796,7 +1796,7 @@
           }
         ],
         "defaultConfigurationId": "conventional_deadlift__bilateral__barbell",
-        "description": "Bisagra de cadera desde el suelo con postura de pies a la anchura de la cadera y empuñadura en el exterior de las piernas. El implemento y el apoyo de las piernas definen el recorrido y la demanda de cada variante.",
+        "description": "Peso muerto convencional: desde el suelo, con la barra pegada al cuerpo, levantas el peso empujando con las piernas y abriendo la cadera. El ejercicio que construye fuerza de verdad en todo el cuerpo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1842,7 +1842,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar la bisagra de cadera para completar la repetición."
               ],
-              "description": "Peso muerto sumo con barra: la postura ancha y las puntas hacia afuera acortan el recorrido y dan protagonismo a aductores y cuádriceps. Permite mover cargas altas con el tronco más vertical.",
+              "description": "Barra en postura sumo: pies amplios, manos dentro y el recorrido más corto hacia arriba. La elección de muchos para cargar pesado con comodidad.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -2061,7 +2061,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar la bisagra de cadera para completar la repetición."
               ],
-              "description": "Peso muerto sumo con mancuernas: la postura ancha se combina con la carga lateral para un estímulo de cadera con mayor rango. Opción accesible cuando no se dispone de barra.",
+              "description": "Mancuernas en postura sumo: la carga a los costados con la base amplia. Variante accesible que mantiene el estímulo de glúteos y piernas.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -2262,7 +2262,7 @@
           }
         ],
         "defaultConfigurationId": "sumo_deadlift__barbell",
-        "description": "Bisagra de cadera desde el suelo con postura ancha y puntas de los pies hacia afuera, que acorta el recorrido y reduce la demanda lumbar. Los aductores y el cuádriceps ganan protagonismo frente a la postura convencional.",
+        "description": "Peso muerto sumo: pies amplios y brazos dentro de las piernas, el recorrido se acorta y los glúteos y aductores toman protagonismo. La variante preferida por muchos por su comodidad con cargas altas.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

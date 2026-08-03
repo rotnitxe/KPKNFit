@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso de la cadera, despegar el tronco del apoyo o reducir el rango para completar la repetición."
               ],
-              "description": "Curl de isquiosurales en el suelo con los pies apoyados sobre un balón: la cadera se eleva y los talones traccionan el balón hacia el cuerpo. La inestabilidad añade demanda de core al trabajo de los isquiosurales.",
+              "description": "Acostado con el balón entre los pies: llevas el balón hacia el glúteo flexionando las rodillas. Isquios y glúteos ardiendo sin máquinas.",
               "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -211,7 +211,7 @@
           }
         ],
         "defaultConfigurationId": "curl_isquios_con_balon__default",
-        "description": "Curl de isquiosurales en el suelo con los pies apoyados sobre un balón: la cadera se eleva y los talones traccionan el balón hacia el cuerpo. La inestabilidad añade demanda de core al trabajo de los isquiosurales.",
+        "description": "Curl de isquiosurales con balón: acostado, llevas el balón hacia el glúteo con las piernas. Isquios y glúteos trabajando en casa sin ninguna máquina.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -253,7 +253,7 @@
               "commonMistakes": [
                 "Usar impulso de la cadera, despegar el tronco del apoyo o reducir el rango para completar la repetición."
               ],
-              "description": "Curl de isquiosurales en el suelo con los pies sobre los sliders: los talones deslizan hacia los glúteos y la resistencia crece con el peso del propio cuerpo. No requiere máquina y permite progresar hasta el curl de piernas con peso.",
+              "description": "Pies en los sliders y cuerpo extendido: flexionas las rodillas deslizando los pies hacia ti. La versión exigente del curl en casa.",
               "efc": 2.8,
               "equipmentId": "sliders",
               "executionCues": [
@@ -430,7 +430,7 @@
           }
         ],
         "defaultConfigurationId": "curl_isquios_con_sliders__default",
-        "description": "Curl de isquiosurales en el suelo con los pies sobre los sliders: los talones deslizan hacia los glúteos y la resistencia crece con el peso del propio cuerpo. No requiere máquina y permite progresar hasta el curl de piernas con peso.",
+        "description": "Curl de isquiosurales con sliders: los pies en los discos deslizantes y llevas el cuerpo hacia atrás flexionando las rodillas. La versión exigente para isquios en casa.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -472,7 +472,7 @@
               "commonMistakes": [
                 "Usar impulso de la cadera, despegar el tronco del apoyo o reducir el rango para completar la repetición."
               ],
-              "description": "Curl de isquiosurales tumbado en máquina con ambas piernas: el cuerpo se apoya boca abajo y el cojín eleva los tobillos hacia los glúteos. El recorrido guiado y el rango completo hacen de esta la referencia de la familia.",
+              "description": "Máquina tumbado con ambas piernas: los talones suben al glúteo contra la resistencia. El aislamiento clásico de los isquios.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -688,7 +688,7 @@
               "commonMistakes": [
                 "Usar impulso de la cadera, despegar el tronco del apoyo o reducir el rango para completar la repetición."
               ],
-              "description": "Curl de isquiosurales tumbado en máquina con una pierna: un solo tobillo presiona el cojín y la rodilla activa realiza el recorrido completo. Ayuda a detectar y corregir diferencias de fuerza entre los dos lados.",
+              "description": "Máquina tumbado con una pierna: cada isquio trabaja solo y corriges desequilibrios. La versión fina del curl tumbado.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -904,7 +904,7 @@
               "commonMistakes": [
                 "Usar impulso de la cadera, despegar el tronco del apoyo o reducir el rango para completar la repetición."
               ],
-              "description": "Curl de isquiosurales tumbado en polea baja con ambas piernas: la tobillera doble tracciona hacia los glúteos con tensión continua. La polea mantiene la carga en la fase de estiramiento, donde la máquina pierde tensión.",
+              "description": "Polea tumbado con ambas piernas: la tensión constante sube los talones con los isquios cargados. Variante exigente y muy completa.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -1120,7 +1120,7 @@
               "commonMistakes": [
                 "Usar impulso de la cadera, despegar el tronco del apoyo o reducir el rango para completar la repetición."
               ],
-              "description": "Curl de isquiosurales tumbado en polea con una pierna: la tobillera del lado activo vence la tensión del cable en cada repetición. La cadera queda apoyada y el trabajo se concentra en el isquio de la pierna trabajada.",
+              "description": "Polea tumbado con una pierna: tensión continua en un isquio a la vez. Perfecto para igualar ambos lados.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -1336,7 +1336,7 @@
               "commonMistakes": [
                 "Usar impulso de la cadera, despegar el tronco del apoyo o reducir el rango para completar la repetición."
               ],
-              "description": "Curl de isquiosurales tumbado con mancuerna sujeta entre los pies: el peso acompaña la flexión de rodilla y la carga se regula con precisión. Opción accesible en casa cuando no hay máquina ni polea disponibles.",
+              "description": "Mancuerna entre los pies tumbado: sujeta el peso con los pies y flexiona. Una forma original de hacer curl de isquios en casa.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -1546,7 +1546,7 @@
               "commonMistakes": [
                 "Usar impulso de la cadera, despegar el tronco del apoyo o reducir el rango para completar la repetición."
               ],
-              "description": "Curl de isquiosurales tumbado con mancuerna en un pie: la carga del lado activo flexiona una sola rodilla mientras la otra pierna descansa. Variante para asimetrías con un implemento sencillo de conseguir.",
+              "description": "Mancuerna con un pie: el isquio de una pierna hace todo el trabajo. Variante accesible y muy directa.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -1738,7 +1738,7 @@
           }
         ],
         "defaultConfigurationId": "lying_leg_curl__bilateral__machine",
-        "description": "Flexión de rodilla boca abajo con la cadera extendida, que maximiza el rango de los isquiosurales. La máquina, la polea y la mancuerna definen cada configuración.",
+        "description": "Curl de isquiosurales tumbado: boca abajo en la máquina, flexionas las piernas llevando los talones al glúteo. El aislamiento clásico de la parte trasera de la pierna.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1784,7 +1784,7 @@
               "commonMistakes": [
                 "Usar impulso de la cadera, despegar el tronco del apoyo o reducir el rango para completar la repetición."
               ],
-              "description": "Curl de isquiosurales sentado en máquina con ambas piernas: el cojín presiona la parte posterior de los tobillos y flexiona las rodillas contra la resistencia guiada. El respaldo fija el tronco y aísla el trabajo de los isquiosurales.",
+              "description": "Máquina sentado con ambas piernas: flexionas contra la almohadilla con la espalda cómoda. El curl de isquios más seguro.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -1986,7 +1986,7 @@
               "commonMistakes": [
                 "Usar impulso de la cadera, despegar el tronco del apoyo o reducir el rango para completar la repetición."
               ],
-              "description": "Curl de isquiosurales sentado en máquina con una pierna: cada rodilla trabaja de forma independiente y el cojín presiona un solo tobillo. Permite corregir asimetrías entre ambos isquiosurales con la misma estabilidad del asiento.",
+              "description": "Máquina sentado con una pierna: cada isquio trabaja por separado. Ideal para corregir desequilibrios sentado.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -2188,7 +2188,7 @@
               "commonMistakes": [
                 "Usar impulso de la cadera, despegar el tronco del apoyo o reducir el rango para completar la repetición."
               ],
-              "description": "Curl de isquiosurales sentado en polea con ambas piernas: la tobillera une las dos piernas y la tensión continua flexiona las rodillas hacia el asiento. La polea ofrece una alternativa al recorrido guiado de la máquina.",
+              "description": "Polea sentado con ambas piernas: la tensión constante acompaña la flexión. Variante fina para los isquios sentado.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -2390,7 +2390,7 @@
               "commonMistakes": [
                 "Usar impulso de la cadera, despegar el tronco del apoyo o reducir el rango para completar la repetición."
               ],
-              "description": "Curl de isquiosurales sentado en polea con una pierna: la tobillera del lado activo tracciona y la rodilla se flexiona contra la tensión del cable. Exige fijar la cadera para que el trabajo no se traslade al tronco.",
+              "description": "Polea sentado con una pierna: tensión continua en un isquio a la vez. Perfecto para centrarse en cada lado.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -2574,7 +2574,7 @@
           }
         ],
         "defaultConfigurationId": "seated_leg_curl__bilateral__machine",
-        "description": "Flexión de rodilla sentado con el tronco apoyado, que aísla los isquiosurales con la cadera fija. La máquina y la polea definen la curva de resistencia de cada variante.",
+        "description": "Curl de isquiosurales sentado: en la máquina sentada, flexionas las piernas contra la resistencia. Trabaja los isquios en una postura cómoda y segura para la espalda.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -2620,7 +2620,7 @@
               "commonMistakes": [
                 "Usar impulso de la cadera, despegar el tronco del apoyo o reducir el rango para completar la repetición."
               ],
-              "description": "Curl de isquiosurales de pie en máquina con ambas piernas: el tronco queda erguido y el cojín flexiona las dos rodillas contra la resistencia guiada. La postura vertical cambia el brazo de palanca frente a las versiones sentada y tumbada.",
+              "description": "Máquina de pie con ambas piernas: flexionas contra la resistencia estando de pie. Trabajo limpio y cómodo de los isquios.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -2830,7 +2830,7 @@
               "commonMistakes": [
                 "Usar impulso de la cadera, despegar el tronco del apoyo o reducir el rango para completar la repetición."
               ],
-              "description": "Curl de isquiosurales de pie en máquina con una pierna: una rodilla trabaja contra el cojín mientras la otra pierna sostiene el apoyo. La estación de pie exige fijar la cadera para aislar el isquio del lado activo.",
+              "description": "Máquina de pie con una pierna: aislamiento total de un isquio. La opción favorita para igualar ambos lados.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -3040,7 +3040,7 @@
               "commonMistakes": [
                 "Usar impulso de la cadera, despegar el tronco del apoyo o reducir el rango para completar la repetición."
               ],
-              "description": "Curl de isquiosurales de pie en polea con ambas piernas: la tobillera une los pies y la tensión del cable flexiona las rodillas hacia atrás. La polea permite ajustar la carga con suavidad y mantiene la tensión en cada fase del recorrido.",
+              "description": "Polea de pie con ambas piernas: los tobillos enganchados flexionan contra la tensión. Variante constante y exigente.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -3250,7 +3250,7 @@
               "commonMistakes": [
                 "Usar impulso de la cadera, despegar el tronco del apoyo o reducir el rango para completar la repetición."
               ],
-              "description": "Curl de isquiosurales de pie en polea con una pierna: el tobillo anclado al cable tracciona hacia los glúteos con la cadera extendida. La versión de pie añade equilibrio al trabajo de los isquiosurales del lado activo.",
+              "description": "Polea de pie con una pierna: tensión continua en un isquio a la vez. Ideal para un trabajo fino de la parte trasera.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -3442,7 +3442,7 @@
           }
         ],
         "defaultConfigurationId": "standing_leg_curl__bilateral__machine",
-        "description": "Flexión de rodilla de pie con el tronco erguido, que cambia el brazo de palanca frente a las versiones apoyadas. La máquina y la polea definen la resistencia de cada variante.",
+        "description": "Curl de isquiosurales de pie: de pie en la máquina, flexionas una pierna contra la resistencia. El aislamiento unilateral perfecto para igualar ambos isquios.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

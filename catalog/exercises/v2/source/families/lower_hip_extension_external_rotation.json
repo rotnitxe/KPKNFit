@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón extensión cadera / rotación externa para completar la repetición."
               ],
-              "description": "Frog Pumps trabaja principalmente glúteos mediante un patrón de extensión cadera / rotación externa. La configuración utiliza peso corporal como implemento.",
+              "description": "Plantas de los pies juntas y rodillas abiertas: bombeas la cadera hacia arriba y el glúteo arde. Un movimiento pequeño con una sensación enorme.",
               "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -193,7 +193,7 @@
           }
         ],
         "defaultConfigurationId": "glutes_frog_pumps__default",
-        "description": "Frog Pumps trabaja principalmente glúteos mediante un patrón de extensión cadera / rotación externa.",
+        "description": "Frog pumps: boca arriba con las plantas de los pies juntas y las rodillas abiertas, bombeando la cadera hacia arriba. Un ejercicio pequeño que enciende el glúteo de una forma sorprendente.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

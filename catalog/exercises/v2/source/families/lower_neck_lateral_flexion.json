@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón flexión lateral cuello para completar la repetición."
               ],
-              "description": "Flexión Lateral de Cuello trabaja principalmente cuello mediante un patrón de flexión lateral cuello. La configuración utiliza disco como implemento.",
+              "description": "De pie o acostado, inclinas la cabeza hacia el lado contra resistencia. Los laterales del cuello trabajan para un cuello completo.",
               "efc": 2.0,
               "equipmentId": "plate",
               "executionCues": [
@@ -194,7 +194,7 @@
           }
         ],
         "defaultConfigurationId": "neck_flexion_lateral_cuello__default",
-        "description": "Flexión Lateral de Cuello trabaja principalmente cuello mediante un patrón de flexión lateral cuello.",
+        "description": "Flexión lateral de cuello: inclinas la cabeza hacia el lado contra resistencia. Fortalece los laterales del cuello para un cuello completo y fuerte.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

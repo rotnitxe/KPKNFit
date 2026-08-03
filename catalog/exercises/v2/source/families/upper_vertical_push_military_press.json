@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
               ],
-              "description": "Press militar con barra: el empuje parte desde los hombros con el tronco erguido y la carga sube hasta el bloqueo por encima de la cabeza. Es la referencia del empuje vertical de pie para progresar fuerza.",
+              "description": "Barra desde los hombros hasta arriba: el press militar clásico de pie. El ejercicio rey de la fuerza de hombro.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -233,7 +233,7 @@
               "commonMistakes": [
                 "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
               ],
-              "description": "Press militar con mancuernas: cada brazo empuja de forma independiente desde el hombro con el tronco erguido. La carga libre permite un recorrido más natural para la articulación del hombro.",
+              "description": "Mancuernas desde los hombros: cada brazo trabaja por separado y el recorrido es más natural. La versión equilibrada del press militar.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -440,7 +440,7 @@
               "commonMistakes": [
                 "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
               ],
-              "description": "Press militar en Smith: el riel guiado fija la trayectoria de la barra por encima de la cabeza. La máquina reduce el equilibrio del empuje vertical.",
+              "description": "Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio. Segura para cargar peso de pie.",
               "efc": 2.5,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -647,7 +647,7 @@
               "commonMistakes": [
                 "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
               ],
-              "description": "Press militar en máquina: los brazos empujan por encima de la cabeza con el recorrido guiado y el asiento fijo. La máquina simplifica la posición y aísla el deltoides.",
+              "description": "Máquina de press militar: el recorrido fijo aísla los hombros por completo. La opción cómoda para meter volumen de hombro.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -854,7 +854,7 @@
               "commonMistakes": [
                 "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
               ],
-              "description": "Press militar en polea: los empujes parten desde los hombros con la tensión continua del cable. La polea sostiene la carga en la fase final del empuje.",
+              "description": "Polea desde los hombros: la tensión constante acompaña todo el empuje. Variante fina que mantiene el hombro cargado.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -1061,7 +1061,7 @@
               "commonMistakes": [
                 "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
               ],
-              "description": "Press militar con kettlebell: el peso se empuja desde la posición de rack con el codo hacia adelante. Variante versátil del empuje vertical de pie.",
+              "description": "Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja. Variante exigente para hombros y estabilidad.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -1250,7 +1250,7 @@
           }
         ],
         "defaultConfigurationId": "military_press__barbell",
-        "description": "Empuje vertical de pie con el tronco erguido, que desarrolla el deltoides y exige estabilidad del cuerpo entero. El implemento define la curva de tensión de cada variante.",
+        "description": "Press militar: de pie, empujas la barra desde los hombros hasta arriba de la cabeza. El ejercicio rey para hombros fuertes y espalda alta sólida.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

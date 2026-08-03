@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón bisagra cadera para completar la repetición."
               ],
-              "description": "Peso Muerto Rumano Zercher trabaja principalmente isquiosurales mediante un patrón de bisagra cadera. La participación secundaria corresponde a glúteos, erectores espinales, core. La configuración utiliza barra como implemento.",
+              "description": "Barra en los codos bajando con las piernas casi rectas: el isquio se estira a fondo y el torso aguanta la carga al frente. Exigente y muy completo.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -214,7 +214,7 @@
           }
         ],
         "defaultConfigurationId": "hams_peso_muerto_rumano_zercher__default",
-        "description": "Peso Muerto Rumano Zercher trabaja principalmente isquiosurales mediante un patrón de bisagra cadera. La participación secundaria corresponde a glúteos, erectores espinales, core.",
+        "description": "Peso muerto rumano Zercher: la barra en los codos frente al pecho mientras bajas con las piernas casi rectas. El isquio se estira igual y el torso trabaja de extra.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -255,7 +255,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón bisagra cadera para completar la repetición."
               ],
-              "description": "Pull-Through trabaja principalmente isquiosurales mediante un patrón de bisagra cadera. La participación secundaria corresponde a isquiosurales. La configuración utiliza polea como implemento.",
+              "description": "De espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera empuja atrás y adelante. El ejercicio que enseña la cadera a trabajar con los isquios.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -423,7 +423,7 @@
           }
         ],
         "defaultConfigurationId": "hams_pull_through__default",
-        "description": "Pull-Through trabaja principalmente isquiosurales mediante un patrón de bisagra cadera. La participación secundaria corresponde a isquiosurales.",
+        "description": "Pull-through: de espaldas a la polea baja, pasas la cuerda entre las piernas y empujas la cadera hacia atrás y adelante. El ejercicio que enseña a usar la cadera con los isquios de guía.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

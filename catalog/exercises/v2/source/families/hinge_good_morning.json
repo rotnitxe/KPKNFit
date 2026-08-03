@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Redondear la espalda o flexionar demasiado las rodillas para ganar profundidad."
               ],
-              "description": "Buenos Días con barra y trabajo bilateral: la barra sobre los trapecios carga la bisagra de cadera con el patrón clásico de pie.",
+              "description": "Barra sobre los hombros con ambas piernas: la inclinación clásica de cadera hacia delante. El buenos días de toda la vida, exigente y productivo.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -245,7 +245,7 @@
               "commonMistakes": [
                 "Redondear la espalda o flexionar demasiado las rodillas para ganar profundidad."
               ],
-              "description": "Buenos Días con barra y apoyo en una pierna: la variante unilateral exige más estabilidad y reparte el trabajo de la cadera posterior.",
+              "description": "Barra en una sola pierna: el equilibrio añade trabajo a la cadera y la espalda baja. Avanzado, profundo y muy revelador de desequilibrios.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -464,7 +464,7 @@
               "commonMistakes": [
                 "Redondear la espalda o flexionar demasiado las rodillas para ganar profundidad."
               ],
-              "description": "Buenos Días con barra de seguridad y trabajo bilateral: los agarres frontales de la safety bar resultan más cómodos para hombros sensibles.",
+              "description": "Barra de seguridad sobre los hombros: los agarres frontales hacen la posición más cómoda y estable. La versión moderna del buenos días clásico.",
               "efc": 2.8,
               "equipmentId": "safety_bar",
               "executionCues": [
@@ -683,7 +683,7 @@
               "commonMistakes": [
                 "Redondear la espalda o flexionar demasiado las rodillas para ganar profundidad."
               ],
-              "description": "Buenos Días con barra de seguridad y apoyo en una pierna: la comodidad del agarre se suma al reto de estabilizar la bisagra.",
+              "description": "Barra de seguridad en una pierna: comodidad del agarre más el reto del equilibrio. Una combinación exigente para la cadena posterior.",
               "efc": 2.8,
               "equipmentId": "safety_bar",
               "executionCues": [
@@ -902,7 +902,7 @@
               "commonMistakes": [
                 "Redondear la espalda o flexionar demasiado las rodillas para ganar profundidad."
               ],
-              "description": "Buenos Días en máquina Smith con trabajo bilateral: el recorrido guiado simplifica la colocación de la barra y reduce el riesgo.",
+              "description": "Smith con ambas piernas: la barra guiada te permite ir profundo con confianza. Perfecto para aprender el movimiento o cargar más peso.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -1121,7 +1121,7 @@
               "commonMistakes": [
                 "Redondear la espalda o flexionar demasiado las rodillas para ganar profundidad."
               ],
-              "description": "Buenos Días en máquina Smith con apoyo en una pierna: el guiado elimina el equilibrio y aísla el trabajo de cada lado.",
+              "description": "Smith en una pierna: el guiado sostiene el equilibrio y la cadera trabaja a fondo. Variante avanzada para corregir asimetrías.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -1340,7 +1340,7 @@
               "commonMistakes": [
                 "Redondear la espalda o flexionar demasiado las rodillas para ganar profundidad."
               ],
-              "description": "Buenos Días en máquina con trabajo bilateral: la estación guiada permite cargar la bisagra sin preocuparse por la colocación de la barra.",
+              "description": "Máquina de buenos días: la cadera apoya en la almohadilla y el recorrido viene guiado. La opción más segura para sentir el trabajo trasero.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -1559,7 +1559,7 @@
               "commonMistakes": [
                 "Redondear la espalda o flexionar demasiado las rodillas para ganar profundidad."
               ],
-              "description": "Buenos Días en máquina con apoyo en una pierna: el guiado de la máquina deja el foco en la fuerza de cada cadera.",
+              "description": "Máquina en una pierna: el guiado cuida la postura mientras el lado trabajado hace todo el esfuerzo. Ideal para equilibrar ambos lados.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -1778,7 +1778,7 @@
               "commonMistakes": [
                 "Redondear la espalda o flexionar demasiado las rodillas para ganar profundidad."
               ],
-              "description": "Buenos Días en polea con trabajo bilateral: la polea baja mantiene tensión continua en los isquios durante toda la bisagra.",
+              "description": "Polea baja con ambas piernas: la tensión constante acompaña toda la inclinación. Variante suave que mantiene el estímulo sin cargar la espalda.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -1997,7 +1997,7 @@
               "commonMistakes": [
                 "Redondear la espalda o flexionar demasiado las rodillas para ganar profundidad."
               ],
-              "description": "Buenos Días en polea con apoyo en una pierna: la tensión continua de la polea acompaña el descenso controlado del tronco.",
+              "description": "Polea en una pierna: tensión continua y equilibrio en cada repetición. Un buenos días fino para trabajar la cadera de lado a lado.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -2198,7 +2198,7 @@
           }
         ],
         "defaultConfigurationId": "good_morning__bilateral__barbell",
-        "description": "Bisagra de cadera de pie con la carga sobre la espalda o en la cadera, que entrena el tren posterior con el tronco como protagonista. La postura sentada y la carga zercher permanecen como especialidades.",
+        "description": "Buenos días: con la barra sobre los hombros, inclinas el torso hacia delante moviendo solo la cadera y vuelves arriba. El ejercicio que fortalece toda la espalda baja y las piernas, exigente y gratificante.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -2244,7 +2244,7 @@
               "commonMistakes": [
                 "Redondear la espalda o despegar la cadera del banco al bajar."
               ],
-              "description": "Buenos Días Sentado con barra: el banco fija la cadera y aísla la bisagra de los isquios con el patrón clásico.",
+              "description": "Barra sentado en el banco: la cadera fija y la tensión directa en los isquios. Menos peso que de pie, pero la sensación es inconfundible.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -2457,7 +2457,7 @@
               "commonMistakes": [
                 "Redondear la espalda o despegar la cadera del banco al bajar."
               ],
-              "description": "Buenos Días Sentado en máquina Smith: el recorrido guiado facilita la colocación de la barra desde el banco.",
+              "description": "Smith sentado: la barra guiada y la postura fija del banco. Cómodo para progresar con seguridad en el movimiento.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -2670,7 +2670,7 @@
               "commonMistakes": [
                 "Redondear la espalda o despegar la cadera del banco al bajar."
               ],
-              "description": "Buenos Días Sentado con barra de seguridad: el agarre frontal de la safety bar resulta más cómodo para hombros sensibles.",
+              "description": "Barra de seguridad sentado: agarre cómodo y cadera fija en el banco. La variante más agradable para trabajar los isquios sentado.",
               "efc": 2.8,
               "equipmentId": "safety_bar",
               "executionCues": [
@@ -2865,7 +2865,7 @@
           }
         ],
         "defaultConfigurationId": "good_morning_seated__barbell",
-        "description": "Buenos días sentado con barra: el apoyo del banco aísla la flexión de cadera y reduce la participación de la pierna. Variante para trabajar el rango de bisagra con menos carga axial.",
+        "description": "Buenos días sentado: la cadera queda apoyada en el banco y el trabajo se concentra en la parte trasera de las piernas y la espalda baja. Menos peso y mucha más sensación de tensión.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -2908,7 +2908,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar la bisagra de cadera para completar la repetición."
               ],
-              "description": "Buenos días zercher con barra: la carga se sostiene en el pliegue del codo y cambia el centro de gravedad del tronco. Exige más control del core por la posición frontal de la resistencia.",
+              "description": "Barra en los codos, torso inclinándose hacia delante con la carga pegada al pecho. El torso trabaja de más y la sensación en la cadera es distinta a cualquier buenos días.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -3097,7 +3097,7 @@
           }
         ],
         "defaultConfigurationId": "good_morning_zercher__default",
-        "description": "Buenos días zercher con barra: la carga se sostiene en el pliegue del codo y cambia el centro de gravedad del tronco. Exige más control del core por la posición frontal de la resistencia.",
+        "description": "Buenos días Zercher: la barra sujetada en los codos frente al pecho. Al quedar la carga más cerca del cuerpo, el torso y la cadera trabajan con una exigencia distinta.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

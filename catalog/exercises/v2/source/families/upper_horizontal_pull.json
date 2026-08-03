@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."
               ],
-              "description": "Separación de banda elástica a la altura del pecho. La configuración utiliza banda de resistencia como implemento.",
+              "description": "Banda al frente y separación hacia el pecho: la espalda alta se activa al instante. El calentamiento perfecto de espalda y hombros.",
               "efc": 2.5,
               "equipmentId": "band",
               "executionCues": [
@@ -200,7 +200,7 @@
           }
         ],
         "defaultConfigurationId": "back_band_pull_apart__default",
-        "description": "Separación de banda elástica a la altura del pecho.",
+        "description": "Band pull-apart: sujetas la banda al frente y la separas hasta el pecho. La espalda alta y los hombros se activan, perfecto para calentar y corregir postura.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -240,7 +240,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."
               ],
-              "description": "Remo en Banda Elástica trabaja principalmente trapecio, dorsales mediante un patrón de tirón horizontal. La participación secundaria corresponde a deltoides, bíceps, erectores espinales. La configuración utiliza banda de resistencia como implemento.",
+              "description": "Banda anclada y tirón hacia el torso: el remo que cabe en cualquier mochila. Espalda trabajando en casa o en el parque.",
               "efc": 2.5,
               "equipmentId": "band",
               "executionCues": [
@@ -432,7 +432,7 @@
           }
         ],
         "defaultConfigurationId": "back_remo_banda__default",
-        "description": "Remo en Banda Elástica trabaja principalmente trapecio, dorsales mediante un patrón de tirón horizontal. La participación secundaria corresponde a deltoides, bíceps, erectores espinales.",
+        "description": "Remo en banda elástica: con la banda anclada, tiras hacia el torso. El remo portable: fácil de hacer en casa o en el parque.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -472,7 +472,7 @@
               "commonMistakes": [
                 "Enderezar el tronco durante la tracción en lugar de mantener la bisagra."
               ],
-              "description": "Remo Gorilla con mancuernas: la bisagra de cadera con el peso colgando exige control del core durante toda la tracción.",
+              "description": "Mancuernas colgando y tirón con balanceo del torso: el remo gorila clásico. Fuerza bruta de espalda con mancuernas.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -679,7 +679,7 @@
               "commonMistakes": [
                 "Enderezar el tronco durante la tracción en lugar de mantener la bisagra."
               ],
-              "description": "Remo Gorilla con kettlebell: la carga compacta facilita el agarre desde la bisagra y permite ritmos controlados.",
+              "description": "Kettlebells colgando y tirón con balanceo: el agarre suma trabajo al remo gorila. Variante completa para espalda y antebrazos.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -886,7 +886,7 @@
               "commonMistakes": [
                 "Enderezar el tronco durante la tracción en lugar de mantener la bisagra."
               ],
-              "description": "Remo Gorilla en polea: la tensión continua mantiene el dorsal activo durante toda la tracción desde la bisagra.",
+              "description": "Polea y tirón con balanceo: la tensión constante cambia el remo gorila. La versión fina del remo de la fuerza bruta.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -1075,7 +1075,7 @@
           }
         ],
         "defaultConfigurationId": "back_remo_gorilla_mancuernas__dumbbells",
-        "description": "Remo Gorilla con Mancuernas trabaja principalmente dorsales mediante un patrón de tirón horizontal. La participación secundaria corresponde a trapecio, deltoides, bíceps, erectores espinales.",
+        "description": "Remo gorila: inclinado con las pesas colgando, tiras con la espalda y el torso balanceándose. El remo de la fuerza bruta, exigente y muy completo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1119,7 +1119,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."
               ],
-              "description": "Remo en suspensión con peso corporal en barra fija.",
+              "description": "Colgado bajo la barra con el cuerpo recto, acercas el pecho a ella. La dominada horizontal: espalda con tu propio peso y fácil de progresar.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -1311,7 +1311,7 @@
           }
         ],
         "defaultConfigurationId": "back_remo_invertido__default",
-        "description": "Remo en suspensión con peso corporal en barra fija.",
+        "description": "Remo invertido: colgado bajo una barra con el cuerpo recto, te acercas a ella. La dominada horizontal: espalda trabajando con tu propio peso.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1351,7 +1351,7 @@
               "commonMistakes": [
                 "Rotar la cadera o hundir la espalda al traccionar cada brazo."
               ],
-              "description": "Remo Renegado con mancuernas: la tracción desde la plancha alta combina el dorsal con una exigencia fuerte de estabilidad del core.",
+              "description": "Mancuernas en plancha y remo de un brazo: el core combate el giro. Espalda y abdomen en un mismo ejercicio.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -1565,7 +1565,7 @@
               "commonMistakes": [
                 "Rotar la cadera o hundir la espalda al traccionar cada brazo."
               ],
-              "description": "Remo Renegado con kettlebell: la carga compacta roza menos el suelo y facilita la tracción desde la plancha alta.",
+              "description": "Kettlebells en plancha y remo de un brazo: la campana baja el centro de gravedad y exige más. La variante avanzada del renegado.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -1761,7 +1761,7 @@
           }
         ],
         "defaultConfigurationId": "back_remo_renegado_mancuernas__dumbbells",
-        "description": "Remo en posición de plancha alternando mancuernas.",
+        "description": "Remo renegado: en posición de plancha con mancuernas, remas un brazo a la vez. Espalda y core combatiendo el giro en cada repetición.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1805,7 +1805,7 @@
               "commonMistakes": [
                 "Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."
               ],
-              "description": "Face Pull. Ajustable en equipo y lateralidad. La configuración utiliza polea como implemento.",
+              "description": "Cuerda a la altura de la cara: tiras abriendo los codos hacia los lados. El ejercicio que cuida tus hombros mientras fortalece la espalda alta.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -1985,7 +1985,7 @@
           }
         ],
         "defaultConfigurationId": "deltoides_face_pull__default",
-        "description": "Face Pull. Ajustable en equipo y lateralidad.",
+        "description": "Face pull: tiras de la cuerda hacia la cara abriendo los codos. El ejercicio de la salud del hombro: deltoides posterior y espalda alta.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

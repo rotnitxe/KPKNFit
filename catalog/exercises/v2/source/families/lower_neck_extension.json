@@ -26,7 +26,7 @@
               "commonMistakes": [
                 "Usar la espalda o mover el tronco entero en lugar de aislar el cuello."
               ],
-              "description": "Extensiones de Cuello con arnés en polea: la tensión continua acompaña la extensión cervical a lo largo del recorrido.",
+              "description": "Arnés o polea en la cabeza: llevas la cabeza atrás contra la tensión. El cuello trabaja con resistencia constante.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
@@ -218,7 +218,7 @@
               "commonMistakes": [
                 "Usar la espalda o mover el tronco entero en lugar de aislar el cuello."
               ],
-              "description": "Extensiones de Cuello con disco: la carga libre sobre la cabeza permite ajustar el peso con precisión.",
+              "description": "Disco en la nuca: subes la cabeza contra el peso del disco. La forma simple y clásica de fortalecer el cuello.",
               "efc": 2.0,
               "equipmentId": "plate",
               "executionCues": [
@@ -392,7 +392,7 @@
           }
         ],
         "defaultConfigurationId": "neck_extension_cuello__cable",
-        "description": "Extensión del cuello contra resistencia externa con arnés de polea o disco: un patrón de aislamiento directo para la musculatura extensora cervical.",
+        "description": "Extensiones de cuello: llevas la cabeza hacia atrás contra resistencia. Fortalece la zona trasera del cuello, clave para deportes de contacto y postura.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
