@@ -1,1 +1,1506 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Sentadilla Búlgara","definitions":[{"canonicalName":"Sentadilla Búlgara","configurations":[{"displaySummary":"barbell","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#quads_sentadilla_bulgara_maquina","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"bulgarian_split_squat__barbell","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"LOWER","cnc":2.2,"commonMistakes":["Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."],"description":"Sentadilla búlgara con barra: el pie trasero descansa en el banco y la barra sobre la espalda reparte la carga entre ambas manos. La profundidad del descenso y el apoyo trasero concentran el trabajo en el cuádriceps de la pierna delantera.","efc":2.8,"equipmentId":"barbell","executionCues":["Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"UNILATERAL","loadMode":"free_external_load","movementPatternId":"unilateral_knee_dominant","muscleNotes":[{"muscleId":"quadriceps","note":"Principal: el cuádriceps extiende la rodilla y concentra el trabajo del descenso y la subida; por eso suma la serie completa (1.0)."},{"muscleId":"gluteus_maximus","note":"Principal: el glúteo mayor extiende la cadera en la subida y completa la potencia del patrón; por eso suma la serie completa (1.0)."},{"muscleId":"core","note":"Estabilizador: el core transmite la carga entre el tronco y la pelvis y protege la columna; por eso suma 0.4."}],"performanceProfileId":"bulgarian_split_squat__barbell__sentadilla_bulgara","primaryMuscles":["quadriceps","gluteus_maximus"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["unilateral_knee_dominant"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["quadriceps","gluteus_maximus"],"secondaryMuscles":[],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["quadriceps"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"barbell","kineticChain":"ANTERIOR","laterality":"UNILATERAL","loadMode":"free_external_load","movementPatternId":"unilateral_knee_dominant","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"gravity_arc","stability":"guided"},"coaching":{"commonMistakes":["Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."],"cues":["Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Configura barra y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Sentadilla Búlgara","displaySummary":"barbell","selectedOptions":{"implement":"barbell"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.2,"efc":2.8,"ssc":0.5,"technicalDifficulty":4.2,"ttc":2.0},"identity":{"canonicalName":"Sentadilla Búlgara","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"bulgarian_split_squat__barbell","definitionId":"bulgarian_split_squat","familyId":"unilateral_knee_dominant_bulgarian","kind":"PARENT","performanceProfileId":"bulgarian_split_squat__barbell__sentadilla_bulgara","searchTerms":["sentadilla búlgara","bulgarian split squat","quads_sentadilla_bulgara"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar quadriceps dentro del patrón unilateral_knee_dominant.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["barbell"],"role":"accessory_compound","setupTransitionCost":"high","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["barbell"],"preservesIntent":["Conserva el patrón unilateral_knee_dominant y el objetivo quadriceps."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":[],"setupCues":["Configura barra y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."],"ssc":0.5,"stabilizerMuscles":["core"],"technicalDifficulty":4.2,"ttc":2.0},"selectedOptions":{"implement":"barbell"}},{"displaySummary":"smith_machine","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#quads_sentadilla_bulgara_maquina","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"bulgarian_split_squat__smith_machine","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"LOWER","cnc":2.2,"commonMistakes":["Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."],"description":"Sentadilla búlgara en Smith: el pie trasero apoya en el banco y el riel guiado fija el plano del descenso. La máquina reduce el equilibrio del patrón unilateral.","efc":2.8,"equipmentId":"smith_machine","executionCues":["Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"UNILATERAL","loadMode":"guided_external_load","movementPatternId":"unilateral_knee_dominant","muscleNotes":[{"muscleId":"quadriceps","note":"Principal: el cuádriceps extiende la rodilla y concentra el trabajo del descenso y la subida; por eso suma la serie completa (1.0)."},{"muscleId":"gluteus_maximus","note":"Principal: el glúteo mayor extiende la cadera en la subida y completa la potencia del patrón; por eso suma la serie completa (1.0)."},{"muscleId":"core","note":"Estabilizador: el core transmite la carga entre el tronco y la pelvis y protege la columna; por eso suma 0.4."}],"performanceProfileId":"bulgarian_split_squat__smith_machine__sentadilla_bulgara","primaryMuscles":["quadriceps","gluteus_maximus"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["unilateral_knee_dominant"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["quadriceps","gluteus_maximus"],"secondaryMuscles":[],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["quadriceps"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"smith_machine","kineticChain":"ANTERIOR","laterality":"UNILATERAL","loadMode":"guided_external_load","movementPatternId":"unilateral_knee_dominant","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"guided_constant","stability":"guided"},"coaching":{"commonMistakes":["Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."],"cues":["Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Configura la máquina Smith y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Sentadilla Búlgara","displaySummary":"smith_machine","selectedOptions":{"implement":"smith_machine"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.2,"efc":2.8,"ssc":0.5,"technicalDifficulty":4.2,"ttc":2.0},"identity":{"canonicalName":"Sentadilla Búlgara","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"bulgarian_split_squat__smith_machine","definitionId":"bulgarian_split_squat","familyId":"unilateral_knee_dominant_bulgarian","kind":"PARENT","performanceProfileId":"bulgarian_split_squat__smith_machine__sentadilla_bulgara","searchTerms":["sentadilla búlgara","bulgarian split squat","quads_sentadilla_bulgara"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar quadriceps dentro del patrón unilateral_knee_dominant.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["smith_machine"],"role":"accessory_compound","setupTransitionCost":"high","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["smith_machine"],"preservesIntent":["Conserva el patrón unilateral_knee_dominant y el objetivo quadriceps."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":[],"setupCues":["Configura la máquina Smith y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."],"ssc":0.5,"stabilizerMuscles":["core"],"technicalDifficulty":4.2,"ttc":2.0},"selectedOptions":{"implement":"smith_machine"}},{"displaySummary":"machine","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#quads_sentadilla_bulgara_maquina","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"bulgarian_split_squat__machine","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"LOWER","cnc":2.2,"commonMistakes":["Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."],"description":"Sentadilla búlgara en máquina: el apoyo del pie trasero se ajusta en la estación y el recorrido guiado acompaña la pierna delantera. La máquina simplifica la coordinación del patrón.","efc":2.8,"equipmentId":"machine","executionCues":["Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"UNILATERAL","loadMode":"guided_external_load","movementPatternId":"unilateral_knee_dominant","muscleNotes":[{"muscleId":"quadriceps","note":"Principal: el cuádriceps extiende la rodilla y concentra el trabajo del descenso y la subida; por eso suma la serie completa (1.0)."},{"muscleId":"gluteus_maximus","note":"Principal: el glúteo mayor extiende la cadera en la subida y completa la potencia del patrón; por eso suma la serie completa (1.0)."},{"muscleId":"core","note":"Estabilizador: el core transmite la carga entre el tronco y la pelvis y protege la columna; por eso suma 0.4."}],"performanceProfileId":"bulgarian_split_squat__machine__sentadilla_bulgara","primaryMuscles":["quadriceps","gluteus_maximus"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["unilateral_knee_dominant"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["quadriceps","gluteus_maximus"],"secondaryMuscles":[],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["quadriceps"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"machine","kineticChain":"ANTERIOR","laterality":"UNILATERAL","loadMode":"guided_external_load","movementPatternId":"unilateral_knee_dominant","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"guided_constant","stability":"guided"},"coaching":{"commonMistakes":["Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."],"cues":["Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Configura la máquina y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Sentadilla Búlgara","displaySummary":"machine","selectedOptions":{"implement":"machine"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.2,"efc":2.8,"ssc":0.5,"technicalDifficulty":4.2,"ttc":2.0},"identity":{"canonicalName":"Sentadilla Búlgara","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"bulgarian_split_squat__machine","definitionId":"bulgarian_split_squat","familyId":"unilateral_knee_dominant_bulgarian","kind":"PARENT","performanceProfileId":"bulgarian_split_squat__machine__sentadilla_bulgara","searchTerms":["sentadilla búlgara","bulgarian split squat","quads_sentadilla_bulgara"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar quadriceps dentro del patrón unilateral_knee_dominant.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["machine"],"role":"accessory_compound","setupTransitionCost":"high","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["machine"],"preservesIntent":["Conserva el patrón unilateral_knee_dominant y el objetivo quadriceps."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":[],"setupCues":["Configura la máquina y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."],"ssc":0.5,"stabilizerMuscles":["core"],"technicalDifficulty":4.2,"ttc":2.0},"selectedOptions":{"implement":"machine"}},{"displaySummary":"dumbbells","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#quads_sentadilla_bulgara_maquina","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"bulgarian_split_squat__dumbbells","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"LOWER","cnc":2.2,"commonMistakes":["Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."],"description":"Sentadilla búlgara con mancuernas: el pie trasero apoya en el banco y las cargas cuelgan a los lados del cuerpo. La empuñadura libre permite ajustar el equilibrio del patrón unilateral.","efc":2.8,"equipmentId":"dumbbells","executionCues":["Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"UNILATERAL","loadMode":"free_external_load","movementPatternId":"unilateral_knee_dominant","muscleNotes":[{"muscleId":"quadriceps","note":"Principal: el cuádriceps extiende la rodilla y concentra el trabajo del descenso y la subida; por eso suma la serie completa (1.0)."},{"muscleId":"gluteus_maximus","note":"Principal: el glúteo mayor extiende la cadera en la subida y completa la potencia del patrón; por eso suma la serie completa (1.0)."},{"muscleId":"core","note":"Estabilizador: el core transmite la carga entre el tronco y la pelvis y protege la columna; por eso suma 0.4."}],"performanceProfileId":"bulgarian_split_squat__dumbbells__sentadilla_bulgara","primaryMuscles":["quadriceps","gluteus_maximus"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["unilateral_knee_dominant"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["quadriceps","gluteus_maximus"],"secondaryMuscles":[],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["quadriceps"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"dumbbells","kineticChain":"ANTERIOR","laterality":"UNILATERAL","loadMode":"free_external_load","movementPatternId":"unilateral_knee_dominant","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"gravity_arc","stability":"guided"},"coaching":{"commonMistakes":["Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."],"cues":["Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Configura mancuernas y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Sentadilla Búlgara","displaySummary":"dumbbells","selectedOptions":{"implement":"dumbbells"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.2,"efc":2.8,"ssc":0.5,"technicalDifficulty":4.2,"ttc":2.0},"identity":{"canonicalName":"Sentadilla Búlgara","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"bulgarian_split_squat__dumbbells","definitionId":"bulgarian_split_squat","familyId":"unilateral_knee_dominant_bulgarian","kind":"PARENT","performanceProfileId":"bulgarian_split_squat__dumbbells__sentadilla_bulgara","searchTerms":["sentadilla búlgara","bulgarian split squat","quads_sentadilla_bulgara"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar quadriceps dentro del patrón unilateral_knee_dominant.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["dumbbells"],"role":"accessory_compound","setupTransitionCost":"high","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells"],"preservesIntent":["Conserva el patrón unilateral_knee_dominant y el objetivo quadriceps."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":[],"setupCues":["Configura mancuernas y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."],"ssc":0.5,"stabilizerMuscles":["core"],"technicalDifficulty":4.2,"ttc":2.0},"selectedOptions":{"implement":"dumbbells"}},{"displaySummary":"cable","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#quads_sentadilla_bulgara_maquina","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"bulgarian_split_squat__cable","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"LOWER","cnc":2.2,"commonMistakes":["Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."],"description":"Sentadilla búlgara en polea: el pie trasero apoya en el banco y las manijas del cable añaden tensión continua al descenso. La polea ofrece una resistencia constante en el patrón unilateral.","efc":2.8,"equipmentId":"cable","executionCues":["Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"UNILATERAL","loadMode":"continuous_cable","movementPatternId":"unilateral_knee_dominant","muscleNotes":[{"muscleId":"quadriceps","note":"Principal: el cuádriceps extiende la rodilla y concentra el trabajo del descenso y la subida; por eso suma la serie completa (1.0)."},{"muscleId":"gluteus_maximus","note":"Principal: el glúteo mayor extiende la cadera en la subida y completa la potencia del patrón; por eso suma la serie completa (1.0)."},{"muscleId":"core","note":"Estabilizador: el core transmite la carga entre el tronco y la pelvis y protege la columna; por eso suma 0.4."}],"performanceProfileId":"bulgarian_split_squat__cable__sentadilla_bulgara","primaryMuscles":["quadriceps","gluteus_maximus"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["unilateral_knee_dominant"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["quadriceps","gluteus_maximus"],"secondaryMuscles":[],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["quadriceps"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"cable","kineticChain":"ANTERIOR","laterality":"UNILATERAL","loadMode":"continuous_cable","movementPatternId":"unilateral_knee_dominant","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"continuous_cable","stability":"guided"},"coaching":{"commonMistakes":["Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."],"cues":["Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Configura la polea y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Sentadilla Búlgara","displaySummary":"cable","selectedOptions":{"implement":"cable"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.2,"efc":2.8,"ssc":0.5,"technicalDifficulty":4.2,"ttc":2.0},"identity":{"canonicalName":"Sentadilla Búlgara","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"bulgarian_split_squat__cable","definitionId":"bulgarian_split_squat","familyId":"unilateral_knee_dominant_bulgarian","kind":"PARENT","performanceProfileId":"bulgarian_split_squat__cable__sentadilla_bulgara","searchTerms":["sentadilla búlgara","bulgarian split squat","quads_sentadilla_bulgara"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar quadriceps dentro del patrón unilateral_knee_dominant.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_compound","setupTransitionCost":"high","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable"],"preservesIntent":["Conserva el patrón unilateral_knee_dominant y el objetivo quadriceps."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":[],"setupCues":["Configura la polea y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."],"ssc":0.5,"stabilizerMuscles":["core"],"technicalDifficulty":4.2,"ttc":2.0},"selectedOptions":{"implement":"cable"}},{"displaySummary":"kettlebell","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#quads_sentadilla_bulgara_maquina","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"bulgarian_split_squat__kettlebell","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"LOWER","cnc":2.2,"commonMistakes":["Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."],"description":"Sentadilla búlgara con kettlebell: el pie trasero apoya en el banco y el peso se sujeta frente al pecho. Variante accesible que mantiene el énfasis del cuádriceps delantero.","efc":2.8,"equipmentId":"kettlebell","executionCues":["Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"UNILATERAL","loadMode":"free_external_load","movementPatternId":"unilateral_knee_dominant","muscleNotes":[{"muscleId":"quadriceps","note":"Principal: el cuádriceps extiende la rodilla y concentra el trabajo del descenso y la subida; por eso suma la serie completa (1.0)."},{"muscleId":"gluteus_maximus","note":"Principal: el glúteo mayor extiende la cadera en la subida y completa la potencia del patrón; por eso suma la serie completa (1.0)."},{"muscleId":"core","note":"Estabilizador: el core transmite la carga entre el tronco y la pelvis y protege la columna; por eso suma 0.4."}],"performanceProfileId":"bulgarian_split_squat__kettlebell__sentadilla_bulgara","primaryMuscles":["quadriceps","gluteus_maximus"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["unilateral_knee_dominant"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["quadriceps","gluteus_maximus"],"secondaryMuscles":[],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["quadriceps"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"kettlebell","kineticChain":"ANTERIOR","laterality":"UNILATERAL","loadMode":"free_external_load","movementPatternId":"unilateral_knee_dominant","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"gravity_arc","stability":"guided"},"coaching":{"commonMistakes":["Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."],"cues":["Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Configura kettlebell y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Sentadilla Búlgara","displaySummary":"kettlebell","selectedOptions":{"implement":"kettlebell"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.2,"efc":2.8,"ssc":0.5,"technicalDifficulty":4.2,"ttc":2.0},"identity":{"canonicalName":"Sentadilla Búlgara","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"bulgarian_split_squat__kettlebell","definitionId":"bulgarian_split_squat","familyId":"unilateral_knee_dominant_bulgarian","kind":"PARENT","performanceProfileId":"bulgarian_split_squat__kettlebell__sentadilla_bulgara","searchTerms":["sentadilla búlgara","bulgarian split squat","quads_sentadilla_bulgara"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar quadriceps dentro del patrón unilateral_knee_dominant.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["kettlebell"],"role":"accessory_compound","setupTransitionCost":"high","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["kettlebell"],"preservesIntent":["Conserva el patrón unilateral_knee_dominant y el objetivo quadriceps."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":[],"setupCues":["Configura kettlebell y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."],"ssc":0.5,"stabilizerMuscles":["core"],"technicalDifficulty":4.2,"ttc":2.0},"selectedOptions":{"implement":"kettlebell"}}],"defaultConfigurationId":"bulgarian_split_squat__dumbbells","description":"Sentadilla unilateral con el pie trasero apoyado en un banco, que concentra el trabajo en la pierna delantera. El implemento define la carga y el equilibrio de cada variante.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:bulgarian_split_squat"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"unilateral_knee_dominant_bulgarian","id":"bulgarian_split_squat","kind":"PARENT","optionAxes":["implement"],"searchTerms":["sentadilla búlgara","bulgarian split squat","quads_sentadilla_bulgara"]},{"canonicalName":"Sentadilla Búlgara Zercher","configurations":[{"displaySummary":"Sentadilla búlgara Zercher","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#quads_sentadilla_bulgara_zercher","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"bulgarian_zercher__barbell__zercher","profile":{"automationEligible":true,"axialLoadFactor":0.7,"bodyRegion":"LOWER","cnc":2.2,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral para completar la repetición."],"description":"Sentadilla Búlgara Zercher trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla unilateral. La participación secundaria corresponde a glúteos, core. La configuración utiliza barra como implemento.","efc":2.8,"equipmentId":"barbell","executionCues":["Ejecuta «Sentadilla Búlgara Zercher» siguiendo el patrón dominante de rodilla unilateral con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"unilateral_knee_dominant","muscleNotes":[{"muscleId":"quadriceps","note":"Principal: el cuádriceps extiende la rodilla y concentra la fuerza del movimiento; por eso suma la serie completa (1.0)."},{"muscleId":"gluteus_maximus","note":"Secundario: el glúteo mayor asiste la extensión de cadera y completa el movimiento; por eso suma 0.5."},{"muscleId":"core","note":"Secundario: el core asiste la transmisión de fuerza entre el tronco y las extremidades; por eso suma 0.5."}],"performanceProfileId":"bulgarian_zercher__barbell__sentadilla_bulgara_zercher","primaryMuscles":["quadriceps"],"replacementGroup":null,"replacementPriority":999,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["unilateral_knee_dominant"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["quadriceps"],"secondaryMuscles":["gluteus_maximus","core"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["quadriceps"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"barbell","kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"unilateral_knee_dominant","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral para completar la repetición."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Sentadilla Búlgara Zercher» siguiendo el patrón dominante de rodilla unilateral con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Configura barra y adopta la posición específica de «Sentadilla Búlgara Zercher» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Sentadilla Búlgara Zercher","displaySummary":"Sentadilla búlgara Zercher","selectedOptions":{}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.7,"cnc":2.2,"efc":2.8,"ssc":0.5,"technicalDifficulty":4.2,"ttc":2.0},"identity":{"canonicalName":"Sentadilla Búlgara Zercher","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"bulgarian_zercher__barbell__zercher","definitionId":"bulgarian_zercher","familyId":"unilateral_knee_dominant_bulgarian","kind":"SPECIALTY","performanceProfileId":"bulgarian_zercher__barbell__sentadilla_bulgara_zercher","searchTerms":["sentadilla bulgara zercher","bulgarian zercher","zercher bulgara"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar quadriceps dentro del patrón unilateral_knee_dominant.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["barbell"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["barbell"],"preservesIntent":["Conserva el patrón unilateral_knee_dominant y el objetivo quadriceps."],"replacementGroup":null,"replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["gluteus_maximus","core"],"setupCues":["Configura barra y adopta la posición específica de «Sentadilla Búlgara Zercher» antes de iniciar; conserva una base estable."],"ssc":0.5,"stabilizerMuscles":[],"technicalDifficulty":4.2,"ttc":2.0},"selectedOptions":{}}],"defaultConfigurationId":"bulgarian_zercher__barbell__zercher","description":"Sentadilla búlgara Zercher trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla unilateral. La participación secundaria corresponde a glúteos, core.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:bulgarian_zercher"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"unilateral_knee_dominant_bulgarian","id":"bulgarian_zercher","kind":"SPECIALTY","optionAxes":[],"searchTerms":["sentadilla bulgara zercher","bulgarian zercher","zercher bulgara"]}],"description":"Familia unilateral con el pie trasero apoyado; el implemento es la única decisión visible y las variantes con método nombrado quedan como especialidades.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:unilateral_knee_dominant_bulgarian"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"unilateral_knee_dominant_bulgarian","taxonomy":["lower","unilateral","knee_dominant"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Sentadilla Búlgara",
+    "definitions": [
+      {
+        "canonicalName": "Sentadilla Búlgara",
+        "configurations": [
+          {
+            "displaySummary": "barbell",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#quads_sentadilla_bulgara_maquina",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "bulgarian_split_squat__barbell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "cnc": 2.2,
+              "commonMistakes": [
+                "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
+              ],
+              "description": "Sentadilla búlgara con barra: el pie trasero descansa en el banco y la barra sobre la espalda reparte la carga entre ambas manos. La profundidad del descenso y el apoyo trasero concentran el trabajo en el cuádriceps de la pierna delantera.",
+              "efc": 2.8,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "unilateral_knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: el cuádriceps extiende la rodilla y concentra el trabajo del descenso y la subida; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: el glúteo mayor extiende la cadera en la subida y completa la potencia del patrón; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core transmite la carga entre el tronco y la pelvis y protege la columna; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "bulgarian_split_squat__barbell__sentadilla_bulgara",
+              "primaryMuscles": [
+                "quadriceps",
+                "gluteus_maximus"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "unilateral_knee_dominant"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "quadriceps",
+                    "gluteus_maximus"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "quadriceps"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "unilateral_knee_dominant",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura barra y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Sentadilla Búlgara",
+                  "displaySummary": "barbell",
+                  "selectedOptions": {
+                    "implement": "barbell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Sentadilla Búlgara",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "bulgarian_split_squat__barbell",
+                  "definitionId": "bulgarian_split_squat",
+                  "familyId": "unilateral_knee_dominant_bulgarian",
+                  "kind": "PARENT",
+                  "performanceProfileId": "bulgarian_split_squat__barbell__sentadilla_bulgara",
+                  "searchTerms": [
+                    "sentadilla búlgara",
+                    "bulgarian split squat",
+                    "quads_sentadilla_bulgara"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar quadriceps dentro del patrón unilateral_knee_dominant.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón unilateral_knee_dominant y el objetivo quadriceps."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Configura barra y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "implement": "barbell"
+            }
+          },
+          {
+            "displaySummary": "smith_machine",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#quads_sentadilla_bulgara_maquina",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "bulgarian_split_squat__smith_machine",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "cnc": 2.2,
+              "commonMistakes": [
+                "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
+              ],
+              "description": "Sentadilla búlgara en Smith: el pie trasero apoya en el banco y el riel guiado fija el plano del descenso. La máquina reduce el equilibrio del patrón unilateral.",
+              "efc": 2.8,
+              "equipmentId": "smith_machine",
+              "executionCues": [
+                "Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "unilateral_knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: el cuádriceps extiende la rodilla y concentra el trabajo del descenso y la subida; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: el glúteo mayor extiende la cadera en la subida y completa la potencia del patrón; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core transmite la carga entre el tronco y la pelvis y protege la columna; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "bulgarian_split_squat__smith_machine__sentadilla_bulgara",
+              "primaryMuscles": [
+                "quadriceps",
+                "gluteus_maximus"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "unilateral_knee_dominant"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "quadriceps",
+                    "gluteus_maximus"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "quadriceps"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "smith_machine",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "unilateral_knee_dominant",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura la máquina Smith y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Sentadilla Búlgara",
+                  "displaySummary": "smith_machine",
+                  "selectedOptions": {
+                    "implement": "smith_machine"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Sentadilla Búlgara",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "bulgarian_split_squat__smith_machine",
+                  "definitionId": "bulgarian_split_squat",
+                  "familyId": "unilateral_knee_dominant_bulgarian",
+                  "kind": "PARENT",
+                  "performanceProfileId": "bulgarian_split_squat__smith_machine__sentadilla_bulgara",
+                  "searchTerms": [
+                    "sentadilla búlgara",
+                    "bulgarian split squat",
+                    "quads_sentadilla_bulgara"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar quadriceps dentro del patrón unilateral_knee_dominant.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "smith_machine"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "smith_machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón unilateral_knee_dominant y el objetivo quadriceps."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Configura la máquina Smith y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "implement": "smith_machine"
+            }
+          },
+          {
+            "displaySummary": "machine",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#quads_sentadilla_bulgara_maquina",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "bulgarian_split_squat__machine",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "cnc": 2.2,
+              "commonMistakes": [
+                "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
+              ],
+              "description": "Sentadilla búlgara en máquina: el apoyo del pie trasero se ajusta en la estación y el recorrido guiado acompaña la pierna delantera. La máquina simplifica la coordinación del patrón.",
+              "efc": 2.8,
+              "equipmentId": "machine",
+              "executionCues": [
+                "Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "unilateral_knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: el cuádriceps extiende la rodilla y concentra el trabajo del descenso y la subida; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: el glúteo mayor extiende la cadera en la subida y completa la potencia del patrón; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core transmite la carga entre el tronco y la pelvis y protege la columna; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "bulgarian_split_squat__machine__sentadilla_bulgara",
+              "primaryMuscles": [
+                "quadriceps",
+                "gluteus_maximus"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "unilateral_knee_dominant"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "quadriceps",
+                    "gluteus_maximus"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "quadriceps"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "machine",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "unilateral_knee_dominant",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura la máquina y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Sentadilla Búlgara",
+                  "displaySummary": "machine",
+                  "selectedOptions": {
+                    "implement": "machine"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Sentadilla Búlgara",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "bulgarian_split_squat__machine",
+                  "definitionId": "bulgarian_split_squat",
+                  "familyId": "unilateral_knee_dominant_bulgarian",
+                  "kind": "PARENT",
+                  "performanceProfileId": "bulgarian_split_squat__machine__sentadilla_bulgara",
+                  "searchTerms": [
+                    "sentadilla búlgara",
+                    "bulgarian split squat",
+                    "quads_sentadilla_bulgara"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar quadriceps dentro del patrón unilateral_knee_dominant.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "machine"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón unilateral_knee_dominant y el objetivo quadriceps."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Configura la máquina y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "implement": "machine"
+            }
+          },
+          {
+            "displaySummary": "dumbbells",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#quads_sentadilla_bulgara_maquina",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "bulgarian_split_squat__dumbbells",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "cnc": 2.2,
+              "commonMistakes": [
+                "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
+              ],
+              "description": "Sentadilla búlgara con mancuernas: el pie trasero apoya en el banco y las cargas cuelgan a los lados del cuerpo. La empuñadura libre permite ajustar el equilibrio del patrón unilateral.",
+              "efc": 2.8,
+              "equipmentId": "dumbbells",
+              "executionCues": [
+                "Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "unilateral_knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: el cuádriceps extiende la rodilla y concentra el trabajo del descenso y la subida; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: el glúteo mayor extiende la cadera en la subida y completa la potencia del patrón; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core transmite la carga entre el tronco y la pelvis y protege la columna; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "bulgarian_split_squat__dumbbells__sentadilla_bulgara",
+              "primaryMuscles": [
+                "quadriceps",
+                "gluteus_maximus"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "unilateral_knee_dominant"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "quadriceps",
+                    "gluteus_maximus"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "quadriceps"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "dumbbells",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "unilateral_knee_dominant",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura mancuernas y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Sentadilla Búlgara",
+                  "displaySummary": "dumbbells",
+                  "selectedOptions": {
+                    "implement": "dumbbells"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Sentadilla Búlgara",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "bulgarian_split_squat__dumbbells",
+                  "definitionId": "bulgarian_split_squat",
+                  "familyId": "unilateral_knee_dominant_bulgarian",
+                  "kind": "PARENT",
+                  "performanceProfileId": "bulgarian_split_squat__dumbbells__sentadilla_bulgara",
+                  "searchTerms": [
+                    "sentadilla búlgara",
+                    "bulgarian split squat",
+                    "quads_sentadilla_bulgara"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar quadriceps dentro del patrón unilateral_knee_dominant.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "dumbbells"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón unilateral_knee_dominant y el objetivo quadriceps."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Configura mancuernas y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "implement": "dumbbells"
+            }
+          },
+          {
+            "displaySummary": "cable",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#quads_sentadilla_bulgara_maquina",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "bulgarian_split_squat__cable",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "cnc": 2.2,
+              "commonMistakes": [
+                "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
+              ],
+              "description": "Sentadilla búlgara en polea: el pie trasero apoya en el banco y las manijas del cable añaden tensión continua al descenso. La polea ofrece una resistencia constante en el patrón unilateral.",
+              "efc": 2.8,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "unilateral_knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: el cuádriceps extiende la rodilla y concentra el trabajo del descenso y la subida; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: el glúteo mayor extiende la cadera en la subida y completa la potencia del patrón; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core transmite la carga entre el tronco y la pelvis y protege la columna; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "bulgarian_split_squat__cable__sentadilla_bulgara",
+              "primaryMuscles": [
+                "quadriceps",
+                "gluteus_maximus"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "unilateral_knee_dominant"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "quadriceps",
+                    "gluteus_maximus"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "quadriceps"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "cable",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "unilateral_knee_dominant",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura la polea y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Sentadilla Búlgara",
+                  "displaySummary": "cable",
+                  "selectedOptions": {
+                    "implement": "cable"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Sentadilla Búlgara",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "bulgarian_split_squat__cable",
+                  "definitionId": "bulgarian_split_squat",
+                  "familyId": "unilateral_knee_dominant_bulgarian",
+                  "kind": "PARENT",
+                  "performanceProfileId": "bulgarian_split_squat__cable__sentadilla_bulgara",
+                  "searchTerms": [
+                    "sentadilla búlgara",
+                    "bulgarian split squat",
+                    "quads_sentadilla_bulgara"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar quadriceps dentro del patrón unilateral_knee_dominant.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón unilateral_knee_dominant y el objetivo quadriceps."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Configura la polea y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "implement": "cable"
+            }
+          },
+          {
+            "displaySummary": "kettlebell",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#quads_sentadilla_bulgara_maquina",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "bulgarian_split_squat__kettlebell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "cnc": 2.2,
+              "commonMistakes": [
+                "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
+              ],
+              "description": "Sentadilla búlgara con kettlebell: el pie trasero apoya en el banco y el peso se sujeta frente al pecho. Variante accesible que mantiene el énfasis del cuádriceps delantero.",
+              "efc": 2.8,
+              "equipmentId": "kettlebell",
+              "executionCues": [
+                "Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "unilateral_knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: el cuádriceps extiende la rodilla y concentra el trabajo del descenso y la subida; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: el glúteo mayor extiende la cadera en la subida y completa la potencia del patrón; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core transmite la carga entre el tronco y la pelvis y protege la columna; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "bulgarian_split_squat__kettlebell__sentadilla_bulgara",
+              "primaryMuscles": [
+                "quadriceps",
+                "gluteus_maximus"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "unilateral_knee_dominant"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "quadriceps",
+                    "gluteus_maximus"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "quadriceps"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "kettlebell",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "unilateral_knee_dominant",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Perder la alineación de rodillas y pies, elevar el talón o reducir la profundidad para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Sentadilla Búlgara» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura kettlebell y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Sentadilla Búlgara",
+                  "displaySummary": "kettlebell",
+                  "selectedOptions": {
+                    "implement": "kettlebell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Sentadilla Búlgara",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "bulgarian_split_squat__kettlebell",
+                  "definitionId": "bulgarian_split_squat",
+                  "familyId": "unilateral_knee_dominant_bulgarian",
+                  "kind": "PARENT",
+                  "performanceProfileId": "bulgarian_split_squat__kettlebell__sentadilla_bulgara",
+                  "searchTerms": [
+                    "sentadilla búlgara",
+                    "bulgarian split squat",
+                    "quads_sentadilla_bulgara"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar quadriceps dentro del patrón unilateral_knee_dominant.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "kettlebell"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "kettlebell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón unilateral_knee_dominant y el objetivo quadriceps."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Configura kettlebell y adopta la posición específica de «Sentadilla Búlgara» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "implement": "kettlebell"
+            }
+          }
+        ],
+        "defaultConfigurationId": "bulgarian_split_squat__dumbbells",
+        "description": "Sentadilla unilateral con el pie trasero apoyado en un banco, que concentra el trabajo en la pierna delantera. El implemento define la carga y el equilibrio de cada variante.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:bulgarian_split_squat"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "unilateral_knee_dominant_bulgarian",
+        "id": "bulgarian_split_squat",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement"
+        ],
+        "searchTerms": [
+          "sentadilla búlgara",
+          "bulgarian split squat",
+          "quads_sentadilla_bulgara"
+        ]
+      },
+      {
+        "canonicalName": "Sentadilla Búlgara Zercher",
+        "configurations": [
+          {
+            "displaySummary": "Sentadilla búlgara Zercher",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#quads_sentadilla_bulgara_zercher",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "bulgarian_zercher__barbell__zercher",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.7,
+              "bodyRegion": "LOWER",
+              "cnc": 2.2,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral para completar la repetición."
+              ],
+              "description": "Sentadilla Búlgara Zercher trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla unilateral. La participación secundaria corresponde a glúteos, core. La configuración utiliza barra como implemento.",
+              "efc": 2.8,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Ejecuta «Sentadilla Búlgara Zercher» siguiendo el patrón dominante de rodilla unilateral con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "unilateral_knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: el cuádriceps extiende la rodilla y concentra la fuerza del movimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: el glúteo mayor asiste la extensión de cadera y completa el movimiento; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Secundario: el core asiste la transmisión de fuerza entre el tronco y las extremidades; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "bulgarian_zercher__barbell__sentadilla_bulgara_zercher",
+              "primaryMuscles": [
+                "quadriceps"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "unilateral_knee_dominant"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "quadriceps"
+                  ],
+                  "secondaryMuscles": [
+                    "gluteus_maximus",
+                    "core"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "quadriceps"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "unilateral_knee_dominant",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Sentadilla Búlgara Zercher» siguiendo el patrón dominante de rodilla unilateral con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura barra y adopta la posición específica de «Sentadilla Búlgara Zercher» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Sentadilla Búlgara Zercher",
+                  "displaySummary": "Sentadilla búlgara Zercher",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.7,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Sentadilla Búlgara Zercher",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "bulgarian_zercher__barbell__zercher",
+                  "definitionId": "bulgarian_zercher",
+                  "familyId": "unilateral_knee_dominant_bulgarian",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "bulgarian_zercher__barbell__sentadilla_bulgara_zercher",
+                  "searchTerms": [
+                    "sentadilla bulgara zercher",
+                    "bulgarian zercher",
+                    "zercher bulgara"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar quadriceps dentro del patrón unilateral_knee_dominant.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón unilateral_knee_dominant y el objetivo quadriceps."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "gluteus_maximus",
+                "core"
+              ],
+              "setupCues": [
+                "Configura barra y adopta la posición específica de «Sentadilla Búlgara Zercher» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.5,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "bulgarian_zercher__barbell__zercher",
+        "description": "Sentadilla búlgara Zercher trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla unilateral. La participación secundaria corresponde a glúteos, core.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:bulgarian_zercher"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "unilateral_knee_dominant_bulgarian",
+        "id": "bulgarian_zercher",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "sentadilla bulgara zercher",
+          "bulgarian zercher",
+          "zercher bulgara"
+        ]
+      }
+    ],
+    "description": "Familia unilateral con el pie trasero apoyado; el implemento es la única decisión visible y las variantes con método nombrado quedan como especialidades.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:unilateral_knee_dominant_bulgarian"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "unilateral_knee_dominant_bulgarian",
+    "taxonomy": [
+      "lower",
+      "unilateral",
+      "knee_dominant"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

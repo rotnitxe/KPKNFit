@@ -1,1 +1,2326 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Tren superior · trapezius · scapular elevation","definitions":[{"canonicalName":"Encogimientos","configurations":[{"displaySummary":"dumbbells","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_encogimientos","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"back_encogimientos__dumbbells","profile":{"automationEligible":true,"axialLoadFactor":0.3,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar los brazos o el tronco en lugar de la elevación escapular."],"description":"Encogimientos con mancuernas: la carga libre a los costados permite cargar cómodo y ajustar el peso a cada lado.","efc":2.5,"equipmentId":"dumbbells","executionCues":["Eleva los hombros hacia las orejas y baja con control sin balanceo."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"scapular_elevation","muscleNotes":[{"muscleId":"trapezius","note":"Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."},{"muscleId":"rhomboids","note":"Secundario: los romboides estabilizan la escápula durante la elevación; por eso suman 0.5."}],"performanceProfileId":"back_encogimientos__dumbbells","primaryMuscles":["trapezius"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["scapular_elevation"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["trapezius"],"secondaryMuscles":["rhomboids"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["trapezius"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"dumbbells","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"scapular_elevation","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar los brazos o el tronco en lugar de la elevación escapular."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Eleva los hombros hacia las orejas y baja con control sin balanceo."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Toma el peso con los brazos extendidos y la postura erguida."]},"display":{"displayName":"Encogimientos","displaySummary":"dumbbells","selectedOptions":{"implement":"dumbbells"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.3,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Encogimientos","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"back_encogimientos__dumbbells","definitionId":"back_encogimientos","familyId":"upper_scapular_elevation","kind":"PARENT","performanceProfileId":"back_encogimientos__dumbbells","searchTerms":["encogimientos","shrugs","encogimiento de hombros","trapecio"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar trapezius en elevación escapular."],"recoveryCost":"moderate","requiredEquipment":["dumbbells"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells","smith_machine","cable","kettlebell","barbell"],"preservesIntent":["Conserva la elevación escapular y el objetivo trapezius."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["rhomboids"],"setupCues":["Toma el peso con los brazos extendidos y la postura erguida."],"ssc":0.4,"stabilizerMuscles":[],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"dumbbells"}},{"displaySummary":"smith_machine","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_encogimientos","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"back_encogimientos__smith_machine","profile":{"automationEligible":true,"axialLoadFactor":0.3,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar los brazos o el tronco en lugar de la elevación escapular."],"description":"Encogimientos en máquina Smith: el recorrido guiado estabiliza la barra y permite usar cargas altas con seguridad.","efc":2.5,"equipmentId":"smith_machine","executionCues":["Eleva los hombros hacia las orejas y baja con control sin balanceo."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"guided_external_load","movementPatternId":"scapular_elevation","muscleNotes":[{"muscleId":"trapezius","note":"Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."},{"muscleId":"rhomboids","note":"Secundario: los romboides estabilizan la escápula durante la elevación; por eso suman 0.5."}],"performanceProfileId":"back_encogimientos__smith_machine","primaryMuscles":["trapezius"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["scapular_elevation"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["trapezius"],"secondaryMuscles":["rhomboids"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["trapezius"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"smith_machine","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"guided_external_load","movementPatternId":"scapular_elevation","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"guided_constant","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar los brazos o el tronco en lugar de la elevación escapular."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Eleva los hombros hacia las orejas y baja con control sin balanceo."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Toma el peso con los brazos extendidos y la postura erguida."]},"display":{"displayName":"Encogimientos","displaySummary":"smith_machine","selectedOptions":{"implement":"smith_machine"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.3,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Encogimientos","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"back_encogimientos__smith_machine","definitionId":"back_encogimientos","familyId":"upper_scapular_elevation","kind":"PARENT","performanceProfileId":"back_encogimientos__smith_machine","searchTerms":["encogimientos","shrugs","encogimiento de hombros","trapecio"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar trapezius en elevación escapular."],"recoveryCost":"moderate","requiredEquipment":["smith_machine"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells","smith_machine","cable","kettlebell","barbell"],"preservesIntent":["Conserva la elevación escapular y el objetivo trapezius."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["rhomboids"],"setupCues":["Toma el peso con los brazos extendidos y la postura erguida."],"ssc":0.4,"stabilizerMuscles":[],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"smith_machine"}},{"displaySummary":"cable","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_encogimientos","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"back_encogimientos__cable","profile":{"automationEligible":true,"axialLoadFactor":0.3,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar los brazos o el tronco en lugar de la elevación escapular."],"description":"Encogimientos en polea: la tensión continua mantiene el trapecio activo a lo largo del recorrido.","efc":2.5,"equipmentId":"cable","executionCues":["Eleva los hombros hacia las orejas y baja con control sin balanceo."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"scapular_elevation","muscleNotes":[{"muscleId":"trapezius","note":"Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."},{"muscleId":"rhomboids","note":"Secundario: los romboides estabilizan la escápula durante la elevación; por eso suman 0.5."}],"performanceProfileId":"back_encogimientos__cable","primaryMuscles":["trapezius"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["scapular_elevation"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["trapezius"],"secondaryMuscles":["rhomboids"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["trapezius"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"cable","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"scapular_elevation","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar los brazos o el tronco en lugar de la elevación escapular."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Eleva los hombros hacia las orejas y baja con control sin balanceo."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Toma el peso con los brazos extendidos y la postura erguida."]},"display":{"displayName":"Encogimientos","displaySummary":"cable","selectedOptions":{"implement":"cable"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.3,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Encogimientos","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"back_encogimientos__cable","definitionId":"back_encogimientos","familyId":"upper_scapular_elevation","kind":"PARENT","performanceProfileId":"back_encogimientos__cable","searchTerms":["encogimientos","shrugs","encogimiento de hombros","trapecio"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar trapezius en elevación escapular."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells","smith_machine","cable","kettlebell","barbell"],"preservesIntent":["Conserva la elevación escapular y el objetivo trapezius."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["rhomboids"],"setupCues":["Toma el peso con los brazos extendidos y la postura erguida."],"ssc":0.4,"stabilizerMuscles":[],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"cable"}},{"displaySummary":"kettlebell","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_encogimientos","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"back_encogimientos__kettlebell","profile":{"automationEligible":true,"axialLoadFactor":0.3,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar los brazos o el tronco en lugar de la elevación escapular."],"description":"Encogimientos con kettlebell: la carga compacta facilita el agarre y el control en series largas.","efc":2.5,"equipmentId":"kettlebell","executionCues":["Eleva los hombros hacia las orejas y baja con control sin balanceo."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"scapular_elevation","muscleNotes":[{"muscleId":"trapezius","note":"Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."},{"muscleId":"rhomboids","note":"Secundario: los romboides estabilizan la escápula durante la elevación; por eso suman 0.5."}],"performanceProfileId":"back_encogimientos__kettlebell","primaryMuscles":["trapezius"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["scapular_elevation"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["trapezius"],"secondaryMuscles":["rhomboids"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["trapezius"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"kettlebell","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"scapular_elevation","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar los brazos o el tronco en lugar de la elevación escapular."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Eleva los hombros hacia las orejas y baja con control sin balanceo."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Toma el peso con los brazos extendidos y la postura erguida."]},"display":{"displayName":"Encogimientos","displaySummary":"kettlebell","selectedOptions":{"implement":"kettlebell"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.3,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Encogimientos","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"back_encogimientos__kettlebell","definitionId":"back_encogimientos","familyId":"upper_scapular_elevation","kind":"PARENT","performanceProfileId":"back_encogimientos__kettlebell","searchTerms":["encogimientos","shrugs","encogimiento de hombros","trapecio"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar trapezius en elevación escapular."],"recoveryCost":"moderate","requiredEquipment":["kettlebell"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells","smith_machine","cable","kettlebell","barbell"],"preservesIntent":["Conserva la elevación escapular y el objetivo trapezius."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["rhomboids"],"setupCues":["Toma el peso con los brazos extendidos y la postura erguida."],"ssc":0.4,"stabilizerMuscles":[],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"kettlebell"}},{"displaySummary":"barbell","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_encogimientos","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"back_encogimientos__barbell","profile":{"automationEligible":true,"axialLoadFactor":0.3,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar los brazos o el tronco en lugar de la elevación escapular."],"description":"Encogimientos con barra: la carga libre frente a los muslos permite progresar peso de forma simple.","efc":2.5,"equipmentId":"barbell","executionCues":["Eleva los hombros hacia las orejas y baja con control sin balanceo."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"scapular_elevation","muscleNotes":[{"muscleId":"trapezius","note":"Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."},{"muscleId":"rhomboids","note":"Secundario: los romboides estabilizan la escápula durante la elevación; por eso suman 0.5."}],"performanceProfileId":"back_encogimientos__barbell","primaryMuscles":["trapezius"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["scapular_elevation"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["trapezius"],"secondaryMuscles":["rhomboids"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["trapezius"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"barbell","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"scapular_elevation","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar los brazos o el tronco en lugar de la elevación escapular."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Eleva los hombros hacia las orejas y baja con control sin balanceo."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Toma el peso con los brazos extendidos y la postura erguida."]},"display":{"displayName":"Encogimientos","displaySummary":"barbell","selectedOptions":{"implement":"barbell"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.3,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Encogimientos","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"back_encogimientos__barbell","definitionId":"back_encogimientos","familyId":"upper_scapular_elevation","kind":"PARENT","performanceProfileId":"back_encogimientos__barbell","searchTerms":["encogimientos","shrugs","encogimiento de hombros","trapecio"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar trapezius en elevación escapular."],"recoveryCost":"moderate","requiredEquipment":["barbell"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells","smith_machine","cable","kettlebell","barbell"],"preservesIntent":["Conserva la elevación escapular y el objetivo trapezius."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["rhomboids"],"setupCues":["Toma el peso con los brazos extendidos y la postura erguida."],"ssc":0.4,"stabilizerMuscles":[],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"barbell"}}],"defaultConfigurationId":"back_encogimientos__dumbbells","description":"Encogimientos de trapecio. Ajustable en equipo y posición de barra.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:back_encogimientos"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"upper_scapular_elevation","id":"back_encogimientos","kind":"PARENT","optionAxes":["implement"],"searchTerms":["encogimientos","shrugs","encogimiento de hombros","trapecio"]},{"canonicalName":"Kelso Shrugs","configurations":[{"displaySummary":"barbell","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_encogimientos_kelso","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"back_encogimientos_kelso__barbell","profile":{"automationEligible":true,"axialLoadFactor":0.2,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Levantar el tronco del apoyo para impulsar el encogimiento."],"description":"Kelso Shrugs con barra: el tronco inclinado sobre el banco deja caer la barra y sube los hombros con control.","efc":2.5,"equipmentId":"barbell","executionCues":["Eleva los hombros hacia arriba con control desde la posición inclinada."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"scapular_elevation","muscleNotes":[{"muscleId":"trapezius","note":"Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."},{"muscleId":"rhomboids","note":"Secundario: los romboides sostienen la escápula en la posición inclinada; por eso suman 0.5."}],"performanceProfileId":"back_encogimientos_kelso__barbell","primaryMuscles":["trapezius"],"replacementGroup":null,"replacementPriority":999,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["scapular_elevation"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["trapezius"],"secondaryMuscles":["rhomboids"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["trapezius"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"barbell","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"scapular_elevation","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Levantar el tronco del apoyo para impulsar el encogimiento."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Eleva los hombros hacia arriba con control desde la posición inclinada."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."]},"display":{"displayName":"Kelso Shrugs","displaySummary":"barbell","selectedOptions":{"implement":"barbell"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.2,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Kelso Shrugs","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"back_encogimientos_kelso__barbell","definitionId":"back_encogimientos_kelso","familyId":"upper_scapular_elevation","kind":"PARENT","performanceProfileId":"back_encogimientos_kelso__barbell","searchTerms":["kelso shrugs","encogimientos kelso","shrug inclinado"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar trapezius con el patrón inclinado de los Kelso Shrugs."],"recoveryCost":"moderate","requiredEquipment":["barbell"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["barbell","machine","cable","kettlebell","smith_machine"],"preservesIntent":["Conserva la elevación escapular inclinada y el objetivo trapezius."],"replacementGroup":null,"replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["rhomboids"],"setupCues":["Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."],"ssc":0.4,"stabilizerMuscles":[],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"barbell"}},{"displaySummary":"machine","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_encogimientos_kelso","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"back_encogimientos_kelso__machine","profile":{"automationEligible":true,"axialLoadFactor":0.2,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Levantar el tronco del apoyo para impulsar el encogimiento."],"description":"Kelso Shrugs en máquina: el apoyo y el recorrido guiado permiten concentrarse en el trapecio sin equilibrio.","efc":2.5,"equipmentId":"machine","executionCues":["Eleva los hombros hacia arriba con control desde la posición inclinada."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"guided_external_load","movementPatternId":"scapular_elevation","muscleNotes":[{"muscleId":"trapezius","note":"Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."},{"muscleId":"rhomboids","note":"Secundario: los romboides sostienen la escápula en la posición inclinada; por eso suman 0.5."}],"performanceProfileId":"back_encogimientos_kelso__machine","primaryMuscles":["trapezius"],"replacementGroup":null,"replacementPriority":999,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["scapular_elevation"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["trapezius"],"secondaryMuscles":["rhomboids"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["trapezius"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"machine","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"guided_external_load","movementPatternId":"scapular_elevation","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"guided_constant","stability":"self_stabilized"},"coaching":{"commonMistakes":["Levantar el tronco del apoyo para impulsar el encogimiento."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Eleva los hombros hacia arriba con control desde la posición inclinada."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."]},"display":{"displayName":"Kelso Shrugs","displaySummary":"machine","selectedOptions":{"implement":"machine"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.2,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Kelso Shrugs","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"back_encogimientos_kelso__machine","definitionId":"back_encogimientos_kelso","familyId":"upper_scapular_elevation","kind":"PARENT","performanceProfileId":"back_encogimientos_kelso__machine","searchTerms":["kelso shrugs","encogimientos kelso","shrug inclinado"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar trapezius con el patrón inclinado de los Kelso Shrugs."],"recoveryCost":"moderate","requiredEquipment":["machine"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["barbell","machine","cable","kettlebell","smith_machine"],"preservesIntent":["Conserva la elevación escapular inclinada y el objetivo trapezius."],"replacementGroup":null,"replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["rhomboids"],"setupCues":["Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."],"ssc":0.4,"stabilizerMuscles":[],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"machine"}},{"displaySummary":"cable","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_encogimientos_kelso","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"back_encogimientos_kelso__cable","profile":{"automationEligible":true,"axialLoadFactor":0.2,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Levantar el tronco del apoyo para impulsar el encogimiento."],"description":"Kelso Shrugs en polea: la tensión continua mantiene el trapecio trabajando desde la posición inclinada.","efc":2.5,"equipmentId":"cable","executionCues":["Eleva los hombros hacia arriba con control desde la posición inclinada."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"scapular_elevation","muscleNotes":[{"muscleId":"trapezius","note":"Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."},{"muscleId":"rhomboids","note":"Secundario: los romboides sostienen la escápula en la posición inclinada; por eso suman 0.5."}],"performanceProfileId":"back_encogimientos_kelso__cable","primaryMuscles":["trapezius"],"replacementGroup":null,"replacementPriority":999,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["scapular_elevation"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["trapezius"],"secondaryMuscles":["rhomboids"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["trapezius"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"cable","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"scapular_elevation","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Levantar el tronco del apoyo para impulsar el encogimiento."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Eleva los hombros hacia arriba con control desde la posición inclinada."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."]},"display":{"displayName":"Kelso Shrugs","displaySummary":"cable","selectedOptions":{"implement":"cable"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.2,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Kelso Shrugs","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"back_encogimientos_kelso__cable","definitionId":"back_encogimientos_kelso","familyId":"upper_scapular_elevation","kind":"PARENT","performanceProfileId":"back_encogimientos_kelso__cable","searchTerms":["kelso shrugs","encogimientos kelso","shrug inclinado"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar trapezius con el patrón inclinado de los Kelso Shrugs."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["barbell","machine","cable","kettlebell","smith_machine"],"preservesIntent":["Conserva la elevación escapular inclinada y el objetivo trapezius."],"replacementGroup":null,"replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["rhomboids"],"setupCues":["Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."],"ssc":0.4,"stabilizerMuscles":[],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"cable"}},{"displaySummary":"kettlebell","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_encogimientos_kelso","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"back_encogimientos_kelso__kettlebell","profile":{"automationEligible":true,"axialLoadFactor":0.2,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Levantar el tronco del apoyo para impulsar el encogimiento."],"description":"Kelso Shrugs con kettlebell: la carga compacta es cómoda desde la posición inclinada sobre el banco.","efc":2.5,"equipmentId":"kettlebell","executionCues":["Eleva los hombros hacia arriba con control desde la posición inclinada."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"scapular_elevation","muscleNotes":[{"muscleId":"trapezius","note":"Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."},{"muscleId":"rhomboids","note":"Secundario: los romboides sostienen la escápula en la posición inclinada; por eso suman 0.5."}],"performanceProfileId":"back_encogimientos_kelso__kettlebell","primaryMuscles":["trapezius"],"replacementGroup":null,"replacementPriority":999,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["scapular_elevation"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["trapezius"],"secondaryMuscles":["rhomboids"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["trapezius"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"kettlebell","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"scapular_elevation","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Levantar el tronco del apoyo para impulsar el encogimiento."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Eleva los hombros hacia arriba con control desde la posición inclinada."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."]},"display":{"displayName":"Kelso Shrugs","displaySummary":"kettlebell","selectedOptions":{"implement":"kettlebell"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.2,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Kelso Shrugs","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"back_encogimientos_kelso__kettlebell","definitionId":"back_encogimientos_kelso","familyId":"upper_scapular_elevation","kind":"PARENT","performanceProfileId":"back_encogimientos_kelso__kettlebell","searchTerms":["kelso shrugs","encogimientos kelso","shrug inclinado"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar trapezius con el patrón inclinado de los Kelso Shrugs."],"recoveryCost":"moderate","requiredEquipment":["kettlebell"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["barbell","machine","cable","kettlebell","smith_machine"],"preservesIntent":["Conserva la elevación escapular inclinada y el objetivo trapezius."],"replacementGroup":null,"replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["rhomboids"],"setupCues":["Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."],"ssc":0.4,"stabilizerMuscles":[],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"kettlebell"}},{"displaySummary":"smith_machine","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_encogimientos_kelso","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"back_encogimientos_kelso__smith_machine","profile":{"automationEligible":true,"axialLoadFactor":0.2,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Levantar el tronco del apoyo para impulsar el encogimiento."],"description":"Kelso Shrugs en máquina Smith: el guiado de la barra elimina el balanceo y facilita cargas altas.","efc":2.5,"equipmentId":"smith_machine","executionCues":["Eleva los hombros hacia arriba con control desde la posición inclinada."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"guided_external_load","movementPatternId":"scapular_elevation","muscleNotes":[{"muscleId":"trapezius","note":"Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."},{"muscleId":"rhomboids","note":"Secundario: los romboides sostienen la escápula en la posición inclinada; por eso suman 0.5."}],"performanceProfileId":"back_encogimientos_kelso__smith_machine","primaryMuscles":["trapezius"],"replacementGroup":null,"replacementPriority":999,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["scapular_elevation"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["trapezius"],"secondaryMuscles":["rhomboids"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["trapezius"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"smith_machine","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"guided_external_load","movementPatternId":"scapular_elevation","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"guided_constant","stability":"self_stabilized"},"coaching":{"commonMistakes":["Levantar el tronco del apoyo para impulsar el encogimiento."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Eleva los hombros hacia arriba con control desde la posición inclinada."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."]},"display":{"displayName":"Kelso Shrugs","displaySummary":"smith_machine","selectedOptions":{"implement":"smith_machine"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.2,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Kelso Shrugs","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"back_encogimientos_kelso__smith_machine","definitionId":"back_encogimientos_kelso","familyId":"upper_scapular_elevation","kind":"PARENT","performanceProfileId":"back_encogimientos_kelso__smith_machine","searchTerms":["kelso shrugs","encogimientos kelso","shrug inclinado"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar trapezius con el patrón inclinado de los Kelso Shrugs."],"recoveryCost":"moderate","requiredEquipment":["smith_machine"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["barbell","machine","cable","kettlebell","smith_machine"],"preservesIntent":["Conserva la elevación escapular inclinada y el objetivo trapezius."],"replacementGroup":null,"replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["rhomboids"],"setupCues":["Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."],"ssc":0.4,"stabilizerMuscles":[],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"smith_machine"}}],"defaultConfigurationId":"back_encogimientos_kelso__barbell","description":"Kelso shrugs. Ajustable en ángulo y equipo.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:back_encogimientos_kelso"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"upper_scapular_elevation","id":"back_encogimientos_kelso","kind":"PARENT","optionAxes":["implement"],"searchTerms":["kelso shrugs","encogimientos kelso","shrug inclinado"]},{"canonicalName":"Y-Raises","configurations":[{"displaySummary":"Mancuerna","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_y_raises","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"back_y_raises__default","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón elevación escapular para completar la repetición."],"description":"Y-Raises trabaja principalmente trapecio, dorsales mediante un patrón de elevación escapular. La participación secundaria corresponde a deltoides, bíceps, erectores espinales. La configuración utiliza mancuernas como implemento.","efc":2.5,"equipmentId":"dumbbells","executionCues":["Ejecuta «Y-Raises» siguiendo el patrón elevación escapular con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"scapular_elevation","muscleNotes":[{"muscleId":"trapezius","note":"Principal: el trapecio mueve la escápula y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."},{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal tracciona el brazo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."},{"muscleId":"deltoid","note":"Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."},{"muscleId":"biceps","note":"Secundario: el bíceps asiste la tracción o flexión con contribución real al movimiento; por eso suma 0.5."},{"muscleId":"erector_spinae","note":"Secundario: los erectores asisten la extensión y el control de la columna; por eso suman 0.5."}],"performanceProfileId":"back_y_raises__dumbbells__y_raises","primaryMuscles":["trapezius","latissimus_dorsi"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["scapular_elevation"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["trapezius","latissimus_dorsi"],"secondaryMuscles":["deltoid","biceps","erector_spinae"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["trapezius"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"dumbbells","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"scapular_elevation","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón elevación escapular para completar la repetición."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Y-Raises» siguiendo el patrón elevación escapular con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura mancuerna y adopta la posición específica de «Y-Raises» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Y-Raises","displaySummary":"Mancuerna","selectedOptions":{}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Y-Raises","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"back_y_raises__default","definitionId":"back_y_raises","familyId":"upper_scapular_elevation","kind":"SPECIALTY","performanceProfileId":"back_y_raises__dumbbells__y_raises","searchTerms":["back y raises","y-raises"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar trapezius dentro del patrón scapular_elevation.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["dumbbells"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells"],"preservesIntent":["Conserva el patrón scapular_elevation y el objetivo trapezius."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["deltoid","biceps","erector_spinae"],"setupCues":["Configura mancuerna y adopta la posición específica de «Y-Raises» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":[],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{}}],"defaultConfigurationId":"back_y_raises__default","description":"Y-Raises trabaja principalmente trapecio, dorsales mediante un patrón de elevación escapular. La participación secundaria corresponde a deltoides, bíceps, erectores espinales.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:back_y_raises"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"upper_scapular_elevation","id":"back_y_raises","kind":"SPECIALTY","optionAxes":[],"searchTerms":["back y raises","y-raises"]}],"description":"Familia controlada por patrón scapular_elevation; cada especialidad conserva su perfil resuelto.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:upper_scapular_elevation"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"upper_scapular_elevation","taxonomy":["upper","scapular_elevation"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Tren superior · trapezius · scapular elevation",
+    "definitions": [
+      {
+        "canonicalName": "Encogimientos",
+        "configurations": [
+          {
+            "displaySummary": "dumbbells",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_encogimientos",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "back_encogimientos__dumbbells",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.3,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar los brazos o el tronco en lugar de la elevación escapular."
+              ],
+              "description": "Encogimientos con mancuernas: la carga libre a los costados permite cargar cómodo y ajustar el peso a cada lado.",
+              "efc": 2.5,
+              "equipmentId": "dumbbells",
+              "executionCues": [
+                "Eleva los hombros hacia las orejas y baja con control sin balanceo."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "scapular_elevation",
+              "muscleNotes": [
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides estabilizan la escápula durante la elevación; por eso suman 0.5."
+                }
+              ],
+              "performanceProfileId": "back_encogimientos__dumbbells",
+              "primaryMuscles": [
+                "trapezius"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "scapular_elevation"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "trapezius"
+                  ],
+                  "secondaryMuscles": [
+                    "rhomboids"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "trapezius"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "dumbbells",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "scapular_elevation",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar los brazos o el tronco en lugar de la elevación escapular."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Eleva los hombros hacia las orejas y baja con control sin balanceo."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Toma el peso con los brazos extendidos y la postura erguida."
+                  ]
+                },
+                "display": {
+                  "displayName": "Encogimientos",
+                  "displaySummary": "dumbbells",
+                  "selectedOptions": {
+                    "implement": "dumbbells"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.3,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Encogimientos",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "back_encogimientos__dumbbells",
+                  "definitionId": "back_encogimientos",
+                  "familyId": "upper_scapular_elevation",
+                  "kind": "PARENT",
+                  "performanceProfileId": "back_encogimientos__dumbbells",
+                  "searchTerms": [
+                    "encogimientos",
+                    "shrugs",
+                    "encogimiento de hombros",
+                    "trapecio"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar trapezius en elevación escapular."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "dumbbells"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells",
+                    "smith_machine",
+                    "cable",
+                    "kettlebell",
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la elevación escapular y el objetivo trapezius."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "rhomboids"
+              ],
+              "setupCues": [
+                "Toma el peso con los brazos extendidos y la postura erguida."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "dumbbells"
+            }
+          },
+          {
+            "displaySummary": "smith_machine",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_encogimientos",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "back_encogimientos__smith_machine",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.3,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar los brazos o el tronco en lugar de la elevación escapular."
+              ],
+              "description": "Encogimientos en máquina Smith: el recorrido guiado estabiliza la barra y permite usar cargas altas con seguridad.",
+              "efc": 2.5,
+              "equipmentId": "smith_machine",
+              "executionCues": [
+                "Eleva los hombros hacia las orejas y baja con control sin balanceo."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "scapular_elevation",
+              "muscleNotes": [
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides estabilizan la escápula durante la elevación; por eso suman 0.5."
+                }
+              ],
+              "performanceProfileId": "back_encogimientos__smith_machine",
+              "primaryMuscles": [
+                "trapezius"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "scapular_elevation"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "trapezius"
+                  ],
+                  "secondaryMuscles": [
+                    "rhomboids"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "trapezius"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "smith_machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "scapular_elevation",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar los brazos o el tronco en lugar de la elevación escapular."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Eleva los hombros hacia las orejas y baja con control sin balanceo."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Toma el peso con los brazos extendidos y la postura erguida."
+                  ]
+                },
+                "display": {
+                  "displayName": "Encogimientos",
+                  "displaySummary": "smith_machine",
+                  "selectedOptions": {
+                    "implement": "smith_machine"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.3,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Encogimientos",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "back_encogimientos__smith_machine",
+                  "definitionId": "back_encogimientos",
+                  "familyId": "upper_scapular_elevation",
+                  "kind": "PARENT",
+                  "performanceProfileId": "back_encogimientos__smith_machine",
+                  "searchTerms": [
+                    "encogimientos",
+                    "shrugs",
+                    "encogimiento de hombros",
+                    "trapecio"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar trapezius en elevación escapular."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "smith_machine"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells",
+                    "smith_machine",
+                    "cable",
+                    "kettlebell",
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la elevación escapular y el objetivo trapezius."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "rhomboids"
+              ],
+              "setupCues": [
+                "Toma el peso con los brazos extendidos y la postura erguida."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "smith_machine"
+            }
+          },
+          {
+            "displaySummary": "cable",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_encogimientos",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "back_encogimientos__cable",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.3,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar los brazos o el tronco en lugar de la elevación escapular."
+              ],
+              "description": "Encogimientos en polea: la tensión continua mantiene el trapecio activo a lo largo del recorrido.",
+              "efc": 2.5,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Eleva los hombros hacia las orejas y baja con control sin balanceo."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "scapular_elevation",
+              "muscleNotes": [
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides estabilizan la escápula durante la elevación; por eso suman 0.5."
+                }
+              ],
+              "performanceProfileId": "back_encogimientos__cable",
+              "primaryMuscles": [
+                "trapezius"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "scapular_elevation"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "trapezius"
+                  ],
+                  "secondaryMuscles": [
+                    "rhomboids"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "trapezius"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "cable",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "scapular_elevation",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar los brazos o el tronco en lugar de la elevación escapular."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Eleva los hombros hacia las orejas y baja con control sin balanceo."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Toma el peso con los brazos extendidos y la postura erguida."
+                  ]
+                },
+                "display": {
+                  "displayName": "Encogimientos",
+                  "displaySummary": "cable",
+                  "selectedOptions": {
+                    "implement": "cable"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.3,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Encogimientos",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "back_encogimientos__cable",
+                  "definitionId": "back_encogimientos",
+                  "familyId": "upper_scapular_elevation",
+                  "kind": "PARENT",
+                  "performanceProfileId": "back_encogimientos__cable",
+                  "searchTerms": [
+                    "encogimientos",
+                    "shrugs",
+                    "encogimiento de hombros",
+                    "trapecio"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar trapezius en elevación escapular."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells",
+                    "smith_machine",
+                    "cable",
+                    "kettlebell",
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la elevación escapular y el objetivo trapezius."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "rhomboids"
+              ],
+              "setupCues": [
+                "Toma el peso con los brazos extendidos y la postura erguida."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "cable"
+            }
+          },
+          {
+            "displaySummary": "kettlebell",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_encogimientos",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "back_encogimientos__kettlebell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.3,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar los brazos o el tronco en lugar de la elevación escapular."
+              ],
+              "description": "Encogimientos con kettlebell: la carga compacta facilita el agarre y el control en series largas.",
+              "efc": 2.5,
+              "equipmentId": "kettlebell",
+              "executionCues": [
+                "Eleva los hombros hacia las orejas y baja con control sin balanceo."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "scapular_elevation",
+              "muscleNotes": [
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides estabilizan la escápula durante la elevación; por eso suman 0.5."
+                }
+              ],
+              "performanceProfileId": "back_encogimientos__kettlebell",
+              "primaryMuscles": [
+                "trapezius"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "scapular_elevation"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "trapezius"
+                  ],
+                  "secondaryMuscles": [
+                    "rhomboids"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "trapezius"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "kettlebell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "scapular_elevation",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar los brazos o el tronco en lugar de la elevación escapular."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Eleva los hombros hacia las orejas y baja con control sin balanceo."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Toma el peso con los brazos extendidos y la postura erguida."
+                  ]
+                },
+                "display": {
+                  "displayName": "Encogimientos",
+                  "displaySummary": "kettlebell",
+                  "selectedOptions": {
+                    "implement": "kettlebell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.3,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Encogimientos",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "back_encogimientos__kettlebell",
+                  "definitionId": "back_encogimientos",
+                  "familyId": "upper_scapular_elevation",
+                  "kind": "PARENT",
+                  "performanceProfileId": "back_encogimientos__kettlebell",
+                  "searchTerms": [
+                    "encogimientos",
+                    "shrugs",
+                    "encogimiento de hombros",
+                    "trapecio"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar trapezius en elevación escapular."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "kettlebell"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells",
+                    "smith_machine",
+                    "cable",
+                    "kettlebell",
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la elevación escapular y el objetivo trapezius."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "rhomboids"
+              ],
+              "setupCues": [
+                "Toma el peso con los brazos extendidos y la postura erguida."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "kettlebell"
+            }
+          },
+          {
+            "displaySummary": "barbell",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_encogimientos",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "back_encogimientos__barbell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.3,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar los brazos o el tronco en lugar de la elevación escapular."
+              ],
+              "description": "Encogimientos con barra: la carga libre frente a los muslos permite progresar peso de forma simple.",
+              "efc": 2.5,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Eleva los hombros hacia las orejas y baja con control sin balanceo."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "scapular_elevation",
+              "muscleNotes": [
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides estabilizan la escápula durante la elevación; por eso suman 0.5."
+                }
+              ],
+              "performanceProfileId": "back_encogimientos__barbell",
+              "primaryMuscles": [
+                "trapezius"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "scapular_elevation"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "trapezius"
+                  ],
+                  "secondaryMuscles": [
+                    "rhomboids"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "trapezius"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "scapular_elevation",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar los brazos o el tronco en lugar de la elevación escapular."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Eleva los hombros hacia las orejas y baja con control sin balanceo."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Toma el peso con los brazos extendidos y la postura erguida."
+                  ]
+                },
+                "display": {
+                  "displayName": "Encogimientos",
+                  "displaySummary": "barbell",
+                  "selectedOptions": {
+                    "implement": "barbell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.3,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Encogimientos",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "back_encogimientos__barbell",
+                  "definitionId": "back_encogimientos",
+                  "familyId": "upper_scapular_elevation",
+                  "kind": "PARENT",
+                  "performanceProfileId": "back_encogimientos__barbell",
+                  "searchTerms": [
+                    "encogimientos",
+                    "shrugs",
+                    "encogimiento de hombros",
+                    "trapecio"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar trapezius en elevación escapular."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells",
+                    "smith_machine",
+                    "cable",
+                    "kettlebell",
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la elevación escapular y el objetivo trapezius."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "rhomboids"
+              ],
+              "setupCues": [
+                "Toma el peso con los brazos extendidos y la postura erguida."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "barbell"
+            }
+          }
+        ],
+        "defaultConfigurationId": "back_encogimientos__dumbbells",
+        "description": "Encogimientos de trapecio. Ajustable en equipo y posición de barra.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:back_encogimientos"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_scapular_elevation",
+        "id": "back_encogimientos",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement"
+        ],
+        "searchTerms": [
+          "encogimientos",
+          "shrugs",
+          "encogimiento de hombros",
+          "trapecio"
+        ]
+      },
+      {
+        "canonicalName": "Kelso Shrugs",
+        "configurations": [
+          {
+            "displaySummary": "barbell",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_encogimientos_kelso",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "back_encogimientos_kelso__barbell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.2,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Levantar el tronco del apoyo para impulsar el encogimiento."
+              ],
+              "description": "Kelso Shrugs con barra: el tronco inclinado sobre el banco deja caer la barra y sube los hombros con control.",
+              "efc": 2.5,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Eleva los hombros hacia arriba con control desde la posición inclinada."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "scapular_elevation",
+              "muscleNotes": [
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides sostienen la escápula en la posición inclinada; por eso suman 0.5."
+                }
+              ],
+              "performanceProfileId": "back_encogimientos_kelso__barbell",
+              "primaryMuscles": [
+                "trapezius"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "scapular_elevation"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "trapezius"
+                  ],
+                  "secondaryMuscles": [
+                    "rhomboids"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "trapezius"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "scapular_elevation",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Levantar el tronco del apoyo para impulsar el encogimiento."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Eleva los hombros hacia arriba con control desde la posición inclinada."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."
+                  ]
+                },
+                "display": {
+                  "displayName": "Kelso Shrugs",
+                  "displaySummary": "barbell",
+                  "selectedOptions": {
+                    "implement": "barbell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.2,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Kelso Shrugs",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "back_encogimientos_kelso__barbell",
+                  "definitionId": "back_encogimientos_kelso",
+                  "familyId": "upper_scapular_elevation",
+                  "kind": "PARENT",
+                  "performanceProfileId": "back_encogimientos_kelso__barbell",
+                  "searchTerms": [
+                    "kelso shrugs",
+                    "encogimientos kelso",
+                    "shrug inclinado"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar trapezius con el patrón inclinado de los Kelso Shrugs."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell",
+                    "machine",
+                    "cable",
+                    "kettlebell",
+                    "smith_machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la elevación escapular inclinada y el objetivo trapezius."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "rhomboids"
+              ],
+              "setupCues": [
+                "Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "barbell"
+            }
+          },
+          {
+            "displaySummary": "machine",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_encogimientos_kelso",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "back_encogimientos_kelso__machine",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.2,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Levantar el tronco del apoyo para impulsar el encogimiento."
+              ],
+              "description": "Kelso Shrugs en máquina: el apoyo y el recorrido guiado permiten concentrarse en el trapecio sin equilibrio.",
+              "efc": 2.5,
+              "equipmentId": "machine",
+              "executionCues": [
+                "Eleva los hombros hacia arriba con control desde la posición inclinada."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "scapular_elevation",
+              "muscleNotes": [
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides sostienen la escápula en la posición inclinada; por eso suman 0.5."
+                }
+              ],
+              "performanceProfileId": "back_encogimientos_kelso__machine",
+              "primaryMuscles": [
+                "trapezius"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "scapular_elevation"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "trapezius"
+                  ],
+                  "secondaryMuscles": [
+                    "rhomboids"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "trapezius"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "scapular_elevation",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Levantar el tronco del apoyo para impulsar el encogimiento."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Eleva los hombros hacia arriba con control desde la posición inclinada."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."
+                  ]
+                },
+                "display": {
+                  "displayName": "Kelso Shrugs",
+                  "displaySummary": "machine",
+                  "selectedOptions": {
+                    "implement": "machine"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.2,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Kelso Shrugs",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "back_encogimientos_kelso__machine",
+                  "definitionId": "back_encogimientos_kelso",
+                  "familyId": "upper_scapular_elevation",
+                  "kind": "PARENT",
+                  "performanceProfileId": "back_encogimientos_kelso__machine",
+                  "searchTerms": [
+                    "kelso shrugs",
+                    "encogimientos kelso",
+                    "shrug inclinado"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar trapezius con el patrón inclinado de los Kelso Shrugs."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "machine"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell",
+                    "machine",
+                    "cable",
+                    "kettlebell",
+                    "smith_machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la elevación escapular inclinada y el objetivo trapezius."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "rhomboids"
+              ],
+              "setupCues": [
+                "Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "machine"
+            }
+          },
+          {
+            "displaySummary": "cable",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_encogimientos_kelso",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "back_encogimientos_kelso__cable",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.2,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Levantar el tronco del apoyo para impulsar el encogimiento."
+              ],
+              "description": "Kelso Shrugs en polea: la tensión continua mantiene el trapecio trabajando desde la posición inclinada.",
+              "efc": 2.5,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Eleva los hombros hacia arriba con control desde la posición inclinada."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "scapular_elevation",
+              "muscleNotes": [
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides sostienen la escápula en la posición inclinada; por eso suman 0.5."
+                }
+              ],
+              "performanceProfileId": "back_encogimientos_kelso__cable",
+              "primaryMuscles": [
+                "trapezius"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "scapular_elevation"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "trapezius"
+                  ],
+                  "secondaryMuscles": [
+                    "rhomboids"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "trapezius"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "cable",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "scapular_elevation",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Levantar el tronco del apoyo para impulsar el encogimiento."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Eleva los hombros hacia arriba con control desde la posición inclinada."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."
+                  ]
+                },
+                "display": {
+                  "displayName": "Kelso Shrugs",
+                  "displaySummary": "cable",
+                  "selectedOptions": {
+                    "implement": "cable"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.2,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Kelso Shrugs",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "back_encogimientos_kelso__cable",
+                  "definitionId": "back_encogimientos_kelso",
+                  "familyId": "upper_scapular_elevation",
+                  "kind": "PARENT",
+                  "performanceProfileId": "back_encogimientos_kelso__cable",
+                  "searchTerms": [
+                    "kelso shrugs",
+                    "encogimientos kelso",
+                    "shrug inclinado"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar trapezius con el patrón inclinado de los Kelso Shrugs."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell",
+                    "machine",
+                    "cable",
+                    "kettlebell",
+                    "smith_machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la elevación escapular inclinada y el objetivo trapezius."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "rhomboids"
+              ],
+              "setupCues": [
+                "Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "cable"
+            }
+          },
+          {
+            "displaySummary": "kettlebell",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_encogimientos_kelso",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "back_encogimientos_kelso__kettlebell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.2,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Levantar el tronco del apoyo para impulsar el encogimiento."
+              ],
+              "description": "Kelso Shrugs con kettlebell: la carga compacta es cómoda desde la posición inclinada sobre el banco.",
+              "efc": 2.5,
+              "equipmentId": "kettlebell",
+              "executionCues": [
+                "Eleva los hombros hacia arriba con control desde la posición inclinada."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "scapular_elevation",
+              "muscleNotes": [
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides sostienen la escápula en la posición inclinada; por eso suman 0.5."
+                }
+              ],
+              "performanceProfileId": "back_encogimientos_kelso__kettlebell",
+              "primaryMuscles": [
+                "trapezius"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "scapular_elevation"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "trapezius"
+                  ],
+                  "secondaryMuscles": [
+                    "rhomboids"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "trapezius"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "kettlebell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "scapular_elevation",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Levantar el tronco del apoyo para impulsar el encogimiento."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Eleva los hombros hacia arriba con control desde la posición inclinada."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."
+                  ]
+                },
+                "display": {
+                  "displayName": "Kelso Shrugs",
+                  "displaySummary": "kettlebell",
+                  "selectedOptions": {
+                    "implement": "kettlebell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.2,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Kelso Shrugs",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "back_encogimientos_kelso__kettlebell",
+                  "definitionId": "back_encogimientos_kelso",
+                  "familyId": "upper_scapular_elevation",
+                  "kind": "PARENT",
+                  "performanceProfileId": "back_encogimientos_kelso__kettlebell",
+                  "searchTerms": [
+                    "kelso shrugs",
+                    "encogimientos kelso",
+                    "shrug inclinado"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar trapezius con el patrón inclinado de los Kelso Shrugs."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "kettlebell"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell",
+                    "machine",
+                    "cable",
+                    "kettlebell",
+                    "smith_machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la elevación escapular inclinada y el objetivo trapezius."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "rhomboids"
+              ],
+              "setupCues": [
+                "Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "kettlebell"
+            }
+          },
+          {
+            "displaySummary": "smith_machine",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_encogimientos_kelso",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "back_encogimientos_kelso__smith_machine",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.2,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Levantar el tronco del apoyo para impulsar el encogimiento."
+              ],
+              "description": "Kelso Shrugs en máquina Smith: el guiado de la barra elimina el balanceo y facilita cargas altas.",
+              "efc": 2.5,
+              "equipmentId": "smith_machine",
+              "executionCues": [
+                "Eleva los hombros hacia arriba con control desde la posición inclinada."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "scapular_elevation",
+              "muscleNotes": [
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides sostienen la escápula en la posición inclinada; por eso suman 0.5."
+                }
+              ],
+              "performanceProfileId": "back_encogimientos_kelso__smith_machine",
+              "primaryMuscles": [
+                "trapezius"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "scapular_elevation"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "trapezius"
+                  ],
+                  "secondaryMuscles": [
+                    "rhomboids"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "trapezius"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "smith_machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "scapular_elevation",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Levantar el tronco del apoyo para impulsar el encogimiento."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Eleva los hombros hacia arriba con control desde la posición inclinada."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."
+                  ]
+                },
+                "display": {
+                  "displayName": "Kelso Shrugs",
+                  "displaySummary": "smith_machine",
+                  "selectedOptions": {
+                    "implement": "smith_machine"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.2,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Kelso Shrugs",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "back_encogimientos_kelso__smith_machine",
+                  "definitionId": "back_encogimientos_kelso",
+                  "familyId": "upper_scapular_elevation",
+                  "kind": "PARENT",
+                  "performanceProfileId": "back_encogimientos_kelso__smith_machine",
+                  "searchTerms": [
+                    "kelso shrugs",
+                    "encogimientos kelso",
+                    "shrug inclinado"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar trapezius con el patrón inclinado de los Kelso Shrugs."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "smith_machine"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell",
+                    "machine",
+                    "cable",
+                    "kettlebell",
+                    "smith_machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la elevación escapular inclinada y el objetivo trapezius."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "rhomboids"
+              ],
+              "setupCues": [
+                "Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "smith_machine"
+            }
+          }
+        ],
+        "defaultConfigurationId": "back_encogimientos_kelso__barbell",
+        "description": "Kelso shrugs. Ajustable en ángulo y equipo.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:back_encogimientos_kelso"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_scapular_elevation",
+        "id": "back_encogimientos_kelso",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement"
+        ],
+        "searchTerms": [
+          "kelso shrugs",
+          "encogimientos kelso",
+          "shrug inclinado"
+        ]
+      },
+      {
+        "canonicalName": "Y-Raises",
+        "configurations": [
+          {
+            "displaySummary": "Mancuerna",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_y_raises",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "back_y_raises__default",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón elevación escapular para completar la repetición."
+              ],
+              "description": "Y-Raises trabaja principalmente trapecio, dorsales mediante un patrón de elevación escapular. La participación secundaria corresponde a deltoides, bíceps, erectores espinales. La configuración utiliza mancuernas como implemento.",
+              "efc": 2.5,
+              "equipmentId": "dumbbells",
+              "executionCues": [
+                "Ejecuta «Y-Raises» siguiendo el patrón elevación escapular con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "scapular_elevation",
+              "muscleNotes": [
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: el trapecio mueve la escápula y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal tracciona el brazo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps asiste la tracción o flexión con contribución real al movimiento; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Secundario: los erectores asisten la extensión y el control de la columna; por eso suman 0.5."
+                }
+              ],
+              "performanceProfileId": "back_y_raises__dumbbells__y_raises",
+              "primaryMuscles": [
+                "trapezius",
+                "latissimus_dorsi"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "scapular_elevation"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "trapezius",
+                    "latissimus_dorsi"
+                  ],
+                  "secondaryMuscles": [
+                    "deltoid",
+                    "biceps",
+                    "erector_spinae"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "trapezius"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "dumbbells",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "scapular_elevation",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón elevación escapular para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Y-Raises» siguiendo el patrón elevación escapular con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura mancuerna y adopta la posición específica de «Y-Raises» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Y-Raises",
+                  "displaySummary": "Mancuerna",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Y-Raises",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "back_y_raises__default",
+                  "definitionId": "back_y_raises",
+                  "familyId": "upper_scapular_elevation",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "back_y_raises__dumbbells__y_raises",
+                  "searchTerms": [
+                    "back y raises",
+                    "y-raises"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar trapezius dentro del patrón scapular_elevation.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "dumbbells"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón scapular_elevation y el objetivo trapezius."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "deltoid",
+                "biceps",
+                "erector_spinae"
+              ],
+              "setupCues": [
+                "Configura mancuerna y adopta la posición específica de «Y-Raises» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "back_y_raises__default",
+        "description": "Y-Raises trabaja principalmente trapecio, dorsales mediante un patrón de elevación escapular. La participación secundaria corresponde a deltoides, bíceps, erectores espinales.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:back_y_raises"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_scapular_elevation",
+        "id": "back_y_raises",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "back y raises",
+          "y-raises"
+        ]
+      }
+    ],
+    "description": "Familia controlada por patrón scapular_elevation; cada especialidad conserva su perfil resuelto.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:upper_scapular_elevation"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "upper_scapular_elevation",
+    "taxonomy": [
+      "upper",
+      "scapular_elevation"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

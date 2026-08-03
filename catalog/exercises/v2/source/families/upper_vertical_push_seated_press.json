@@ -1,1 +1,1246 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Press de Hombros Sentado","definitions":[{"canonicalName":"Press de Hombros Sentado","configurations":[{"displaySummary":"barbell","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_press_hombros_sentado","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"seated_shoulder_press__barbell","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."],"description":"Press de hombros sentado con barra: el empuje parte desde los hombros con la espalda apoyada en el respaldo. La postura sentada reduce la participación de las piernas y aísla el deltoides.","efc":2.5,"equipmentId":"barbell","executionCues":["Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"vertical_push","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides empuja la carga por encima de la cabeza y concentra el trabajo del hombro; por eso suma la serie completa (1.0)."},{"muscleId":"triceps","note":"Secundario: el tríceps extiende el codo en la parte final del empuje; por eso suma 0.5."}],"performanceProfileId":"seated_shoulder_press__barbell__press_hombros_sentado","primaryMuscles":["deltoid"],"replacementGroup":"shoulder_press_seated","replacementPriority":3,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["vertical_push"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["triceps"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"barbell","kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"vertical_push","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura barra y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Press de Hombros Sentado","displaySummary":"barbell","selectedOptions":{"implement":"barbell"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":3.8,"ttc":1.6},"identity":{"canonicalName":"Press de Hombros Sentado","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"seated_shoulder_press__barbell","definitionId":"seated_shoulder_press","familyId":"upper_vertical_push_seated_press","kind":"PARENT","performanceProfileId":"seated_shoulder_press__barbell__press_hombros_sentado","searchTerms":["press de hombros sentado","press sentado","seated shoulder press","deltoides_press_hombros_sentado"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar deltoid dentro del patrón vertical_push.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["barbell"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["barbell"],"preservesIntent":["Conserva el patrón vertical_push y el objetivo deltoid."],"replacementGroup":"shoulder_press_seated","replacementPriority":3},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["triceps"],"setupCues":["Configura barra y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":3.8,"ttc":1.6},"selectedOptions":{"implement":"barbell"}},{"displaySummary":"dumbbells","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_press_hombros_sentado","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"seated_shoulder_press__dumbbells","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."],"description":"Press de hombros sentado con mancuernas: cada brazo empuja de forma independiente con el respaldo detrás de la espalda. La carga libre permite adaptar el recorrido a la comodidad del hombro.","efc":2.5,"equipmentId":"dumbbells","executionCues":["Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"vertical_push","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides empuja la carga por encima de la cabeza y concentra el trabajo del hombro; por eso suma la serie completa (1.0)."},{"muscleId":"triceps","note":"Secundario: el tríceps extiende el codo en la parte final del empuje; por eso suma 0.5."}],"performanceProfileId":"seated_shoulder_press__dumbbells__press_hombros_sentado","primaryMuscles":["deltoid"],"replacementGroup":"shoulder_press_seated","replacementPriority":3,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["vertical_push"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["triceps"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"dumbbells","kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"vertical_push","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura mancuernas y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Press de Hombros Sentado","displaySummary":"dumbbells","selectedOptions":{"implement":"dumbbells"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":3.8,"ttc":1.6},"identity":{"canonicalName":"Press de Hombros Sentado","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"seated_shoulder_press__dumbbells","definitionId":"seated_shoulder_press","familyId":"upper_vertical_push_seated_press","kind":"PARENT","performanceProfileId":"seated_shoulder_press__dumbbells__press_hombros_sentado","searchTerms":["press de hombros sentado","press sentado","seated shoulder press","deltoides_press_hombros_sentado"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar deltoid dentro del patrón vertical_push.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["dumbbells"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells"],"preservesIntent":["Conserva el patrón vertical_push y el objetivo deltoid."],"replacementGroup":"shoulder_press_seated","replacementPriority":3},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["triceps"],"setupCues":["Configura mancuernas y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":3.8,"ttc":1.6},"selectedOptions":{"implement":"dumbbells"}},{"displaySummary":"smith_machine","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_press_hombros_sentado","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"seated_shoulder_press__smith_machine","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."],"description":"Press de hombros sentado en Smith: el riel guiado fija la trayectoria de la barra sobre el respaldo. La máquina reduce el equilibrio del empuje sentado.","efc":2.5,"equipmentId":"smith_machine","executionCues":["Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"vertical_push","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides empuja la carga por encima de la cabeza y concentra el trabajo del hombro; por eso suma la serie completa (1.0)."},{"muscleId":"triceps","note":"Secundario: el tríceps extiende el codo en la parte final del empuje; por eso suma 0.5."}],"performanceProfileId":"seated_shoulder_press__smith_machine__press_hombros_sentado","primaryMuscles":["deltoid"],"replacementGroup":"shoulder_press_seated","replacementPriority":3,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["vertical_push"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["triceps"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"smith_machine","kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"vertical_push","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"guided_constant","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura la máquina Smith y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Press de Hombros Sentado","displaySummary":"smith_machine","selectedOptions":{"implement":"smith_machine"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":3.8,"ttc":1.6},"identity":{"canonicalName":"Press de Hombros Sentado","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"seated_shoulder_press__smith_machine","definitionId":"seated_shoulder_press","familyId":"upper_vertical_push_seated_press","kind":"PARENT","performanceProfileId":"seated_shoulder_press__smith_machine__press_hombros_sentado","searchTerms":["press de hombros sentado","press sentado","seated shoulder press","deltoides_press_hombros_sentado"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar deltoid dentro del patrón vertical_push.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["smith_machine"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["smith_machine"],"preservesIntent":["Conserva el patrón vertical_push y el objetivo deltoid."],"replacementGroup":"shoulder_press_seated","replacementPriority":3},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["triceps"],"setupCues":["Configura la máquina Smith y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":3.8,"ttc":1.6},"selectedOptions":{"implement":"smith_machine"}},{"displaySummary":"machine","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_press_hombros_sentado","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"seated_shoulder_press__machine","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."],"description":"Press de hombros sentado en máquina: los brazos empujan por encima de la cabeza con el recorrido guiado del asiento. La estación aísla el deltoides sin coordinación extra.","efc":2.5,"equipmentId":"machine","executionCues":["Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"vertical_push","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides empuja la carga por encima de la cabeza y concentra el trabajo del hombro; por eso suma la serie completa (1.0)."},{"muscleId":"triceps","note":"Secundario: el tríceps extiende el codo en la parte final del empuje; por eso suma 0.5."}],"performanceProfileId":"seated_shoulder_press__machine__press_hombros_sentado","primaryMuscles":["deltoid"],"replacementGroup":"shoulder_press_seated","replacementPriority":3,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["vertical_push"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["triceps"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"machine","kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"vertical_push","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"guided_constant","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura la máquina y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Press de Hombros Sentado","displaySummary":"machine","selectedOptions":{"implement":"machine"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":3.8,"ttc":1.6},"identity":{"canonicalName":"Press de Hombros Sentado","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"seated_shoulder_press__machine","definitionId":"seated_shoulder_press","familyId":"upper_vertical_push_seated_press","kind":"PARENT","performanceProfileId":"seated_shoulder_press__machine__press_hombros_sentado","searchTerms":["press de hombros sentado","press sentado","seated shoulder press","deltoides_press_hombros_sentado"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar deltoid dentro del patrón vertical_push.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["machine"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["machine"],"preservesIntent":["Conserva el patrón vertical_push y el objetivo deltoid."],"replacementGroup":"shoulder_press_seated","replacementPriority":3},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["triceps"],"setupCues":["Configura la máquina y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":3.8,"ttc":1.6},"selectedOptions":{"implement":"machine"}},{"displaySummary":"cable","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_press_hombros_sentado","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"seated_shoulder_press__cable","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."],"description":"Press de hombros sentado en polea: los empujes parten desde los hombros con la tensión continua del cable. La polea sostiene la carga en la fase final del empuje.","efc":2.5,"equipmentId":"cable","executionCues":["Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"continuous_cable","movementPatternId":"vertical_push","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides empuja la carga por encima de la cabeza y concentra el trabajo del hombro; por eso suma la serie completa (1.0)."},{"muscleId":"triceps","note":"Secundario: el tríceps extiende el codo en la parte final del empuje; por eso suma 0.5."}],"performanceProfileId":"seated_shoulder_press__cable__press_hombros_sentado","primaryMuscles":["deltoid"],"replacementGroup":"shoulder_press_seated","replacementPriority":3,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["vertical_push"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["triceps"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"cable","kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"continuous_cable","movementPatternId":"vertical_push","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura la polea y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Press de Hombros Sentado","displaySummary":"cable","selectedOptions":{"implement":"cable"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":3.8,"ttc":1.6},"identity":{"canonicalName":"Press de Hombros Sentado","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"seated_shoulder_press__cable","definitionId":"seated_shoulder_press","familyId":"upper_vertical_push_seated_press","kind":"PARENT","performanceProfileId":"seated_shoulder_press__cable__press_hombros_sentado","searchTerms":["press de hombros sentado","press sentado","seated shoulder press","deltoides_press_hombros_sentado"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar deltoid dentro del patrón vertical_push.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable"],"preservesIntent":["Conserva el patrón vertical_push y el objetivo deltoid."],"replacementGroup":"shoulder_press_seated","replacementPriority":3},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["triceps"],"setupCues":["Configura la polea y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":3.8,"ttc":1.6},"selectedOptions":{"implement":"cable"}},{"displaySummary":"kettlebell","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_press_hombros_sentado","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"seated_shoulder_press__kettlebell","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."],"description":"Press de hombros sentado con kettlebell: el peso se empuja desde la posición de rack con el tronco apoyado. Variante versátil del empuje vertical sentado.","efc":2.5,"equipmentId":"kettlebell","executionCues":["Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"vertical_push","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides empuja la carga por encima de la cabeza y concentra el trabajo del hombro; por eso suma la serie completa (1.0)."},{"muscleId":"triceps","note":"Secundario: el tríceps extiende el codo en la parte final del empuje; por eso suma 0.5."}],"performanceProfileId":"seated_shoulder_press__kettlebell__press_hombros_sentado","primaryMuscles":["deltoid"],"replacementGroup":"shoulder_press_seated","replacementPriority":3,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["vertical_push"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["triceps"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"kettlebell","kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"vertical_push","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura kettlebell y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Press de Hombros Sentado","displaySummary":"kettlebell","selectedOptions":{"implement":"kettlebell"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":3.8,"ttc":1.6},"identity":{"canonicalName":"Press de Hombros Sentado","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"seated_shoulder_press__kettlebell","definitionId":"seated_shoulder_press","familyId":"upper_vertical_push_seated_press","kind":"PARENT","performanceProfileId":"seated_shoulder_press__kettlebell__press_hombros_sentado","searchTerms":["press de hombros sentado","press sentado","seated shoulder press","deltoides_press_hombros_sentado"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar deltoid dentro del patrón vertical_push.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["kettlebell"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["kettlebell"],"preservesIntent":["Conserva el patrón vertical_push y el objetivo deltoid."],"replacementGroup":"shoulder_press_seated","replacementPriority":3},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["triceps"],"setupCues":["Configura kettlebell y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":3.8,"ttc":1.6},"selectedOptions":{"implement":"kettlebell"}}],"defaultConfigurationId":"seated_shoulder_press__barbell","description":"Empuje vertical sentado con la espalda apoyada, que aísla el deltoides y limita la participación del resto del cuerpo. El implemento define la curva de tensión de cada variante.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:seated_shoulder_press"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"upper_vertical_push_seated_press","id":"seated_shoulder_press","kind":"PARENT","optionAxes":["implement"],"searchTerms":["press de hombros sentado","press sentado","seated shoulder press","deltoides_press_hombros_sentado"]}],"description":"Familia de empuje vertical sentado; el implemento es la única decisión visible y la versión de pie queda en su propio padre.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:upper_vertical_push_seated_press"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"upper_vertical_push_seated_press","taxonomy":["upper","vertical_push","seated_shoulder_press"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Press de Hombros Sentado",
+    "definitions": [
+      {
+        "canonicalName": "Press de Hombros Sentado",
+        "configurations": [
+          {
+            "displaySummary": "barbell",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_press_hombros_sentado",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "seated_shoulder_press__barbell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+              ],
+              "description": "Press de hombros sentado con barra: el empuje parte desde los hombros con la espalda apoyada en el respaldo. La postura sentada reduce la participación de las piernas y aísla el deltoides.",
+              "efc": 2.5,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "vertical_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides empuja la carga por encima de la cabeza y concentra el trabajo del hombro; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps extiende el codo en la parte final del empuje; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "seated_shoulder_press__barbell__press_hombros_sentado",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": "shoulder_press_seated",
+              "replacementPriority": 3,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "vertical_push"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "triceps"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "vertical_push",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura barra y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Press de Hombros Sentado",
+                  "displaySummary": "barbell",
+                  "selectedOptions": {
+                    "implement": "barbell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 3.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Press de Hombros Sentado",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "seated_shoulder_press__barbell",
+                  "definitionId": "seated_shoulder_press",
+                  "familyId": "upper_vertical_push_seated_press",
+                  "kind": "PARENT",
+                  "performanceProfileId": "seated_shoulder_press__barbell__press_hombros_sentado",
+                  "searchTerms": [
+                    "press de hombros sentado",
+                    "press sentado",
+                    "seated shoulder press",
+                    "deltoides_press_hombros_sentado"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar deltoid dentro del patrón vertical_push.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón vertical_push y el objetivo deltoid."
+                  ],
+                  "replacementGroup": "shoulder_press_seated",
+                  "replacementPriority": 3
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "triceps"
+              ],
+              "setupCues": [
+                "Configura barra y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "barbell"
+            }
+          },
+          {
+            "displaySummary": "dumbbells",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_press_hombros_sentado",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "seated_shoulder_press__dumbbells",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+              ],
+              "description": "Press de hombros sentado con mancuernas: cada brazo empuja de forma independiente con el respaldo detrás de la espalda. La carga libre permite adaptar el recorrido a la comodidad del hombro.",
+              "efc": 2.5,
+              "equipmentId": "dumbbells",
+              "executionCues": [
+                "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "vertical_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides empuja la carga por encima de la cabeza y concentra el trabajo del hombro; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps extiende el codo en la parte final del empuje; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "seated_shoulder_press__dumbbells__press_hombros_sentado",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": "shoulder_press_seated",
+              "replacementPriority": 3,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "vertical_push"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "triceps"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "dumbbells",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "vertical_push",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura mancuernas y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Press de Hombros Sentado",
+                  "displaySummary": "dumbbells",
+                  "selectedOptions": {
+                    "implement": "dumbbells"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 3.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Press de Hombros Sentado",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "seated_shoulder_press__dumbbells",
+                  "definitionId": "seated_shoulder_press",
+                  "familyId": "upper_vertical_push_seated_press",
+                  "kind": "PARENT",
+                  "performanceProfileId": "seated_shoulder_press__dumbbells__press_hombros_sentado",
+                  "searchTerms": [
+                    "press de hombros sentado",
+                    "press sentado",
+                    "seated shoulder press",
+                    "deltoides_press_hombros_sentado"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar deltoid dentro del patrón vertical_push.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "dumbbells"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón vertical_push y el objetivo deltoid."
+                  ],
+                  "replacementGroup": "shoulder_press_seated",
+                  "replacementPriority": 3
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "triceps"
+              ],
+              "setupCues": [
+                "Configura mancuernas y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "dumbbells"
+            }
+          },
+          {
+            "displaySummary": "smith_machine",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_press_hombros_sentado",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "seated_shoulder_press__smith_machine",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+              ],
+              "description": "Press de hombros sentado en Smith: el riel guiado fija la trayectoria de la barra sobre el respaldo. La máquina reduce el equilibrio del empuje sentado.",
+              "efc": 2.5,
+              "equipmentId": "smith_machine",
+              "executionCues": [
+                "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "vertical_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides empuja la carga por encima de la cabeza y concentra el trabajo del hombro; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps extiende el codo en la parte final del empuje; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "seated_shoulder_press__smith_machine__press_hombros_sentado",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": "shoulder_press_seated",
+              "replacementPriority": 3,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "vertical_push"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "triceps"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "smith_machine",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "vertical_push",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura la máquina Smith y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Press de Hombros Sentado",
+                  "displaySummary": "smith_machine",
+                  "selectedOptions": {
+                    "implement": "smith_machine"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 3.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Press de Hombros Sentado",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "seated_shoulder_press__smith_machine",
+                  "definitionId": "seated_shoulder_press",
+                  "familyId": "upper_vertical_push_seated_press",
+                  "kind": "PARENT",
+                  "performanceProfileId": "seated_shoulder_press__smith_machine__press_hombros_sentado",
+                  "searchTerms": [
+                    "press de hombros sentado",
+                    "press sentado",
+                    "seated shoulder press",
+                    "deltoides_press_hombros_sentado"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar deltoid dentro del patrón vertical_push.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "smith_machine"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "smith_machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón vertical_push y el objetivo deltoid."
+                  ],
+                  "replacementGroup": "shoulder_press_seated",
+                  "replacementPriority": 3
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "triceps"
+              ],
+              "setupCues": [
+                "Configura la máquina Smith y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "smith_machine"
+            }
+          },
+          {
+            "displaySummary": "machine",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_press_hombros_sentado",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "seated_shoulder_press__machine",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+              ],
+              "description": "Press de hombros sentado en máquina: los brazos empujan por encima de la cabeza con el recorrido guiado del asiento. La estación aísla el deltoides sin coordinación extra.",
+              "efc": 2.5,
+              "equipmentId": "machine",
+              "executionCues": [
+                "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "vertical_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides empuja la carga por encima de la cabeza y concentra el trabajo del hombro; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps extiende el codo en la parte final del empuje; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "seated_shoulder_press__machine__press_hombros_sentado",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": "shoulder_press_seated",
+              "replacementPriority": 3,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "vertical_push"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "triceps"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "machine",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "vertical_push",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura la máquina y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Press de Hombros Sentado",
+                  "displaySummary": "machine",
+                  "selectedOptions": {
+                    "implement": "machine"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 3.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Press de Hombros Sentado",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "seated_shoulder_press__machine",
+                  "definitionId": "seated_shoulder_press",
+                  "familyId": "upper_vertical_push_seated_press",
+                  "kind": "PARENT",
+                  "performanceProfileId": "seated_shoulder_press__machine__press_hombros_sentado",
+                  "searchTerms": [
+                    "press de hombros sentado",
+                    "press sentado",
+                    "seated shoulder press",
+                    "deltoides_press_hombros_sentado"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar deltoid dentro del patrón vertical_push.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "machine"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón vertical_push y el objetivo deltoid."
+                  ],
+                  "replacementGroup": "shoulder_press_seated",
+                  "replacementPriority": 3
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "triceps"
+              ],
+              "setupCues": [
+                "Configura la máquina y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "machine"
+            }
+          },
+          {
+            "displaySummary": "cable",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_press_hombros_sentado",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "seated_shoulder_press__cable",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+              ],
+              "description": "Press de hombros sentado en polea: los empujes parten desde los hombros con la tensión continua del cable. La polea sostiene la carga en la fase final del empuje.",
+              "efc": 2.5,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "vertical_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides empuja la carga por encima de la cabeza y concentra el trabajo del hombro; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps extiende el codo en la parte final del empuje; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "seated_shoulder_press__cable__press_hombros_sentado",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": "shoulder_press_seated",
+              "replacementPriority": 3,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "vertical_push"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "triceps"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "cable",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "vertical_push",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura la polea y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Press de Hombros Sentado",
+                  "displaySummary": "cable",
+                  "selectedOptions": {
+                    "implement": "cable"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 3.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Press de Hombros Sentado",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "seated_shoulder_press__cable",
+                  "definitionId": "seated_shoulder_press",
+                  "familyId": "upper_vertical_push_seated_press",
+                  "kind": "PARENT",
+                  "performanceProfileId": "seated_shoulder_press__cable__press_hombros_sentado",
+                  "searchTerms": [
+                    "press de hombros sentado",
+                    "press sentado",
+                    "seated shoulder press",
+                    "deltoides_press_hombros_sentado"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar deltoid dentro del patrón vertical_push.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón vertical_push y el objetivo deltoid."
+                  ],
+                  "replacementGroup": "shoulder_press_seated",
+                  "replacementPriority": 3
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "triceps"
+              ],
+              "setupCues": [
+                "Configura la polea y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "cable"
+            }
+          },
+          {
+            "displaySummary": "kettlebell",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_press_hombros_sentado",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "seated_shoulder_press__kettlebell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+              ],
+              "description": "Press de hombros sentado con kettlebell: el peso se empuja desde la posición de rack con el tronco apoyado. Variante versátil del empuje vertical sentado.",
+              "efc": 2.5,
+              "equipmentId": "kettlebell",
+              "executionCues": [
+                "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "vertical_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides empuja la carga por encima de la cabeza y concentra el trabajo del hombro; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps extiende el codo en la parte final del empuje; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "seated_shoulder_press__kettlebell__press_hombros_sentado",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": "shoulder_press_seated",
+              "replacementPriority": 3,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "vertical_push"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "triceps"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "kettlebell",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "vertical_push",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura kettlebell y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Press de Hombros Sentado",
+                  "displaySummary": "kettlebell",
+                  "selectedOptions": {
+                    "implement": "kettlebell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 3.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Press de Hombros Sentado",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "seated_shoulder_press__kettlebell",
+                  "definitionId": "seated_shoulder_press",
+                  "familyId": "upper_vertical_push_seated_press",
+                  "kind": "PARENT",
+                  "performanceProfileId": "seated_shoulder_press__kettlebell__press_hombros_sentado",
+                  "searchTerms": [
+                    "press de hombros sentado",
+                    "press sentado",
+                    "seated shoulder press",
+                    "deltoides_press_hombros_sentado"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar deltoid dentro del patrón vertical_push.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "kettlebell"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "kettlebell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón vertical_push y el objetivo deltoid."
+                  ],
+                  "replacementGroup": "shoulder_press_seated",
+                  "replacementPriority": 3
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "triceps"
+              ],
+              "setupCues": [
+                "Configura kettlebell y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "kettlebell"
+            }
+          }
+        ],
+        "defaultConfigurationId": "seated_shoulder_press__barbell",
+        "description": "Empuje vertical sentado con la espalda apoyada, que aísla el deltoides y limita la participación del resto del cuerpo. El implemento define la curva de tensión de cada variante.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:seated_shoulder_press"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_vertical_push_seated_press",
+        "id": "seated_shoulder_press",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement"
+        ],
+        "searchTerms": [
+          "press de hombros sentado",
+          "press sentado",
+          "seated shoulder press",
+          "deltoides_press_hombros_sentado"
+        ]
+      }
+    ],
+    "description": "Familia de empuje vertical sentado; el implemento es la única decisión visible y la versión de pie queda en su propio padre.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:upper_vertical_push_seated_press"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "upper_vertical_push_seated_press",
+    "taxonomy": [
+      "upper",
+      "vertical_push",
+      "seated_shoulder_press"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

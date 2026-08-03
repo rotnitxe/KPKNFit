@@ -24,6 +24,35 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "catalog" / "exercises" / "v2" / "source" / "catalog_v2.json"
 FAMILIES = ROOT / "catalog" / "exercises" / "v2" / "source" / "families"
 MANIFEST = ROOT / "catalog" / "exercises" / "v2" / "source" / "manifest.json"
+INDEX = ROOT / "catalog" / "exercises" / "v2" / "curation" / "INDEX.md"
+
+
+def write_index(source: dict, source_bytes: bytes) -> None:
+    families = source["families"]
+    definitions = [d for f in families for d in f["definitions"]]
+    configurations = [c for d in definitions for c in d.get("configurations", [])]
+    lines = [
+        "# Índice del catálogo de ejercicios v2",
+        "",
+        f"Revisión: `{source['catalogRevision']}` · Ontología: `{source['ontologyRevision']}`",
+        f"{len(families)} familias · {len(definitions)} definiciones · {len(configurations)} configuraciones",
+        f"Hash canónico: `{hashlib.sha256(source_bytes).hexdigest()[:16]}…`",
+        "",
+        "Artefacto informativo generado por `scripts/merge_catalog_v2_families.py`.",
+        "No editar a mano: se regenera en cada merge.",
+        "",
+        "| familia | definición | nombre | ejes | configs |",
+        "|---|---|---|---|---|",
+    ]
+    for family in sorted(families, key=lambda item: item["id"]):
+        for definition in family["definitions"]:
+            name = definition.get("canonicalName", "").replace("|", "\\|")
+            axes = ", ".join(definition.get("optionAxes", []))
+            lines.append(
+                f"| {family['id']} | {definition['id']} | {name} | {axes} | {len(definition.get('configurations', []))} |"
+            )
+    INDEX.parent.mkdir(parents=True, exist_ok=True)
+    INDEX.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def main() -> int:
@@ -66,9 +95,11 @@ def main() -> int:
         "aggregatedCanonicalSha256": hashlib.sha256(source_bytes).hexdigest(),
     }
     MANIFEST.write_bytes(canonical(manifest))
+    write_index(source, source_bytes)
     print(f"families={len(families)}")
     print(f"source={SOURCE}")
     print(f"manifest={MANIFEST}")
+    print(f"index={INDEX}")
     print(f"canonicalSha256={hashlib.sha256(source_bytes).hexdigest()}")
     return 0
 

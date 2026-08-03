@@ -1,1 +1,435 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Tren inferior · neck · neck extension","definitions":[{"canonicalName":"Extensiones de Cuello","configurations":[{"displaySummary":"cable","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#neck_extension_cuello_arnes_polea","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"neck_extension_cuello__cable","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"LOWER","cnc":1.5,"commonMistakes":["Usar la espalda o mover el tronco entero en lugar de aislar el cuello."],"description":"Extensiones de Cuello con arnés en polea: la tensión continua acompaña la extensión cervical a lo largo del recorrido.","efc":2.0,"equipmentId":"cable","executionCues":["Extiende el cuello contra la resistencia con un recorrido corto y controlado."],"kineticChain":"ANTERIOR","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"neck_extension","muscleNotes":[{"muscleId":"neck","note":"Principal: los extensores del cuello trabajan contra la resistencia y concentran el estímulo; por eso suman la serie completa (1.0)."}],"performanceProfileId":"neck_extension_cuello__cable","primaryMuscles":["neck"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["neck_extension"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["neck"],"secondaryMuscles":[],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["neck"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"cable","kineticChain":"ANTERIOR","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"neck_extension","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar la espalda o mover el tronco entero en lugar de aislar el cuello."],"cues":["Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."],"execution":["Extiende el cuello contra la resistencia con un recorrido corto y controlado."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Coloca la resistencia en la cabeza o el arnés y prepara el apoyo del cuerpo."]},"display":{"displayName":"Extensiones de Cuello","displaySummary":"cable","selectedOptions":{"implement":"cable"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.5,"efc":2.0,"ssc":0.2,"technicalDifficulty":3.5,"ttc":1.5},"identity":{"canonicalName":"Extensiones de Cuello","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"neck_extension_cuello__cable","definitionId":"neck_extension_cuello","familyId":"lower_neck_extension","kind":"PARENT","performanceProfileId":"neck_extension_cuello__cable","searchTerms":["extensiones de cuello","extension de cuello","neck extension","arnes de cuello"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":90,"min":30},"objectives":["Desarrollar la musculatura extensora del cuello."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable","plate"],"preservesIntent":["Conserva la extensión cervical y el objetivo neck."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":[],"setupCues":["Coloca la resistencia en la cabeza o el arnés y prepara el apoyo del cuerpo."],"ssc":0.2,"stabilizerMuscles":[],"technicalDifficulty":3.5,"ttc":1.5},"selectedOptions":{"implement":"cable"}},{"displaySummary":"plate","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#neck_extension_cuello_arnes_polea","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"neck_extension_cuello__plate","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"LOWER","cnc":1.5,"commonMistakes":["Usar la espalda o mover el tronco entero en lugar de aislar el cuello."],"description":"Extensiones de Cuello con disco: la carga libre sobre la cabeza permite ajustar el peso con precisión.","efc":2.0,"equipmentId":"plate","executionCues":["Extiende el cuello contra la resistencia con un recorrido corto y controlado."],"kineticChain":"ANTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"neck_extension","muscleNotes":[{"muscleId":"neck","note":"Principal: los extensores del cuello trabajan contra la resistencia y concentran el estímulo; por eso suman la serie completa (1.0)."}],"performanceProfileId":"neck_extension_cuello__plate","primaryMuscles":["neck"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["neck_extension"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["neck"],"secondaryMuscles":[],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["neck"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"plate","kineticChain":"ANTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"neck_extension","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar la espalda o mover el tronco entero en lugar de aislar el cuello."],"cues":["Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."],"execution":["Extiende el cuello contra la resistencia con un recorrido corto y controlado."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Coloca la resistencia en la cabeza o el arnés y prepara el apoyo del cuerpo."]},"display":{"displayName":"Extensiones de Cuello","displaySummary":"plate","selectedOptions":{"implement":"plate"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.5,"efc":2.0,"ssc":0.2,"technicalDifficulty":3.5,"ttc":1.5},"identity":{"canonicalName":"Extensiones de Cuello","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"neck_extension_cuello__plate","definitionId":"neck_extension_cuello","familyId":"lower_neck_extension","kind":"PARENT","performanceProfileId":"neck_extension_cuello__plate","searchTerms":["extensiones de cuello","extension de cuello","neck extension","arnes de cuello"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":90,"min":30},"objectives":["Desarrollar la musculatura extensora del cuello."],"recoveryCost":"moderate","requiredEquipment":["plate"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable","plate"],"preservesIntent":["Conserva la extensión cervical y el objetivo neck."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":[],"setupCues":["Coloca la resistencia en la cabeza o el arnés y prepara el apoyo del cuerpo."],"ssc":0.2,"stabilizerMuscles":[],"technicalDifficulty":3.5,"ttc":1.5},"selectedOptions":{"implement":"plate"}}],"defaultConfigurationId":"neck_extension_cuello__cable","description":"Extensión del cuello contra resistencia externa con arnés de polea o disco: un patrón de aislamiento directo para la musculatura extensora cervical.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:catalog-v3-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v3; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"familyId":"lower_neck_extension","id":"neck_extension_cuello","kind":"PARENT","optionAxes":["implement"],"searchTerms":["extensiones de cuello","extension de cuello","neck extension","arnes de cuello"]}],"description":"Familia controlada por patrón neck_extension; cada especialidad conserva su perfil resuelto.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:lower_neck_extension"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"lower_neck_extension","taxonomy":["lower","neck_extension"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Tren inferior · neck · neck extension",
+    "definitions": [
+      {
+        "canonicalName": "Extensiones de Cuello",
+        "configurations": [
+          {
+            "displaySummary": "cable",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#neck_extension_cuello_arnes_polea",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "neck_extension_cuello__cable",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "cnc": 1.5,
+              "commonMistakes": [
+                "Usar la espalda o mover el tronco entero en lugar de aislar el cuello."
+              ],
+              "description": "Extensiones de Cuello con arnés en polea: la tensión continua acompaña la extensión cervical a lo largo del recorrido.",
+              "efc": 2.0,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Extiende el cuello contra la resistencia con un recorrido corto y controlado."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "neck_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "neck",
+                  "note": "Principal: los extensores del cuello trabajan contra la resistencia y concentran el estímulo; por eso suman la serie completa (1.0)."
+                }
+              ],
+              "performanceProfileId": "neck_extension_cuello__cable",
+              "primaryMuscles": [
+                "neck"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "neck_extension"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "neck"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "neck"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "cable",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "neck_extension",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar la espalda o mover el tronco entero en lugar de aislar el cuello."
+                  ],
+                  "cues": [
+                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Extiende el cuello contra la resistencia con un recorrido corto y controlado."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Coloca la resistencia en la cabeza o el arnés y prepara el apoyo del cuerpo."
+                  ]
+                },
+                "display": {
+                  "displayName": "Extensiones de Cuello",
+                  "displaySummary": "cable",
+                  "selectedOptions": {
+                    "implement": "cable"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.5,
+                  "efc": 2.0,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 3.5,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Extensiones de Cuello",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "neck_extension_cuello__cable",
+                  "definitionId": "neck_extension_cuello",
+                  "familyId": "lower_neck_extension",
+                  "kind": "PARENT",
+                  "performanceProfileId": "neck_extension_cuello__cable",
+                  "searchTerms": [
+                    "extensiones de cuello",
+                    "extension de cuello",
+                    "neck extension",
+                    "arnes de cuello"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar la musculatura extensora del cuello."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable",
+                    "plate"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la extensión cervical y el objetivo neck."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Coloca la resistencia en la cabeza o el arnés y prepara el apoyo del cuerpo."
+              ],
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.5,
+              "ttc": 1.5
+            },
+            "selectedOptions": {
+              "implement": "cable"
+            }
+          },
+          {
+            "displaySummary": "plate",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#neck_extension_cuello_arnes_polea",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "neck_extension_cuello__plate",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "cnc": 1.5,
+              "commonMistakes": [
+                "Usar la espalda o mover el tronco entero en lugar de aislar el cuello."
+              ],
+              "description": "Extensiones de Cuello con disco: la carga libre sobre la cabeza permite ajustar el peso con precisión.",
+              "efc": 2.0,
+              "equipmentId": "plate",
+              "executionCues": [
+                "Extiende el cuello contra la resistencia con un recorrido corto y controlado."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "neck_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "neck",
+                  "note": "Principal: los extensores del cuello trabajan contra la resistencia y concentran el estímulo; por eso suman la serie completa (1.0)."
+                }
+              ],
+              "performanceProfileId": "neck_extension_cuello__plate",
+              "primaryMuscles": [
+                "neck"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "neck_extension"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "neck"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "neck"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "plate",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "neck_extension",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar la espalda o mover el tronco entero en lugar de aislar el cuello."
+                  ],
+                  "cues": [
+                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Extiende el cuello contra la resistencia con un recorrido corto y controlado."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Coloca la resistencia en la cabeza o el arnés y prepara el apoyo del cuerpo."
+                  ]
+                },
+                "display": {
+                  "displayName": "Extensiones de Cuello",
+                  "displaySummary": "plate",
+                  "selectedOptions": {
+                    "implement": "plate"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.5,
+                  "efc": 2.0,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 3.5,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Extensiones de Cuello",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "neck_extension_cuello__plate",
+                  "definitionId": "neck_extension_cuello",
+                  "familyId": "lower_neck_extension",
+                  "kind": "PARENT",
+                  "performanceProfileId": "neck_extension_cuello__plate",
+                  "searchTerms": [
+                    "extensiones de cuello",
+                    "extension de cuello",
+                    "neck extension",
+                    "arnes de cuello"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar la musculatura extensora del cuello."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "plate"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable",
+                    "plate"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la extensión cervical y el objetivo neck."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Coloca la resistencia en la cabeza o el arnés y prepara el apoyo del cuerpo."
+              ],
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.5,
+              "ttc": 1.5
+            },
+            "selectedOptions": {
+              "implement": "plate"
+            }
+          }
+        ],
+        "defaultConfigurationId": "neck_extension_cuello__cable",
+        "description": "Extensión del cuello contra resistencia externa con arnés de polea o disco: un patrón de aislamiento directo para la musculatura extensora cervical.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:catalog-v3-2026-08-02"
+          ],
+          "rationale": "Aprobado por decisión explícita de catálogo v3; la configuración está materializada y no depende de inferencia runtime.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "lower_neck_extension",
+        "id": "neck_extension_cuello",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement"
+        ],
+        "searchTerms": [
+          "extensiones de cuello",
+          "extension de cuello",
+          "neck extension",
+          "arnes de cuello"
+        ]
+      }
+    ],
+    "description": "Familia controlada por patrón neck_extension; cada especialidad conserva su perfil resuelto.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:lower_neck_extension"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "lower_neck_extension",
+    "taxonomy": [
+      "lower",
+      "neck_extension"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

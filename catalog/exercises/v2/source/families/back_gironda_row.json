@@ -1,1 +1,723 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Remo Gironda","definitions":[{"canonicalName":"Remo Gironda","configurations":[{"displaySummary":"wide","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_remo_gironda","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"gironda_row__wide","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"description":"Remo Gironda con agarre ancho: la empuñadura amplia enfatiza la anchura del dorsal con el tronco reclinado sobre la polea. El estímulo se concentra en la parte externa de la espalda durante toda la tracción.","efc":2.5,"equipmentId":"cable","executionCues":["Ejecuta «Remo Gironda» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"continuous_cable","movementPatternId":"horizontal_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."},{"muscleId":"biceps","note":"Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."},{"muscleId":"deltoid","note":"Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."},{"muscleId":"core","note":"Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."}],"performanceProfileId":"gironda_row__wide__remo_gironda","primaryMuscles":["latissimus_dorsi","trapezius"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["horizontal_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi","trapezius"],"secondaryMuscles":["biceps","rhomboids","deltoid"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["latissimus_dorsi"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"cable","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"continuous_cable","movementPatternId":"horizontal_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"cues":["Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Remo Gironda» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura la polea y adopta la posición específica de «Remo Gironda» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Remo Gironda","displaySummary":"wide","selectedOptions":{"grip_width":"wide"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Remo Gironda","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"gironda_row__wide","definitionId":"gironda_row","familyId":"back_gironda_row","kind":"PARENT","performanceProfileId":"gironda_row__wide__remo_gironda","searchTerms":["remo gironda","gironda","back_remo_gironda"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar trapezius dentro del patrón horizontal_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable"],"preservesIntent":["Conserva el patrón horizontal_pull y el objetivo trapezius."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["biceps","rhomboids","deltoid"],"setupCues":["Configura la polea y adopta la posición específica de «Remo Gironda» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":["core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"grip_width":"wide"}},{"displaySummary":"medium","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_remo_gironda","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"gironda_row__medium","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"description":"Remo Gironda con agarre medio: la posición intermedia equilibra el dorsal y el trapecio sobre la polea reclinada. Es la opción de referencia de la familia para el desarrollo global de la espalda.","efc":2.5,"equipmentId":"cable","executionCues":["Ejecuta «Remo Gironda» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"continuous_cable","movementPatternId":"horizontal_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."},{"muscleId":"biceps","note":"Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."},{"muscleId":"deltoid","note":"Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."},{"muscleId":"core","note":"Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."}],"performanceProfileId":"gironda_row__medium__remo_gironda","primaryMuscles":["latissimus_dorsi","trapezius"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["horizontal_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi","trapezius"],"secondaryMuscles":["biceps","rhomboids","deltoid"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["latissimus_dorsi"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"cable","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"continuous_cable","movementPatternId":"horizontal_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"cues":["Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Remo Gironda» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura la polea y adopta la posición específica de «Remo Gironda» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Remo Gironda","displaySummary":"medium","selectedOptions":{"grip_width":"medium"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Remo Gironda","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"gironda_row__medium","definitionId":"gironda_row","familyId":"back_gironda_row","kind":"PARENT","performanceProfileId":"gironda_row__medium__remo_gironda","searchTerms":["remo gironda","gironda","back_remo_gironda"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar trapezius dentro del patrón horizontal_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable"],"preservesIntent":["Conserva el patrón horizontal_pull y el objetivo trapezius."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["biceps","rhomboids","deltoid"],"setupCues":["Configura la polea y adopta la posición específica de «Remo Gironda» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":["core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"grip_width":"medium"}},{"displaySummary":"close","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_remo_gironda","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"gironda_row__close","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"description":"Remo Gironda con agarre cerrado: la empuñadura estrecha aumenta la retracción escapular y el trabajo del trapecio medio. La tracción hacia el pecho se completa con la escápula totalmente contraída.","efc":2.5,"equipmentId":"cable","executionCues":["Ejecuta «Remo Gironda» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"continuous_cable","movementPatternId":"horizontal_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."},{"muscleId":"biceps","note":"Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."},{"muscleId":"deltoid","note":"Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."},{"muscleId":"core","note":"Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."}],"performanceProfileId":"gironda_row__close__remo_gironda","primaryMuscles":["latissimus_dorsi","trapezius"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["horizontal_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi","trapezius"],"secondaryMuscles":["biceps","rhomboids","deltoid"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["latissimus_dorsi"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"cable","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"continuous_cable","movementPatternId":"horizontal_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"cues":["Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Remo Gironda» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura la polea y adopta la posición específica de «Remo Gironda» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Remo Gironda","displaySummary":"close","selectedOptions":{"grip_width":"close"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Remo Gironda","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"gironda_row__close","definitionId":"gironda_row","familyId":"back_gironda_row","kind":"PARENT","performanceProfileId":"gironda_row__close__remo_gironda","searchTerms":["remo gironda","gironda","back_remo_gironda"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar trapezius dentro del patrón horizontal_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable"],"preservesIntent":["Conserva el patrón horizontal_pull y el objetivo trapezius."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["biceps","rhomboids","deltoid"],"setupCues":["Configura la polea y adopta la posición específica de «Remo Gironda» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":["core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"grip_width":"close"}}],"defaultConfigurationId":"gironda_row__medium","description":"Tirón horizontal en la estación de polea Gironda con el tronco reclinado y la tracción hacia el pecho. La amplitud del agarre es la única decisión visible y redistribuye el énfasis de la espalda.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:gironda_row"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"back_gironda_row","id":"gironda_row","kind":"PARENT","optionAxes":["grip_width"],"searchTerms":["remo gironda","gironda","back_remo_gironda"]}],"description":"Familia de tirón horizontal en la estación de polea Gironda; la amplitud del agarre es la única decisión y redistribuye el énfasis de la espalda.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:back_gironda_row"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"back_gironda_row","taxonomy":["upper","horizontal_pull","gironda_row"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Remo Gironda",
+    "definitions": [
+      {
+        "canonicalName": "Remo Gironda",
+        "configurations": [
+          {
+            "displaySummary": "wide",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_remo_gironda",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "gironda_row__wide",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+              ],
+              "description": "Remo Gironda con agarre ancho: la empuñadura amplia enfatiza la anchura del dorsal con el tronco reclinado sobre la polea. El estímulo se concentra en la parte externa de la espalda durante toda la tracción.",
+              "efc": 2.5,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Ejecuta «Remo Gironda» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "gironda_row__wide__remo_gironda",
+              "primaryMuscles": [
+                "latissimus_dorsi",
+                "trapezius"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi",
+                    "trapezius"
+                  ],
+                  "secondaryMuscles": [
+                    "biceps",
+                    "rhomboids",
+                    "deltoid"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "cable",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "horizontal_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Remo Gironda» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura la polea y adopta la posición específica de «Remo Gironda» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Remo Gironda",
+                  "displaySummary": "wide",
+                  "selectedOptions": {
+                    "grip_width": "wide"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Remo Gironda",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "gironda_row__wide",
+                  "definitionId": "gironda_row",
+                  "familyId": "back_gironda_row",
+                  "kind": "PARENT",
+                  "performanceProfileId": "gironda_row__wide__remo_gironda",
+                  "searchTerms": [
+                    "remo gironda",
+                    "gironda",
+                    "back_remo_gironda"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar trapezius dentro del patrón horizontal_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_pull y el objetivo trapezius."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "biceps",
+                "rhomboids",
+                "deltoid"
+              ],
+              "setupCues": [
+                "Configura la polea y adopta la posición específica de «Remo Gironda» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "grip_width": "wide"
+            }
+          },
+          {
+            "displaySummary": "medium",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_remo_gironda",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "gironda_row__medium",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+              ],
+              "description": "Remo Gironda con agarre medio: la posición intermedia equilibra el dorsal y el trapecio sobre la polea reclinada. Es la opción de referencia de la familia para el desarrollo global de la espalda.",
+              "efc": 2.5,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Ejecuta «Remo Gironda» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "gironda_row__medium__remo_gironda",
+              "primaryMuscles": [
+                "latissimus_dorsi",
+                "trapezius"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi",
+                    "trapezius"
+                  ],
+                  "secondaryMuscles": [
+                    "biceps",
+                    "rhomboids",
+                    "deltoid"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "cable",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "horizontal_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Remo Gironda» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura la polea y adopta la posición específica de «Remo Gironda» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Remo Gironda",
+                  "displaySummary": "medium",
+                  "selectedOptions": {
+                    "grip_width": "medium"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Remo Gironda",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "gironda_row__medium",
+                  "definitionId": "gironda_row",
+                  "familyId": "back_gironda_row",
+                  "kind": "PARENT",
+                  "performanceProfileId": "gironda_row__medium__remo_gironda",
+                  "searchTerms": [
+                    "remo gironda",
+                    "gironda",
+                    "back_remo_gironda"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar trapezius dentro del patrón horizontal_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_pull y el objetivo trapezius."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "biceps",
+                "rhomboids",
+                "deltoid"
+              ],
+              "setupCues": [
+                "Configura la polea y adopta la posición específica de «Remo Gironda» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "grip_width": "medium"
+            }
+          },
+          {
+            "displaySummary": "close",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_remo_gironda",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "gironda_row__close",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+              ],
+              "description": "Remo Gironda con agarre cerrado: la empuñadura estrecha aumenta la retracción escapular y el trabajo del trapecio medio. La tracción hacia el pecho se completa con la escápula totalmente contraída.",
+              "efc": 2.5,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Ejecuta «Remo Gironda» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "gironda_row__close__remo_gironda",
+              "primaryMuscles": [
+                "latissimus_dorsi",
+                "trapezius"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi",
+                    "trapezius"
+                  ],
+                  "secondaryMuscles": [
+                    "biceps",
+                    "rhomboids",
+                    "deltoid"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "cable",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "horizontal_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Remo Gironda» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura la polea y adopta la posición específica de «Remo Gironda» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Remo Gironda",
+                  "displaySummary": "close",
+                  "selectedOptions": {
+                    "grip_width": "close"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Remo Gironda",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "gironda_row__close",
+                  "definitionId": "gironda_row",
+                  "familyId": "back_gironda_row",
+                  "kind": "PARENT",
+                  "performanceProfileId": "gironda_row__close__remo_gironda",
+                  "searchTerms": [
+                    "remo gironda",
+                    "gironda",
+                    "back_remo_gironda"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar trapezius dentro del patrón horizontal_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_pull y el objetivo trapezius."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "biceps",
+                "rhomboids",
+                "deltoid"
+              ],
+              "setupCues": [
+                "Configura la polea y adopta la posición específica de «Remo Gironda» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "grip_width": "close"
+            }
+          }
+        ],
+        "defaultConfigurationId": "gironda_row__medium",
+        "description": "Tirón horizontal en la estación de polea Gironda con el tronco reclinado y la tracción hacia el pecho. La amplitud del agarre es la única decisión visible y redistribuye el énfasis de la espalda.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:gironda_row"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "back_gironda_row",
+        "id": "gironda_row",
+        "kind": "PARENT",
+        "optionAxes": [
+          "grip_width"
+        ],
+        "searchTerms": [
+          "remo gironda",
+          "gironda",
+          "back_remo_gironda"
+        ]
+      }
+    ],
+    "description": "Familia de tirón horizontal en la estación de polea Gironda; la amplitud del agarre es la única decisión y redistribuye el énfasis de la espalda.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:back_gironda_row"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "back_gironda_row",
+    "taxonomy": [
+      "upper",
+      "horizontal_pull",
+      "gironda_row"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

@@ -1,1 +1,1621 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Elevación de talones","definitions":[{"canonicalName":"Elevación de Talones","configurations":[{"displaySummary":"machine · bilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#calves_talones_de_pie","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"calf_raise__bilateral__machine","profile":{"automationEligible":true,"axialLoadFactor":0.4,"bodyRegion":"LOWER","cnc":1.5,"commonMistakes":["Rebotar en la fase baja o acortar el rango para completar más repeticiones."],"description":"Elevación de Talones en máquina con trabajo bilateral: la estación guiada permite cargar fuerte en un rango completo de flexión plantar.","efc":2.0,"equipmentId":"machine","executionCues":["Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"plantar_flexion","muscleNotes":[{"muscleId":"calves","note":"Principal: la pantorrilla realiza la flexión plantar y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."}],"performanceProfileId":"calf_raise__bilateral__machine","primaryMuscles":["calves"],"replacementGroup":"calf_raise_standing","replacementPriority":1,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["plantar_flexion"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["calves"],"secondaryMuscles":[],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["calves"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"machine","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"plantar_flexion","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"guided_constant","stability":"guided"},"coaching":{"commonMistakes":["Rebotar en la fase baja o acortar el rango para completar más repeticiones."],"cues":["Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."],"execution":["Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."]},"display":{"displayName":"Elevación de Talones","displaySummary":"machine · bilateral","selectedOptions":{"implement":"machine","laterality":"bilateral"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.4,"cnc":1.5,"efc":2.0,"ssc":0.2,"technicalDifficulty":3.5,"ttc":1.5},"identity":{"canonicalName":"Elevación de Talones","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"calf_raise__bilateral__machine","definitionId":"calf_raise","familyId":"lower_plantar_flexion","kind":"PARENT","performanceProfileId":"calf_raise__bilateral__machine","searchTerms":["elevacion de talones","calf raise","gemelos","pantorrillas"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":90,"min":30},"objectives":["Desarrollar calves en flexión plantar."],"recoveryCost":"moderate","requiredEquipment":["machine"],"role":"accessory_isolation","setupTransitionCost":"high","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["machine","barbell","smith_machine","cable"],"preservesIntent":["Conserva la flexión plantar y el objetivo calves."],"replacementGroup":"calf_raise_standing","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":[],"setupCues":["Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."],"ssc":0.2,"stabilizerMuscles":[],"technicalDifficulty":3.5,"ttc":1.5},"selectedOptions":{"implement":"machine","laterality":"bilateral"}},{"displaySummary":"machine · unilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#calves_talones_de_pie","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"calf_raise__unilateral__machine","profile":{"automationEligible":true,"axialLoadFactor":0.4,"bodyRegion":"LOWER","cnc":1.5,"commonMistakes":["Rebotar en la fase baja o acortar el rango para completar más repeticiones."],"description":"Elevación de Talones en máquina con trabajo unilateral: cada pantorrilla trabaja por separado para igualar la fuerza de ambos lados.","efc":2.0,"equipmentId":"machine","executionCues":["Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."],"kineticChain":"POSTERIOR","laterality":"UNILATERAL","loadMode":"guided_external_load","movementPatternId":"plantar_flexion","muscleNotes":[{"muscleId":"calves","note":"Principal: la pantorrilla realiza la flexión plantar y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."}],"performanceProfileId":"calf_raise__unilateral__machine","primaryMuscles":["calves"],"replacementGroup":"calf_raise_standing","replacementPriority":1,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["plantar_flexion"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["calves"],"secondaryMuscles":[],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["calves"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"machine","kineticChain":"POSTERIOR","laterality":"UNILATERAL","loadMode":"guided_external_load","movementPatternId":"plantar_flexion","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"guided_constant","stability":"guided"},"coaching":{"commonMistakes":["Rebotar en la fase baja o acortar el rango para completar más repeticiones."],"cues":["Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."],"execution":["Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."]},"display":{"displayName":"Elevación de Talones","displaySummary":"machine · unilateral","selectedOptions":{"implement":"machine","laterality":"unilateral"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.4,"cnc":1.5,"efc":2.0,"ssc":0.2,"technicalDifficulty":3.5,"ttc":1.5},"identity":{"canonicalName":"Elevación de Talones","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"calf_raise__unilateral__machine","definitionId":"calf_raise","familyId":"lower_plantar_flexion","kind":"PARENT","performanceProfileId":"calf_raise__unilateral__machine","searchTerms":["elevacion de talones","calf raise","gemelos","pantorrillas"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":90,"min":30},"objectives":["Desarrollar calves en flexión plantar."],"recoveryCost":"moderate","requiredEquipment":["machine"],"role":"accessory_isolation","setupTransitionCost":"high","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["machine","barbell","smith_machine","cable"],"preservesIntent":["Conserva la flexión plantar y el objetivo calves."],"replacementGroup":"calf_raise_standing","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":[],"setupCues":["Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."],"ssc":0.2,"stabilizerMuscles":[],"technicalDifficulty":3.5,"ttc":1.5},"selectedOptions":{"implement":"machine","laterality":"unilateral"}},{"displaySummary":"barbell · bilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#calves_talones_de_pie","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"calf_raise__bilateral__barbell","profile":{"automationEligible":true,"axialLoadFactor":0.4,"bodyRegion":"LOWER","cnc":1.5,"commonMistakes":["Rebotar en la fase baja o acortar el rango para completar más repeticiones."],"description":"Elevación de Talones con barra y trabajo bilateral: la barra sobre la espalda añade carga libre al patrón de pie.","efc":2.0,"equipmentId":"barbell","executionCues":["Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"plantar_flexion","muscleNotes":[{"muscleId":"calves","note":"Principal: la pantorrilla realiza la flexión plantar y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."}],"performanceProfileId":"calf_raise__bilateral__barbell","primaryMuscles":["calves"],"replacementGroup":"calf_raise_standing","replacementPriority":1,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["plantar_flexion"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["calves"],"secondaryMuscles":[],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["calves"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"barbell","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"plantar_flexion","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"gravity_arc","stability":"guided"},"coaching":{"commonMistakes":["Rebotar en la fase baja o acortar el rango para completar más repeticiones."],"cues":["Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."],"execution":["Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."]},"display":{"displayName":"Elevación de Talones","displaySummary":"barbell · bilateral","selectedOptions":{"implement":"barbell","laterality":"bilateral"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.4,"cnc":1.5,"efc":2.0,"ssc":0.2,"technicalDifficulty":3.5,"ttc":1.5},"identity":{"canonicalName":"Elevación de Talones","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"calf_raise__bilateral__barbell","definitionId":"calf_raise","familyId":"lower_plantar_flexion","kind":"PARENT","performanceProfileId":"calf_raise__bilateral__barbell","searchTerms":["elevacion de talones","calf raise","gemelos","pantorrillas"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":90,"min":30},"objectives":["Desarrollar calves en flexión plantar."],"recoveryCost":"moderate","requiredEquipment":["barbell"],"role":"accessory_isolation","setupTransitionCost":"high","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["machine","barbell","smith_machine","cable"],"preservesIntent":["Conserva la flexión plantar y el objetivo calves."],"replacementGroup":"calf_raise_standing","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":[],"setupCues":["Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."],"ssc":0.2,"stabilizerMuscles":[],"technicalDifficulty":3.5,"ttc":1.5},"selectedOptions":{"implement":"barbell","laterality":"bilateral"}},{"displaySummary":"barbell · unilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#calves_talones_de_pie","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"calf_raise__unilateral__barbell","profile":{"automationEligible":true,"axialLoadFactor":0.4,"bodyRegion":"LOWER","cnc":1.5,"commonMistakes":["Rebotar en la fase baja o acortar el rango para completar más repeticiones."],"description":"Elevación de Talones con barra y trabajo unilateral: el apoyo en una pierna con la barra exige más estabilidad y aísla cada pantorrilla.","efc":2.0,"equipmentId":"barbell","executionCues":["Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."],"kineticChain":"POSTERIOR","laterality":"UNILATERAL","loadMode":"free_external_load","movementPatternId":"plantar_flexion","muscleNotes":[{"muscleId":"calves","note":"Principal: la pantorrilla realiza la flexión plantar y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."}],"performanceProfileId":"calf_raise__unilateral__barbell","primaryMuscles":["calves"],"replacementGroup":"calf_raise_standing","replacementPriority":1,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["plantar_flexion"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["calves"],"secondaryMuscles":[],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["calves"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"barbell","kineticChain":"POSTERIOR","laterality":"UNILATERAL","loadMode":"free_external_load","movementPatternId":"plantar_flexion","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"gravity_arc","stability":"guided"},"coaching":{"commonMistakes":["Rebotar en la fase baja o acortar el rango para completar más repeticiones."],"cues":["Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."],"execution":["Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."]},"display":{"displayName":"Elevación de Talones","displaySummary":"barbell · unilateral","selectedOptions":{"implement":"barbell","laterality":"unilateral"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.4,"cnc":1.5,"efc":2.0,"ssc":0.2,"technicalDifficulty":3.5,"ttc":1.5},"identity":{"canonicalName":"Elevación de Talones","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"calf_raise__unilateral__barbell","definitionId":"calf_raise","familyId":"lower_plantar_flexion","kind":"PARENT","performanceProfileId":"calf_raise__unilateral__barbell","searchTerms":["elevacion de talones","calf raise","gemelos","pantorrillas"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":90,"min":30},"objectives":["Desarrollar calves en flexión plantar."],"recoveryCost":"moderate","requiredEquipment":["barbell"],"role":"accessory_isolation","setupTransitionCost":"high","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["machine","barbell","smith_machine","cable"],"preservesIntent":["Conserva la flexión plantar y el objetivo calves."],"replacementGroup":"calf_raise_standing","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":[],"setupCues":["Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."],"ssc":0.2,"stabilizerMuscles":[],"technicalDifficulty":3.5,"ttc":1.5},"selectedOptions":{"implement":"barbell","laterality":"unilateral"}},{"displaySummary":"smith_machine · bilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#calves_talones_de_pie","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"calf_raise__bilateral__smith_machine","profile":{"automationEligible":true,"axialLoadFactor":0.4,"bodyRegion":"LOWER","cnc":1.5,"commonMistakes":["Rebotar en la fase baja o acortar el rango para completar más repeticiones."],"description":"Elevación de Talones en máquina Smith con trabajo bilateral: el guiado de la barra simplifica la colocación sobre los trapecios.","efc":2.0,"equipmentId":"smith_machine","executionCues":["Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"plantar_flexion","muscleNotes":[{"muscleId":"calves","note":"Principal: la pantorrilla realiza la flexión plantar y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."}],"performanceProfileId":"calf_raise__bilateral__smith_machine","primaryMuscles":["calves"],"replacementGroup":"calf_raise_standing","replacementPriority":1,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["plantar_flexion"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["calves"],"secondaryMuscles":[],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["calves"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"smith_machine","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"plantar_flexion","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"guided_constant","stability":"guided"},"coaching":{"commonMistakes":["Rebotar en la fase baja o acortar el rango para completar más repeticiones."],"cues":["Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."],"execution":["Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."]},"display":{"displayName":"Elevación de Talones","displaySummary":"smith_machine · bilateral","selectedOptions":{"implement":"smith_machine","laterality":"bilateral"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.4,"cnc":1.5,"efc":2.0,"ssc":0.2,"technicalDifficulty":3.5,"ttc":1.5},"identity":{"canonicalName":"Elevación de Talones","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"calf_raise__bilateral__smith_machine","definitionId":"calf_raise","familyId":"lower_plantar_flexion","kind":"PARENT","performanceProfileId":"calf_raise__bilateral__smith_machine","searchTerms":["elevacion de talones","calf raise","gemelos","pantorrillas"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":90,"min":30},"objectives":["Desarrollar calves en flexión plantar."],"recoveryCost":"moderate","requiredEquipment":["smith_machine"],"role":"accessory_isolation","setupTransitionCost":"high","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["machine","barbell","smith_machine","cable"],"preservesIntent":["Conserva la flexión plantar y el objetivo calves."],"replacementGroup":"calf_raise_standing","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":[],"setupCues":["Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."],"ssc":0.2,"stabilizerMuscles":[],"technicalDifficulty":3.5,"ttc":1.5},"selectedOptions":{"implement":"smith_machine","laterality":"bilateral"}},{"displaySummary":"smith_machine · unilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#calves_talones_de_pie","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"calf_raise__unilateral__smith_machine","profile":{"automationEligible":true,"axialLoadFactor":0.4,"bodyRegion":"LOWER","cnc":1.5,"commonMistakes":["Rebotar en la fase baja o acortar el rango para completar más repeticiones."],"description":"Elevación de Talones en máquina Smith con trabajo unilateral: el guiado reduce el equilibrio y deja el foco en cada pantorrilla.","efc":2.0,"equipmentId":"smith_machine","executionCues":["Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."],"kineticChain":"POSTERIOR","laterality":"UNILATERAL","loadMode":"guided_external_load","movementPatternId":"plantar_flexion","muscleNotes":[{"muscleId":"calves","note":"Principal: la pantorrilla realiza la flexión plantar y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."}],"performanceProfileId":"calf_raise__unilateral__smith_machine","primaryMuscles":["calves"],"replacementGroup":"calf_raise_standing","replacementPriority":1,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["plantar_flexion"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["calves"],"secondaryMuscles":[],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["calves"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"smith_machine","kineticChain":"POSTERIOR","laterality":"UNILATERAL","loadMode":"guided_external_load","movementPatternId":"plantar_flexion","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"guided_constant","stability":"guided"},"coaching":{"commonMistakes":["Rebotar en la fase baja o acortar el rango para completar más repeticiones."],"cues":["Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."],"execution":["Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."]},"display":{"displayName":"Elevación de Talones","displaySummary":"smith_machine · unilateral","selectedOptions":{"implement":"smith_machine","laterality":"unilateral"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.4,"cnc":1.5,"efc":2.0,"ssc":0.2,"technicalDifficulty":3.5,"ttc":1.5},"identity":{"canonicalName":"Elevación de Talones","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"calf_raise__unilateral__smith_machine","definitionId":"calf_raise","familyId":"lower_plantar_flexion","kind":"PARENT","performanceProfileId":"calf_raise__unilateral__smith_machine","searchTerms":["elevacion de talones","calf raise","gemelos","pantorrillas"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":90,"min":30},"objectives":["Desarrollar calves en flexión plantar."],"recoveryCost":"moderate","requiredEquipment":["smith_machine"],"role":"accessory_isolation","setupTransitionCost":"high","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["machine","barbell","smith_machine","cable"],"preservesIntent":["Conserva la flexión plantar y el objetivo calves."],"replacementGroup":"calf_raise_standing","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":[],"setupCues":["Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."],"ssc":0.2,"stabilizerMuscles":[],"technicalDifficulty":3.5,"ttc":1.5},"selectedOptions":{"implement":"smith_machine","laterality":"unilateral"}},{"displaySummary":"cable · bilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#calves_talones_de_pie","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"calf_raise__bilateral__cable","profile":{"automationEligible":true,"axialLoadFactor":0.4,"bodyRegion":"LOWER","cnc":1.5,"commonMistakes":["Rebotar en la fase baja o acortar el rango para completar más repeticiones."],"description":"Elevación de Talones en polea con trabajo bilateral: la tensión continua mantiene la pantorrilla activa a lo largo del recorrido.","efc":2.0,"equipmentId":"cable","executionCues":["Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"continuous_cable","movementPatternId":"plantar_flexion","muscleNotes":[{"muscleId":"calves","note":"Principal: la pantorrilla realiza la flexión plantar y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."}],"performanceProfileId":"calf_raise__bilateral__cable","primaryMuscles":["calves"],"replacementGroup":"calf_raise_standing","replacementPriority":1,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["plantar_flexion"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["calves"],"secondaryMuscles":[],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["calves"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"cable","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"continuous_cable","movementPatternId":"plantar_flexion","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"continuous_cable","stability":"guided"},"coaching":{"commonMistakes":["Rebotar en la fase baja o acortar el rango para completar más repeticiones."],"cues":["Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."],"execution":["Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."]},"display":{"displayName":"Elevación de Talones","displaySummary":"cable · bilateral","selectedOptions":{"implement":"cable","laterality":"bilateral"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.4,"cnc":1.5,"efc":2.0,"ssc":0.2,"technicalDifficulty":3.5,"ttc":1.5},"identity":{"canonicalName":"Elevación de Talones","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"calf_raise__bilateral__cable","definitionId":"calf_raise","familyId":"lower_plantar_flexion","kind":"PARENT","performanceProfileId":"calf_raise__bilateral__cable","searchTerms":["elevacion de talones","calf raise","gemelos","pantorrillas"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":90,"min":30},"objectives":["Desarrollar calves en flexión plantar."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_isolation","setupTransitionCost":"high","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["machine","barbell","smith_machine","cable"],"preservesIntent":["Conserva la flexión plantar y el objetivo calves."],"replacementGroup":"calf_raise_standing","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":[],"setupCues":["Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."],"ssc":0.2,"stabilizerMuscles":[],"technicalDifficulty":3.5,"ttc":1.5},"selectedOptions":{"implement":"cable","laterality":"bilateral"}},{"displaySummary":"cable · unilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#calves_talones_de_pie","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"calf_raise__unilateral__cable","profile":{"automationEligible":true,"axialLoadFactor":0.4,"bodyRegion":"LOWER","cnc":1.5,"commonMistakes":["Rebotar en la fase baja o acortar el rango para completar más repeticiones."],"description":"Elevación de Talones en polea con trabajo unilateral: la polea permite trabajar cada pierna con tensión constante y carga ligera.","efc":2.0,"equipmentId":"cable","executionCues":["Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."],"kineticChain":"POSTERIOR","laterality":"UNILATERAL","loadMode":"continuous_cable","movementPatternId":"plantar_flexion","muscleNotes":[{"muscleId":"calves","note":"Principal: la pantorrilla realiza la flexión plantar y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."}],"performanceProfileId":"calf_raise__unilateral__cable","primaryMuscles":["calves"],"replacementGroup":"calf_raise_standing","replacementPriority":1,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["plantar_flexion"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["calves"],"secondaryMuscles":[],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["calves"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"cable","kineticChain":"POSTERIOR","laterality":"UNILATERAL","loadMode":"continuous_cable","movementPatternId":"plantar_flexion","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"continuous_cable","stability":"guided"},"coaching":{"commonMistakes":["Rebotar en la fase baja o acortar el rango para completar más repeticiones."],"cues":["Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."],"execution":["Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."]},"display":{"displayName":"Elevación de Talones","displaySummary":"cable · unilateral","selectedOptions":{"implement":"cable","laterality":"unilateral"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.4,"cnc":1.5,"efc":2.0,"ssc":0.2,"technicalDifficulty":3.5,"ttc":1.5},"identity":{"canonicalName":"Elevación de Talones","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"calf_raise__unilateral__cable","definitionId":"calf_raise","familyId":"lower_plantar_flexion","kind":"PARENT","performanceProfileId":"calf_raise__unilateral__cable","searchTerms":["elevacion de talones","calf raise","gemelos","pantorrillas"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":90,"min":30},"objectives":["Desarrollar calves en flexión plantar."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_isolation","setupTransitionCost":"high","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["machine","barbell","smith_machine","cable"],"preservesIntent":["Conserva la flexión plantar y el objetivo calves."],"replacementGroup":"calf_raise_standing","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":[],"setupCues":["Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."],"ssc":0.2,"stabilizerMuscles":[],"technicalDifficulty":3.5,"ttc":1.5},"selectedOptions":{"implement":"cable","laterality":"unilateral"}}],"defaultConfigurationId":"calf_raise__bilateral__machine","description":"Elevación de talones trabaja principalmente pantorrillas mediante un patrón de flexión plantar. La participación secundaria corresponde a pantorrillas.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:calf_raise"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"lower_plantar_flexion","id":"calf_raise","kind":"PARENT","optionAxes":["implement","laterality"],"searchTerms":["elevacion de talones","calf raise","gemelos","pantorrillas"]}],"description":"Familia de flexión plantar con estaciones explícitas; la estación sentada conserva su perfil de énfasis en sóleo.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:lower_plantar_flexion"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"lower_plantar_flexion","taxonomy":["lower","plantar_flexion","calf_raise"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Elevación de talones",
+    "definitions": [
+      {
+        "canonicalName": "Elevación de Talones",
+        "configurations": [
+          {
+            "displaySummary": "machine · bilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#calves_talones_de_pie",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "calf_raise__bilateral__machine",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.4,
+              "bodyRegion": "LOWER",
+              "cnc": 1.5,
+              "commonMistakes": [
+                "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+              ],
+              "description": "Elevación de Talones en máquina con trabajo bilateral: la estación guiada permite cargar fuerte en un rango completo de flexión plantar.",
+              "efc": 2.0,
+              "equipmentId": "machine",
+              "executionCues": [
+                "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "plantar_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "calves",
+                  "note": "Principal: la pantorrilla realiza la flexión plantar y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."
+                }
+              ],
+              "performanceProfileId": "calf_raise__bilateral__machine",
+              "primaryMuscles": [
+                "calves"
+              ],
+              "replacementGroup": "calf_raise_standing",
+              "replacementPriority": 1,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "plantar_flexion"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "calves"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "calves"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "plantar_flexion",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+                  ],
+                  "cues": [
+                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+                  ]
+                },
+                "display": {
+                  "displayName": "Elevación de Talones",
+                  "displaySummary": "machine · bilateral",
+                  "selectedOptions": {
+                    "implement": "machine",
+                    "laterality": "bilateral"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.4,
+                  "cnc": 1.5,
+                  "efc": 2.0,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 3.5,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Elevación de Talones",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "calf_raise__bilateral__machine",
+                  "definitionId": "calf_raise",
+                  "familyId": "lower_plantar_flexion",
+                  "kind": "PARENT",
+                  "performanceProfileId": "calf_raise__bilateral__machine",
+                  "searchTerms": [
+                    "elevacion de talones",
+                    "calf raise",
+                    "gemelos",
+                    "pantorrillas"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar calves en flexión plantar."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "machine"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "machine",
+                    "barbell",
+                    "smith_machine",
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la flexión plantar y el objetivo calves."
+                  ],
+                  "replacementGroup": "calf_raise_standing",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+              ],
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.5,
+              "ttc": 1.5
+            },
+            "selectedOptions": {
+              "implement": "machine",
+              "laterality": "bilateral"
+            }
+          },
+          {
+            "displaySummary": "machine · unilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#calves_talones_de_pie",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "calf_raise__unilateral__machine",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.4,
+              "bodyRegion": "LOWER",
+              "cnc": 1.5,
+              "commonMistakes": [
+                "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+              ],
+              "description": "Elevación de Talones en máquina con trabajo unilateral: cada pantorrilla trabaja por separado para igualar la fuerza de ambos lados.",
+              "efc": 2.0,
+              "equipmentId": "machine",
+              "executionCues": [
+                "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "plantar_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "calves",
+                  "note": "Principal: la pantorrilla realiza la flexión plantar y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."
+                }
+              ],
+              "performanceProfileId": "calf_raise__unilateral__machine",
+              "primaryMuscles": [
+                "calves"
+              ],
+              "replacementGroup": "calf_raise_standing",
+              "replacementPriority": 1,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "plantar_flexion"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "calves"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "calves"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "plantar_flexion",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+                  ],
+                  "cues": [
+                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+                  ]
+                },
+                "display": {
+                  "displayName": "Elevación de Talones",
+                  "displaySummary": "machine · unilateral",
+                  "selectedOptions": {
+                    "implement": "machine",
+                    "laterality": "unilateral"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.4,
+                  "cnc": 1.5,
+                  "efc": 2.0,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 3.5,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Elevación de Talones",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "calf_raise__unilateral__machine",
+                  "definitionId": "calf_raise",
+                  "familyId": "lower_plantar_flexion",
+                  "kind": "PARENT",
+                  "performanceProfileId": "calf_raise__unilateral__machine",
+                  "searchTerms": [
+                    "elevacion de talones",
+                    "calf raise",
+                    "gemelos",
+                    "pantorrillas"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar calves en flexión plantar."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "machine"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "machine",
+                    "barbell",
+                    "smith_machine",
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la flexión plantar y el objetivo calves."
+                  ],
+                  "replacementGroup": "calf_raise_standing",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+              ],
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.5,
+              "ttc": 1.5
+            },
+            "selectedOptions": {
+              "implement": "machine",
+              "laterality": "unilateral"
+            }
+          },
+          {
+            "displaySummary": "barbell · bilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#calves_talones_de_pie",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "calf_raise__bilateral__barbell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.4,
+              "bodyRegion": "LOWER",
+              "cnc": 1.5,
+              "commonMistakes": [
+                "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+              ],
+              "description": "Elevación de Talones con barra y trabajo bilateral: la barra sobre la espalda añade carga libre al patrón de pie.",
+              "efc": 2.0,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "plantar_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "calves",
+                  "note": "Principal: la pantorrilla realiza la flexión plantar y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."
+                }
+              ],
+              "performanceProfileId": "calf_raise__bilateral__barbell",
+              "primaryMuscles": [
+                "calves"
+              ],
+              "replacementGroup": "calf_raise_standing",
+              "replacementPriority": 1,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "plantar_flexion"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "calves"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "calves"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "plantar_flexion",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+                  ],
+                  "cues": [
+                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+                  ]
+                },
+                "display": {
+                  "displayName": "Elevación de Talones",
+                  "displaySummary": "barbell · bilateral",
+                  "selectedOptions": {
+                    "implement": "barbell",
+                    "laterality": "bilateral"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.4,
+                  "cnc": 1.5,
+                  "efc": 2.0,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 3.5,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Elevación de Talones",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "calf_raise__bilateral__barbell",
+                  "definitionId": "calf_raise",
+                  "familyId": "lower_plantar_flexion",
+                  "kind": "PARENT",
+                  "performanceProfileId": "calf_raise__bilateral__barbell",
+                  "searchTerms": [
+                    "elevacion de talones",
+                    "calf raise",
+                    "gemelos",
+                    "pantorrillas"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar calves en flexión plantar."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "machine",
+                    "barbell",
+                    "smith_machine",
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la flexión plantar y el objetivo calves."
+                  ],
+                  "replacementGroup": "calf_raise_standing",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+              ],
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.5,
+              "ttc": 1.5
+            },
+            "selectedOptions": {
+              "implement": "barbell",
+              "laterality": "bilateral"
+            }
+          },
+          {
+            "displaySummary": "barbell · unilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#calves_talones_de_pie",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "calf_raise__unilateral__barbell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.4,
+              "bodyRegion": "LOWER",
+              "cnc": 1.5,
+              "commonMistakes": [
+                "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+              ],
+              "description": "Elevación de Talones con barra y trabajo unilateral: el apoyo en una pierna con la barra exige más estabilidad y aísla cada pantorrilla.",
+              "efc": 2.0,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "plantar_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "calves",
+                  "note": "Principal: la pantorrilla realiza la flexión plantar y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."
+                }
+              ],
+              "performanceProfileId": "calf_raise__unilateral__barbell",
+              "primaryMuscles": [
+                "calves"
+              ],
+              "replacementGroup": "calf_raise_standing",
+              "replacementPriority": 1,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "plantar_flexion"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "calves"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "calves"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "plantar_flexion",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+                  ],
+                  "cues": [
+                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+                  ]
+                },
+                "display": {
+                  "displayName": "Elevación de Talones",
+                  "displaySummary": "barbell · unilateral",
+                  "selectedOptions": {
+                    "implement": "barbell",
+                    "laterality": "unilateral"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.4,
+                  "cnc": 1.5,
+                  "efc": 2.0,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 3.5,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Elevación de Talones",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "calf_raise__unilateral__barbell",
+                  "definitionId": "calf_raise",
+                  "familyId": "lower_plantar_flexion",
+                  "kind": "PARENT",
+                  "performanceProfileId": "calf_raise__unilateral__barbell",
+                  "searchTerms": [
+                    "elevacion de talones",
+                    "calf raise",
+                    "gemelos",
+                    "pantorrillas"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar calves en flexión plantar."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "machine",
+                    "barbell",
+                    "smith_machine",
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la flexión plantar y el objetivo calves."
+                  ],
+                  "replacementGroup": "calf_raise_standing",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+              ],
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.5,
+              "ttc": 1.5
+            },
+            "selectedOptions": {
+              "implement": "barbell",
+              "laterality": "unilateral"
+            }
+          },
+          {
+            "displaySummary": "smith_machine · bilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#calves_talones_de_pie",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "calf_raise__bilateral__smith_machine",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.4,
+              "bodyRegion": "LOWER",
+              "cnc": 1.5,
+              "commonMistakes": [
+                "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+              ],
+              "description": "Elevación de Talones en máquina Smith con trabajo bilateral: el guiado de la barra simplifica la colocación sobre los trapecios.",
+              "efc": 2.0,
+              "equipmentId": "smith_machine",
+              "executionCues": [
+                "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "plantar_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "calves",
+                  "note": "Principal: la pantorrilla realiza la flexión plantar y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."
+                }
+              ],
+              "performanceProfileId": "calf_raise__bilateral__smith_machine",
+              "primaryMuscles": [
+                "calves"
+              ],
+              "replacementGroup": "calf_raise_standing",
+              "replacementPriority": 1,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "plantar_flexion"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "calves"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "calves"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "smith_machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "plantar_flexion",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+                  ],
+                  "cues": [
+                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+                  ]
+                },
+                "display": {
+                  "displayName": "Elevación de Talones",
+                  "displaySummary": "smith_machine · bilateral",
+                  "selectedOptions": {
+                    "implement": "smith_machine",
+                    "laterality": "bilateral"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.4,
+                  "cnc": 1.5,
+                  "efc": 2.0,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 3.5,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Elevación de Talones",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "calf_raise__bilateral__smith_machine",
+                  "definitionId": "calf_raise",
+                  "familyId": "lower_plantar_flexion",
+                  "kind": "PARENT",
+                  "performanceProfileId": "calf_raise__bilateral__smith_machine",
+                  "searchTerms": [
+                    "elevacion de talones",
+                    "calf raise",
+                    "gemelos",
+                    "pantorrillas"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar calves en flexión plantar."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "smith_machine"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "machine",
+                    "barbell",
+                    "smith_machine",
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la flexión plantar y el objetivo calves."
+                  ],
+                  "replacementGroup": "calf_raise_standing",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+              ],
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.5,
+              "ttc": 1.5
+            },
+            "selectedOptions": {
+              "implement": "smith_machine",
+              "laterality": "bilateral"
+            }
+          },
+          {
+            "displaySummary": "smith_machine · unilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#calves_talones_de_pie",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "calf_raise__unilateral__smith_machine",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.4,
+              "bodyRegion": "LOWER",
+              "cnc": 1.5,
+              "commonMistakes": [
+                "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+              ],
+              "description": "Elevación de Talones en máquina Smith con trabajo unilateral: el guiado reduce el equilibrio y deja el foco en cada pantorrilla.",
+              "efc": 2.0,
+              "equipmentId": "smith_machine",
+              "executionCues": [
+                "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "plantar_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "calves",
+                  "note": "Principal: la pantorrilla realiza la flexión plantar y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."
+                }
+              ],
+              "performanceProfileId": "calf_raise__unilateral__smith_machine",
+              "primaryMuscles": [
+                "calves"
+              ],
+              "replacementGroup": "calf_raise_standing",
+              "replacementPriority": 1,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "plantar_flexion"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "calves"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "calves"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "smith_machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "plantar_flexion",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+                  ],
+                  "cues": [
+                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+                  ]
+                },
+                "display": {
+                  "displayName": "Elevación de Talones",
+                  "displaySummary": "smith_machine · unilateral",
+                  "selectedOptions": {
+                    "implement": "smith_machine",
+                    "laterality": "unilateral"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.4,
+                  "cnc": 1.5,
+                  "efc": 2.0,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 3.5,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Elevación de Talones",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "calf_raise__unilateral__smith_machine",
+                  "definitionId": "calf_raise",
+                  "familyId": "lower_plantar_flexion",
+                  "kind": "PARENT",
+                  "performanceProfileId": "calf_raise__unilateral__smith_machine",
+                  "searchTerms": [
+                    "elevacion de talones",
+                    "calf raise",
+                    "gemelos",
+                    "pantorrillas"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar calves en flexión plantar."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "smith_machine"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "machine",
+                    "barbell",
+                    "smith_machine",
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la flexión plantar y el objetivo calves."
+                  ],
+                  "replacementGroup": "calf_raise_standing",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+              ],
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.5,
+              "ttc": 1.5
+            },
+            "selectedOptions": {
+              "implement": "smith_machine",
+              "laterality": "unilateral"
+            }
+          },
+          {
+            "displaySummary": "cable · bilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#calves_talones_de_pie",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "calf_raise__bilateral__cable",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.4,
+              "bodyRegion": "LOWER",
+              "cnc": 1.5,
+              "commonMistakes": [
+                "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+              ],
+              "description": "Elevación de Talones en polea con trabajo bilateral: la tensión continua mantiene la pantorrilla activa a lo largo del recorrido.",
+              "efc": 2.0,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "plantar_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "calves",
+                  "note": "Principal: la pantorrilla realiza la flexión plantar y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."
+                }
+              ],
+              "performanceProfileId": "calf_raise__bilateral__cable",
+              "primaryMuscles": [
+                "calves"
+              ],
+              "replacementGroup": "calf_raise_standing",
+              "replacementPriority": 1,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "plantar_flexion"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "calves"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "calves"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "cable",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "plantar_flexion",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+                  ],
+                  "cues": [
+                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+                  ]
+                },
+                "display": {
+                  "displayName": "Elevación de Talones",
+                  "displaySummary": "cable · bilateral",
+                  "selectedOptions": {
+                    "implement": "cable",
+                    "laterality": "bilateral"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.4,
+                  "cnc": 1.5,
+                  "efc": 2.0,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 3.5,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Elevación de Talones",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "calf_raise__bilateral__cable",
+                  "definitionId": "calf_raise",
+                  "familyId": "lower_plantar_flexion",
+                  "kind": "PARENT",
+                  "performanceProfileId": "calf_raise__bilateral__cable",
+                  "searchTerms": [
+                    "elevacion de talones",
+                    "calf raise",
+                    "gemelos",
+                    "pantorrillas"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar calves en flexión plantar."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "machine",
+                    "barbell",
+                    "smith_machine",
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la flexión plantar y el objetivo calves."
+                  ],
+                  "replacementGroup": "calf_raise_standing",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+              ],
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.5,
+              "ttc": 1.5
+            },
+            "selectedOptions": {
+              "implement": "cable",
+              "laterality": "bilateral"
+            }
+          },
+          {
+            "displaySummary": "cable · unilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#calves_talones_de_pie",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "calf_raise__unilateral__cable",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.4,
+              "bodyRegion": "LOWER",
+              "cnc": 1.5,
+              "commonMistakes": [
+                "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+              ],
+              "description": "Elevación de Talones en polea con trabajo unilateral: la polea permite trabajar cada pierna con tensión constante y carga ligera.",
+              "efc": 2.0,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "plantar_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "calves",
+                  "note": "Principal: la pantorrilla realiza la flexión plantar y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."
+                }
+              ],
+              "performanceProfileId": "calf_raise__unilateral__cable",
+              "primaryMuscles": [
+                "calves"
+              ],
+              "replacementGroup": "calf_raise_standing",
+              "replacementPriority": 1,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "plantar_flexion"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "calves"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "calves"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "cable",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "plantar_flexion",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+                  ],
+                  "cues": [
+                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+                  ]
+                },
+                "display": {
+                  "displayName": "Elevación de Talones",
+                  "displaySummary": "cable · unilateral",
+                  "selectedOptions": {
+                    "implement": "cable",
+                    "laterality": "unilateral"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.4,
+                  "cnc": 1.5,
+                  "efc": 2.0,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 3.5,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Elevación de Talones",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "calf_raise__unilateral__cable",
+                  "definitionId": "calf_raise",
+                  "familyId": "lower_plantar_flexion",
+                  "kind": "PARENT",
+                  "performanceProfileId": "calf_raise__unilateral__cable",
+                  "searchTerms": [
+                    "elevacion de talones",
+                    "calf raise",
+                    "gemelos",
+                    "pantorrillas"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar calves en flexión plantar."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "machine",
+                    "barbell",
+                    "smith_machine",
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la flexión plantar y el objetivo calves."
+                  ],
+                  "replacementGroup": "calf_raise_standing",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+              ],
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.5,
+              "ttc": 1.5
+            },
+            "selectedOptions": {
+              "implement": "cable",
+              "laterality": "unilateral"
+            }
+          }
+        ],
+        "defaultConfigurationId": "calf_raise__bilateral__machine",
+        "description": "Elevación de talones trabaja principalmente pantorrillas mediante un patrón de flexión plantar. La participación secundaria corresponde a pantorrillas.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:calf_raise"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "lower_plantar_flexion",
+        "id": "calf_raise",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement",
+          "laterality"
+        ],
+        "searchTerms": [
+          "elevacion de talones",
+          "calf raise",
+          "gemelos",
+          "pantorrillas"
+        ]
+      }
+    ],
+    "description": "Familia de flexión plantar con estaciones explícitas; la estación sentada conserva su perfil de énfasis en sóleo.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:lower_plantar_flexion"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "lower_plantar_flexion",
+    "taxonomy": [
+      "lower",
+      "plantar_flexion",
+      "calf_raise"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

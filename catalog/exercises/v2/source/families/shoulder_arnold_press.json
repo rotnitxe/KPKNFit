@@ -1,1 +1,649 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Press Arnold","definitions":[{"canonicalName":"Press Arnold","configurations":[{"displaySummary":"dumbbells","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_press_arnold_mancuernas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"arnold_press__dumbbells","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje vertical para completar la repetición."],"description":"Press de hombros con rotación de muñeca. La configuración utiliza mancuernas como implemento. La variante se define por: mancuernas.","efc":2.5,"equipmentId":"dumbbells","executionCues":["Ejecuta «Press Arnold con Mancuernas» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"vertical_push","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides mueve el brazo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."},{"muscleId":"triceps","note":"Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."}],"performanceProfileId":"arnold_press__dumbbells__press_arnold","primaryMuscles":["deltoid"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["vertical_push"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["triceps"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"dumbbells","kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"vertical_push","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje vertical para completar la repetición."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Press Arnold con Mancuernas» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura mancuerna y adopta la posición específica de «Press Arnold con Mancuernas» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Press Arnold","displaySummary":"dumbbells","selectedOptions":{"implement":"dumbbells"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":4.8,"ttc":1.6},"identity":{"canonicalName":"Press Arnold","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"arnold_press__dumbbells","definitionId":"arnold_press","familyId":"shoulder_arnold_press","kind":"PARENT","performanceProfileId":"arnold_press__dumbbells__press_arnold","searchTerms":["press arnold","press arnold con kettlebell","press arnold con mancuernas","press arnold en polea"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar deltoid dentro del patrón vertical_push.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["dumbbells"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells"],"preservesIntent":["Conserva el patrón vertical_push y el objetivo deltoid."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["triceps"],"setupCues":["Configura mancuerna y adopta la posición específica de «Press Arnold con Mancuernas» antes de iniciar; conserva una base estable."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":4.8,"ttc":1.6},"selectedOptions":{"implement":"dumbbells"}},{"displaySummary":"kettlebell","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_press_arnold_kettlebell","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"arnold_press__kettlebell","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje vertical para completar la repetición."],"description":"Press Arnold con Kettlebell trabaja principalmente deltoides mediante un patrón de empuje vertical. La participación secundaria corresponde a tríceps. La variante se define por: kettlebell.","efc":2.5,"equipmentId":"kettlebell","executionCues":["Ejecuta «Press Arnold con Kettlebell» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"vertical_push","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides mueve el brazo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."},{"muscleId":"triceps","note":"Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."}],"performanceProfileId":"arnold_press__kettlebell__press_arnold","primaryMuscles":["deltoid"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["vertical_push"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["triceps"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"kettlebell","kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"vertical_push","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje vertical para completar la repetición."],"cues":["Mantén el equipo kettlebell alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Press Arnold con Kettlebell» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura kettlebell y adopta la posición específica de «Press Arnold con Kettlebell» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Press Arnold","displaySummary":"kettlebell","selectedOptions":{"implement":"kettlebell"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":4.8,"ttc":1.6},"identity":{"canonicalName":"Press Arnold","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"arnold_press__kettlebell","definitionId":"arnold_press","familyId":"shoulder_arnold_press","kind":"PARENT","performanceProfileId":"arnold_press__kettlebell__press_arnold","searchTerms":["press arnold","press arnold con kettlebell","press arnold con mancuernas","press arnold en polea"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar deltoid dentro del patrón vertical_push.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["kettlebell"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["kettlebell"],"preservesIntent":["Conserva el patrón vertical_push y el objetivo deltoid."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["triceps"],"setupCues":["Configura kettlebell y adopta la posición específica de «Press Arnold con Kettlebell» antes de iniciar; conserva una base estable."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":4.8,"ttc":1.6},"selectedOptions":{"implement":"kettlebell"}},{"displaySummary":"cable","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_press_arnold_polea","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"arnold_press__cable","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje vertical para completar la repetición."],"description":"Press Arnold en Polea trabaja principalmente deltoides mediante un patrón de empuje vertical. La participación secundaria corresponde a tríceps. La variante se define por: polea.","efc":2.5,"equipmentId":"cable","executionCues":["Ejecuta «Press Arnold en Polea» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"continuous_cable","movementPatternId":"vertical_push","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides mueve el brazo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."},{"muscleId":"triceps","note":"Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."}],"performanceProfileId":"arnold_press__cable__press_arnold","primaryMuscles":["deltoid"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["vertical_push"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["triceps"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"cable","kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"continuous_cable","movementPatternId":"vertical_push","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje vertical para completar la repetición."],"cues":["Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Press Arnold en Polea» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura polea y adopta la posición específica de «Press Arnold en Polea» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Press Arnold","displaySummary":"cable","selectedOptions":{"implement":"cable"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":4.8,"ttc":1.6},"identity":{"canonicalName":"Press Arnold","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"arnold_press__cable","definitionId":"arnold_press","familyId":"shoulder_arnold_press","kind":"PARENT","performanceProfileId":"arnold_press__cable__press_arnold","searchTerms":["press arnold","press arnold con kettlebell","press arnold con mancuernas","press arnold en polea"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar deltoid dentro del patrón vertical_push.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable"],"preservesIntent":["Conserva el patrón vertical_push y el objetivo deltoid."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["triceps"],"setupCues":["Configura polea y adopta la posición específica de «Press Arnold en Polea» antes de iniciar; conserva una base estable."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":4.8,"ttc":1.6},"selectedOptions":{"implement":"cable"}}],"defaultConfigurationId":"arnold_press__dumbbells","description":"Press Arnold trabaja principalmente deltoides mediante un patrón de empuje vertical. La participación secundaria corresponde a tríceps.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:arnold_press"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"shoulder_arnold_press","id":"arnold_press","kind":"PARENT","optionAxes":["implement"],"searchTerms":["press arnold","press arnold con kettlebell","press arnold con mancuernas","press arnold en polea"]}],"description":"Familia de empuje vertical con rotación del hombro; cada implemento queda materializado con su perfil propio.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:shoulder_arnold_press"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"shoulder_arnold_press","taxonomy":["upper","vertical_push","arnold_press"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Press Arnold",
+    "definitions": [
+      {
+        "canonicalName": "Press Arnold",
+        "configurations": [
+          {
+            "displaySummary": "dumbbells",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_press_arnold_mancuernas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "arnold_press__dumbbells",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón empuje vertical para completar la repetición."
+              ],
+              "description": "Press de hombros con rotación de muñeca. La configuración utiliza mancuernas como implemento. La variante se define por: mancuernas.",
+              "efc": 2.5,
+              "equipmentId": "dumbbells",
+              "executionCues": [
+                "Ejecuta «Press Arnold con Mancuernas» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "vertical_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides mueve el brazo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "arnold_press__dumbbells__press_arnold",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "vertical_push"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "triceps"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "dumbbells",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "vertical_push",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón empuje vertical para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Press Arnold con Mancuernas» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura mancuerna y adopta la posición específica de «Press Arnold con Mancuernas» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Press Arnold",
+                  "displaySummary": "dumbbells",
+                  "selectedOptions": {
+                    "implement": "dumbbells"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 4.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Press Arnold",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "arnold_press__dumbbells",
+                  "definitionId": "arnold_press",
+                  "familyId": "shoulder_arnold_press",
+                  "kind": "PARENT",
+                  "performanceProfileId": "arnold_press__dumbbells__press_arnold",
+                  "searchTerms": [
+                    "press arnold",
+                    "press arnold con kettlebell",
+                    "press arnold con mancuernas",
+                    "press arnold en polea"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar deltoid dentro del patrón vertical_push.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "dumbbells"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón vertical_push y el objetivo deltoid."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "triceps"
+              ],
+              "setupCues": [
+                "Configura mancuerna y adopta la posición específica de «Press Arnold con Mancuernas» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "dumbbells"
+            }
+          },
+          {
+            "displaySummary": "kettlebell",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_press_arnold_kettlebell",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "arnold_press__kettlebell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón empuje vertical para completar la repetición."
+              ],
+              "description": "Press Arnold con Kettlebell trabaja principalmente deltoides mediante un patrón de empuje vertical. La participación secundaria corresponde a tríceps. La variante se define por: kettlebell.",
+              "efc": 2.5,
+              "equipmentId": "kettlebell",
+              "executionCues": [
+                "Ejecuta «Press Arnold con Kettlebell» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "vertical_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides mueve el brazo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "arnold_press__kettlebell__press_arnold",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "vertical_push"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "triceps"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "kettlebell",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "vertical_push",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón empuje vertical para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo kettlebell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Press Arnold con Kettlebell» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura kettlebell y adopta la posición específica de «Press Arnold con Kettlebell» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Press Arnold",
+                  "displaySummary": "kettlebell",
+                  "selectedOptions": {
+                    "implement": "kettlebell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 4.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Press Arnold",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "arnold_press__kettlebell",
+                  "definitionId": "arnold_press",
+                  "familyId": "shoulder_arnold_press",
+                  "kind": "PARENT",
+                  "performanceProfileId": "arnold_press__kettlebell__press_arnold",
+                  "searchTerms": [
+                    "press arnold",
+                    "press arnold con kettlebell",
+                    "press arnold con mancuernas",
+                    "press arnold en polea"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar deltoid dentro del patrón vertical_push.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "kettlebell"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "kettlebell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón vertical_push y el objetivo deltoid."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "triceps"
+              ],
+              "setupCues": [
+                "Configura kettlebell y adopta la posición específica de «Press Arnold con Kettlebell» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "kettlebell"
+            }
+          },
+          {
+            "displaySummary": "cable",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_press_arnold_polea",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "arnold_press__cable",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón empuje vertical para completar la repetición."
+              ],
+              "description": "Press Arnold en Polea trabaja principalmente deltoides mediante un patrón de empuje vertical. La participación secundaria corresponde a tríceps. La variante se define por: polea.",
+              "efc": 2.5,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Ejecuta «Press Arnold en Polea» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "vertical_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides mueve el brazo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "arnold_press__cable__press_arnold",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "vertical_push"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "triceps"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "cable",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "vertical_push",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón empuje vertical para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Press Arnold en Polea» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura polea y adopta la posición específica de «Press Arnold en Polea» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Press Arnold",
+                  "displaySummary": "cable",
+                  "selectedOptions": {
+                    "implement": "cable"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 4.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Press Arnold",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "arnold_press__cable",
+                  "definitionId": "arnold_press",
+                  "familyId": "shoulder_arnold_press",
+                  "kind": "PARENT",
+                  "performanceProfileId": "arnold_press__cable__press_arnold",
+                  "searchTerms": [
+                    "press arnold",
+                    "press arnold con kettlebell",
+                    "press arnold con mancuernas",
+                    "press arnold en polea"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar deltoid dentro del patrón vertical_push.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón vertical_push y el objetivo deltoid."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "triceps"
+              ],
+              "setupCues": [
+                "Configura polea y adopta la posición específica de «Press Arnold en Polea» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "cable"
+            }
+          }
+        ],
+        "defaultConfigurationId": "arnold_press__dumbbells",
+        "description": "Press Arnold trabaja principalmente deltoides mediante un patrón de empuje vertical. La participación secundaria corresponde a tríceps.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:arnold_press"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "shoulder_arnold_press",
+        "id": "arnold_press",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement"
+        ],
+        "searchTerms": [
+          "press arnold",
+          "press arnold con kettlebell",
+          "press arnold con mancuernas",
+          "press arnold en polea"
+        ]
+      }
+    ],
+    "description": "Familia de empuje vertical con rotación del hombro; cada implemento queda materializado con su perfil propio.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:shoulder_arnold_press"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "shoulder_arnold_press",
+    "taxonomy": [
+      "upper",
+      "vertical_push",
+      "arnold_press"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

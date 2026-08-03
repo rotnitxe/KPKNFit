@@ -1,1 +1,2006 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Pull Over","definitions":[{"canonicalName":"Pull Over en Banca","configurations":[{"displaySummary":"dumbbells","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_pullover","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"lying_pullover__dumbbells","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."],"description":"Pull Over en Banca con mancuerna: tumbado en el banco, el peso desciende por encima de la cabeza con los codos semiflexionados y vuelve sobre el pecho. El arco amplio estira el pectoral y el dorsal en cada repetición.","efc":2.5,"equipmentId":"dumbbells","executionCues":["Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"vertical_pull","muscleNotes":[{"muscleId":"pectoralis","note":"Principal: el pectoral mayor extiende el brazo tumbado y concentra la fase de tracción; por eso suma la serie completa (1.0)."},{"muscleId":"latissimus_dorsi","note":"Secundario: el dorsal asiste la tracción del brazo por encima de la cabeza en el arco; por eso suma 0.5."},{"muscleId":"triceps","note":"Secundario: el tríceps estabiliza el codo durante el arco completo; por eso suma 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco estable y evita el arqueo lumbar; por eso suma 0.4."}],"performanceProfileId":"lying_pullover__dumbbells__pullover_banca","primaryMuscles":["pectoralis"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["vertical_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["pectoralis"],"secondaryMuscles":["latissimus_dorsi","triceps"],"stabilizationDemand":"high","stabilizerMuscles":["core"],"targetRegions":["pectoralis"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"dumbbells","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"vertical_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura mancuernas y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Pull Over en Banca","displaySummary":"dumbbells","selectedOptions":{"implement":"dumbbells"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Pull Over en Banca","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"lying_pullover__dumbbells","definitionId":"lying_pullover","familyId":"upper_vertical_pull_pullover","kind":"PARENT","performanceProfileId":"lying_pullover__dumbbells__pullover_banca","searchTerms":["pull over en banca","pullover en banca","lying pullover","back_pullover"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar latissimus_dorsi dentro del patrón vertical_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["dumbbells"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells"],"preservesIntent":["Conserva el patrón vertical_pull y el objetivo latissimus_dorsi."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["latissimus_dorsi","triceps"],"setupCues":["Configura mancuernas y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":["core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"dumbbells"}},{"displaySummary":"barbell","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_pullover","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"lying_pullover__barbell","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."],"description":"Pull Over en Banca con barra: el agarre fijo reparte la carga entre ambas manos y el arco respeta la línea del pecho. La barra permite progresar el peso de la familia con más control del rango.","efc":2.5,"equipmentId":"barbell","executionCues":["Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"vertical_pull","muscleNotes":[{"muscleId":"pectoralis","note":"Principal: el pectoral mayor extiende el brazo tumbado y concentra la fase de tracción; por eso suma la serie completa (1.0)."},{"muscleId":"latissimus_dorsi","note":"Secundario: el dorsal asiste la tracción del brazo por encima de la cabeza en el arco; por eso suma 0.5."},{"muscleId":"triceps","note":"Secundario: el tríceps estabiliza el codo durante el arco completo; por eso suma 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco estable y evita el arqueo lumbar; por eso suma 0.4."}],"performanceProfileId":"lying_pullover__barbell__pullover_banca","primaryMuscles":["pectoralis"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["vertical_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["pectoralis"],"secondaryMuscles":["latissimus_dorsi","triceps"],"stabilizationDemand":"high","stabilizerMuscles":["core"],"targetRegions":["pectoralis"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"barbell","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"vertical_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura barra y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Pull Over en Banca","displaySummary":"barbell","selectedOptions":{"implement":"barbell"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Pull Over en Banca","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"lying_pullover__barbell","definitionId":"lying_pullover","familyId":"upper_vertical_pull_pullover","kind":"PARENT","performanceProfileId":"lying_pullover__barbell__pullover_banca","searchTerms":["pull over en banca","pullover en banca","lying pullover","back_pullover"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar latissimus_dorsi dentro del patrón vertical_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["barbell"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["barbell"],"preservesIntent":["Conserva el patrón vertical_pull y el objetivo latissimus_dorsi."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["latissimus_dorsi","triceps"],"setupCues":["Configura barra y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":["core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"barbell"}},{"displaySummary":"kettlebell","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_pullover","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"lying_pullover__kettlebell","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."],"description":"Pull Over en Banca con kettlebell: el peso compacto se sujeta con ambas manos por la empuñadura y el arco baja por encima de la cabeza. Variante accesible cuando no hay barra ni mancuernas disponibles.","efc":2.5,"equipmentId":"kettlebell","executionCues":["Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"vertical_pull","muscleNotes":[{"muscleId":"pectoralis","note":"Principal: el pectoral mayor extiende el brazo tumbado y concentra la fase de tracción; por eso suma la serie completa (1.0)."},{"muscleId":"latissimus_dorsi","note":"Secundario: el dorsal asiste la tracción del brazo por encima de la cabeza en el arco; por eso suma 0.5."},{"muscleId":"triceps","note":"Secundario: el tríceps estabiliza el codo durante el arco completo; por eso suma 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco estable y evita el arqueo lumbar; por eso suma 0.4."}],"performanceProfileId":"lying_pullover__kettlebell__pullover_banca","primaryMuscles":["pectoralis"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["vertical_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["pectoralis"],"secondaryMuscles":["latissimus_dorsi","triceps"],"stabilizationDemand":"high","stabilizerMuscles":["core"],"targetRegions":["pectoralis"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"kettlebell","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"vertical_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura kettlebell y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Pull Over en Banca","displaySummary":"kettlebell","selectedOptions":{"implement":"kettlebell"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Pull Over en Banca","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"lying_pullover__kettlebell","definitionId":"lying_pullover","familyId":"upper_vertical_pull_pullover","kind":"PARENT","performanceProfileId":"lying_pullover__kettlebell__pullover_banca","searchTerms":["pull over en banca","pullover en banca","lying pullover","back_pullover"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar latissimus_dorsi dentro del patrón vertical_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["kettlebell"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["kettlebell"],"preservesIntent":["Conserva el patrón vertical_pull y el objetivo latissimus_dorsi."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["latissimus_dorsi","triceps"],"setupCues":["Configura kettlebell y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":["core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"kettlebell"}},{"displaySummary":"cable","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_pullover","editorial:configuration:back_pullover__cable","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"lying_pullover__cable","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."],"description":"Pull Over en Banca en polea: la tensión continua acompaña el arco del brazo y sostiene la carga en la fase de estiramiento. El cable permite ajustar el peso con suavidad entre series.","efc":2.5,"equipmentId":"cable","executionCues":["Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"continuous_cable","movementPatternId":"vertical_pull","muscleNotes":[{"muscleId":"pectoralis","note":"Principal: el pectoral mayor extiende el brazo tumbado y concentra la fase de tracción; por eso suma la serie completa (1.0)."},{"muscleId":"latissimus_dorsi","note":"Secundario: el dorsal asiste la tracción del brazo por encima de la cabeza en el arco; por eso suma 0.5."},{"muscleId":"triceps","note":"Secundario: el tríceps estabiliza el codo durante el arco completo; por eso suma 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco estable y evita el arqueo lumbar; por eso suma 0.4."}],"performanceProfileId":"lying_pullover__cable__pullover_banca","primaryMuscles":["pectoralis"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["vertical_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["pectoralis"],"secondaryMuscles":["latissimus_dorsi","triceps"],"stabilizationDemand":"high","stabilizerMuscles":["core"],"targetRegions":["pectoralis"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"cable","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"continuous_cable","movementPatternId":"vertical_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."],"cues":["Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura la polea y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Pull Over en Banca","displaySummary":"cable","selectedOptions":{"implement":"cable"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Pull Over en Banca","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"lying_pullover__cable","definitionId":"lying_pullover","familyId":"upper_vertical_pull_pullover","kind":"PARENT","performanceProfileId":"lying_pullover__cable__pullover_banca","searchTerms":["pull over en banca","pullover en banca","lying pullover","back_pullover"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar latissimus_dorsi dentro del patrón vertical_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable"],"preservesIntent":["Conserva el patrón vertical_pull y el objetivo latissimus_dorsi."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["latissimus_dorsi","triceps"],"setupCues":["Configura la polea y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":["core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"cable"}},{"displaySummary":"machine","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_pullover","editorial:configuration:back_pullover__machine","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"lying_pullover__machine","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."],"description":"Pull Over en Banca en máquina: el brazo guiado repite la trayectoria del arco con el tronco apoyado en el banco. La estación fija el pecho y simplifica la coordinación del movimiento.","efc":2.5,"equipmentId":"machine","executionCues":["Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"vertical_pull","muscleNotes":[{"muscleId":"pectoralis","note":"Principal: el pectoral mayor extiende el brazo tumbado y concentra la fase de tracción; por eso suma la serie completa (1.0)."},{"muscleId":"latissimus_dorsi","note":"Secundario: el dorsal asiste la tracción del brazo por encima de la cabeza en el arco; por eso suma 0.5."},{"muscleId":"triceps","note":"Secundario: el tríceps estabiliza el codo durante el arco completo; por eso suma 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco estable y evita el arqueo lumbar; por eso suma 0.4."}],"performanceProfileId":"lying_pullover__machine__pullover_banca","primaryMuscles":["pectoralis"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["vertical_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["pectoralis"],"secondaryMuscles":["latissimus_dorsi","triceps"],"stabilizationDemand":"high","stabilizerMuscles":["core"],"targetRegions":["pectoralis"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"machine","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"vertical_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"guided_constant","stability":"guided"},"coaching":{"commonMistakes":["Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."],"cues":["Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura la máquina y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Pull Over en Banca","displaySummary":"machine","selectedOptions":{"implement":"machine"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Pull Over en Banca","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"lying_pullover__machine","definitionId":"lying_pullover","familyId":"upper_vertical_pull_pullover","kind":"PARENT","performanceProfileId":"lying_pullover__machine__pullover_banca","searchTerms":["pull over en banca","pullover en banca","lying pullover","back_pullover"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar latissimus_dorsi dentro del patrón vertical_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["machine"],"role":"accessory_isolation","setupTransitionCost":"high","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["machine"],"preservesIntent":["Conserva el patrón vertical_pull y el objetivo latissimus_dorsi."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["latissimus_dorsi","triceps"],"setupCues":["Configura la máquina y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":["core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"machine"}}],"defaultConfigurationId":"lying_pullover__dumbbells","description":"Tirón vertical tumbado en el banco con el pectoral como motor principal y el dorsal como apoyo. El implemento define la curva de tensión de cada configuración.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:lying_pullover"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"upper_vertical_pull_pullover","id":"lying_pullover","kind":"PARENT","optionAxes":["implement"],"searchTerms":["pull over en banca","pullover en banca","lying pullover","back_pullover"]},{"canonicalName":"Pull Over","configurations":[{"displaySummary":"cable · bilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_pullover","editorial:configuration:back_pullover__cable","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"pullover__bilateral__cable","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."],"description":"Pull Over en polea con recorrido bilateral: el brazo desciende por encima de la cabeza contra la tensión continua del cable. La polea mantiene la carga en la fase de estiramiento del dorsal.","efc":2.5,"equipmentId":"cable","executionCues":["Ejecuta «Pull Over» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"continuous_cable","movementPatternId":"vertical_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal extiende y aduce el brazo por encima de la cabeza en el recorrido; por eso suma la serie completa (1.0)."},{"muscleId":"pectoralis","note":"Secundario: el pectoral mayor asiste la fase de descenso del brazo y comparte la tracción; por eso suma 0.5."},{"muscleId":"triceps","note":"Secundario: el tríceps estabiliza el codo durante el arco del pullover; por eso suma 0.5."},{"muscleId":"core","note":"Estabilizador: el core fija el tronco al banco y evita el arqueo lumbar; por eso suma 0.4."}],"performanceProfileId":"pullover__cable__pullover","primaryMuscles":["latissimus_dorsi"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["vertical_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi"],"secondaryMuscles":["pectoralis","triceps"],"stabilizationDemand":"high","stabilizerMuscles":["core"],"targetRegions":["latissimus_dorsi"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"cable","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"continuous_cable","movementPatternId":"vertical_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."],"cues":["Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Pull Over» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura la polea y adopta la posición específica de «Pull Over» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Pull Over","displaySummary":"cable · bilateral","selectedOptions":{"implement":"cable","laterality":"bilateral"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Pull Over","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"pullover__bilateral__cable","definitionId":"pullover","familyId":"upper_vertical_pull_pullover","kind":"PARENT","performanceProfileId":"pullover__cable__pullover","searchTerms":["pullover","pull over","back_pullover"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar latissimus_dorsi dentro del patrón vertical_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable"],"preservesIntent":["Conserva el patrón vertical_pull y el objetivo latissimus_dorsi."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["pectoralis","triceps"],"setupCues":["Configura la polea y adopta la posición específica de «Pull Over» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":["core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"cable","laterality":"bilateral"}},{"displaySummary":"cable · unilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_pullover","editorial:configuration:back_pullover__cable","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"pullover__unilateral__cable","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."],"description":"Pull Over en polea con recorrido unilateral: el brazo desciende por encima de la cabeza contra la tensión continua del cable. La polea mantiene la carga en la fase de estiramiento del dorsal.","efc":2.5,"equipmentId":"cable","executionCues":["Ejecuta «Pull Over» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"UNILATERAL","loadMode":"continuous_cable","movementPatternId":"vertical_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal extiende y aduce el brazo por encima de la cabeza en el recorrido; por eso suma la serie completa (1.0)."},{"muscleId":"pectoralis","note":"Secundario: el pectoral mayor asiste la fase de descenso del brazo y comparte la tracción; por eso suma 0.5."},{"muscleId":"triceps","note":"Secundario: el tríceps estabiliza el codo durante el arco del pullover; por eso suma 0.5."},{"muscleId":"core","note":"Estabilizador: el core fija el tronco al banco y evita el arqueo lumbar; por eso suma 0.4."}],"performanceProfileId":"pullover__cable__pullover","primaryMuscles":["latissimus_dorsi"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["vertical_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi"],"secondaryMuscles":["pectoralis","triceps"],"stabilizationDemand":"high","stabilizerMuscles":["core"],"targetRegions":["latissimus_dorsi"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"cable","kineticChain":"POSTERIOR","laterality":"UNILATERAL","loadMode":"continuous_cable","movementPatternId":"vertical_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."],"cues":["Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Pull Over» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura la polea y adopta la posición específica de «Pull Over» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Pull Over","displaySummary":"cable · unilateral","selectedOptions":{"implement":"cable","laterality":"unilateral"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Pull Over","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"pullover__unilateral__cable","definitionId":"pullover","familyId":"upper_vertical_pull_pullover","kind":"PARENT","performanceProfileId":"pullover__cable__pullover","searchTerms":["pullover","pull over","back_pullover"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar latissimus_dorsi dentro del patrón vertical_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable"],"preservesIntent":["Conserva el patrón vertical_pull y el objetivo latissimus_dorsi."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["pectoralis","triceps"],"setupCues":["Configura la polea y adopta la posición específica de «Pull Over» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":["core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"cable","laterality":"unilateral"}},{"displaySummary":"machine · bilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_pullover","editorial:configuration:back_pullover__machine","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"pullover__bilateral__machine","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."],"description":"Pull Over en máquina con recorrido bilateral: el brazo conserva la trayectoria guiada del brazo de la máquina. La estación fija el tronco y permite concentrarse en el dorsal sin equilibrio extra.","efc":2.5,"equipmentId":"machine","executionCues":["Ejecuta «Pull Over» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"vertical_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal extiende y aduce el brazo por encima de la cabeza en el recorrido; por eso suma la serie completa (1.0)."},{"muscleId":"pectoralis","note":"Secundario: el pectoral mayor asiste la fase de descenso del brazo y comparte la tracción; por eso suma 0.5."},{"muscleId":"triceps","note":"Secundario: el tríceps estabiliza el codo durante el arco del pullover; por eso suma 0.5."},{"muscleId":"core","note":"Estabilizador: el core fija el tronco al banco y evita el arqueo lumbar; por eso suma 0.4."}],"performanceProfileId":"pullover__machine__pullover","primaryMuscles":["latissimus_dorsi"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["vertical_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi"],"secondaryMuscles":["pectoralis","triceps"],"stabilizationDemand":"high","stabilizerMuscles":["core"],"targetRegions":["latissimus_dorsi"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"machine","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"vertical_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"guided_constant","stability":"guided"},"coaching":{"commonMistakes":["Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."],"cues":["Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Pull Over» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura la máquina y adopta la posición específica de «Pull Over» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Pull Over","displaySummary":"machine · bilateral","selectedOptions":{"implement":"machine","laterality":"bilateral"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Pull Over","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"pullover__bilateral__machine","definitionId":"pullover","familyId":"upper_vertical_pull_pullover","kind":"PARENT","performanceProfileId":"pullover__machine__pullover","searchTerms":["pullover","pull over","back_pullover"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar latissimus_dorsi dentro del patrón vertical_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["machine"],"role":"accessory_isolation","setupTransitionCost":"high","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["machine"],"preservesIntent":["Conserva el patrón vertical_pull y el objetivo latissimus_dorsi."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["pectoralis","triceps"],"setupCues":["Configura la máquina y adopta la posición específica de «Pull Over» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":["core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"machine","laterality":"bilateral"}},{"displaySummary":"machine · unilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_pullover","editorial:configuration:back_pullover__machine","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"pullover__unilateral__machine","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."],"description":"Pull Over en máquina con recorrido unilateral: el brazo conserva la trayectoria guiada del brazo de la máquina. La estación fija el tronco y permite concentrarse en el dorsal sin equilibrio extra.","efc":2.5,"equipmentId":"machine","executionCues":["Ejecuta «Pull Over» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"UNILATERAL","loadMode":"guided_external_load","movementPatternId":"vertical_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal extiende y aduce el brazo por encima de la cabeza en el recorrido; por eso suma la serie completa (1.0)."},{"muscleId":"pectoralis","note":"Secundario: el pectoral mayor asiste la fase de descenso del brazo y comparte la tracción; por eso suma 0.5."},{"muscleId":"triceps","note":"Secundario: el tríceps estabiliza el codo durante el arco del pullover; por eso suma 0.5."},{"muscleId":"core","note":"Estabilizador: el core fija el tronco al banco y evita el arqueo lumbar; por eso suma 0.4."}],"performanceProfileId":"pullover__machine__pullover","primaryMuscles":["latissimus_dorsi"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["vertical_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi"],"secondaryMuscles":["pectoralis","triceps"],"stabilizationDemand":"high","stabilizerMuscles":["core"],"targetRegions":["latissimus_dorsi"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"machine","kineticChain":"POSTERIOR","laterality":"UNILATERAL","loadMode":"guided_external_load","movementPatternId":"vertical_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"guided_constant","stability":"guided"},"coaching":{"commonMistakes":["Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."],"cues":["Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Pull Over» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura la máquina y adopta la posición específica de «Pull Over» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Pull Over","displaySummary":"machine · unilateral","selectedOptions":{"implement":"machine","laterality":"unilateral"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Pull Over","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"pullover__unilateral__machine","definitionId":"pullover","familyId":"upper_vertical_pull_pullover","kind":"PARENT","performanceProfileId":"pullover__machine__pullover","searchTerms":["pullover","pull over","back_pullover"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar latissimus_dorsi dentro del patrón vertical_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["machine"],"role":"accessory_isolation","setupTransitionCost":"high","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["machine"],"preservesIntent":["Conserva el patrón vertical_pull y el objetivo latissimus_dorsi."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["pectoralis","triceps"],"setupCues":["Configura la máquina y adopta la posición específica de «Pull Over» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":["core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"machine","laterality":"unilateral"}}],"defaultConfigurationId":"pullover__bilateral__cable","description":"Tirón vertical con el brazo que desciende por encima de la cabeza, con el dorsal como motor principal. La polea y la máquina definen la curva de tensión de cada variante.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:pullover"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"upper_vertical_pull_pullover","id":"pullover","kind":"PARENT","optionAxes":["implement","laterality"],"searchTerms":["pullover","pull over","back_pullover"]}],"description":"Familia de tirón vertical con el brazo por encima de la cabeza; el Pull Over de pie y el Pull Over en Banca son padres separados por su reparto muscular.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:upper_vertical_pull_pullover"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"upper_vertical_pull_pullover","taxonomy":["upper","vertical_pull","pullover"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Pull Over",
+    "definitions": [
+      {
+        "canonicalName": "Pull Over en Banca",
+        "configurations": [
+          {
+            "displaySummary": "dumbbells",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_pullover",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "lying_pullover__dumbbells",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+              ],
+              "description": "Pull Over en Banca con mancuerna: tumbado en el banco, el peso desciende por encima de la cabeza con los codos semiflexionados y vuelve sobre el pecho. El arco amplio estira el pectoral y el dorsal en cada repetición.",
+              "efc": 2.5,
+              "equipmentId": "dumbbells",
+              "executionCues": [
+                "Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: el pectoral mayor extiende el brazo tumbado y concentra la fase de tracción; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Secundario: el dorsal asiste la tracción del brazo por encima de la cabeza en el arco; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps estabiliza el codo durante el arco completo; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco estable y evita el arqueo lumbar; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "lying_pullover__dumbbells__pullover_banca",
+              "primaryMuscles": [
+                "pectoralis"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "vertical_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "secondaryMuscles": [
+                    "latissimus_dorsi",
+                    "triceps"
+                  ],
+                  "stabilizationDemand": "high",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "pectoralis"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "dumbbells",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "vertical_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura mancuernas y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Pull Over en Banca",
+                  "displaySummary": "dumbbells",
+                  "selectedOptions": {
+                    "implement": "dumbbells"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Pull Over en Banca",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "lying_pullover__dumbbells",
+                  "definitionId": "lying_pullover",
+                  "familyId": "upper_vertical_pull_pullover",
+                  "kind": "PARENT",
+                  "performanceProfileId": "lying_pullover__dumbbells__pullover_banca",
+                  "searchTerms": [
+                    "pull over en banca",
+                    "pullover en banca",
+                    "lying pullover",
+                    "back_pullover"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar latissimus_dorsi dentro del patrón vertical_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "dumbbells"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón vertical_pull y el objetivo latissimus_dorsi."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "latissimus_dorsi",
+                "triceps"
+              ],
+              "setupCues": [
+                "Configura mancuernas y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "dumbbells"
+            }
+          },
+          {
+            "displaySummary": "barbell",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_pullover",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "lying_pullover__barbell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+              ],
+              "description": "Pull Over en Banca con barra: el agarre fijo reparte la carga entre ambas manos y el arco respeta la línea del pecho. La barra permite progresar el peso de la familia con más control del rango.",
+              "efc": 2.5,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: el pectoral mayor extiende el brazo tumbado y concentra la fase de tracción; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Secundario: el dorsal asiste la tracción del brazo por encima de la cabeza en el arco; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps estabiliza el codo durante el arco completo; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco estable y evita el arqueo lumbar; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "lying_pullover__barbell__pullover_banca",
+              "primaryMuscles": [
+                "pectoralis"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "vertical_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "secondaryMuscles": [
+                    "latissimus_dorsi",
+                    "triceps"
+                  ],
+                  "stabilizationDemand": "high",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "pectoralis"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "vertical_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura barra y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Pull Over en Banca",
+                  "displaySummary": "barbell",
+                  "selectedOptions": {
+                    "implement": "barbell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Pull Over en Banca",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "lying_pullover__barbell",
+                  "definitionId": "lying_pullover",
+                  "familyId": "upper_vertical_pull_pullover",
+                  "kind": "PARENT",
+                  "performanceProfileId": "lying_pullover__barbell__pullover_banca",
+                  "searchTerms": [
+                    "pull over en banca",
+                    "pullover en banca",
+                    "lying pullover",
+                    "back_pullover"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar latissimus_dorsi dentro del patrón vertical_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón vertical_pull y el objetivo latissimus_dorsi."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "latissimus_dorsi",
+                "triceps"
+              ],
+              "setupCues": [
+                "Configura barra y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "barbell"
+            }
+          },
+          {
+            "displaySummary": "kettlebell",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_pullover",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "lying_pullover__kettlebell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+              ],
+              "description": "Pull Over en Banca con kettlebell: el peso compacto se sujeta con ambas manos por la empuñadura y el arco baja por encima de la cabeza. Variante accesible cuando no hay barra ni mancuernas disponibles.",
+              "efc": 2.5,
+              "equipmentId": "kettlebell",
+              "executionCues": [
+                "Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: el pectoral mayor extiende el brazo tumbado y concentra la fase de tracción; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Secundario: el dorsal asiste la tracción del brazo por encima de la cabeza en el arco; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps estabiliza el codo durante el arco completo; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco estable y evita el arqueo lumbar; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "lying_pullover__kettlebell__pullover_banca",
+              "primaryMuscles": [
+                "pectoralis"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "vertical_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "secondaryMuscles": [
+                    "latissimus_dorsi",
+                    "triceps"
+                  ],
+                  "stabilizationDemand": "high",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "pectoralis"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "kettlebell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "vertical_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura kettlebell y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Pull Over en Banca",
+                  "displaySummary": "kettlebell",
+                  "selectedOptions": {
+                    "implement": "kettlebell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Pull Over en Banca",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "lying_pullover__kettlebell",
+                  "definitionId": "lying_pullover",
+                  "familyId": "upper_vertical_pull_pullover",
+                  "kind": "PARENT",
+                  "performanceProfileId": "lying_pullover__kettlebell__pullover_banca",
+                  "searchTerms": [
+                    "pull over en banca",
+                    "pullover en banca",
+                    "lying pullover",
+                    "back_pullover"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar latissimus_dorsi dentro del patrón vertical_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "kettlebell"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "kettlebell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón vertical_pull y el objetivo latissimus_dorsi."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "latissimus_dorsi",
+                "triceps"
+              ],
+              "setupCues": [
+                "Configura kettlebell y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "kettlebell"
+            }
+          },
+          {
+            "displaySummary": "cable",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_pullover",
+                "editorial:configuration:back_pullover__cable",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "lying_pullover__cable",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+              ],
+              "description": "Pull Over en Banca en polea: la tensión continua acompaña el arco del brazo y sostiene la carga en la fase de estiramiento. El cable permite ajustar el peso con suavidad entre series.",
+              "efc": 2.5,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: el pectoral mayor extiende el brazo tumbado y concentra la fase de tracción; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Secundario: el dorsal asiste la tracción del brazo por encima de la cabeza en el arco; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps estabiliza el codo durante el arco completo; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco estable y evita el arqueo lumbar; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "lying_pullover__cable__pullover_banca",
+              "primaryMuscles": [
+                "pectoralis"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "vertical_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "secondaryMuscles": [
+                    "latissimus_dorsi",
+                    "triceps"
+                  ],
+                  "stabilizationDemand": "high",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "pectoralis"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "cable",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "vertical_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura la polea y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Pull Over en Banca",
+                  "displaySummary": "cable",
+                  "selectedOptions": {
+                    "implement": "cable"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Pull Over en Banca",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "lying_pullover__cable",
+                  "definitionId": "lying_pullover",
+                  "familyId": "upper_vertical_pull_pullover",
+                  "kind": "PARENT",
+                  "performanceProfileId": "lying_pullover__cable__pullover_banca",
+                  "searchTerms": [
+                    "pull over en banca",
+                    "pullover en banca",
+                    "lying pullover",
+                    "back_pullover"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar latissimus_dorsi dentro del patrón vertical_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón vertical_pull y el objetivo latissimus_dorsi."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "latissimus_dorsi",
+                "triceps"
+              ],
+              "setupCues": [
+                "Configura la polea y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "cable"
+            }
+          },
+          {
+            "displaySummary": "machine",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_pullover",
+                "editorial:configuration:back_pullover__machine",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "lying_pullover__machine",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+              ],
+              "description": "Pull Over en Banca en máquina: el brazo guiado repite la trayectoria del arco con el tronco apoyado en el banco. La estación fija el pecho y simplifica la coordinación del movimiento.",
+              "efc": 2.5,
+              "equipmentId": "machine",
+              "executionCues": [
+                "Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: el pectoral mayor extiende el brazo tumbado y concentra la fase de tracción; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Secundario: el dorsal asiste la tracción del brazo por encima de la cabeza en el arco; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps estabiliza el codo durante el arco completo; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco estable y evita el arqueo lumbar; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "lying_pullover__machine__pullover_banca",
+              "primaryMuscles": [
+                "pectoralis"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "vertical_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "secondaryMuscles": [
+                    "latissimus_dorsi",
+                    "triceps"
+                  ],
+                  "stabilizationDemand": "high",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "pectoralis"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "vertical_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura la máquina y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Pull Over en Banca",
+                  "displaySummary": "machine",
+                  "selectedOptions": {
+                    "implement": "machine"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Pull Over en Banca",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "lying_pullover__machine",
+                  "definitionId": "lying_pullover",
+                  "familyId": "upper_vertical_pull_pullover",
+                  "kind": "PARENT",
+                  "performanceProfileId": "lying_pullover__machine__pullover_banca",
+                  "searchTerms": [
+                    "pull over en banca",
+                    "pullover en banca",
+                    "lying pullover",
+                    "back_pullover"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar latissimus_dorsi dentro del patrón vertical_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "machine"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón vertical_pull y el objetivo latissimus_dorsi."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "latissimus_dorsi",
+                "triceps"
+              ],
+              "setupCues": [
+                "Configura la máquina y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "machine"
+            }
+          }
+        ],
+        "defaultConfigurationId": "lying_pullover__dumbbells",
+        "description": "Tirón vertical tumbado en el banco con el pectoral como motor principal y el dorsal como apoyo. El implemento define la curva de tensión de cada configuración.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:lying_pullover"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_vertical_pull_pullover",
+        "id": "lying_pullover",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement"
+        ],
+        "searchTerms": [
+          "pull over en banca",
+          "pullover en banca",
+          "lying pullover",
+          "back_pullover"
+        ]
+      },
+      {
+        "canonicalName": "Pull Over",
+        "configurations": [
+          {
+            "displaySummary": "cable · bilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_pullover",
+                "editorial:configuration:back_pullover__cable",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "pullover__bilateral__cable",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+              ],
+              "description": "Pull Over en polea con recorrido bilateral: el brazo desciende por encima de la cabeza contra la tensión continua del cable. La polea mantiene la carga en la fase de estiramiento del dorsal.",
+              "efc": 2.5,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Ejecuta «Pull Over» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal extiende y aduce el brazo por encima de la cabeza en el recorrido; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Secundario: el pectoral mayor asiste la fase de descenso del brazo y comparte la tracción; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps estabiliza el codo durante el arco del pullover; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core fija el tronco al banco y evita el arqueo lumbar; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "pullover__cable__pullover",
+              "primaryMuscles": [
+                "latissimus_dorsi"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "vertical_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi"
+                  ],
+                  "secondaryMuscles": [
+                    "pectoralis",
+                    "triceps"
+                  ],
+                  "stabilizationDemand": "high",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "cable",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "vertical_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Pull Over» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura la polea y adopta la posición específica de «Pull Over» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Pull Over",
+                  "displaySummary": "cable · bilateral",
+                  "selectedOptions": {
+                    "implement": "cable",
+                    "laterality": "bilateral"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Pull Over",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "pullover__bilateral__cable",
+                  "definitionId": "pullover",
+                  "familyId": "upper_vertical_pull_pullover",
+                  "kind": "PARENT",
+                  "performanceProfileId": "pullover__cable__pullover",
+                  "searchTerms": [
+                    "pullover",
+                    "pull over",
+                    "back_pullover"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar latissimus_dorsi dentro del patrón vertical_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón vertical_pull y el objetivo latissimus_dorsi."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "pectoralis",
+                "triceps"
+              ],
+              "setupCues": [
+                "Configura la polea y adopta la posición específica de «Pull Over» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "cable",
+              "laterality": "bilateral"
+            }
+          },
+          {
+            "displaySummary": "cable · unilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_pullover",
+                "editorial:configuration:back_pullover__cable",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "pullover__unilateral__cable",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+              ],
+              "description": "Pull Over en polea con recorrido unilateral: el brazo desciende por encima de la cabeza contra la tensión continua del cable. La polea mantiene la carga en la fase de estiramiento del dorsal.",
+              "efc": 2.5,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Ejecuta «Pull Over» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal extiende y aduce el brazo por encima de la cabeza en el recorrido; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Secundario: el pectoral mayor asiste la fase de descenso del brazo y comparte la tracción; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps estabiliza el codo durante el arco del pullover; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core fija el tronco al banco y evita el arqueo lumbar; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "pullover__cable__pullover",
+              "primaryMuscles": [
+                "latissimus_dorsi"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "vertical_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi"
+                  ],
+                  "secondaryMuscles": [
+                    "pectoralis",
+                    "triceps"
+                  ],
+                  "stabilizationDemand": "high",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "cable",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "vertical_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Pull Over» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura la polea y adopta la posición específica de «Pull Over» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Pull Over",
+                  "displaySummary": "cable · unilateral",
+                  "selectedOptions": {
+                    "implement": "cable",
+                    "laterality": "unilateral"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Pull Over",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "pullover__unilateral__cable",
+                  "definitionId": "pullover",
+                  "familyId": "upper_vertical_pull_pullover",
+                  "kind": "PARENT",
+                  "performanceProfileId": "pullover__cable__pullover",
+                  "searchTerms": [
+                    "pullover",
+                    "pull over",
+                    "back_pullover"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar latissimus_dorsi dentro del patrón vertical_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón vertical_pull y el objetivo latissimus_dorsi."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "pectoralis",
+                "triceps"
+              ],
+              "setupCues": [
+                "Configura la polea y adopta la posición específica de «Pull Over» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "cable",
+              "laterality": "unilateral"
+            }
+          },
+          {
+            "displaySummary": "machine · bilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_pullover",
+                "editorial:configuration:back_pullover__machine",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "pullover__bilateral__machine",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+              ],
+              "description": "Pull Over en máquina con recorrido bilateral: el brazo conserva la trayectoria guiada del brazo de la máquina. La estación fija el tronco y permite concentrarse en el dorsal sin equilibrio extra.",
+              "efc": 2.5,
+              "equipmentId": "machine",
+              "executionCues": [
+                "Ejecuta «Pull Over» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal extiende y aduce el brazo por encima de la cabeza en el recorrido; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Secundario: el pectoral mayor asiste la fase de descenso del brazo y comparte la tracción; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps estabiliza el codo durante el arco del pullover; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core fija el tronco al banco y evita el arqueo lumbar; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "pullover__machine__pullover",
+              "primaryMuscles": [
+                "latissimus_dorsi"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "vertical_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi"
+                  ],
+                  "secondaryMuscles": [
+                    "pectoralis",
+                    "triceps"
+                  ],
+                  "stabilizationDemand": "high",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "vertical_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Pull Over» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura la máquina y adopta la posición específica de «Pull Over» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Pull Over",
+                  "displaySummary": "machine · bilateral",
+                  "selectedOptions": {
+                    "implement": "machine",
+                    "laterality": "bilateral"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Pull Over",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "pullover__bilateral__machine",
+                  "definitionId": "pullover",
+                  "familyId": "upper_vertical_pull_pullover",
+                  "kind": "PARENT",
+                  "performanceProfileId": "pullover__machine__pullover",
+                  "searchTerms": [
+                    "pullover",
+                    "pull over",
+                    "back_pullover"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar latissimus_dorsi dentro del patrón vertical_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "machine"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón vertical_pull y el objetivo latissimus_dorsi."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "pectoralis",
+                "triceps"
+              ],
+              "setupCues": [
+                "Configura la máquina y adopta la posición específica de «Pull Over» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "machine",
+              "laterality": "bilateral"
+            }
+          },
+          {
+            "displaySummary": "machine · unilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_pullover",
+                "editorial:configuration:back_pullover__machine",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "pullover__unilateral__machine",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+              ],
+              "description": "Pull Over en máquina con recorrido unilateral: el brazo conserva la trayectoria guiada del brazo de la máquina. La estación fija el tronco y permite concentrarse en el dorsal sin equilibrio extra.",
+              "efc": 2.5,
+              "equipmentId": "machine",
+              "executionCues": [
+                "Ejecuta «Pull Over» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal extiende y aduce el brazo por encima de la cabeza en el recorrido; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Secundario: el pectoral mayor asiste la fase de descenso del brazo y comparte la tracción; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps estabiliza el codo durante el arco del pullover; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core fija el tronco al banco y evita el arqueo lumbar; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "pullover__machine__pullover",
+              "primaryMuscles": [
+                "latissimus_dorsi"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "vertical_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi"
+                  ],
+                  "secondaryMuscles": [
+                    "pectoralis",
+                    "triceps"
+                  ],
+                  "stabilizationDemand": "high",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "vertical_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Pull Over» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura la máquina y adopta la posición específica de «Pull Over» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Pull Over",
+                  "displaySummary": "machine · unilateral",
+                  "selectedOptions": {
+                    "implement": "machine",
+                    "laterality": "unilateral"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Pull Over",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "pullover__unilateral__machine",
+                  "definitionId": "pullover",
+                  "familyId": "upper_vertical_pull_pullover",
+                  "kind": "PARENT",
+                  "performanceProfileId": "pullover__machine__pullover",
+                  "searchTerms": [
+                    "pullover",
+                    "pull over",
+                    "back_pullover"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar latissimus_dorsi dentro del patrón vertical_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "machine"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón vertical_pull y el objetivo latissimus_dorsi."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "pectoralis",
+                "triceps"
+              ],
+              "setupCues": [
+                "Configura la máquina y adopta la posición específica de «Pull Over» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "machine",
+              "laterality": "unilateral"
+            }
+          }
+        ],
+        "defaultConfigurationId": "pullover__bilateral__cable",
+        "description": "Tirón vertical con el brazo que desciende por encima de la cabeza, con el dorsal como motor principal. La polea y la máquina definen la curva de tensión de cada variante.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:pullover"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_vertical_pull_pullover",
+        "id": "pullover",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement",
+          "laterality"
+        ],
+        "searchTerms": [
+          "pullover",
+          "pull over",
+          "back_pullover"
+        ]
+      }
+    ],
+    "description": "Familia de tirón vertical con el brazo por encima de la cabeza; el Pull Over de pie y el Pull Over en Banca son padres separados por su reparto muscular.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:upper_vertical_pull_pullover"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "upper_vertical_pull_pullover",
+    "taxonomy": [
+      "upper",
+      "vertical_pull",
+      "pullover"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

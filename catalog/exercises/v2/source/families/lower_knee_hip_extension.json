@@ -1,1 +1,253 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Glute-Ham Raise","definitions":[{"canonicalName":"Glute Ham Raise","configurations":[{"displaySummary":"ghd","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#hams_glute_ham_raise","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"glute_ham_raise__default","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"LOWER","cnc":2.2,"commonMistakes":["Caer de golpe en la fase excéntrica o extender la cadera antes de tiempo."],"description":"Glute Ham Raise en banco GHD: el patrón exige a los isquios frenar la extensión de rodilla y al glúteo extender la cadera, sin necesidad de opciones de carga.","efc":2.8,"equipmentId":"ghd","executionCues":["Baja extendiendo el cuerpo con control y vuelve arriba contrayendo isquios y glúteo."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"bodyweight","movementPatternId":"knee_hip_extension","muscleNotes":[{"muscleId":"hamstrings","note":"Principal: los isquiosurales controlan la extensión de rodilla de forma excéntrica y concentran el trabajo; por eso suman la serie completa (1.0)."},{"muscleId":"gluteus_maximus","note":"Secundario: el glúteo mayor extiende la cadera al llegar arriba del banco GHD; por eso suma 0.5."},{"muscleId":"erector_spinae","note":"Estabilizador: los erectores mantienen la columna neutra durante la extensión del tronco; por eso suman 0.4."}],"performanceProfileId":"glute_ham_raise","primaryMuscles":["hamstrings"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"body_angle","richMetadata":{"anatomy":{"jointActions":["knee_hip_extension"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["hamstrings"],"secondaryMuscles":["gluteus_maximus"],"stabilizationDemand":"moderate","stabilizerMuscles":["erector_spinae"],"targetRegions":["hamstrings"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"ghd","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"bodyweight","movementPatternId":"knee_hip_extension","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"body_angle","stability":"guided"},"coaching":{"commonMistakes":["Caer de golpe en la fase excéntrica o extender la cadera antes de tiempo."],"cues":["Mantén el equipo ghd alineado con el patrón y controla la fase excéntrica."],"execution":["Baja extendiendo el cuerpo con control y vuelve arriba contrayendo isquios y glúteo."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Ajusta el banco GHD con las rodillas al borde y los pies fijados."]},"display":{"displayName":"Glute Ham Raise","displaySummary":"ghd","selectedOptions":{}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.2,"efc":2.8,"ssc":0.5,"technicalDifficulty":5.2,"ttc":2.0},"identity":{"canonicalName":"Glute Ham Raise","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"glute_ham_raise__default","definitionId":"glute_ham_raise","familyId":"lower_knee_hip_extension","kind":"SPECIALTY","performanceProfileId":"glute_ham_raise","searchTerms":["glute ham raise","ghr","glute ham"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar hamstrings con el Glute Ham Raise en banco GHD."],"recoveryCost":"moderate","requiredEquipment":["ghd"],"role":"accessory_isolation","setupTransitionCost":"high","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["ghd"],"preservesIntent":["Conserva la extensión de rodilla excéntrica y el objetivo hamstrings."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":["La pérdida de la posición puede trasladar carga fuera del patrón knee_hip_extension."]}},"secondaryMuscles":["gluteus_maximus"],"setupCues":["Ajusta el banco GHD con las rodillas al borde y los pies fijados."],"ssc":0.5,"stabilizerMuscles":["erector_spinae"],"technicalDifficulty":5.2,"ttc":2.0},"selectedOptions":{}}],"defaultConfigurationId":"glute_ham_raise__default","description":"Glute-Ham Raise trabaja principalmente isquiosurales mediante un patrón de extensión rodilla / cadera. La participación secundaria corresponde a glúteos, erectores espinales.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:glute_ham_raise"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"lower_knee_hip_extension","id":"glute_ham_raise","kind":"SPECIALTY","optionAxes":[],"searchTerms":["glute ham raise","ghr","glute ham"]}],"description":"Familia GHD con carga externa opcional materializada; la variante lastrada no genera una tarjeta independiente.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:lower_knee_hip_extension"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"lower_knee_hip_extension","taxonomy":["lower","knee_hip_extension","glute_ham_raise"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Glute-Ham Raise",
+    "definitions": [
+      {
+        "canonicalName": "Glute Ham Raise",
+        "configurations": [
+          {
+            "displaySummary": "ghd",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#hams_glute_ham_raise",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "glute_ham_raise__default",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "cnc": 2.2,
+              "commonMistakes": [
+                "Caer de golpe en la fase excéntrica o extender la cadera antes de tiempo."
+              ],
+              "description": "Glute Ham Raise en banco GHD: el patrón exige a los isquios frenar la extensión de rodilla y al glúteo extender la cadera, sin necesidad de opciones de carga.",
+              "efc": 2.8,
+              "equipmentId": "ghd",
+              "executionCues": [
+                "Baja extendiendo el cuerpo con control y vuelve arriba contrayendo isquios y glúteo."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "bodyweight",
+              "movementPatternId": "knee_hip_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: los isquiosurales controlan la extensión de rodilla de forma excéntrica y concentran el trabajo; por eso suman la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: el glúteo mayor extiende la cadera al llegar arriba del banco GHD; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: los erectores mantienen la columna neutra durante la extensión del tronco; por eso suman 0.4."
+                }
+              ],
+              "performanceProfileId": "glute_ham_raise",
+              "primaryMuscles": [
+                "hamstrings"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "body_angle",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "knee_hip_extension"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "hamstrings"
+                  ],
+                  "secondaryMuscles": [
+                    "gluteus_maximus"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "erector_spinae"
+                  ],
+                  "targetRegions": [
+                    "hamstrings"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "ghd",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "knee_hip_extension",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "body_angle",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Caer de golpe en la fase excéntrica o extender la cadera antes de tiempo."
+                  ],
+                  "cues": [
+                    "Mantén el equipo ghd alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Baja extendiendo el cuerpo con control y vuelve arriba contrayendo isquios y glúteo."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Ajusta el banco GHD con las rodillas al borde y los pies fijados."
+                  ]
+                },
+                "display": {
+                  "displayName": "Glute Ham Raise",
+                  "displaySummary": "ghd",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 5.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Glute Ham Raise",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "glute_ham_raise__default",
+                  "definitionId": "glute_ham_raise",
+                  "familyId": "lower_knee_hip_extension",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "glute_ham_raise",
+                  "searchTerms": [
+                    "glute ham raise",
+                    "ghr",
+                    "glute ham"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar hamstrings con el Glute Ham Raise en banco GHD."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "ghd"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "ghd"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la extensión de rodilla excéntrica y el objetivo hamstrings."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": [
+                    "La pérdida de la posición puede trasladar carga fuera del patrón knee_hip_extension."
+                  ]
+                }
+              },
+              "secondaryMuscles": [
+                "gluteus_maximus"
+              ],
+              "setupCues": [
+                "Ajusta el banco GHD con las rodillas al borde y los pies fijados."
+              ],
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "erector_spinae"
+              ],
+              "technicalDifficulty": 5.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "glute_ham_raise__default",
+        "description": "Glute-Ham Raise trabaja principalmente isquiosurales mediante un patrón de extensión rodilla / cadera. La participación secundaria corresponde a glúteos, erectores espinales.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:glute_ham_raise"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "lower_knee_hip_extension",
+        "id": "glute_ham_raise",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "glute ham raise",
+          "ghr",
+          "glute ham"
+        ]
+      }
+    ],
+    "description": "Familia GHD con carga externa opcional materializada; la variante lastrada no genera una tarjeta independiente.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:lower_knee_hip_extension"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "lower_knee_hip_extension",
+    "taxonomy": [
+      "lower",
+      "knee_hip_extension",
+      "glute_ham_raise"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

@@ -1,1 +1,1050 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"JM press","definitions":[{"canonicalName":"JM Press","configurations":[{"displaySummary":"barbell","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#triceps_jm_press_barra_ez","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"jm_press__barbell","profile":{"automationEligible":true,"axialLoadFactor":0.3,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Separar los codos o usar el pecho en lugar del tríceps para empujar."],"description":"JM Press con barra recta: el recorrido corto de codo pegado al cuerpo aísla el tríceps con carga libre.","efc":2.2,"equipmentId":"barbell","executionCues":["Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."],"kineticChain":"FULL","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"elbow_extension","muscleNotes":[{"muscleId":"triceps","note":"Principal: el tríceps extiende el codo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."},{"muscleId":"pectoralis","note":"Secundario: el pectoral asiste la fase inicial del press cerca del pecho; por eso suma 0.5."}],"performanceProfileId":"jm_press__barbell","primaryMuscles":["triceps"],"replacementGroup":"triceps_niche","replacementPriority":999,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["elbow_extension"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["triceps"],"secondaryMuscles":["pectoralis"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["triceps"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"barbell","kineticChain":"FULL","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"elbow_extension","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Separar los codos o usar el pecho en lugar del tríceps para empujar."],"cues":["Mantén el equipo ez_bar alineado con el patrón y controla la fase excéntrica."],"execution":["Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Coloca la barra sobre el pecho con los codos apuntando hacia delante."]},"display":{"displayName":"JM Press","displaySummary":"barbell","selectedOptions":{"implement":"barbell"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.3,"cnc":1.8,"efc":2.2,"ssc":0.2,"technicalDifficulty":4.8,"ttc":1.6},"identity":{"canonicalName":"JM Press","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"jm_press__barbell","definitionId":"jm_press","familyId":"triceps_jm_press","kind":"PARENT","performanceProfileId":"jm_press__barbell","searchTerms":["jm press","press jm"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":90,"min":30},"objectives":["Desarrollar triceps con el patrón del JM Press."],"recoveryCost":"moderate","requiredEquipment":["barbell"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["barbell","ez_bar","dumbbells","smith_machine","cable"],"preservesIntent":["Conserva el patrón del JM Press y el objetivo triceps."],"replacementGroup":"triceps_niche","replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["pectoralis"],"setupCues":["Coloca la barra sobre el pecho con los codos apuntando hacia delante."],"ssc":0.2,"stabilizerMuscles":[],"technicalDifficulty":4.8,"ttc":1.6},"selectedOptions":{"implement":"barbell"}},{"displaySummary":"ez_bar","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#triceps_jm_press_barra_ez","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"jm_press__ez_bar","profile":{"automationEligible":true,"axialLoadFactor":0.3,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Separar los codos o usar el pecho en lugar del tríceps para empujar."],"description":"JM Press con barra EZ: el agarre angulado alivia las muñecas y mantiene el énfasis en el tríceps.","efc":2.2,"equipmentId":"ez_bar","executionCues":["Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."],"kineticChain":"FULL","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"elbow_extension","muscleNotes":[{"muscleId":"triceps","note":"Principal: el tríceps extiende el codo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."},{"muscleId":"pectoralis","note":"Secundario: el pectoral asiste la fase inicial del press cerca del pecho; por eso suma 0.5."}],"performanceProfileId":"jm_press__ez_bar","primaryMuscles":["triceps"],"replacementGroup":"triceps_niche","replacementPriority":999,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["elbow_extension"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["triceps"],"secondaryMuscles":["pectoralis"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["triceps"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"ez_bar","kineticChain":"FULL","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"elbow_extension","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Separar los codos o usar el pecho en lugar del tríceps para empujar."],"cues":["Mantén el equipo ez_bar alineado con el patrón y controla la fase excéntrica."],"execution":["Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Coloca la barra sobre el pecho con los codos apuntando hacia delante."]},"display":{"displayName":"JM Press","displaySummary":"ez_bar","selectedOptions":{"implement":"ez_bar"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.3,"cnc":1.8,"efc":2.2,"ssc":0.2,"technicalDifficulty":4.8,"ttc":1.6},"identity":{"canonicalName":"JM Press","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"jm_press__ez_bar","definitionId":"jm_press","familyId":"triceps_jm_press","kind":"PARENT","performanceProfileId":"jm_press__ez_bar","searchTerms":["jm press","press jm"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":90,"min":30},"objectives":["Desarrollar triceps con el patrón del JM Press."],"recoveryCost":"moderate","requiredEquipment":["ez_bar"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["barbell","ez_bar","dumbbells","smith_machine","cable"],"preservesIntent":["Conserva el patrón del JM Press y el objetivo triceps."],"replacementGroup":"triceps_niche","replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["pectoralis"],"setupCues":["Coloca la barra sobre el pecho con los codos apuntando hacia delante."],"ssc":0.2,"stabilizerMuscles":[],"technicalDifficulty":4.8,"ttc":1.6},"selectedOptions":{"implement":"ez_bar"}},{"displaySummary":"dumbbells","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#triceps_jm_press_barra_ez","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"jm_press__dumbbells","profile":{"automationEligible":true,"axialLoadFactor":0.3,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Separar los codos o usar el pecho en lugar del tríceps para empujar."],"description":"JM Press con mancuernas: cada brazo trabaja por separado y la carga se ajusta con precisión.","efc":2.2,"equipmentId":"dumbbells","executionCues":["Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."],"kineticChain":"FULL","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"elbow_extension","muscleNotes":[{"muscleId":"triceps","note":"Principal: el tríceps extiende el codo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."},{"muscleId":"pectoralis","note":"Secundario: el pectoral asiste la fase inicial del press cerca del pecho; por eso suma 0.5."}],"performanceProfileId":"jm_press__dumbbells","primaryMuscles":["triceps"],"replacementGroup":"triceps_niche","replacementPriority":999,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["elbow_extension"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["triceps"],"secondaryMuscles":["pectoralis"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["triceps"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"dumbbells","kineticChain":"FULL","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"elbow_extension","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Separar los codos o usar el pecho en lugar del tríceps para empujar."],"cues":["Mantén el equipo ez_bar alineado con el patrón y controla la fase excéntrica."],"execution":["Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Coloca la barra sobre el pecho con los codos apuntando hacia delante."]},"display":{"displayName":"JM Press","displaySummary":"dumbbells","selectedOptions":{"implement":"dumbbells"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.3,"cnc":1.8,"efc":2.2,"ssc":0.2,"technicalDifficulty":4.8,"ttc":1.6},"identity":{"canonicalName":"JM Press","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"jm_press__dumbbells","definitionId":"jm_press","familyId":"triceps_jm_press","kind":"PARENT","performanceProfileId":"jm_press__dumbbells","searchTerms":["jm press","press jm"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":90,"min":30},"objectives":["Desarrollar triceps con el patrón del JM Press."],"recoveryCost":"moderate","requiredEquipment":["dumbbells"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["barbell","ez_bar","dumbbells","smith_machine","cable"],"preservesIntent":["Conserva el patrón del JM Press y el objetivo triceps."],"replacementGroup":"triceps_niche","replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["pectoralis"],"setupCues":["Coloca la barra sobre el pecho con los codos apuntando hacia delante."],"ssc":0.2,"stabilizerMuscles":[],"technicalDifficulty":4.8,"ttc":1.6},"selectedOptions":{"implement":"dumbbells"}},{"displaySummary":"smith_machine","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#triceps_jm_press_barra_ez","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"jm_press__smith_machine","profile":{"automationEligible":true,"axialLoadFactor":0.3,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Separar los codos o usar el pecho en lugar del tríceps para empujar."],"description":"JM Press en máquina Smith: el recorrido guiado elimina el equilibrio y permite concentrarse en el tríceps.","efc":2.2,"equipmentId":"smith_machine","executionCues":["Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."],"kineticChain":"FULL","laterality":"NOT_APPLICABLE","loadMode":"guided_external_load","movementPatternId":"elbow_extension","muscleNotes":[{"muscleId":"triceps","note":"Principal: el tríceps extiende el codo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."},{"muscleId":"pectoralis","note":"Secundario: el pectoral asiste la fase inicial del press cerca del pecho; por eso suma 0.5."}],"performanceProfileId":"jm_press__smith_machine","primaryMuscles":["triceps"],"replacementGroup":"triceps_niche","replacementPriority":999,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["elbow_extension"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["triceps"],"secondaryMuscles":["pectoralis"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["triceps"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"smith_machine","kineticChain":"FULL","laterality":"NOT_APPLICABLE","loadMode":"guided_external_load","movementPatternId":"elbow_extension","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"guided_constant","stability":"self_stabilized"},"coaching":{"commonMistakes":["Separar los codos o usar el pecho en lugar del tríceps para empujar."],"cues":["Mantén el equipo ez_bar alineado con el patrón y controla la fase excéntrica."],"execution":["Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Coloca la barra sobre el pecho con los codos apuntando hacia delante."]},"display":{"displayName":"JM Press","displaySummary":"smith_machine","selectedOptions":{"implement":"smith_machine"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.3,"cnc":1.8,"efc":2.2,"ssc":0.2,"technicalDifficulty":4.8,"ttc":1.6},"identity":{"canonicalName":"JM Press","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"jm_press__smith_machine","definitionId":"jm_press","familyId":"triceps_jm_press","kind":"PARENT","performanceProfileId":"jm_press__smith_machine","searchTerms":["jm press","press jm"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":90,"min":30},"objectives":["Desarrollar triceps con el patrón del JM Press."],"recoveryCost":"moderate","requiredEquipment":["smith_machine"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["barbell","ez_bar","dumbbells","smith_machine","cable"],"preservesIntent":["Conserva el patrón del JM Press y el objetivo triceps."],"replacementGroup":"triceps_niche","replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["pectoralis"],"setupCues":["Coloca la barra sobre el pecho con los codos apuntando hacia delante."],"ssc":0.2,"stabilizerMuscles":[],"technicalDifficulty":4.8,"ttc":1.6},"selectedOptions":{"implement":"smith_machine"}},{"displaySummary":"cable","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#triceps_jm_press_barra_ez","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"jm_press__cable","profile":{"automationEligible":true,"axialLoadFactor":0.3,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Separar los codos o usar el pecho en lugar del tríceps para empujar."],"description":"JM Press en polea: la tensión continua mantiene el tríceps activo a lo largo del recorrido del press corto.","efc":2.2,"equipmentId":"cable","executionCues":["Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."],"kineticChain":"FULL","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"elbow_extension","muscleNotes":[{"muscleId":"triceps","note":"Principal: el tríceps extiende el codo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."},{"muscleId":"pectoralis","note":"Secundario: el pectoral asiste la fase inicial del press cerca del pecho; por eso suma 0.5."}],"performanceProfileId":"jm_press__cable","primaryMuscles":["triceps"],"replacementGroup":"triceps_niche","replacementPriority":999,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["elbow_extension"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["triceps"],"secondaryMuscles":["pectoralis"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["triceps"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"cable","kineticChain":"FULL","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"elbow_extension","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Separar los codos o usar el pecho en lugar del tríceps para empujar."],"cues":["Mantén el equipo ez_bar alineado con el patrón y controla la fase excéntrica."],"execution":["Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Coloca la barra sobre el pecho con los codos apuntando hacia delante."]},"display":{"displayName":"JM Press","displaySummary":"cable","selectedOptions":{"implement":"cable"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.3,"cnc":1.8,"efc":2.2,"ssc":0.2,"technicalDifficulty":4.8,"ttc":1.6},"identity":{"canonicalName":"JM Press","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"jm_press__cable","definitionId":"jm_press","familyId":"triceps_jm_press","kind":"PARENT","performanceProfileId":"jm_press__cable","searchTerms":["jm press","press jm"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":90,"min":30},"objectives":["Desarrollar triceps con el patrón del JM Press."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["barbell","ez_bar","dumbbells","smith_machine","cable"],"preservesIntent":["Conserva el patrón del JM Press y el objetivo triceps."],"replacementGroup":"triceps_niche","replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["pectoralis"],"setupCues":["Coloca la barra sobre el pecho con los codos apuntando hacia delante."],"ssc":0.2,"stabilizerMuscles":[],"technicalDifficulty":4.8,"ttc":1.6},"selectedOptions":{"implement":"cable"}}],"defaultConfigurationId":"jm_press__ez_bar","description":"JM press trabaja principalmente tríceps mediante un patrón de extensión codo. La participación secundaria corresponde a pectorales, deltoides.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:jm_press"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"triceps_jm_press","id":"jm_press","kind":"PARENT","optionAxes":["implement"],"searchTerms":["jm press","press jm"]}],"description":"Familia de extensión de codo JM; las configuraciones válidas cambian el implemento sin crear combinaciones implícitas.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:triceps_jm_press"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"triceps_jm_press","taxonomy":["upper","elbow_extension","jm_press"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "JM press",
+    "definitions": [
+      {
+        "canonicalName": "JM Press",
+        "configurations": [
+          {
+            "displaySummary": "barbell",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#triceps_jm_press_barra_ez",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "jm_press__barbell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.3,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Separar los codos o usar el pecho en lugar del tríceps para empujar."
+              ],
+              "description": "JM Press con barra recta: el recorrido corto de codo pegado al cuerpo aísla el tríceps con carga libre.",
+              "efc": 2.2,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."
+              ],
+              "kineticChain": "FULL",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: el tríceps extiende el codo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Secundario: el pectoral asiste la fase inicial del press cerca del pecho; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "jm_press__barbell",
+              "primaryMuscles": [
+                "triceps"
+              ],
+              "replacementGroup": "triceps_niche",
+              "replacementPriority": 999,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "elbow_extension"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "triceps"
+                  ],
+                  "secondaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "triceps"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "FULL",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "elbow_extension",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Separar los codos o usar el pecho en lugar del tríceps para empujar."
+                  ],
+                  "cues": [
+                    "Mantén el equipo ez_bar alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Coloca la barra sobre el pecho con los codos apuntando hacia delante."
+                  ]
+                },
+                "display": {
+                  "displayName": "JM Press",
+                  "displaySummary": "barbell",
+                  "selectedOptions": {
+                    "implement": "barbell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.3,
+                  "cnc": 1.8,
+                  "efc": 2.2,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 4.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "JM Press",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "jm_press__barbell",
+                  "definitionId": "jm_press",
+                  "familyId": "triceps_jm_press",
+                  "kind": "PARENT",
+                  "performanceProfileId": "jm_press__barbell",
+                  "searchTerms": [
+                    "jm press",
+                    "press jm"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar triceps con el patrón del JM Press."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell",
+                    "ez_bar",
+                    "dumbbells",
+                    "smith_machine",
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón del JM Press y el objetivo triceps."
+                  ],
+                  "replacementGroup": "triceps_niche",
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "pectoralis"
+              ],
+              "setupCues": [
+                "Coloca la barra sobre el pecho con los codos apuntando hacia delante."
+              ],
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "barbell"
+            }
+          },
+          {
+            "displaySummary": "ez_bar",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#triceps_jm_press_barra_ez",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "jm_press__ez_bar",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.3,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Separar los codos o usar el pecho en lugar del tríceps para empujar."
+              ],
+              "description": "JM Press con barra EZ: el agarre angulado alivia las muñecas y mantiene el énfasis en el tríceps.",
+              "efc": 2.2,
+              "equipmentId": "ez_bar",
+              "executionCues": [
+                "Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."
+              ],
+              "kineticChain": "FULL",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: el tríceps extiende el codo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Secundario: el pectoral asiste la fase inicial del press cerca del pecho; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "jm_press__ez_bar",
+              "primaryMuscles": [
+                "triceps"
+              ],
+              "replacementGroup": "triceps_niche",
+              "replacementPriority": 999,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "elbow_extension"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "triceps"
+                  ],
+                  "secondaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "triceps"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "ez_bar",
+                  "kineticChain": "FULL",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "elbow_extension",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Separar los codos o usar el pecho en lugar del tríceps para empujar."
+                  ],
+                  "cues": [
+                    "Mantén el equipo ez_bar alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Coloca la barra sobre el pecho con los codos apuntando hacia delante."
+                  ]
+                },
+                "display": {
+                  "displayName": "JM Press",
+                  "displaySummary": "ez_bar",
+                  "selectedOptions": {
+                    "implement": "ez_bar"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.3,
+                  "cnc": 1.8,
+                  "efc": 2.2,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 4.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "JM Press",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "jm_press__ez_bar",
+                  "definitionId": "jm_press",
+                  "familyId": "triceps_jm_press",
+                  "kind": "PARENT",
+                  "performanceProfileId": "jm_press__ez_bar",
+                  "searchTerms": [
+                    "jm press",
+                    "press jm"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar triceps con el patrón del JM Press."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "ez_bar"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell",
+                    "ez_bar",
+                    "dumbbells",
+                    "smith_machine",
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón del JM Press y el objetivo triceps."
+                  ],
+                  "replacementGroup": "triceps_niche",
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "pectoralis"
+              ],
+              "setupCues": [
+                "Coloca la barra sobre el pecho con los codos apuntando hacia delante."
+              ],
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "ez_bar"
+            }
+          },
+          {
+            "displaySummary": "dumbbells",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#triceps_jm_press_barra_ez",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "jm_press__dumbbells",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.3,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Separar los codos o usar el pecho en lugar del tríceps para empujar."
+              ],
+              "description": "JM Press con mancuernas: cada brazo trabaja por separado y la carga se ajusta con precisión.",
+              "efc": 2.2,
+              "equipmentId": "dumbbells",
+              "executionCues": [
+                "Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."
+              ],
+              "kineticChain": "FULL",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: el tríceps extiende el codo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Secundario: el pectoral asiste la fase inicial del press cerca del pecho; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "jm_press__dumbbells",
+              "primaryMuscles": [
+                "triceps"
+              ],
+              "replacementGroup": "triceps_niche",
+              "replacementPriority": 999,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "elbow_extension"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "triceps"
+                  ],
+                  "secondaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "triceps"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "dumbbells",
+                  "kineticChain": "FULL",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "elbow_extension",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Separar los codos o usar el pecho en lugar del tríceps para empujar."
+                  ],
+                  "cues": [
+                    "Mantén el equipo ez_bar alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Coloca la barra sobre el pecho con los codos apuntando hacia delante."
+                  ]
+                },
+                "display": {
+                  "displayName": "JM Press",
+                  "displaySummary": "dumbbells",
+                  "selectedOptions": {
+                    "implement": "dumbbells"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.3,
+                  "cnc": 1.8,
+                  "efc": 2.2,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 4.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "JM Press",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "jm_press__dumbbells",
+                  "definitionId": "jm_press",
+                  "familyId": "triceps_jm_press",
+                  "kind": "PARENT",
+                  "performanceProfileId": "jm_press__dumbbells",
+                  "searchTerms": [
+                    "jm press",
+                    "press jm"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar triceps con el patrón del JM Press."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "dumbbells"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell",
+                    "ez_bar",
+                    "dumbbells",
+                    "smith_machine",
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón del JM Press y el objetivo triceps."
+                  ],
+                  "replacementGroup": "triceps_niche",
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "pectoralis"
+              ],
+              "setupCues": [
+                "Coloca la barra sobre el pecho con los codos apuntando hacia delante."
+              ],
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "dumbbells"
+            }
+          },
+          {
+            "displaySummary": "smith_machine",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#triceps_jm_press_barra_ez",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "jm_press__smith_machine",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.3,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Separar los codos o usar el pecho en lugar del tríceps para empujar."
+              ],
+              "description": "JM Press en máquina Smith: el recorrido guiado elimina el equilibrio y permite concentrarse en el tríceps.",
+              "efc": 2.2,
+              "equipmentId": "smith_machine",
+              "executionCues": [
+                "Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."
+              ],
+              "kineticChain": "FULL",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: el tríceps extiende el codo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Secundario: el pectoral asiste la fase inicial del press cerca del pecho; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "jm_press__smith_machine",
+              "primaryMuscles": [
+                "triceps"
+              ],
+              "replacementGroup": "triceps_niche",
+              "replacementPriority": 999,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "elbow_extension"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "triceps"
+                  ],
+                  "secondaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "triceps"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "smith_machine",
+                  "kineticChain": "FULL",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "elbow_extension",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Separar los codos o usar el pecho en lugar del tríceps para empujar."
+                  ],
+                  "cues": [
+                    "Mantén el equipo ez_bar alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Coloca la barra sobre el pecho con los codos apuntando hacia delante."
+                  ]
+                },
+                "display": {
+                  "displayName": "JM Press",
+                  "displaySummary": "smith_machine",
+                  "selectedOptions": {
+                    "implement": "smith_machine"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.3,
+                  "cnc": 1.8,
+                  "efc": 2.2,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 4.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "JM Press",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "jm_press__smith_machine",
+                  "definitionId": "jm_press",
+                  "familyId": "triceps_jm_press",
+                  "kind": "PARENT",
+                  "performanceProfileId": "jm_press__smith_machine",
+                  "searchTerms": [
+                    "jm press",
+                    "press jm"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar triceps con el patrón del JM Press."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "smith_machine"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell",
+                    "ez_bar",
+                    "dumbbells",
+                    "smith_machine",
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón del JM Press y el objetivo triceps."
+                  ],
+                  "replacementGroup": "triceps_niche",
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "pectoralis"
+              ],
+              "setupCues": [
+                "Coloca la barra sobre el pecho con los codos apuntando hacia delante."
+              ],
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "smith_machine"
+            }
+          },
+          {
+            "displaySummary": "cable",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#triceps_jm_press_barra_ez",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "jm_press__cable",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.3,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Separar los codos o usar el pecho en lugar del tríceps para empujar."
+              ],
+              "description": "JM Press en polea: la tensión continua mantiene el tríceps activo a lo largo del recorrido del press corto.",
+              "efc": 2.2,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."
+              ],
+              "kineticChain": "FULL",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: el tríceps extiende el codo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Secundario: el pectoral asiste la fase inicial del press cerca del pecho; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "jm_press__cable",
+              "primaryMuscles": [
+                "triceps"
+              ],
+              "replacementGroup": "triceps_niche",
+              "replacementPriority": 999,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "elbow_extension"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "triceps"
+                  ],
+                  "secondaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "triceps"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "cable",
+                  "kineticChain": "FULL",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "elbow_extension",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Separar los codos o usar el pecho en lugar del tríceps para empujar."
+                  ],
+                  "cues": [
+                    "Mantén el equipo ez_bar alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Coloca la barra sobre el pecho con los codos apuntando hacia delante."
+                  ]
+                },
+                "display": {
+                  "displayName": "JM Press",
+                  "displaySummary": "cable",
+                  "selectedOptions": {
+                    "implement": "cable"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.3,
+                  "cnc": 1.8,
+                  "efc": 2.2,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 4.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "JM Press",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "jm_press__cable",
+                  "definitionId": "jm_press",
+                  "familyId": "triceps_jm_press",
+                  "kind": "PARENT",
+                  "performanceProfileId": "jm_press__cable",
+                  "searchTerms": [
+                    "jm press",
+                    "press jm"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar triceps con el patrón del JM Press."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell",
+                    "ez_bar",
+                    "dumbbells",
+                    "smith_machine",
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón del JM Press y el objetivo triceps."
+                  ],
+                  "replacementGroup": "triceps_niche",
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "pectoralis"
+              ],
+              "setupCues": [
+                "Coloca la barra sobre el pecho con los codos apuntando hacia delante."
+              ],
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "cable"
+            }
+          }
+        ],
+        "defaultConfigurationId": "jm_press__ez_bar",
+        "description": "JM press trabaja principalmente tríceps mediante un patrón de extensión codo. La participación secundaria corresponde a pectorales, deltoides.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:jm_press"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "triceps_jm_press",
+        "id": "jm_press",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement"
+        ],
+        "searchTerms": [
+          "jm press",
+          "press jm"
+        ]
+      }
+    ],
+    "description": "Familia de extensión de codo JM; las configuraciones válidas cambian el implemento sin crear combinaciones implícitas.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:triceps_jm_press"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "triceps_jm_press",
+    "taxonomy": [
+      "upper",
+      "elbow_extension",
+      "jm_press"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

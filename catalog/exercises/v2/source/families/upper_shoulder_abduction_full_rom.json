@@ -1,1 +1,240 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Tren superior · deltoid · shoulder abduction full rom","definitions":[{"canonicalName":"LU-Raises","configurations":[{"displaySummary":"Mancuerna","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_lu_raises","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"deltoides_lu_raises__default","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón abducción completa para completar la repetición."],"description":"LU-Raises trabaja principalmente deltoides mediante un patrón de abducción completa. La participación secundaria corresponde a trapecio. La configuración utiliza mancuernas como implemento.","efc":2.5,"equipmentId":"dumbbells","executionCues":["Ejecuta «LU-Raises» siguiendo el patrón abducción completa con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"shoulder_abduction_full_rom","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides mueve el brazo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio asiste el movimiento escapular y la postura del hombro; por eso suma 0.5."}],"performanceProfileId":"deltoides_lu_raises__dumbbells__lu_raises","primaryMuscles":["deltoid"],"replacementGroup":null,"replacementPriority":999,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["shoulder_abduction_full_rom"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["trapezius"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"dumbbells","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"shoulder_abduction_full_rom","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón abducción completa para completar la repetición."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «LU-Raises» siguiendo el patrón abducción completa con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura mancuerna y adopta la posición específica de «LU-Raises» antes de iniciar; conserva una base estable."]},"display":{"displayName":"LU-Raises","displaySummary":"Mancuerna","selectedOptions":{}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":3.8,"ttc":1.6},"identity":{"canonicalName":"LU-Raises","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"deltoides_lu_raises__default","definitionId":"deltoides_lu_raises","familyId":"upper_shoulder_abduction_full_rom","kind":"SPECIALTY","performanceProfileId":"deltoides_lu_raises__dumbbells__lu_raises","searchTerms":["deltoides lu raises","lu-raises"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar deltoid dentro del patrón shoulder_abduction_full_rom.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["dumbbells"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells"],"preservesIntent":["Conserva el patrón shoulder_abduction_full_rom y el objetivo deltoid."],"replacementGroup":null,"replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["trapezius"],"setupCues":["Configura mancuerna y adopta la posición específica de «LU-Raises» antes de iniciar; conserva una base estable."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":3.8,"ttc":1.6},"selectedOptions":{}}],"defaultConfigurationId":"deltoides_lu_raises__default","description":"LU-Raises trabaja principalmente deltoides mediante un patrón de abducción completa. La participación secundaria corresponde a trapecio.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:deltoides_lu_raises"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"upper_shoulder_abduction_full_rom","id":"deltoides_lu_raises","kind":"SPECIALTY","optionAxes":[],"searchTerms":["deltoides lu raises","lu-raises"]}],"description":"Familia controlada por patrón shoulder_abduction_full_rom; cada especialidad conserva su perfil resuelto.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:upper_shoulder_abduction_full_rom"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"upper_shoulder_abduction_full_rom","taxonomy":["upper","shoulder_abduction_full_rom"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Tren superior · deltoid · shoulder abduction full rom",
+    "definitions": [
+      {
+        "canonicalName": "LU-Raises",
+        "configurations": [
+          {
+            "displaySummary": "Mancuerna",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_lu_raises",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "deltoides_lu_raises__default",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón abducción completa para completar la repetición."
+              ],
+              "description": "LU-Raises trabaja principalmente deltoides mediante un patrón de abducción completa. La participación secundaria corresponde a trapecio. La configuración utiliza mancuernas como implemento.",
+              "efc": 2.5,
+              "equipmentId": "dumbbells",
+              "executionCues": [
+                "Ejecuta «LU-Raises» siguiendo el patrón abducción completa con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "shoulder_abduction_full_rom",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides mueve el brazo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio asiste el movimiento escapular y la postura del hombro; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "deltoides_lu_raises__dumbbells__lu_raises",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "shoulder_abduction_full_rom"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "dumbbells",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "shoulder_abduction_full_rom",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón abducción completa para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «LU-Raises» siguiendo el patrón abducción completa con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura mancuerna y adopta la posición específica de «LU-Raises» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "LU-Raises",
+                  "displaySummary": "Mancuerna",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 3.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "LU-Raises",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "deltoides_lu_raises__default",
+                  "definitionId": "deltoides_lu_raises",
+                  "familyId": "upper_shoulder_abduction_full_rom",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "deltoides_lu_raises__dumbbells__lu_raises",
+                  "searchTerms": [
+                    "deltoides lu raises",
+                    "lu-raises"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar deltoid dentro del patrón shoulder_abduction_full_rom.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "dumbbells"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón shoulder_abduction_full_rom y el objetivo deltoid."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius"
+              ],
+              "setupCues": [
+                "Configura mancuerna y adopta la posición específica de «LU-Raises» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "deltoides_lu_raises__default",
+        "description": "LU-Raises trabaja principalmente deltoides mediante un patrón de abducción completa. La participación secundaria corresponde a trapecio.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:deltoides_lu_raises"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_shoulder_abduction_full_rom",
+        "id": "deltoides_lu_raises",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "deltoides lu raises",
+          "lu-raises"
+        ]
+      }
+    ],
+    "description": "Familia controlada por patrón shoulder_abduction_full_rom; cada especialidad conserva su perfil resuelto.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:upper_shoulder_abduction_full_rom"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "upper_shoulder_abduction_full_rom",
+    "taxonomy": [
+      "upper",
+      "shoulder_abduction_full_rom"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

@@ -473,92 +473,107 @@ private fun ColumnScope.CatalogReadyContent(
                                 fontWeight = FontWeight.Bold,
                                 style = MaterialTheme.typography.labelLarge,
                             )
-                            compatibility.axes.forEachIndexed { axisIndex, axis ->
-                                val visibleOptions = axis.options
+                            val axesWithOptions = compatibility.axes.map { axis ->
+                                axis to axis.options
                                     .filter { it.enabled || effectiveSelectedOptions[axis.axis] == it.value }
-                                val compact = visibleOptions.size <= 4
-                                Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                                    if (compact) {
+                            }
+                            val totalChips = axesWithOptions.sumOf { it.second.size }
+                            val compactAxes = totalChips <= 7 && axesWithOptions.size > 1
+                            val selectOption: (axis: String, value: String) -> Unit = { axis, value ->
+                                val newDraft = draftAfterAxisSelection(
+                                    definition = definition,
+                                    selectedOptions = selectedOptions,
+                                    axis = axis,
+                                    value = value,
+                                )
+                                draftByDefinition.value = draftByDefinition.value + (definition.id to newDraft)
+                                if (!editingExisting && isSelected) {
+                                    val newConfigurationId = repository.compatibility(definition.id, newDraft).exactConfigurationId
+                                    newConfigurationId?.let { exactInfo(catalog, definition, it) }?.let { info ->
+                                        val next = selectedRows.value + (definition.id to info)
+                                        selectedRows.value = next
+                                        onSelectionChange(next.values.toList())
+                                    }
+                                }
+                            }
+                            if (compactAxes) {
+                                FlowRow(
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                                ) {
+                                    axesWithOptions.forEach { (axis, visibleOptions) ->
                                         Row(
-                                            modifier = Modifier.fillMaxWidth(),
                                             verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp),
                                         ) {
+                                            Text(
+                                                "${exerciseCatalogAxisLabel(axis.axis, definition.id)}:",
+                                                color = Color.White.copy(alpha = 0.72f),
+                                                style = MaterialTheme.typography.labelSmall,
+                                            )
+                                            visibleOptions.forEach { option ->
+                                                AxisChip(
+                                                    value = option.value,
+                                                    definitionId = definition.id,
+                                                    selected = effectiveSelectedOptions[axis.axis] == option.value,
+                                                    enabled = option.enabled,
+                                                    onClick = { selectOption(axis.axis, option.value) },
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                axesWithOptions.forEachIndexed { axisIndex, (axis, visibleOptions) ->
+                                    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                                        if (visibleOptions.size <= 4) {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            ) {
+                                                Text(
+                                                    "${axisIndex + 1}. ${exerciseCatalogAxisLabel(axis.axis, definition.id)}",
+                                                    color = Color.White.copy(alpha = 0.72f),
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    modifier = Modifier.widthIn(min = 96.dp),
+                                                )
+                                                FlowRow(
+                                                    modifier = Modifier.weight(1f),
+                                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                                                    maxLines = 1,
+                                                ) {
+                                                    visibleOptions.forEach { option ->
+                                                        AxisChip(
+                                                            value = option.value,
+                                                            definitionId = definition.id,
+                                                            selected = effectiveSelectedOptions[axis.axis] == option.value,
+                                                            enabled = option.enabled,
+                                                            onClick = { selectOption(axis.axis, option.value) },
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        } else {
                                             Text(
                                                 "${axisIndex + 1}. ${exerciseCatalogAxisLabel(axis.axis, definition.id)}",
                                                 color = Color.White.copy(alpha = 0.72f),
                                                 style = MaterialTheme.typography.labelSmall,
-                                                modifier = Modifier.widthIn(min = 96.dp),
                                             )
                                             FlowRow(
-                                                modifier = Modifier.weight(1f),
                                                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                                                 verticalArrangement = Arrangement.spacedBy(6.dp),
-                                                maxLines = 1,
                                             ) {
                                                 visibleOptions.forEach { option ->
-                                                    val optionSelected = effectiveSelectedOptions[axis.axis] == option.value
                                                     AxisChip(
                                                         value = option.value,
                                                         definitionId = definition.id,
-                                                        selected = optionSelected,
+                                                        selected = effectiveSelectedOptions[axis.axis] == option.value,
                                                         enabled = option.enabled,
-                                                        onClick = {
-                                                            val newDraft = draftAfterAxisSelection(
-                                                                definition = definition,
-                                                                selectedOptions = selectedOptions,
-                                                                axis = axis.axis,
-                                                                value = option.value,
-                                                            )
-                                                            draftByDefinition.value = draftByDefinition.value + (definition.id to newDraft)
-                                                            if (!editingExisting && isSelected) {
-                                                                val newConfigurationId = repository.compatibility(definition.id, newDraft).exactConfigurationId
-                                                                newConfigurationId?.let { exactInfo(catalog, definition, it) }?.let { info ->
-                                                                    val next = selectedRows.value + (definition.id to info)
-                                                                    selectedRows.value = next
-                                                                    onSelectionChange(next.values.toList())
-                                                                }
-                                                            }
-                                                        },
+                                                        onClick = { selectOption(axis.axis, option.value) },
                                                     )
                                                 }
-                                            }
-                                        }
-                                    } else {
-                                        Text(
-                                            "${axisIndex + 1}. ${exerciseCatalogAxisLabel(axis.axis, definition.id)}",
-                                            color = Color.White.copy(alpha = 0.72f),
-                                            style = MaterialTheme.typography.labelSmall,
-                                        )
-                                        FlowRow(
-                                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                            verticalArrangement = Arrangement.spacedBy(6.dp),
-                                        ) {
-                                            visibleOptions.forEach { option ->
-                                                val optionSelected = effectiveSelectedOptions[axis.axis] == option.value
-                                                AxisChip(
-                                                    value = option.value,
-                                                    definitionId = definition.id,
-                                                    selected = optionSelected,
-                                                    enabled = option.enabled,
-                                                    onClick = {
-                                                        val newDraft = draftAfterAxisSelection(
-                                                            definition = definition,
-                                                            selectedOptions = selectedOptions,
-                                                            axis = axis.axis,
-                                                            value = option.value,
-                                                        )
-                                                        draftByDefinition.value = draftByDefinition.value + (definition.id to newDraft)
-                                                        if (!editingExisting && isSelected) {
-                                                            val newConfigurationId = repository.compatibility(definition.id, newDraft).exactConfigurationId
-                                                            newConfigurationId?.let { exactInfo(catalog, definition, it) }?.let { info ->
-                                                                val next = selectedRows.value + (definition.id to info)
-                                                                selectedRows.value = next
-                                                                onSelectionChange(next.values.toList())
-                                                            }
-                                                        }
-                                                    },
-                                                )
                                             }
                                         }
                                     }
@@ -572,12 +587,6 @@ private fun ColumnScope.CatalogReadyContent(
                             color = if (effectiveConfiguration != null) Color.White else Color(0xFFFFC857),
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.SemiBold,
-                        )
-
-                        CatalogDescription(
-                            definition = definition,
-                            configuration = effectiveConfiguration,
-                            catalog = catalog,
                         )
                     }
                 }

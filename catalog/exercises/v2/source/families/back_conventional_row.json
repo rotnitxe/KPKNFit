@@ -1,1 +1,1459 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Remo Convencional","definitions":[{"canonicalName":"Remo Convencional","configurations":[{"displaySummary":"barbell","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_remo_barra","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"conventional_row__barbell","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"description":"Remo convencional con barra: el tronco se inclina con la espalda neutra y la barra sube hacia el abdomen. Es la versión de referencia para cargar el dorsal y el trapecio con progresión de peso.","efc":2.5,"equipmentId":"barbell","executionCues":["Ejecuta «Remo Convencional» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"horizontal_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."},{"muscleId":"biceps","note":"Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."},{"muscleId":"deltoid","note":"Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."},{"muscleId":"erector_spinae","note":"Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."},{"muscleId":"core","note":"Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."}],"performanceProfileId":"conventional_row__barbell__remo_convencional","primaryMuscles":["latissimus_dorsi","trapezius"],"replacementGroup":"back_row_barbell","replacementPriority":1,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["horizontal_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi","trapezius"],"secondaryMuscles":["biceps","rhomboids","deltoid"],"stabilizationDemand":"moderate","stabilizerMuscles":["erector_spinae","core"],"targetRegions":["latissimus_dorsi"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"barbell","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"horizontal_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Remo Convencional» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura barra y adopta la posición específica de «Remo Convencional» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Remo Convencional","displaySummary":"barbell","selectedOptions":{"implement":"barbell"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Remo Convencional","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"conventional_row__barbell","definitionId":"conventional_row","familyId":"back_conventional_row","kind":"PARENT","performanceProfileId":"conventional_row__barbell__remo_convencional","searchTerms":["remo convencional","remo con barra","remo","back_remo_barra","back_remo_polea","back_remo_maquina","back_remo_smith"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar trapezius dentro del patrón horizontal_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["barbell"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["barbell"],"preservesIntent":["Conserva el patrón horizontal_pull y el objetivo trapezius."],"replacementGroup":"back_row_barbell","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["biceps","rhomboids","deltoid"],"setupCues":["Configura barra y adopta la posición específica de «Remo Convencional» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":["erector_spinae","core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"barbell"}},{"displaySummary":"dumbbells","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_remo_barra","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"conventional_row__dumbbells","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"description":"Remo convencional con mancuernas: cada brazo tracciona de forma independiente y el recorrido se adapta a la movilidad del hombro. Ayuda a igualar asimetrías entre los dos lados de la espalda.","efc":2.5,"equipmentId":"dumbbells","executionCues":["Ejecuta «Remo Convencional» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"horizontal_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."},{"muscleId":"biceps","note":"Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."},{"muscleId":"deltoid","note":"Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."},{"muscleId":"erector_spinae","note":"Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."},{"muscleId":"core","note":"Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."}],"performanceProfileId":"conventional_row__dumbbells__remo_convencional","primaryMuscles":["latissimus_dorsi","trapezius"],"replacementGroup":"back_row_barbell","replacementPriority":1,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["horizontal_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi","trapezius"],"secondaryMuscles":["biceps","rhomboids","deltoid"],"stabilizationDemand":"moderate","stabilizerMuscles":["erector_spinae","core"],"targetRegions":["latissimus_dorsi"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"dumbbells","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"horizontal_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Remo Convencional» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura mancuernas y adopta la posición específica de «Remo Convencional» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Remo Convencional","displaySummary":"dumbbells","selectedOptions":{"implement":"dumbbells"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Remo Convencional","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"conventional_row__dumbbells","definitionId":"conventional_row","familyId":"back_conventional_row","kind":"PARENT","performanceProfileId":"conventional_row__dumbbells__remo_convencional","searchTerms":["remo convencional","remo con barra","remo","back_remo_barra","back_remo_polea","back_remo_maquina","back_remo_smith"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar trapezius dentro del patrón horizontal_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["dumbbells"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells"],"preservesIntent":["Conserva el patrón horizontal_pull y el objetivo trapezius."],"replacementGroup":"back_row_barbell","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["biceps","rhomboids","deltoid"],"setupCues":["Configura mancuernas y adopta la posición específica de «Remo Convencional» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":["erector_spinae","core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"dumbbells"}},{"displaySummary":"machine","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_remo_barra","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"conventional_row__machine","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"description":"Remo convencional en máquina: el pecho se apoya en el cojín y los brazos tiran hacia el tronco con recorrido guiado. Opción estable para aislar la espalda sin exigir equilibrio del tronco.","efc":2.5,"equipmentId":"machine","executionCues":["Ejecuta «Remo Convencional» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"horizontal_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."},{"muscleId":"biceps","note":"Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."},{"muscleId":"deltoid","note":"Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."},{"muscleId":"erector_spinae","note":"Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."},{"muscleId":"core","note":"Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."}],"performanceProfileId":"conventional_row__machine__remo_convencional","primaryMuscles":["latissimus_dorsi","trapezius"],"replacementGroup":"back_row_barbell","replacementPriority":1,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["horizontal_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi","trapezius"],"secondaryMuscles":["biceps","rhomboids","deltoid"],"stabilizationDemand":"moderate","stabilizerMuscles":["erector_spinae","core"],"targetRegions":["latissimus_dorsi"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"machine","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"horizontal_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"guided_constant","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Remo Convencional» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura la máquina y adopta la posición específica de «Remo Convencional» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Remo Convencional","displaySummary":"machine","selectedOptions":{"implement":"machine"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Remo Convencional","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"conventional_row__machine","definitionId":"conventional_row","familyId":"back_conventional_row","kind":"PARENT","performanceProfileId":"conventional_row__machine__remo_convencional","searchTerms":["remo convencional","remo con barra","remo","back_remo_barra","back_remo_polea","back_remo_maquina","back_remo_smith"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar trapezius dentro del patrón horizontal_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["machine"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["machine"],"preservesIntent":["Conserva el patrón horizontal_pull y el objetivo trapezius."],"replacementGroup":"back_row_barbell","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["biceps","rhomboids","deltoid"],"setupCues":["Configura la máquina y adopta la posición específica de «Remo Convencional» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":["erector_spinae","core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"machine"}},{"displaySummary":"smith_machine","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_remo_barra","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"conventional_row__smith_machine","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"description":"Remo convencional en máquina Smith: la barra sube por el riel guiado y el recorrido vertical queda fijado. Permite concentrarse en la contracción de la espalda con la postura sostenida por el riel.","efc":2.5,"equipmentId":"smith_machine","executionCues":["Ejecuta «Remo Convencional» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"horizontal_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."},{"muscleId":"biceps","note":"Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."},{"muscleId":"deltoid","note":"Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."},{"muscleId":"erector_spinae","note":"Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."},{"muscleId":"core","note":"Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."}],"performanceProfileId":"conventional_row__smith_machine__remo_convencional","primaryMuscles":["latissimus_dorsi","trapezius"],"replacementGroup":"back_row_barbell","replacementPriority":1,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["horizontal_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi","trapezius"],"secondaryMuscles":["biceps","rhomboids","deltoid"],"stabilizationDemand":"moderate","stabilizerMuscles":["erector_spinae","core"],"targetRegions":["latissimus_dorsi"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"smith_machine","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"horizontal_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"guided_constant","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Remo Convencional» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura la máquina Smith y adopta la posición específica de «Remo Convencional» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Remo Convencional","displaySummary":"smith_machine","selectedOptions":{"implement":"smith_machine"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Remo Convencional","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"conventional_row__smith_machine","definitionId":"conventional_row","familyId":"back_conventional_row","kind":"PARENT","performanceProfileId":"conventional_row__smith_machine__remo_convencional","searchTerms":["remo convencional","remo con barra","remo","back_remo_barra","back_remo_polea","back_remo_maquina","back_remo_smith"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar trapezius dentro del patrón horizontal_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["smith_machine"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["smith_machine"],"preservesIntent":["Conserva el patrón horizontal_pull y el objetivo trapezius."],"replacementGroup":"back_row_barbell","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["biceps","rhomboids","deltoid"],"setupCues":["Configura la máquina Smith y adopta la posición específica de «Remo Convencional» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":["erector_spinae","core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"smith_machine"}},{"displaySummary":"kettlebell","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_remo_barra","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"conventional_row__kettlebell","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"description":"Remo convencional con kettlebell: la empuñadura compacta cambia el centro de gravedad y exige más control del agarre. Variante accesible cuando no hay barra ni mancuernas disponibles.","efc":2.5,"equipmentId":"kettlebell","executionCues":["Ejecuta «Remo Convencional» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"horizontal_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."},{"muscleId":"biceps","note":"Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."},{"muscleId":"deltoid","note":"Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."},{"muscleId":"erector_spinae","note":"Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."},{"muscleId":"core","note":"Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."}],"performanceProfileId":"conventional_row__kettlebell__remo_convencional","primaryMuscles":["latissimus_dorsi","trapezius"],"replacementGroup":"back_row_barbell","replacementPriority":1,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["horizontal_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi","trapezius"],"secondaryMuscles":["biceps","rhomboids","deltoid"],"stabilizationDemand":"moderate","stabilizerMuscles":["erector_spinae","core"],"targetRegions":["latissimus_dorsi"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"kettlebell","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"horizontal_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Remo Convencional» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura kettlebell y adopta la posición específica de «Remo Convencional» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Remo Convencional","displaySummary":"kettlebell","selectedOptions":{"implement":"kettlebell"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Remo Convencional","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"conventional_row__kettlebell","definitionId":"conventional_row","familyId":"back_conventional_row","kind":"PARENT","performanceProfileId":"conventional_row__kettlebell__remo_convencional","searchTerms":["remo convencional","remo con barra","remo","back_remo_barra","back_remo_polea","back_remo_maquina","back_remo_smith"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar trapezius dentro del patrón horizontal_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["kettlebell"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["kettlebell"],"preservesIntent":["Conserva el patrón horizontal_pull y el objetivo trapezius."],"replacementGroup":"back_row_barbell","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["biceps","rhomboids","deltoid"],"setupCues":["Configura kettlebell y adopta la posición específica de «Remo Convencional» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":["erector_spinae","core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"kettlebell"}},{"displaySummary":"cable","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_remo_polea","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"conventional_row__cable","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"description":"Remo convencional en polea: la tensión continua sostiene la carga en la fase de estiramiento del dorsal. El cable permite ajustar el peso con rapidez entre series.","efc":2.5,"equipmentId":"cable","executionCues":["Ejecuta «Remo Convencional» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"continuous_cable","movementPatternId":"horizontal_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."},{"muscleId":"biceps","note":"Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."},{"muscleId":"deltoid","note":"Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."},{"muscleId":"erector_spinae","note":"Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."},{"muscleId":"core","note":"Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."}],"performanceProfileId":"conventional_row__cable__remo_convencional","primaryMuscles":["latissimus_dorsi","trapezius"],"replacementGroup":"back_row_cable_low","replacementPriority":2,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["horizontal_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi","trapezius"],"secondaryMuscles":["biceps","rhomboids","deltoid"],"stabilizationDemand":"moderate","stabilizerMuscles":["erector_spinae","core"],"targetRegions":["latissimus_dorsi"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"cable","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"continuous_cable","movementPatternId":"horizontal_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"cues":["Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Remo Convencional» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura la polea y adopta la posición específica de «Remo Convencional» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Remo Convencional","displaySummary":"cable","selectedOptions":{"implement":"cable"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Remo Convencional","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"conventional_row__cable","definitionId":"conventional_row","familyId":"back_conventional_row","kind":"PARENT","performanceProfileId":"conventional_row__cable__remo_convencional","searchTerms":["remo convencional","remo con barra","remo","back_remo_barra","back_remo_polea","back_remo_maquina","back_remo_smith"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar trapezius dentro del patrón horizontal_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable"],"preservesIntent":["Conserva el patrón horizontal_pull y el objetivo trapezius."],"replacementGroup":"back_row_cable_low","replacementPriority":2},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["biceps","rhomboids","deltoid"],"setupCues":["Configura la polea y adopta la posición específica de «Remo Convencional» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":["erector_spinae","core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"cable"}}],"defaultConfigurationId":"conventional_row__barbell","description":"Tirón horizontal con el tronco inclinado y la espalda neutra, que prioriza el dorsal y el trapecio. El implemento cambia la curva de tensión y la exigencia de equilibrio de cada variante.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:conventional_row"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"back_conventional_row","id":"conventional_row","kind":"PARENT","optionAxes":["implement"],"searchTerms":["remo convencional","remo con barra","remo","back_remo_barra","back_remo_polea","back_remo_maquina","back_remo_smith"]}],"description":"Familia de tirón horizontal con el tronco inclinado; el implemento es la única decisión visible y las variantes con pecho apoyado o método Pendlay quedan en sus propias familias.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:back_conventional_row"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"back_conventional_row","taxonomy":["upper","horizontal_pull","conventional_row"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Remo Convencional",
+    "definitions": [
+      {
+        "canonicalName": "Remo Convencional",
+        "configurations": [
+          {
+            "displaySummary": "barbell",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_remo_barra",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "conventional_row__barbell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+              ],
+              "description": "Remo convencional con barra: el tronco se inclina con la espalda neutra y la barra sube hacia el abdomen. Es la versión de referencia para cargar el dorsal y el trapecio con progresión de peso.",
+              "efc": 2.5,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Ejecuta «Remo Convencional» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "conventional_row__barbell__remo_convencional",
+              "primaryMuscles": [
+                "latissimus_dorsi",
+                "trapezius"
+              ],
+              "replacementGroup": "back_row_barbell",
+              "replacementPriority": 1,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi",
+                    "trapezius"
+                  ],
+                  "secondaryMuscles": [
+                    "biceps",
+                    "rhomboids",
+                    "deltoid"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "horizontal_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Remo Convencional» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura barra y adopta la posición específica de «Remo Convencional» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Remo Convencional",
+                  "displaySummary": "barbell",
+                  "selectedOptions": {
+                    "implement": "barbell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Remo Convencional",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "conventional_row__barbell",
+                  "definitionId": "conventional_row",
+                  "familyId": "back_conventional_row",
+                  "kind": "PARENT",
+                  "performanceProfileId": "conventional_row__barbell__remo_convencional",
+                  "searchTerms": [
+                    "remo convencional",
+                    "remo con barra",
+                    "remo",
+                    "back_remo_barra",
+                    "back_remo_polea",
+                    "back_remo_maquina",
+                    "back_remo_smith"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar trapezius dentro del patrón horizontal_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_pull y el objetivo trapezius."
+                  ],
+                  "replacementGroup": "back_row_barbell",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "biceps",
+                "rhomboids",
+                "deltoid"
+              ],
+              "setupCues": [
+                "Configura barra y adopta la posición específica de «Remo Convencional» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "barbell"
+            }
+          },
+          {
+            "displaySummary": "dumbbells",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_remo_barra",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "conventional_row__dumbbells",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+              ],
+              "description": "Remo convencional con mancuernas: cada brazo tracciona de forma independiente y el recorrido se adapta a la movilidad del hombro. Ayuda a igualar asimetrías entre los dos lados de la espalda.",
+              "efc": 2.5,
+              "equipmentId": "dumbbells",
+              "executionCues": [
+                "Ejecuta «Remo Convencional» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "conventional_row__dumbbells__remo_convencional",
+              "primaryMuscles": [
+                "latissimus_dorsi",
+                "trapezius"
+              ],
+              "replacementGroup": "back_row_barbell",
+              "replacementPriority": 1,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi",
+                    "trapezius"
+                  ],
+                  "secondaryMuscles": [
+                    "biceps",
+                    "rhomboids",
+                    "deltoid"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "dumbbells",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "horizontal_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Remo Convencional» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura mancuernas y adopta la posición específica de «Remo Convencional» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Remo Convencional",
+                  "displaySummary": "dumbbells",
+                  "selectedOptions": {
+                    "implement": "dumbbells"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Remo Convencional",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "conventional_row__dumbbells",
+                  "definitionId": "conventional_row",
+                  "familyId": "back_conventional_row",
+                  "kind": "PARENT",
+                  "performanceProfileId": "conventional_row__dumbbells__remo_convencional",
+                  "searchTerms": [
+                    "remo convencional",
+                    "remo con barra",
+                    "remo",
+                    "back_remo_barra",
+                    "back_remo_polea",
+                    "back_remo_maquina",
+                    "back_remo_smith"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar trapezius dentro del patrón horizontal_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "dumbbells"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_pull y el objetivo trapezius."
+                  ],
+                  "replacementGroup": "back_row_barbell",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "biceps",
+                "rhomboids",
+                "deltoid"
+              ],
+              "setupCues": [
+                "Configura mancuernas y adopta la posición específica de «Remo Convencional» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "dumbbells"
+            }
+          },
+          {
+            "displaySummary": "machine",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_remo_barra",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "conventional_row__machine",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+              ],
+              "description": "Remo convencional en máquina: el pecho se apoya en el cojín y los brazos tiran hacia el tronco con recorrido guiado. Opción estable para aislar la espalda sin exigir equilibrio del tronco.",
+              "efc": 2.5,
+              "equipmentId": "machine",
+              "executionCues": [
+                "Ejecuta «Remo Convencional» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "conventional_row__machine__remo_convencional",
+              "primaryMuscles": [
+                "latissimus_dorsi",
+                "trapezius"
+              ],
+              "replacementGroup": "back_row_barbell",
+              "replacementPriority": 1,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi",
+                    "trapezius"
+                  ],
+                  "secondaryMuscles": [
+                    "biceps",
+                    "rhomboids",
+                    "deltoid"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "horizontal_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Remo Convencional» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura la máquina y adopta la posición específica de «Remo Convencional» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Remo Convencional",
+                  "displaySummary": "machine",
+                  "selectedOptions": {
+                    "implement": "machine"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Remo Convencional",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "conventional_row__machine",
+                  "definitionId": "conventional_row",
+                  "familyId": "back_conventional_row",
+                  "kind": "PARENT",
+                  "performanceProfileId": "conventional_row__machine__remo_convencional",
+                  "searchTerms": [
+                    "remo convencional",
+                    "remo con barra",
+                    "remo",
+                    "back_remo_barra",
+                    "back_remo_polea",
+                    "back_remo_maquina",
+                    "back_remo_smith"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar trapezius dentro del patrón horizontal_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "machine"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_pull y el objetivo trapezius."
+                  ],
+                  "replacementGroup": "back_row_barbell",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "biceps",
+                "rhomboids",
+                "deltoid"
+              ],
+              "setupCues": [
+                "Configura la máquina y adopta la posición específica de «Remo Convencional» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "machine"
+            }
+          },
+          {
+            "displaySummary": "smith_machine",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_remo_barra",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "conventional_row__smith_machine",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+              ],
+              "description": "Remo convencional en máquina Smith: la barra sube por el riel guiado y el recorrido vertical queda fijado. Permite concentrarse en la contracción de la espalda con la postura sostenida por el riel.",
+              "efc": 2.5,
+              "equipmentId": "smith_machine",
+              "executionCues": [
+                "Ejecuta «Remo Convencional» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "conventional_row__smith_machine__remo_convencional",
+              "primaryMuscles": [
+                "latissimus_dorsi",
+                "trapezius"
+              ],
+              "replacementGroup": "back_row_barbell",
+              "replacementPriority": 1,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi",
+                    "trapezius"
+                  ],
+                  "secondaryMuscles": [
+                    "biceps",
+                    "rhomboids",
+                    "deltoid"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "smith_machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "horizontal_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Remo Convencional» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura la máquina Smith y adopta la posición específica de «Remo Convencional» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Remo Convencional",
+                  "displaySummary": "smith_machine",
+                  "selectedOptions": {
+                    "implement": "smith_machine"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Remo Convencional",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "conventional_row__smith_machine",
+                  "definitionId": "conventional_row",
+                  "familyId": "back_conventional_row",
+                  "kind": "PARENT",
+                  "performanceProfileId": "conventional_row__smith_machine__remo_convencional",
+                  "searchTerms": [
+                    "remo convencional",
+                    "remo con barra",
+                    "remo",
+                    "back_remo_barra",
+                    "back_remo_polea",
+                    "back_remo_maquina",
+                    "back_remo_smith"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar trapezius dentro del patrón horizontal_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "smith_machine"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "smith_machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_pull y el objetivo trapezius."
+                  ],
+                  "replacementGroup": "back_row_barbell",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "biceps",
+                "rhomboids",
+                "deltoid"
+              ],
+              "setupCues": [
+                "Configura la máquina Smith y adopta la posición específica de «Remo Convencional» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "smith_machine"
+            }
+          },
+          {
+            "displaySummary": "kettlebell",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_remo_barra",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "conventional_row__kettlebell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+              ],
+              "description": "Remo convencional con kettlebell: la empuñadura compacta cambia el centro de gravedad y exige más control del agarre. Variante accesible cuando no hay barra ni mancuernas disponibles.",
+              "efc": 2.5,
+              "equipmentId": "kettlebell",
+              "executionCues": [
+                "Ejecuta «Remo Convencional» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "conventional_row__kettlebell__remo_convencional",
+              "primaryMuscles": [
+                "latissimus_dorsi",
+                "trapezius"
+              ],
+              "replacementGroup": "back_row_barbell",
+              "replacementPriority": 1,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi",
+                    "trapezius"
+                  ],
+                  "secondaryMuscles": [
+                    "biceps",
+                    "rhomboids",
+                    "deltoid"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "kettlebell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "horizontal_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Remo Convencional» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura kettlebell y adopta la posición específica de «Remo Convencional» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Remo Convencional",
+                  "displaySummary": "kettlebell",
+                  "selectedOptions": {
+                    "implement": "kettlebell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Remo Convencional",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "conventional_row__kettlebell",
+                  "definitionId": "conventional_row",
+                  "familyId": "back_conventional_row",
+                  "kind": "PARENT",
+                  "performanceProfileId": "conventional_row__kettlebell__remo_convencional",
+                  "searchTerms": [
+                    "remo convencional",
+                    "remo con barra",
+                    "remo",
+                    "back_remo_barra",
+                    "back_remo_polea",
+                    "back_remo_maquina",
+                    "back_remo_smith"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar trapezius dentro del patrón horizontal_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "kettlebell"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "kettlebell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_pull y el objetivo trapezius."
+                  ],
+                  "replacementGroup": "back_row_barbell",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "biceps",
+                "rhomboids",
+                "deltoid"
+              ],
+              "setupCues": [
+                "Configura kettlebell y adopta la posición específica de «Remo Convencional» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "kettlebell"
+            }
+          },
+          {
+            "displaySummary": "cable",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_remo_polea",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "conventional_row__cable",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+              ],
+              "description": "Remo convencional en polea: la tensión continua sostiene la carga en la fase de estiramiento del dorsal. El cable permite ajustar el peso con rapidez entre series.",
+              "efc": 2.5,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Ejecuta «Remo Convencional» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "conventional_row__cable__remo_convencional",
+              "primaryMuscles": [
+                "latissimus_dorsi",
+                "trapezius"
+              ],
+              "replacementGroup": "back_row_cable_low",
+              "replacementPriority": 2,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi",
+                    "trapezius"
+                  ],
+                  "secondaryMuscles": [
+                    "biceps",
+                    "rhomboids",
+                    "deltoid"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "cable",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "horizontal_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Remo Convencional» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura la polea y adopta la posición específica de «Remo Convencional» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Remo Convencional",
+                  "displaySummary": "cable",
+                  "selectedOptions": {
+                    "implement": "cable"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Remo Convencional",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "conventional_row__cable",
+                  "definitionId": "conventional_row",
+                  "familyId": "back_conventional_row",
+                  "kind": "PARENT",
+                  "performanceProfileId": "conventional_row__cable__remo_convencional",
+                  "searchTerms": [
+                    "remo convencional",
+                    "remo con barra",
+                    "remo",
+                    "back_remo_barra",
+                    "back_remo_polea",
+                    "back_remo_maquina",
+                    "back_remo_smith"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar trapezius dentro del patrón horizontal_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_pull y el objetivo trapezius."
+                  ],
+                  "replacementGroup": "back_row_cable_low",
+                  "replacementPriority": 2
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "biceps",
+                "rhomboids",
+                "deltoid"
+              ],
+              "setupCues": [
+                "Configura la polea y adopta la posición específica de «Remo Convencional» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "cable"
+            }
+          }
+        ],
+        "defaultConfigurationId": "conventional_row__barbell",
+        "description": "Tirón horizontal con el tronco inclinado y la espalda neutra, que prioriza el dorsal y el trapecio. El implemento cambia la curva de tensión y la exigencia de equilibrio de cada variante.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:conventional_row"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "back_conventional_row",
+        "id": "conventional_row",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement"
+        ],
+        "searchTerms": [
+          "remo convencional",
+          "remo con barra",
+          "remo",
+          "back_remo_barra",
+          "back_remo_polea",
+          "back_remo_maquina",
+          "back_remo_smith"
+        ]
+      }
+    ],
+    "description": "Familia de tirón horizontal con el tronco inclinado; el implemento es la única decisión visible y las variantes con pecho apoyado o método Pendlay quedan en sus propias familias.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:back_conventional_row"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "back_conventional_row",
+    "taxonomy": [
+      "upper",
+      "horizontal_pull",
+      "conventional_row"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

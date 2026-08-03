@@ -1,1 +1,1101 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Tren inferior · forearm · isometric grip","definitions":[{"canonicalName":"Suspensión Isométrica en Barra Fija (Dead Hang)","configurations":[{"displaySummary":"Peso Corporal","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#forearms_suspension_isometrica_barra_fija","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"forearms_suspension_isometrica_barra_fija__default","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"LOWER","cnc":1.5,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón fuerza agarre isométrica para completar la repetición."],"description":"Colgarse de barra fija a dos manos midiendo tiempo. La configuración utiliza peso corporal como implemento.","efc":2.0,"equipmentId":"bodyweight","executionCues":["Ejecuta «Suspensión Isométrica en Barra Fija (Dead Hang)» siguiendo el patrón fuerza agarre isométrica con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"bodyweight","movementPatternId":"isometric_grip","muscleNotes":[{"muscleId":"forearm","note":"Principal: el antebrazo concentra la fuerza del agarre o de la muñeca del ejercicio; por eso suma la serie completa (1.0)."},{"muscleId":"latissimus_dorsi","note":"Secundario: el dorsal asiste la tracción del brazo y la estabilidad del hombro; por eso suma 0.5."}],"performanceProfileId":"forearms_suspension_isometrica_barra_fija__bodyweight__suspension_isometrica_en_barra_fija_dead_hang","primaryMuscles":["forearm"],"replacementGroup":"forearm_grip_isometric","replacementPriority":3,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["isometric_grip"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["forearm"],"secondaryMuscles":["latissimus_dorsi"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["forearm"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"bodyweight","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"bodyweight","movementPatternId":"isometric_grip","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón fuerza agarre isométrica para completar la repetición."],"cues":["Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Suspensión Isométrica en Barra Fija (Dead Hang)» siguiendo el patrón fuerza agarre isométrica con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Configura peso corporal y adopta la posición específica de «Suspensión Isométrica en Barra Fija (Dead Hang)» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Suspensión Isométrica en Barra Fija (Dead Hang)","displaySummary":"Peso Corporal","selectedOptions":{}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.5,"efc":2.0,"ssc":0.2,"technicalDifficulty":3.5,"ttc":1.5},"identity":{"canonicalName":"Suspensión Isométrica en Barra Fija (Dead Hang)","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"forearms_suspension_isometrica_barra_fija__default","definitionId":"forearms_suspension_isometrica_barra_fija","familyId":"lower_isometric_grip","kind":"SPECIALTY","performanceProfileId":"forearms_suspension_isometrica_barra_fija__bodyweight__suspension_isometrica_en_barra_fija_dead_hang","searchTerms":["suspensión isométrica en barra fija (dead hang)"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":90,"min":30},"objectives":["Desarrollar forearm dentro del patrón isometric_grip.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["bodyweight"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["bodyweight"],"preservesIntent":["Conserva el patrón isometric_grip y el objetivo forearm."],"replacementGroup":"forearm_grip_isometric","replacementPriority":3},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["latissimus_dorsi"],"setupCues":["Configura peso corporal y adopta la posición específica de «Suspensión Isométrica en Barra Fija (Dead Hang)» antes de iniciar; conserva una base estable."],"ssc":0.2,"stabilizerMuscles":[],"technicalDifficulty":3.5,"ttc":1.5},"selectedOptions":{}}],"defaultConfigurationId":"forearms_suspension_isometrica_barra_fija__default","description":"Colgarse de barra fija a dos manos midiendo tiempo.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:forearms_suspension_isometrica_barra_fija"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"lower_isometric_grip","id":"forearms_suspension_isometrica_barra_fija","kind":"SPECIALTY","optionAxes":[],"searchTerms":["suspensión isométrica en barra fija (dead hang)"]},{"canonicalName":"Paseo del Granjero","configurations":[{"displaySummary":"dumbbells","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#forearms_paseo_del_granjero","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"forearms_paseo_del_granjero__dumbbells","profile":{"automationEligible":true,"axialLoadFactor":0.3,"bodyRegion":"LOWER","cnc":1.5,"commonMistakes":["Inclinar el tronco o acortar la zancada perdiendo la postura erguida."],"description":"Paseo del Granjero con mancuernas: el agarre de la mancuerna es la puerta de entrada natural al patrón de marcha con carga.","efc":2.0,"equipmentId":"dumbbells","executionCues":["Camina con pasos cortos y estables manteniendo los hombros atrás."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"isometric_grip","muscleNotes":[{"muscleId":"forearm","note":"Principal: el antebrazo sostiene la carga de forma isométrica y concentra el trabajo del paseo; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio estabiliza la cintura escapular con la carga colgando; por eso suma 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco firme y alineado durante la marcha; por eso suma 0.4."}],"performanceProfileId":"forearms_paseo_del_granjero__dumbbells","primaryMuscles":["forearm"],"replacementGroup":"forearm_loaded_carry","replacementPriority":1,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["isometric_grip"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["forearm"],"secondaryMuscles":["trapezius"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["forearm"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"dumbbells","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"isometric_grip","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Inclinar el tronco o acortar la zancada perdiendo la postura erguida."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Camina con pasos cortos y estables manteniendo los hombros atrás."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Toma la carga con el agarre elegido y erguido el tronco."]},"display":{"displayName":"Paseo del Granjero","displaySummary":"dumbbells","selectedOptions":{"implement":"dumbbells"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.3,"cnc":1.5,"efc":2.0,"ssc":0.2,"technicalDifficulty":4.5,"ttc":1.5},"identity":{"canonicalName":"Paseo del Granjero","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"forearms_paseo_del_granjero__dumbbells","definitionId":"forearms_paseo_del_granjero","familyId":"lower_isometric_grip","kind":"PARENT","performanceProfileId":"forearms_paseo_del_granjero__dumbbells","searchTerms":["paseo del granjero","farmer walk","paseo del granjero con mancuernas"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":90,"min":30},"objectives":["Desarrollar la fuerza de agarre con el paseo del granjero."],"recoveryCost":"moderate","requiredEquipment":["dumbbells"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells","kettlebell","plate","hex_bar"],"preservesIntent":["Conserva la marcha con carga y el objetivo forearm."],"replacementGroup":"forearm_loaded_carry","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["trapezius"],"setupCues":["Toma la carga con el agarre elegido y erguido el tronco."],"ssc":0.2,"stabilizerMuscles":["core"],"technicalDifficulty":4.5,"ttc":1.5},"selectedOptions":{"implement":"dumbbells"}},{"displaySummary":"kettlebell","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#forearms_paseo_del_granjero","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"forearms_paseo_del_granjero__kettlebell","profile":{"automationEligible":true,"axialLoadFactor":0.3,"bodyRegion":"LOWER","cnc":1.5,"commonMistakes":["Inclinar el tronco o acortar la zancada perdiendo la postura erguida."],"description":"Paseo del Granjero con kettlebell: la carga compacta exige un agarre fuerte y permite desplazarse con comodidad.","efc":2.0,"equipmentId":"kettlebell","executionCues":["Camina con pasos cortos y estables manteniendo los hombros atrás."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"isometric_grip","muscleNotes":[{"muscleId":"forearm","note":"Principal: el antebrazo sostiene la carga de forma isométrica y concentra el trabajo del paseo; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio estabiliza la cintura escapular con la carga colgando; por eso suma 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco firme y alineado durante la marcha; por eso suma 0.4."}],"performanceProfileId":"forearms_paseo_del_granjero__kettlebell","primaryMuscles":["forearm"],"replacementGroup":"forearm_loaded_carry","replacementPriority":1,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["isometric_grip"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["forearm"],"secondaryMuscles":["trapezius"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["forearm"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"kettlebell","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"isometric_grip","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Inclinar el tronco o acortar la zancada perdiendo la postura erguida."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Camina con pasos cortos y estables manteniendo los hombros atrás."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Toma la carga con el agarre elegido y erguido el tronco."]},"display":{"displayName":"Paseo del Granjero","displaySummary":"kettlebell","selectedOptions":{"implement":"kettlebell"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.3,"cnc":1.5,"efc":2.0,"ssc":0.2,"technicalDifficulty":4.5,"ttc":1.5},"identity":{"canonicalName":"Paseo del Granjero","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"forearms_paseo_del_granjero__kettlebell","definitionId":"forearms_paseo_del_granjero","familyId":"lower_isometric_grip","kind":"PARENT","performanceProfileId":"forearms_paseo_del_granjero__kettlebell","searchTerms":["paseo del granjero","farmer walk","paseo del granjero con mancuernas"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":90,"min":30},"objectives":["Desarrollar la fuerza de agarre con el paseo del granjero."],"recoveryCost":"moderate","requiredEquipment":["kettlebell"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells","kettlebell","plate","hex_bar"],"preservesIntent":["Conserva la marcha con carga y el objetivo forearm."],"replacementGroup":"forearm_loaded_carry","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["trapezius"],"setupCues":["Toma la carga con el agarre elegido y erguido el tronco."],"ssc":0.2,"stabilizerMuscles":["core"],"technicalDifficulty":4.5,"ttc":1.5},"selectedOptions":{"implement":"kettlebell"}},{"displaySummary":"plate","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#forearms_paseo_del_granjero","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"forearms_paseo_del_granjero__plate","profile":{"automationEligible":true,"axialLoadFactor":0.3,"bodyRegion":"LOWER","cnc":1.5,"commonMistakes":["Inclinar el tronco o acortar la zancada perdiendo la postura erguida."],"description":"Paseo del Granjero con discos: pellizcar el disco añade un reto extra de agarre a la marcha.","efc":2.0,"equipmentId":"plate","executionCues":["Camina con pasos cortos y estables manteniendo los hombros atrás."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"isometric_grip","muscleNotes":[{"muscleId":"forearm","note":"Principal: el antebrazo sostiene la carga de forma isométrica y concentra el trabajo del paseo; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio estabiliza la cintura escapular con la carga colgando; por eso suma 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco firme y alineado durante la marcha; por eso suma 0.4."}],"performanceProfileId":"forearms_paseo_del_granjero__plate","primaryMuscles":["forearm"],"replacementGroup":"forearm_loaded_carry","replacementPriority":1,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["isometric_grip"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["forearm"],"secondaryMuscles":["trapezius"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["forearm"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"plate","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"isometric_grip","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Inclinar el tronco o acortar la zancada perdiendo la postura erguida."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Camina con pasos cortos y estables manteniendo los hombros atrás."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Toma la carga con el agarre elegido y erguido el tronco."]},"display":{"displayName":"Paseo del Granjero","displaySummary":"plate","selectedOptions":{"implement":"plate"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.3,"cnc":1.5,"efc":2.0,"ssc":0.2,"technicalDifficulty":4.5,"ttc":1.5},"identity":{"canonicalName":"Paseo del Granjero","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"forearms_paseo_del_granjero__plate","definitionId":"forearms_paseo_del_granjero","familyId":"lower_isometric_grip","kind":"PARENT","performanceProfileId":"forearms_paseo_del_granjero__plate","searchTerms":["paseo del granjero","farmer walk","paseo del granjero con mancuernas"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":90,"min":30},"objectives":["Desarrollar la fuerza de agarre con el paseo del granjero."],"recoveryCost":"moderate","requiredEquipment":["plate"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells","kettlebell","plate","hex_bar"],"preservesIntent":["Conserva la marcha con carga y el objetivo forearm."],"replacementGroup":"forearm_loaded_carry","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["trapezius"],"setupCues":["Toma la carga con el agarre elegido y erguido el tronco."],"ssc":0.2,"stabilizerMuscles":["core"],"technicalDifficulty":4.5,"ttc":1.5},"selectedOptions":{"implement":"plate"}},{"displaySummary":"hex_bar","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#forearms_paseo_del_granjero","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"forearms_paseo_del_granjero__hex_bar","profile":{"automationEligible":true,"axialLoadFactor":0.3,"bodyRegion":"LOWER","cnc":1.5,"commonMistakes":["Inclinar el tronco o acortar la zancada perdiendo la postura erguida."],"description":"Paseo del Granjero con barra hexagonal: la barra trapecio reparte la carga y permite cargar más peso que con mancuernas.","efc":2.0,"equipmentId":"hex_bar","executionCues":["Camina con pasos cortos y estables manteniendo los hombros atrás."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"isometric_grip","muscleNotes":[{"muscleId":"forearm","note":"Principal: el antebrazo sostiene la carga de forma isométrica y concentra el trabajo del paseo; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio estabiliza la cintura escapular con la carga colgando; por eso suma 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco firme y alineado durante la marcha; por eso suma 0.4."}],"performanceProfileId":"forearms_paseo_del_granjero__hex_bar","primaryMuscles":["forearm"],"replacementGroup":"forearm_loaded_carry","replacementPriority":1,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["isometric_grip"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["forearm"],"secondaryMuscles":["trapezius"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["forearm"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"hex_bar","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"isometric_grip","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Inclinar el tronco o acortar la zancada perdiendo la postura erguida."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Camina con pasos cortos y estables manteniendo los hombros atrás."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Toma la carga con el agarre elegido y erguido el tronco."]},"display":{"displayName":"Paseo del Granjero","displaySummary":"hex_bar","selectedOptions":{"implement":"hex_bar"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.3,"cnc":1.5,"efc":2.0,"ssc":0.2,"technicalDifficulty":4.5,"ttc":1.5},"identity":{"canonicalName":"Paseo del Granjero","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"forearms_paseo_del_granjero__hex_bar","definitionId":"forearms_paseo_del_granjero","familyId":"lower_isometric_grip","kind":"PARENT","performanceProfileId":"forearms_paseo_del_granjero__hex_bar","searchTerms":["paseo del granjero","farmer walk","paseo del granjero con mancuernas"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":90,"min":30},"objectives":["Desarrollar la fuerza de agarre con el paseo del granjero."],"recoveryCost":"moderate","requiredEquipment":["hex_bar"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells","kettlebell","plate","hex_bar"],"preservesIntent":["Conserva la marcha con carga y el objetivo forearm."],"replacementGroup":"forearm_loaded_carry","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["trapezius"],"setupCues":["Toma la carga con el agarre elegido y erguido el tronco."],"ssc":0.2,"stabilizerMuscles":["core"],"technicalDifficulty":4.5,"ttc":1.5},"selectedOptions":{"implement":"hex_bar"}}],"defaultConfigurationId":"forearms_paseo_del_granjero__dumbbells","description":"Marcha con carga a los costados que exige sostener el agarre, la postura erguida y el core firme durante la distancia recorrida.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:catalog-v3-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v3; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"familyId":"lower_isometric_grip","id":"forearms_paseo_del_granjero","kind":"PARENT","optionAxes":["implement"],"searchTerms":["paseo del granjero","farmer walk","paseo del granjero con mancuernas"]}],"description":"Familia controlada por patrón isometric_grip; cada especialidad conserva su perfil resuelto.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:lower_isometric_grip"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"lower_isometric_grip","taxonomy":["lower","isometric_grip"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Tren inferior · forearm · isometric grip",
+    "definitions": [
+      {
+        "canonicalName": "Suspensión Isométrica en Barra Fija (Dead Hang)",
+        "configurations": [
+          {
+            "displaySummary": "Peso Corporal",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#forearms_suspension_isometrica_barra_fija",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "forearms_suspension_isometrica_barra_fija__default",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "cnc": 1.5,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón fuerza agarre isométrica para completar la repetición."
+              ],
+              "description": "Colgarse de barra fija a dos manos midiendo tiempo. La configuración utiliza peso corporal como implemento.",
+              "efc": 2.0,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Ejecuta «Suspensión Isométrica en Barra Fija (Dead Hang)» siguiendo el patrón fuerza agarre isométrica con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "bodyweight",
+              "movementPatternId": "isometric_grip",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: el antebrazo concentra la fuerza del agarre o de la muñeca del ejercicio; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Secundario: el dorsal asiste la tracción del brazo y la estabilidad del hombro; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "forearms_suspension_isometrica_barra_fija__bodyweight__suspension_isometrica_en_barra_fija_dead_hang",
+              "primaryMuscles": [
+                "forearm"
+              ],
+              "replacementGroup": "forearm_grip_isometric",
+              "replacementPriority": 3,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "isometric_grip"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "forearm"
+                  ],
+                  "secondaryMuscles": [
+                    "latissimus_dorsi"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "forearm"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "isometric_grip",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón fuerza agarre isométrica para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Suspensión Isométrica en Barra Fija (Dead Hang)» siguiendo el patrón fuerza agarre isométrica con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura peso corporal y adopta la posición específica de «Suspensión Isométrica en Barra Fija (Dead Hang)» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Suspensión Isométrica en Barra Fija (Dead Hang)",
+                  "displaySummary": "Peso Corporal",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.5,
+                  "efc": 2.0,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 3.5,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Suspensión Isométrica en Barra Fija (Dead Hang)",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "forearms_suspension_isometrica_barra_fija__default",
+                  "definitionId": "forearms_suspension_isometrica_barra_fija",
+                  "familyId": "lower_isometric_grip",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "forearms_suspension_isometrica_barra_fija__bodyweight__suspension_isometrica_en_barra_fija_dead_hang",
+                  "searchTerms": [
+                    "suspensión isométrica en barra fija (dead hang)"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar forearm dentro del patrón isometric_grip.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón isometric_grip y el objetivo forearm."
+                  ],
+                  "replacementGroup": "forearm_grip_isometric",
+                  "replacementPriority": 3
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "latissimus_dorsi"
+              ],
+              "setupCues": [
+                "Configura peso corporal y adopta la posición específica de «Suspensión Isométrica en Barra Fija (Dead Hang)» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.5,
+              "ttc": 1.5
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "forearms_suspension_isometrica_barra_fija__default",
+        "description": "Colgarse de barra fija a dos manos midiendo tiempo.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:forearms_suspension_isometrica_barra_fija"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "lower_isometric_grip",
+        "id": "forearms_suspension_isometrica_barra_fija",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "suspensión isométrica en barra fija (dead hang)"
+        ]
+      },
+      {
+        "canonicalName": "Paseo del Granjero",
+        "configurations": [
+          {
+            "displaySummary": "dumbbells",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#forearms_paseo_del_granjero",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "forearms_paseo_del_granjero__dumbbells",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.3,
+              "bodyRegion": "LOWER",
+              "cnc": 1.5,
+              "commonMistakes": [
+                "Inclinar el tronco o acortar la zancada perdiendo la postura erguida."
+              ],
+              "description": "Paseo del Granjero con mancuernas: el agarre de la mancuerna es la puerta de entrada natural al patrón de marcha con carga.",
+              "efc": 2.0,
+              "equipmentId": "dumbbells",
+              "executionCues": [
+                "Camina con pasos cortos y estables manteniendo los hombros atrás."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "isometric_grip",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: el antebrazo sostiene la carga de forma isométrica y concentra el trabajo del paseo; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio estabiliza la cintura escapular con la carga colgando; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco firme y alineado durante la marcha; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "forearms_paseo_del_granjero__dumbbells",
+              "primaryMuscles": [
+                "forearm"
+              ],
+              "replacementGroup": "forearm_loaded_carry",
+              "replacementPriority": 1,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "isometric_grip"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "forearm"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "forearm"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "dumbbells",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "isometric_grip",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Inclinar el tronco o acortar la zancada perdiendo la postura erguida."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Camina con pasos cortos y estables manteniendo los hombros atrás."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Toma la carga con el agarre elegido y erguido el tronco."
+                  ]
+                },
+                "display": {
+                  "displayName": "Paseo del Granjero",
+                  "displaySummary": "dumbbells",
+                  "selectedOptions": {
+                    "implement": "dumbbells"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.3,
+                  "cnc": 1.5,
+                  "efc": 2.0,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 4.5,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Paseo del Granjero",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "forearms_paseo_del_granjero__dumbbells",
+                  "definitionId": "forearms_paseo_del_granjero",
+                  "familyId": "lower_isometric_grip",
+                  "kind": "PARENT",
+                  "performanceProfileId": "forearms_paseo_del_granjero__dumbbells",
+                  "searchTerms": [
+                    "paseo del granjero",
+                    "farmer walk",
+                    "paseo del granjero con mancuernas"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar la fuerza de agarre con el paseo del granjero."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "dumbbells"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells",
+                    "kettlebell",
+                    "plate",
+                    "hex_bar"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la marcha con carga y el objetivo forearm."
+                  ],
+                  "replacementGroup": "forearm_loaded_carry",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius"
+              ],
+              "setupCues": [
+                "Toma la carga con el agarre elegido y erguido el tronco."
+              ],
+              "ssc": 0.2,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.5,
+              "ttc": 1.5
+            },
+            "selectedOptions": {
+              "implement": "dumbbells"
+            }
+          },
+          {
+            "displaySummary": "kettlebell",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#forearms_paseo_del_granjero",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "forearms_paseo_del_granjero__kettlebell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.3,
+              "bodyRegion": "LOWER",
+              "cnc": 1.5,
+              "commonMistakes": [
+                "Inclinar el tronco o acortar la zancada perdiendo la postura erguida."
+              ],
+              "description": "Paseo del Granjero con kettlebell: la carga compacta exige un agarre fuerte y permite desplazarse con comodidad.",
+              "efc": 2.0,
+              "equipmentId": "kettlebell",
+              "executionCues": [
+                "Camina con pasos cortos y estables manteniendo los hombros atrás."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "isometric_grip",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: el antebrazo sostiene la carga de forma isométrica y concentra el trabajo del paseo; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio estabiliza la cintura escapular con la carga colgando; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco firme y alineado durante la marcha; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "forearms_paseo_del_granjero__kettlebell",
+              "primaryMuscles": [
+                "forearm"
+              ],
+              "replacementGroup": "forearm_loaded_carry",
+              "replacementPriority": 1,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "isometric_grip"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "forearm"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "forearm"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "kettlebell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "isometric_grip",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Inclinar el tronco o acortar la zancada perdiendo la postura erguida."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Camina con pasos cortos y estables manteniendo los hombros atrás."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Toma la carga con el agarre elegido y erguido el tronco."
+                  ]
+                },
+                "display": {
+                  "displayName": "Paseo del Granjero",
+                  "displaySummary": "kettlebell",
+                  "selectedOptions": {
+                    "implement": "kettlebell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.3,
+                  "cnc": 1.5,
+                  "efc": 2.0,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 4.5,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Paseo del Granjero",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "forearms_paseo_del_granjero__kettlebell",
+                  "definitionId": "forearms_paseo_del_granjero",
+                  "familyId": "lower_isometric_grip",
+                  "kind": "PARENT",
+                  "performanceProfileId": "forearms_paseo_del_granjero__kettlebell",
+                  "searchTerms": [
+                    "paseo del granjero",
+                    "farmer walk",
+                    "paseo del granjero con mancuernas"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar la fuerza de agarre con el paseo del granjero."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "kettlebell"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells",
+                    "kettlebell",
+                    "plate",
+                    "hex_bar"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la marcha con carga y el objetivo forearm."
+                  ],
+                  "replacementGroup": "forearm_loaded_carry",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius"
+              ],
+              "setupCues": [
+                "Toma la carga con el agarre elegido y erguido el tronco."
+              ],
+              "ssc": 0.2,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.5,
+              "ttc": 1.5
+            },
+            "selectedOptions": {
+              "implement": "kettlebell"
+            }
+          },
+          {
+            "displaySummary": "plate",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#forearms_paseo_del_granjero",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "forearms_paseo_del_granjero__plate",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.3,
+              "bodyRegion": "LOWER",
+              "cnc": 1.5,
+              "commonMistakes": [
+                "Inclinar el tronco o acortar la zancada perdiendo la postura erguida."
+              ],
+              "description": "Paseo del Granjero con discos: pellizcar el disco añade un reto extra de agarre a la marcha.",
+              "efc": 2.0,
+              "equipmentId": "plate",
+              "executionCues": [
+                "Camina con pasos cortos y estables manteniendo los hombros atrás."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "isometric_grip",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: el antebrazo sostiene la carga de forma isométrica y concentra el trabajo del paseo; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio estabiliza la cintura escapular con la carga colgando; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco firme y alineado durante la marcha; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "forearms_paseo_del_granjero__plate",
+              "primaryMuscles": [
+                "forearm"
+              ],
+              "replacementGroup": "forearm_loaded_carry",
+              "replacementPriority": 1,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "isometric_grip"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "forearm"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "forearm"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "plate",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "isometric_grip",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Inclinar el tronco o acortar la zancada perdiendo la postura erguida."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Camina con pasos cortos y estables manteniendo los hombros atrás."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Toma la carga con el agarre elegido y erguido el tronco."
+                  ]
+                },
+                "display": {
+                  "displayName": "Paseo del Granjero",
+                  "displaySummary": "plate",
+                  "selectedOptions": {
+                    "implement": "plate"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.3,
+                  "cnc": 1.5,
+                  "efc": 2.0,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 4.5,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Paseo del Granjero",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "forearms_paseo_del_granjero__plate",
+                  "definitionId": "forearms_paseo_del_granjero",
+                  "familyId": "lower_isometric_grip",
+                  "kind": "PARENT",
+                  "performanceProfileId": "forearms_paseo_del_granjero__plate",
+                  "searchTerms": [
+                    "paseo del granjero",
+                    "farmer walk",
+                    "paseo del granjero con mancuernas"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar la fuerza de agarre con el paseo del granjero."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "plate"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells",
+                    "kettlebell",
+                    "plate",
+                    "hex_bar"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la marcha con carga y el objetivo forearm."
+                  ],
+                  "replacementGroup": "forearm_loaded_carry",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius"
+              ],
+              "setupCues": [
+                "Toma la carga con el agarre elegido y erguido el tronco."
+              ],
+              "ssc": 0.2,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.5,
+              "ttc": 1.5
+            },
+            "selectedOptions": {
+              "implement": "plate"
+            }
+          },
+          {
+            "displaySummary": "hex_bar",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#forearms_paseo_del_granjero",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "forearms_paseo_del_granjero__hex_bar",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.3,
+              "bodyRegion": "LOWER",
+              "cnc": 1.5,
+              "commonMistakes": [
+                "Inclinar el tronco o acortar la zancada perdiendo la postura erguida."
+              ],
+              "description": "Paseo del Granjero con barra hexagonal: la barra trapecio reparte la carga y permite cargar más peso que con mancuernas.",
+              "efc": 2.0,
+              "equipmentId": "hex_bar",
+              "executionCues": [
+                "Camina con pasos cortos y estables manteniendo los hombros atrás."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "isometric_grip",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: el antebrazo sostiene la carga de forma isométrica y concentra el trabajo del paseo; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio estabiliza la cintura escapular con la carga colgando; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco firme y alineado durante la marcha; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "forearms_paseo_del_granjero__hex_bar",
+              "primaryMuscles": [
+                "forearm"
+              ],
+              "replacementGroup": "forearm_loaded_carry",
+              "replacementPriority": 1,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "isometric_grip"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "forearm"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "forearm"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "hex_bar",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "isometric_grip",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Inclinar el tronco o acortar la zancada perdiendo la postura erguida."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Camina con pasos cortos y estables manteniendo los hombros atrás."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Toma la carga con el agarre elegido y erguido el tronco."
+                  ]
+                },
+                "display": {
+                  "displayName": "Paseo del Granjero",
+                  "displaySummary": "hex_bar",
+                  "selectedOptions": {
+                    "implement": "hex_bar"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.3,
+                  "cnc": 1.5,
+                  "efc": 2.0,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 4.5,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Paseo del Granjero",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "forearms_paseo_del_granjero__hex_bar",
+                  "definitionId": "forearms_paseo_del_granjero",
+                  "familyId": "lower_isometric_grip",
+                  "kind": "PARENT",
+                  "performanceProfileId": "forearms_paseo_del_granjero__hex_bar",
+                  "searchTerms": [
+                    "paseo del granjero",
+                    "farmer walk",
+                    "paseo del granjero con mancuernas"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar la fuerza de agarre con el paseo del granjero."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "hex_bar"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells",
+                    "kettlebell",
+                    "plate",
+                    "hex_bar"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la marcha con carga y el objetivo forearm."
+                  ],
+                  "replacementGroup": "forearm_loaded_carry",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius"
+              ],
+              "setupCues": [
+                "Toma la carga con el agarre elegido y erguido el tronco."
+              ],
+              "ssc": 0.2,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.5,
+              "ttc": 1.5
+            },
+            "selectedOptions": {
+              "implement": "hex_bar"
+            }
+          }
+        ],
+        "defaultConfigurationId": "forearms_paseo_del_granjero__dumbbells",
+        "description": "Marcha con carga a los costados que exige sostener el agarre, la postura erguida y el core firme durante la distancia recorrida.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:catalog-v3-2026-08-02"
+          ],
+          "rationale": "Aprobado por decisión explícita de catálogo v3; la configuración está materializada y no depende de inferencia runtime.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "lower_isometric_grip",
+        "id": "forearms_paseo_del_granjero",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement"
+        ],
+        "searchTerms": [
+          "paseo del granjero",
+          "farmer walk",
+          "paseo del granjero con mancuernas"
+        ]
+      }
+    ],
+    "description": "Familia controlada por patrón isometric_grip; cada especialidad conserva su perfil resuelto.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:lower_isometric_grip"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "lower_isometric_grip",
+    "taxonomy": [
+      "lower",
+      "isometric_grip"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

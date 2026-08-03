@@ -2,14 +2,26 @@
 
 Fecha de corte: 2026-08-02 (curaduría integral v3)
 Revisión: `v2-approved-2026-08-02-c`
-Hash canónico compartido: `1db50fb1af0bf04bf5e9509c193f490df596939f0da4086101fe5708d53e3fc6`
+Hash canónico compartido: `b638995379f65d9a0ddc47cc3a728bc79cce7958760d5841684e15808adec7fa`
+
+## Correcciones posteriores al corte (-c, 2026-08-03)
+
+- Eliminado "Curl de Bíceps Declinado" (duplicado funcional del Curl Bayesian).
+- Title Case corregido: "Flexiones de Brazos", "Curl de Bíceps en TRX",
+  "Tate Press".
+- Peso Muerto Rumano y Peso Muerto Rumano Sumo: mismo set de implementos que el
+  Convencional (se quitó `machine`; regla L9).
+- UI picker v2: la descripción queda solo arriba de los chips (se eliminó la
+  duplicada debajo) y cuando hay ≤7 chips en total, todos los ejes comparten una
+  sola fila horizontal en vez de una fila vacía por eje.
+- Conteos nuevos: 192 definiciones / 504 configuraciones.
 
 ## Resultado del corte
 
 El catálogo quedó generado desde fuente editorial determinista y es el único
 catálogo que se empaqueta como runtime Android. El corte contiene:
 
-- **95 familias, 193 definiciones y 509 configuraciones** enumeradas.
+- **95 familias, 192 definiciones y 504 configuraciones** enumeradas.
 - Curaduría integral v2 aplicada: reestructura de bisagras (Convencional, Sumo,
   Rumano, Rumano Sumo, Piernas Rígidas, Buenos Días), remos (Convencional,
   Pendlay, Barra T, Gironda, Pecho Apoyado), curls de isquiosurales (Sentado,
@@ -31,7 +43,7 @@ catálogo que se empaqueta como runtime Android. El corte contiene:
   adaptativos por agarre y amplitud; eliminación de duplicados (curl inclinado,
   press de hombros de pie, plancha Copenhagen isométrica, hiperextensiones
   redundantes, Super ROM duplicada) y renombres Title Case sin relleno.
-- `muscleNotes` completas en las 509 configuraciones: una nota por músculo
+- `muscleNotes` completas en las 504 configuraciones: una nota por músculo
   listado (sin huérfanos ni faltantes), validada por compilador, gate y backend.
 - Equivalencias fijas por rol: Principal 1.0 / Secundario 0.5 / Estabilizador
   0.4; no se guardan números en el JSON, UI y contadores derivan del rol.
@@ -64,8 +76,8 @@ catálogo que se empaqueta como runtime Android. El corte contiene:
 ## Gates ejecutados (corte curado)
 
 - `python scripts/catalog_v2_gate.py --strict` → `status=READY`.
-- `python scripts/compile_exercise_catalog_v2_cli.py --check` → 193 definiciones,
-  509 configuraciones, hash canónico coincidente.
+- `python scripts/compile_exercise_catalog_v2_cli.py --check` → 192 definiciones,
+  504 configuraciones, hash canónico coincidente.
 - `python scripts/compile_exercise_catalog_v2_cli.py --write` → asset Android
   regenerado (y copia idéntica a iOS).
 - Backend: 7 pruebas Python → `OK`.

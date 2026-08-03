@@ -1,1 +1,670 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Elevaciones posteriores","definitions":[{"canonicalName":"Elevaciones Posteriores","configurations":[{"displaySummary":"dumbbells","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_elevaciones_posteriores_de_pie","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"rear_delt_raise__dumbbells","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Mover el tronco o elevar los hombros para completar el recorrido."],"description":"Elevaciones posteriores con mancuernas: la carga libre permite ajustar el peso y el rango al deltoides posterior de cada lado.","efc":2.5,"equipmentId":"dumbbells","executionCues":["Abre los brazos hacia los lados con control y baja sin dejar caer los hombros."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"horizontal_abduction","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides posterior abduce horizontalmente el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio fija la escápula durante la abducción horizontal; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."}],"performanceProfileId":"rear_delt_raise__dumbbells","primaryMuscles":["deltoid"],"replacementGroup":"shoulder_rear_delt_raise","replacementPriority":2,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["horizontal_abduction"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["trapezius","rhomboids"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"dumbbells","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"horizontal_abduction","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Mover el tronco o elevar los hombros para completar el recorrido."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Abre los brazos hacia los lados con control y baja sin dejar caer los hombros."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Prepara la inclinación del tronco o el asiento según la estación elegida."]},"display":{"displayName":"Elevaciones Posteriores","displaySummary":"dumbbells","selectedOptions":{"implement":"dumbbells"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":3.8,"ttc":1.6},"identity":{"canonicalName":"Elevaciones Posteriores","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"rear_delt_raise__dumbbells","definitionId":"rear_delt_raise","familyId":"shoulder_rear_delt_raise","kind":"PARENT","performanceProfileId":"rear_delt_raise__dumbbells","searchTerms":["elevaciones posteriores","rear delt","rear delt raise","deltoides posterior"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar el deltoides posterior en abducción horizontal."],"recoveryCost":"moderate","requiredEquipment":["dumbbells"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells","cable","machine"],"preservesIntent":["Conserva la abducción horizontal y el objetivo deltoides posterior."],"replacementGroup":"shoulder_rear_delt_raise","replacementPriority":2},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["trapezius","rhomboids"],"setupCues":["Prepara la inclinación del tronco o el asiento según la estación elegida."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":3.8,"ttc":1.6},"selectedOptions":{"implement":"dumbbells"}},{"displaySummary":"cable","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_elevaciones_posteriores_de_pie","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"rear_delt_raise__cable","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Mover el tronco o elevar los hombros para completar el recorrido."],"description":"Elevaciones posteriores en polea: la tensión continua mantiene el deltoides posterior activo a lo largo del recorrido.","efc":2.5,"equipmentId":"cable","executionCues":["Abre los brazos hacia los lados con control y baja sin dejar caer los hombros."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"horizontal_abduction","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides posterior abduce horizontalmente el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio fija la escápula durante la abducción horizontal; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."}],"performanceProfileId":"rear_delt_raise__cable","primaryMuscles":["deltoid"],"replacementGroup":"shoulder_rear_delt_raise","replacementPriority":2,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["horizontal_abduction"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["trapezius","rhomboids"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"cable","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"horizontal_abduction","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Mover el tronco o elevar los hombros para completar el recorrido."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Abre los brazos hacia los lados con control y baja sin dejar caer los hombros."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Prepara la inclinación del tronco o el asiento según la estación elegida."]},"display":{"displayName":"Elevaciones Posteriores","displaySummary":"cable","selectedOptions":{"implement":"cable"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":3.8,"ttc":1.6},"identity":{"canonicalName":"Elevaciones Posteriores","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"rear_delt_raise__cable","definitionId":"rear_delt_raise","familyId":"shoulder_rear_delt_raise","kind":"PARENT","performanceProfileId":"rear_delt_raise__cable","searchTerms":["elevaciones posteriores","rear delt","rear delt raise","deltoides posterior"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar el deltoides posterior en abducción horizontal."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells","cable","machine"],"preservesIntent":["Conserva la abducción horizontal y el objetivo deltoides posterior."],"replacementGroup":"shoulder_rear_delt_raise","replacementPriority":2},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["trapezius","rhomboids"],"setupCues":["Prepara la inclinación del tronco o el asiento según la estación elegida."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":3.8,"ttc":1.6},"selectedOptions":{"implement":"cable"}},{"displaySummary":"machine","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_elevaciones_posteriores_de_pie","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"rear_delt_raise__machine","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Mover el tronco o elevar los hombros para completar el recorrido."],"description":"Elevaciones posteriores en máquina: el recorrido guiado aísla el deltoides posterior sin exigir estabilidad extra.","efc":2.5,"equipmentId":"machine","executionCues":["Abre los brazos hacia los lados con control y baja sin dejar caer los hombros."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"guided_external_load","movementPatternId":"horizontal_abduction","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides posterior abduce horizontalmente el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio fija la escápula durante la abducción horizontal; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."}],"performanceProfileId":"rear_delt_raise__machine","primaryMuscles":["deltoid"],"replacementGroup":"shoulder_rear_delt_raise","replacementPriority":2,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["horizontal_abduction"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["trapezius","rhomboids"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"machine","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"guided_external_load","movementPatternId":"horizontal_abduction","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"guided_constant","stability":"self_stabilized"},"coaching":{"commonMistakes":["Mover el tronco o elevar los hombros para completar el recorrido."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Abre los brazos hacia los lados con control y baja sin dejar caer los hombros."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Prepara la inclinación del tronco o el asiento según la estación elegida."]},"display":{"displayName":"Elevaciones Posteriores","displaySummary":"machine","selectedOptions":{"implement":"machine"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":3.8,"ttc":1.6},"identity":{"canonicalName":"Elevaciones Posteriores","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"rear_delt_raise__machine","definitionId":"rear_delt_raise","familyId":"shoulder_rear_delt_raise","kind":"PARENT","performanceProfileId":"rear_delt_raise__machine","searchTerms":["elevaciones posteriores","rear delt","rear delt raise","deltoides posterior"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar el deltoides posterior en abducción horizontal."],"recoveryCost":"moderate","requiredEquipment":["machine"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells","cable","machine"],"preservesIntent":["Conserva la abducción horizontal y el objetivo deltoides posterior."],"replacementGroup":"shoulder_rear_delt_raise","replacementPriority":2},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["trapezius","rhomboids"],"setupCues":["Prepara la inclinación del tronco o el asiento según la estación elegida."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":3.8,"ttc":1.6},"selectedOptions":{"implement":"machine"}}],"defaultConfigurationId":"rear_delt_raise__dumbbells","description":"Abducción horizontal de hombros con énfasis en el deltoides posterior. Mancuernas, polea y máquina cubren las estaciones más útiles para trabajar la espalda alta y la cara posterior del hombro.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:rear_delt_raise"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"shoulder_rear_delt_raise","id":"rear_delt_raise","kind":"PARENT","optionAxes":["implement"],"searchTerms":["elevaciones posteriores","rear delt","rear delt raise","deltoides posterior"]}],"description":"Familia de abducción horizontal de hombro con diferentes apoyos y posiciones; no se mezcla con el reverse pec fly guiado o en polea.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:shoulder_rear_delt_raise"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"shoulder_rear_delt_raise","taxonomy":["upper","horizontal_abduction","rear_delt_raise"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Elevaciones posteriores",
+    "definitions": [
+      {
+        "canonicalName": "Elevaciones Posteriores",
+        "configurations": [
+          {
+            "displaySummary": "dumbbells",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_elevaciones_posteriores_de_pie",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "rear_delt_raise__dumbbells",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Mover el tronco o elevar los hombros para completar el recorrido."
+              ],
+              "description": "Elevaciones posteriores con mancuernas: la carga libre permite ajustar el peso y el rango al deltoides posterior de cada lado.",
+              "efc": 2.5,
+              "equipmentId": "dumbbells",
+              "executionCues": [
+                "Abre los brazos hacia los lados con control y baja sin dejar caer los hombros."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "horizontal_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides posterior abduce horizontalmente el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio fija la escápula durante la abducción horizontal; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."
+                }
+              ],
+              "performanceProfileId": "rear_delt_raise__dumbbells",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": "shoulder_rear_delt_raise",
+              "replacementPriority": 2,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_abduction"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius",
+                    "rhomboids"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "dumbbells",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "horizontal_abduction",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Mover el tronco o elevar los hombros para completar el recorrido."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Abre los brazos hacia los lados con control y baja sin dejar caer los hombros."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Prepara la inclinación del tronco o el asiento según la estación elegida."
+                  ]
+                },
+                "display": {
+                  "displayName": "Elevaciones Posteriores",
+                  "displaySummary": "dumbbells",
+                  "selectedOptions": {
+                    "implement": "dumbbells"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 3.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Elevaciones Posteriores",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "rear_delt_raise__dumbbells",
+                  "definitionId": "rear_delt_raise",
+                  "familyId": "shoulder_rear_delt_raise",
+                  "kind": "PARENT",
+                  "performanceProfileId": "rear_delt_raise__dumbbells",
+                  "searchTerms": [
+                    "elevaciones posteriores",
+                    "rear delt",
+                    "rear delt raise",
+                    "deltoides posterior"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar el deltoides posterior en abducción horizontal."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "dumbbells"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells",
+                    "cable",
+                    "machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la abducción horizontal y el objetivo deltoides posterior."
+                  ],
+                  "replacementGroup": "shoulder_rear_delt_raise",
+                  "replacementPriority": 2
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius",
+                "rhomboids"
+              ],
+              "setupCues": [
+                "Prepara la inclinación del tronco o el asiento según la estación elegida."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "dumbbells"
+            }
+          },
+          {
+            "displaySummary": "cable",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_elevaciones_posteriores_de_pie",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "rear_delt_raise__cable",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Mover el tronco o elevar los hombros para completar el recorrido."
+              ],
+              "description": "Elevaciones posteriores en polea: la tensión continua mantiene el deltoides posterior activo a lo largo del recorrido.",
+              "efc": 2.5,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Abre los brazos hacia los lados con control y baja sin dejar caer los hombros."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "horizontal_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides posterior abduce horizontalmente el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio fija la escápula durante la abducción horizontal; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."
+                }
+              ],
+              "performanceProfileId": "rear_delt_raise__cable",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": "shoulder_rear_delt_raise",
+              "replacementPriority": 2,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_abduction"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius",
+                    "rhomboids"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "cable",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "horizontal_abduction",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Mover el tronco o elevar los hombros para completar el recorrido."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Abre los brazos hacia los lados con control y baja sin dejar caer los hombros."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Prepara la inclinación del tronco o el asiento según la estación elegida."
+                  ]
+                },
+                "display": {
+                  "displayName": "Elevaciones Posteriores",
+                  "displaySummary": "cable",
+                  "selectedOptions": {
+                    "implement": "cable"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 3.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Elevaciones Posteriores",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "rear_delt_raise__cable",
+                  "definitionId": "rear_delt_raise",
+                  "familyId": "shoulder_rear_delt_raise",
+                  "kind": "PARENT",
+                  "performanceProfileId": "rear_delt_raise__cable",
+                  "searchTerms": [
+                    "elevaciones posteriores",
+                    "rear delt",
+                    "rear delt raise",
+                    "deltoides posterior"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar el deltoides posterior en abducción horizontal."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells",
+                    "cable",
+                    "machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la abducción horizontal y el objetivo deltoides posterior."
+                  ],
+                  "replacementGroup": "shoulder_rear_delt_raise",
+                  "replacementPriority": 2
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius",
+                "rhomboids"
+              ],
+              "setupCues": [
+                "Prepara la inclinación del tronco o el asiento según la estación elegida."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "cable"
+            }
+          },
+          {
+            "displaySummary": "machine",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_elevaciones_posteriores_de_pie",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "rear_delt_raise__machine",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Mover el tronco o elevar los hombros para completar el recorrido."
+              ],
+              "description": "Elevaciones posteriores en máquina: el recorrido guiado aísla el deltoides posterior sin exigir estabilidad extra.",
+              "efc": 2.5,
+              "equipmentId": "machine",
+              "executionCues": [
+                "Abre los brazos hacia los lados con control y baja sin dejar caer los hombros."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "horizontal_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides posterior abduce horizontalmente el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio fija la escápula durante la abducción horizontal; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."
+                }
+              ],
+              "performanceProfileId": "rear_delt_raise__machine",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": "shoulder_rear_delt_raise",
+              "replacementPriority": 2,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_abduction"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius",
+                    "rhomboids"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "horizontal_abduction",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Mover el tronco o elevar los hombros para completar el recorrido."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Abre los brazos hacia los lados con control y baja sin dejar caer los hombros."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Prepara la inclinación del tronco o el asiento según la estación elegida."
+                  ]
+                },
+                "display": {
+                  "displayName": "Elevaciones Posteriores",
+                  "displaySummary": "machine",
+                  "selectedOptions": {
+                    "implement": "machine"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 3.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Elevaciones Posteriores",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "rear_delt_raise__machine",
+                  "definitionId": "rear_delt_raise",
+                  "familyId": "shoulder_rear_delt_raise",
+                  "kind": "PARENT",
+                  "performanceProfileId": "rear_delt_raise__machine",
+                  "searchTerms": [
+                    "elevaciones posteriores",
+                    "rear delt",
+                    "rear delt raise",
+                    "deltoides posterior"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar el deltoides posterior en abducción horizontal."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "machine"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells",
+                    "cable",
+                    "machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la abducción horizontal y el objetivo deltoides posterior."
+                  ],
+                  "replacementGroup": "shoulder_rear_delt_raise",
+                  "replacementPriority": 2
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius",
+                "rhomboids"
+              ],
+              "setupCues": [
+                "Prepara la inclinación del tronco o el asiento según la estación elegida."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "machine"
+            }
+          }
+        ],
+        "defaultConfigurationId": "rear_delt_raise__dumbbells",
+        "description": "Abducción horizontal de hombros con énfasis en el deltoides posterior. Mancuernas, polea y máquina cubren las estaciones más útiles para trabajar la espalda alta y la cara posterior del hombro.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:rear_delt_raise"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "shoulder_rear_delt_raise",
+        "id": "rear_delt_raise",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement"
+        ],
+        "searchTerms": [
+          "elevaciones posteriores",
+          "rear delt",
+          "rear delt raise",
+          "deltoides posterior"
+        ]
+      }
+    ],
+    "description": "Familia de abducción horizontal de hombro con diferentes apoyos y posiciones; no se mezcla con el reverse pec fly guiado o en polea.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:shoulder_rear_delt_raise"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "shoulder_rear_delt_raise",
+    "taxonomy": [
+      "upper",
+      "horizontal_abduction",
+      "rear_delt_raise"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

@@ -22,6 +22,17 @@ def canonical(value: object) -> bytes:
     return (json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8")
 
 
+def family_canonical(value: object) -> bytes:
+    """Reviewable pretty form for per-family files.
+
+    The aggregated source and manifest stay minified (their bytes back the
+    canonical hash); family files are only consumed via json.loads and are
+    re-canonicalized by merge, so their formatting is free. indent=2 makes
+    them readable and greppable for agents and reviewers.
+    """
+    return (json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode("utf-8")
+
+
 def main() -> int:
     source = json.loads(SOURCE.read_text(encoding="utf-8"))
     OUT.mkdir(parents=True, exist_ok=True)
@@ -35,7 +46,7 @@ def main() -> int:
             "ontologyRevision": source["ontologyRevision"],
             "family": family,
         }
-        (OUT / filename).write_bytes(canonical(payload))
+        (OUT / filename).write_bytes(family_canonical(payload))
     expected_files = set(files)
     # The split directory is a generated review surface. Prune only JSON
     # families that are no longer present in the canonical aggregate; keeping

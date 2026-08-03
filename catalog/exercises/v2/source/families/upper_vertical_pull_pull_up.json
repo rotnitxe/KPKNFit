@@ -1,1 +1,2031 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Dominadas","definitions":[{"canonicalName":"Dominadas","configurations":[{"displaySummary":"pronated · wide","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_dominadas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"pull_up__pronated__wide","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Balancear las piernas o acortar el rango inferior del tirón."],"description":"Dominadas con agarre prono y amplitud wide: la empuñadura amplia desplaza el trabajo hacia el trapecio y la espalda alta, y reduce la participación del bíceps.","efc":2.5,"equipmentId":"bodyweight","executionCues":["Sube el pecho hacia la barra con control y baja sin soltarte de golpe."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"bodyweight","movementPatternId":"vertical_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal ancho aduce el húmero y concentra el tirón vertical; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Principal: con el agarre abierto el trapecio fija y rota la escápula y comparte el trabajo de la subida; por eso suma la serie completa (1.0)."},{"muscleId":"biceps","note":"Secundario: el bíceps flexiona el codo y asiste al dorsal durante la subida; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco firme y sin balanceos durante la serie; por eso suma 0.4."}],"performanceProfileId":"pull_up__pronated__wide","primaryMuscles":["latissimus_dorsi","trapezius"],"replacementGroup":"back_pullup_pronated","replacementPriority":1,"resistanceProfile":"body_angle","richMetadata":{"anatomy":{"jointActions":["vertical_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi","trapezius"],"secondaryMuscles":["biceps","rhomboids"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["latissimus_dorsi","trapezius"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"bodyweight","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"bodyweight","movementPatternId":"vertical_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"body_angle","stability":"self_stabilized"},"coaching":{"commonMistakes":["Balancear las piernas o acortar el rango inferior del tirón."],"cues":["Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."],"execution":["Sube el pecho hacia la barra con control y baja sin soltarte de golpe."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Cuelga de la barra con el agarre elegido y los hombros activados."]},"display":{"displayName":"Dominadas","displaySummary":"pronated · wide","selectedOptions":{"grip_type":"pronated","grip_width":"wide"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Dominadas","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"pull_up__pronated__wide","definitionId":"pull_up","familyId":"upper_vertical_pull_pull_up","kind":"PARENT","performanceProfileId":"pull_up__pronated__wide","searchTerms":["dominadas","pull up","dominadas prono","dominadas supino","chin up"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar la espalda y el bíceps con el tirón vertical de las dominadas."],"recoveryCost":"moderate","requiredEquipment":["bodyweight"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["bodyweight"],"preservesIntent":["Conserva el tirón vertical y el reparto muscular del agarre elegido."],"replacementGroup":"back_pullup_pronated","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["biceps","rhomboids"],"setupCues":["Cuelga de la barra con el agarre elegido y los hombros activados."],"ssc":0.4,"stabilizerMuscles":["core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"grip_type":"pronated","grip_width":"wide"}},{"displaySummary":"pronated · medium","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_dominadas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"pull_up__pronated__medium","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Balancear las piernas o acortar el rango inferior del tirón."],"description":"Dominadas con agarre prono y amplitud medium: la posición intermedia reparte el esfuerzo de forma equilibrada entre el dorsal y la espalda alta, con buena participación del bíceps.","efc":2.5,"equipmentId":"bodyweight","executionCues":["Sube el pecho hacia la barra con control y baja sin soltarte de golpe."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"bodyweight","movementPatternId":"vertical_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal ancho aduce el húmero y concentra el tirón vertical; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio fija la escápula y asiste la subida; por eso suma 0.5."},{"muscleId":"biceps","note":"Secundario: el bíceps flexiona el codo y asiste al dorsal durante la subida; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco firme y sin balanceos durante la serie; por eso suma 0.4."}],"performanceProfileId":"pull_up__pronated__medium","primaryMuscles":["latissimus_dorsi"],"replacementGroup":"back_pullup_pronated","replacementPriority":1,"resistanceProfile":"body_angle","richMetadata":{"anatomy":{"jointActions":["vertical_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi"],"secondaryMuscles":["trapezius","biceps","rhomboids"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["latissimus_dorsi"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"bodyweight","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"bodyweight","movementPatternId":"vertical_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"body_angle","stability":"self_stabilized"},"coaching":{"commonMistakes":["Balancear las piernas o acortar el rango inferior del tirón."],"cues":["Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."],"execution":["Sube el pecho hacia la barra con control y baja sin soltarte de golpe."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Cuelga de la barra con el agarre elegido y los hombros activados."]},"display":{"displayName":"Dominadas","displaySummary":"pronated · medium","selectedOptions":{"grip_type":"pronated","grip_width":"medium"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Dominadas","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"pull_up__pronated__medium","definitionId":"pull_up","familyId":"upper_vertical_pull_pull_up","kind":"PARENT","performanceProfileId":"pull_up__pronated__medium","searchTerms":["dominadas","pull up","dominadas prono","dominadas supino","chin up"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar la espalda y el bíceps con el tirón vertical de las dominadas."],"recoveryCost":"moderate","requiredEquipment":["bodyweight"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["bodyweight"],"preservesIntent":["Conserva el tirón vertical y el reparto muscular del agarre elegido."],"replacementGroup":"back_pullup_pronated","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["trapezius","biceps","rhomboids"],"setupCues":["Cuelga de la barra con el agarre elegido y los hombros activados."],"ssc":0.4,"stabilizerMuscles":["core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"grip_type":"pronated","grip_width":"medium"}},{"displaySummary":"pronated · close","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_dominadas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"pull_up__pronated__close","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Balancear las piernas o acortar el rango inferior del tirón."],"description":"Dominadas con agarre prono y amplitud close: la empuñadura estrecha acerca el codo al tronco y concentra el trabajo en el dorsal ancho, con más ayuda del bíceps.","efc":2.5,"equipmentId":"bodyweight","executionCues":["Sube el pecho hacia la barra con control y baja sin soltarte de golpe."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"bodyweight","movementPatternId":"vertical_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal ancho aduce el húmero y concentra el tirón vertical; por eso suma la serie completa (1.0)."},{"muscleId":"biceps","note":"Secundario: el bíceps flexiona el codo y asiste al dorsal durante la subida; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco firme y sin balanceos durante la serie; por eso suma 0.4."}],"performanceProfileId":"pull_up__pronated__close","primaryMuscles":["latissimus_dorsi"],"replacementGroup":"back_pullup_pronated","replacementPriority":1,"resistanceProfile":"body_angle","richMetadata":{"anatomy":{"jointActions":["vertical_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi"],"secondaryMuscles":["biceps","rhomboids"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["latissimus_dorsi"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"bodyweight","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"bodyweight","movementPatternId":"vertical_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"body_angle","stability":"self_stabilized"},"coaching":{"commonMistakes":["Balancear las piernas o acortar el rango inferior del tirón."],"cues":["Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."],"execution":["Sube el pecho hacia la barra con control y baja sin soltarte de golpe."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Cuelga de la barra con el agarre elegido y los hombros activados."]},"display":{"displayName":"Dominadas","displaySummary":"pronated · close","selectedOptions":{"grip_type":"pronated","grip_width":"close"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Dominadas","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"pull_up__pronated__close","definitionId":"pull_up","familyId":"upper_vertical_pull_pull_up","kind":"PARENT","performanceProfileId":"pull_up__pronated__close","searchTerms":["dominadas","pull up","dominadas prono","dominadas supino","chin up"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar la espalda y el bíceps con el tirón vertical de las dominadas."],"recoveryCost":"moderate","requiredEquipment":["bodyweight"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["bodyweight"],"preservesIntent":["Conserva el tirón vertical y el reparto muscular del agarre elegido."],"replacementGroup":"back_pullup_pronated","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["biceps","rhomboids"],"setupCues":["Cuelga de la barra con el agarre elegido y los hombros activados."],"ssc":0.4,"stabilizerMuscles":["core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"grip_type":"pronated","grip_width":"close"}},{"displaySummary":"supinated · wide","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_dominadas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"pull_up__supinated__wide","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Balancear las piernas o acortar el rango inferior del tirón."],"description":"Dominadas con agarre supino y amplitud wide: la empuñadura amplia desplaza el trabajo hacia el trapecio y la espalda alta, y reduce la participación del bíceps. El agarre supino añade una participación notable del bíceps.","efc":2.5,"equipmentId":"bodyweight","executionCues":["Sube el pecho hacia la barra con control y baja sin soltarte de golpe."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"bodyweight","movementPatternId":"vertical_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal ancho aduce el húmero y concentra el tirón vertical; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Principal: con el agarre abierto el trapecio fija y rota la escápula y comparte el trabajo de la subida; por eso suma la serie completa (1.0)."},{"muscleId":"biceps","note":"Principal: con el agarre supino el bíceps flexiona el codo y participa de forma notable en la subida; por eso suma la serie completa (1.0)."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco firme y sin balanceos durante la serie; por eso suma 0.4."}],"performanceProfileId":"pull_up__supinated__wide","primaryMuscles":["latissimus_dorsi","trapezius","biceps"],"replacementGroup":"back_pullup_pronated","replacementPriority":1,"resistanceProfile":"body_angle","richMetadata":{"anatomy":{"jointActions":["vertical_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi","trapezius","biceps"],"secondaryMuscles":["rhomboids"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["latissimus_dorsi","trapezius","biceps"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"bodyweight","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"bodyweight","movementPatternId":"vertical_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"body_angle","stability":"self_stabilized"},"coaching":{"commonMistakes":["Balancear las piernas o acortar el rango inferior del tirón."],"cues":["Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."],"execution":["Sube el pecho hacia la barra con control y baja sin soltarte de golpe."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Cuelga de la barra con el agarre elegido y los hombros activados."]},"display":{"displayName":"Dominadas","displaySummary":"supinated · wide","selectedOptions":{"grip_type":"supinated","grip_width":"wide"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Dominadas","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"pull_up__supinated__wide","definitionId":"pull_up","familyId":"upper_vertical_pull_pull_up","kind":"PARENT","performanceProfileId":"pull_up__supinated__wide","searchTerms":["dominadas","pull up","dominadas prono","dominadas supino","chin up"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar la espalda y el bíceps con el tirón vertical de las dominadas."],"recoveryCost":"moderate","requiredEquipment":["bodyweight"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["bodyweight"],"preservesIntent":["Conserva el tirón vertical y el reparto muscular del agarre elegido."],"replacementGroup":"back_pullup_pronated","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["rhomboids"],"setupCues":["Cuelga de la barra con el agarre elegido y los hombros activados."],"ssc":0.4,"stabilizerMuscles":["core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"grip_type":"supinated","grip_width":"wide"}},{"displaySummary":"supinated · medium","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_dominadas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"pull_up__supinated__medium","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Balancear las piernas o acortar el rango inferior del tirón."],"description":"Dominadas con agarre supino y amplitud medium: la posición intermedia reparte el esfuerzo de forma equilibrada entre el dorsal y la espalda alta, con buena participación del bíceps. El agarre supino añade una participación notable del bíceps.","efc":2.5,"equipmentId":"bodyweight","executionCues":["Sube el pecho hacia la barra con control y baja sin soltarte de golpe."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"bodyweight","movementPatternId":"vertical_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal ancho aduce el húmero y concentra el tirón vertical; por eso suma la serie completa (1.0)."},{"muscleId":"biceps","note":"Principal: con el agarre supino el bíceps flexiona el codo y participa de forma notable en la subida; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio fija la escápula y asiste la subida; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco firme y sin balanceos durante la serie; por eso suma 0.4."}],"performanceProfileId":"pull_up__supinated__medium","primaryMuscles":["latissimus_dorsi","biceps"],"replacementGroup":"back_pullup_pronated","replacementPriority":1,"resistanceProfile":"body_angle","richMetadata":{"anatomy":{"jointActions":["vertical_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi","biceps"],"secondaryMuscles":["trapezius","rhomboids"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["latissimus_dorsi","biceps"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"bodyweight","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"bodyweight","movementPatternId":"vertical_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"body_angle","stability":"self_stabilized"},"coaching":{"commonMistakes":["Balancear las piernas o acortar el rango inferior del tirón."],"cues":["Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."],"execution":["Sube el pecho hacia la barra con control y baja sin soltarte de golpe."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Cuelga de la barra con el agarre elegido y los hombros activados."]},"display":{"displayName":"Dominadas","displaySummary":"supinated · medium","selectedOptions":{"grip_type":"supinated","grip_width":"medium"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Dominadas","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"pull_up__supinated__medium","definitionId":"pull_up","familyId":"upper_vertical_pull_pull_up","kind":"PARENT","performanceProfileId":"pull_up__supinated__medium","searchTerms":["dominadas","pull up","dominadas prono","dominadas supino","chin up"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar la espalda y el bíceps con el tirón vertical de las dominadas."],"recoveryCost":"moderate","requiredEquipment":["bodyweight"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["bodyweight"],"preservesIntent":["Conserva el tirón vertical y el reparto muscular del agarre elegido."],"replacementGroup":"back_pullup_pronated","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["trapezius","rhomboids"],"setupCues":["Cuelga de la barra con el agarre elegido y los hombros activados."],"ssc":0.4,"stabilizerMuscles":["core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"grip_type":"supinated","grip_width":"medium"}},{"displaySummary":"supinated · close","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_dominadas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"pull_up__supinated__close","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Balancear las piernas o acortar el rango inferior del tirón."],"description":"Dominadas con agarre supino y amplitud close: la empuñadura estrecha acerca el codo al tronco y concentra el trabajo en el dorsal ancho, con más ayuda del bíceps. El agarre supino añade una participación notable del bíceps.","efc":2.5,"equipmentId":"bodyweight","executionCues":["Sube el pecho hacia la barra con control y baja sin soltarte de golpe."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"bodyweight","movementPatternId":"vertical_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal ancho aduce el húmero y concentra el tirón vertical; por eso suma la serie completa (1.0)."},{"muscleId":"biceps","note":"Principal: con el agarre supino el bíceps flexiona el codo y participa de forma notable en la subida; por eso suma la serie completa (1.0)."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco firme y sin balanceos durante la serie; por eso suma 0.4."}],"performanceProfileId":"pull_up__supinated__close","primaryMuscles":["latissimus_dorsi","biceps"],"replacementGroup":"back_pullup_pronated","replacementPriority":1,"resistanceProfile":"body_angle","richMetadata":{"anatomy":{"jointActions":["vertical_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi","biceps"],"secondaryMuscles":["rhomboids"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["latissimus_dorsi","biceps"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"bodyweight","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"bodyweight","movementPatternId":"vertical_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"body_angle","stability":"self_stabilized"},"coaching":{"commonMistakes":["Balancear las piernas o acortar el rango inferior del tirón."],"cues":["Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."],"execution":["Sube el pecho hacia la barra con control y baja sin soltarte de golpe."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Cuelga de la barra con el agarre elegido y los hombros activados."]},"display":{"displayName":"Dominadas","displaySummary":"supinated · close","selectedOptions":{"grip_type":"supinated","grip_width":"close"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Dominadas","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"pull_up__supinated__close","definitionId":"pull_up","familyId":"upper_vertical_pull_pull_up","kind":"PARENT","performanceProfileId":"pull_up__supinated__close","searchTerms":["dominadas","pull up","dominadas prono","dominadas supino","chin up"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar la espalda y el bíceps con el tirón vertical de las dominadas."],"recoveryCost":"moderate","requiredEquipment":["bodyweight"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["bodyweight"],"preservesIntent":["Conserva el tirón vertical y el reparto muscular del agarre elegido."],"replacementGroup":"back_pullup_pronated","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["rhomboids"],"setupCues":["Cuelga de la barra con el agarre elegido y los hombros activados."],"ssc":0.4,"stabilizerMuscles":["core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"grip_type":"supinated","grip_width":"close"}},{"displaySummary":"neutral · wide","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_dominadas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"pull_up__neutral__wide","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Balancear las piernas o acortar el rango inferior del tirón."],"description":"Dominadas con agarre neutro y amplitud wide: la empuñadura amplia desplaza el trabajo hacia el trapecio y la espalda alta, y reduce la participación del bíceps.","efc":2.5,"equipmentId":"bodyweight","executionCues":["Sube el pecho hacia la barra con control y baja sin soltarte de golpe."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"bodyweight","movementPatternId":"vertical_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal ancho aduce el húmero y concentra el tirón vertical; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Principal: con el agarre abierto el trapecio fija y rota la escápula y comparte el trabajo de la subida; por eso suma la serie completa (1.0)."},{"muscleId":"biceps","note":"Secundario: el bíceps flexiona el codo y asiste al dorsal durante la subida; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco firme y sin balanceos durante la serie; por eso suma 0.4."}],"performanceProfileId":"pull_up__neutral__wide","primaryMuscles":["latissimus_dorsi","trapezius"],"replacementGroup":"back_pullup_pronated","replacementPriority":1,"resistanceProfile":"body_angle","richMetadata":{"anatomy":{"jointActions":["vertical_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi","trapezius"],"secondaryMuscles":["biceps","rhomboids"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["latissimus_dorsi","trapezius"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"bodyweight","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"bodyweight","movementPatternId":"vertical_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"body_angle","stability":"self_stabilized"},"coaching":{"commonMistakes":["Balancear las piernas o acortar el rango inferior del tirón."],"cues":["Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."],"execution":["Sube el pecho hacia la barra con control y baja sin soltarte de golpe."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Cuelga de la barra con el agarre elegido y los hombros activados."]},"display":{"displayName":"Dominadas","displaySummary":"neutral · wide","selectedOptions":{"grip_type":"neutral","grip_width":"wide"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Dominadas","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"pull_up__neutral__wide","definitionId":"pull_up","familyId":"upper_vertical_pull_pull_up","kind":"PARENT","performanceProfileId":"pull_up__neutral__wide","searchTerms":["dominadas","pull up","dominadas prono","dominadas supino","chin up"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar la espalda y el bíceps con el tirón vertical de las dominadas."],"recoveryCost":"moderate","requiredEquipment":["bodyweight"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["bodyweight"],"preservesIntent":["Conserva el tirón vertical y el reparto muscular del agarre elegido."],"replacementGroup":"back_pullup_pronated","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["biceps","rhomboids"],"setupCues":["Cuelga de la barra con el agarre elegido y los hombros activados."],"ssc":0.4,"stabilizerMuscles":["core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"grip_type":"neutral","grip_width":"wide"}},{"displaySummary":"neutral · medium","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_dominadas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"pull_up__neutral__medium","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Balancear las piernas o acortar el rango inferior del tirón."],"description":"Dominadas con agarre neutro y amplitud medium: la posición intermedia reparte el esfuerzo de forma equilibrada entre el dorsal y la espalda alta, con buena participación del bíceps.","efc":2.5,"equipmentId":"bodyweight","executionCues":["Sube el pecho hacia la barra con control y baja sin soltarte de golpe."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"bodyweight","movementPatternId":"vertical_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal ancho aduce el húmero y concentra el tirón vertical; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio fija la escápula y asiste la subida; por eso suma 0.5."},{"muscleId":"biceps","note":"Secundario: el bíceps flexiona el codo y asiste al dorsal durante la subida; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco firme y sin balanceos durante la serie; por eso suma 0.4."}],"performanceProfileId":"pull_up__neutral__medium","primaryMuscles":["latissimus_dorsi"],"replacementGroup":"back_pullup_pronated","replacementPriority":1,"resistanceProfile":"body_angle","richMetadata":{"anatomy":{"jointActions":["vertical_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi"],"secondaryMuscles":["trapezius","biceps","rhomboids"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["latissimus_dorsi"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"bodyweight","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"bodyweight","movementPatternId":"vertical_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"body_angle","stability":"self_stabilized"},"coaching":{"commonMistakes":["Balancear las piernas o acortar el rango inferior del tirón."],"cues":["Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."],"execution":["Sube el pecho hacia la barra con control y baja sin soltarte de golpe."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Cuelga de la barra con el agarre elegido y los hombros activados."]},"display":{"displayName":"Dominadas","displaySummary":"neutral · medium","selectedOptions":{"grip_type":"neutral","grip_width":"medium"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Dominadas","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"pull_up__neutral__medium","definitionId":"pull_up","familyId":"upper_vertical_pull_pull_up","kind":"PARENT","performanceProfileId":"pull_up__neutral__medium","searchTerms":["dominadas","pull up","dominadas prono","dominadas supino","chin up"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar la espalda y el bíceps con el tirón vertical de las dominadas."],"recoveryCost":"moderate","requiredEquipment":["bodyweight"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["bodyweight"],"preservesIntent":["Conserva el tirón vertical y el reparto muscular del agarre elegido."],"replacementGroup":"back_pullup_pronated","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["trapezius","biceps","rhomboids"],"setupCues":["Cuelga de la barra con el agarre elegido y los hombros activados."],"ssc":0.4,"stabilizerMuscles":["core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"grip_type":"neutral","grip_width":"medium"}},{"displaySummary":"neutral · close","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_dominadas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"pull_up__neutral__close","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Balancear las piernas o acortar el rango inferior del tirón."],"description":"Dominadas con agarre neutro y amplitud close: la empuñadura estrecha acerca el codo al tronco y concentra el trabajo en el dorsal ancho, con más ayuda del bíceps.","efc":2.5,"equipmentId":"bodyweight","executionCues":["Sube el pecho hacia la barra con control y baja sin soltarte de golpe."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"bodyweight","movementPatternId":"vertical_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal ancho aduce el húmero y concentra el tirón vertical; por eso suma la serie completa (1.0)."},{"muscleId":"biceps","note":"Secundario: el bíceps flexiona el codo y asiste al dorsal durante la subida; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco firme y sin balanceos durante la serie; por eso suma 0.4."}],"performanceProfileId":"pull_up__neutral__close","primaryMuscles":["latissimus_dorsi"],"replacementGroup":"back_pullup_pronated","replacementPriority":1,"resistanceProfile":"body_angle","richMetadata":{"anatomy":{"jointActions":["vertical_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi"],"secondaryMuscles":["biceps","rhomboids"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["latissimus_dorsi"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"bodyweight","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"bodyweight","movementPatternId":"vertical_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"body_angle","stability":"self_stabilized"},"coaching":{"commonMistakes":["Balancear las piernas o acortar el rango inferior del tirón."],"cues":["Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."],"execution":["Sube el pecho hacia la barra con control y baja sin soltarte de golpe."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Cuelga de la barra con el agarre elegido y los hombros activados."]},"display":{"displayName":"Dominadas","displaySummary":"neutral · close","selectedOptions":{"grip_type":"neutral","grip_width":"close"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Dominadas","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"pull_up__neutral__close","definitionId":"pull_up","familyId":"upper_vertical_pull_pull_up","kind":"PARENT","performanceProfileId":"pull_up__neutral__close","searchTerms":["dominadas","pull up","dominadas prono","dominadas supino","chin up"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar la espalda y el bíceps con el tirón vertical de las dominadas."],"recoveryCost":"moderate","requiredEquipment":["bodyweight"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["bodyweight"],"preservesIntent":["Conserva el tirón vertical y el reparto muscular del agarre elegido."],"replacementGroup":"back_pullup_pronated","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["biceps","rhomboids"],"setupCues":["Cuelga de la barra con el agarre elegido y los hombros activados."],"ssc":0.4,"stabilizerMuscles":["core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"grip_type":"neutral","grip_width":"close"}}],"defaultConfigurationId":"pull_up__pronated__medium","description":"Tirón vertical con el peso corporal donde la elección del agarre y la amplitud cambian el reparto del estímulo: más cerrado concentra el dorsal, más abierto involucra trapecio y espalda alta, y el agarre supino suma bíceps.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:pull_up"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"upper_vertical_pull_pull_up","id":"pull_up","kind":"PARENT","optionAxes":["grip_type","grip_width"],"searchTerms":["dominadas","pull up","dominadas prono","dominadas supino","chin up"]}],"description":"Familia de tirón vertical con el peso corporal; el tipo de agarre y su amplitud definen cada configuración materializada.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:upper_vertical_pull_pull_up"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"upper_vertical_pull_pull_up","taxonomy":["upper","vertical_pull","pull_up"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Dominadas",
+    "definitions": [
+      {
+        "canonicalName": "Dominadas",
+        "configurations": [
+          {
+            "displaySummary": "pronated · wide",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_dominadas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "pull_up__pronated__wide",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Balancear las piernas o acortar el rango inferior del tirón."
+              ],
+              "description": "Dominadas con agarre prono y amplitud wide: la empuñadura amplia desplaza el trabajo hacia el trapecio y la espalda alta, y reduce la participación del bíceps.",
+              "efc": 2.5,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Sube el pecho hacia la barra con control y baja sin soltarte de golpe."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "bodyweight",
+              "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal ancho aduce el húmero y concentra el tirón vertical; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: con el agarre abierto el trapecio fija y rota la escápula y comparte el trabajo de la subida; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo y asiste al dorsal durante la subida; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco firme y sin balanceos durante la serie; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "pull_up__pronated__wide",
+              "primaryMuscles": [
+                "latissimus_dorsi",
+                "trapezius"
+              ],
+              "replacementGroup": "back_pullup_pronated",
+              "replacementPriority": 1,
+              "resistanceProfile": "body_angle",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "vertical_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi",
+                    "trapezius"
+                  ],
+                  "secondaryMuscles": [
+                    "biceps",
+                    "rhomboids"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi",
+                    "trapezius"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "vertical_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "body_angle",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Balancear las piernas o acortar el rango inferior del tirón."
+                  ],
+                  "cues": [
+                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Sube el pecho hacia la barra con control y baja sin soltarte de golpe."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Cuelga de la barra con el agarre elegido y los hombros activados."
+                  ]
+                },
+                "display": {
+                  "displayName": "Dominadas",
+                  "displaySummary": "pronated · wide",
+                  "selectedOptions": {
+                    "grip_type": "pronated",
+                    "grip_width": "wide"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Dominadas",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "pull_up__pronated__wide",
+                  "definitionId": "pull_up",
+                  "familyId": "upper_vertical_pull_pull_up",
+                  "kind": "PARENT",
+                  "performanceProfileId": "pull_up__pronated__wide",
+                  "searchTerms": [
+                    "dominadas",
+                    "pull up",
+                    "dominadas prono",
+                    "dominadas supino",
+                    "chin up"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar la espalda y el bíceps con el tirón vertical de las dominadas."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el tirón vertical y el reparto muscular del agarre elegido."
+                  ],
+                  "replacementGroup": "back_pullup_pronated",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "biceps",
+                "rhomboids"
+              ],
+              "setupCues": [
+                "Cuelga de la barra con el agarre elegido y los hombros activados."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "grip_type": "pronated",
+              "grip_width": "wide"
+            }
+          },
+          {
+            "displaySummary": "pronated · medium",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_dominadas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "pull_up__pronated__medium",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Balancear las piernas o acortar el rango inferior del tirón."
+              ],
+              "description": "Dominadas con agarre prono y amplitud medium: la posición intermedia reparte el esfuerzo de forma equilibrada entre el dorsal y la espalda alta, con buena participación del bíceps.",
+              "efc": 2.5,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Sube el pecho hacia la barra con control y baja sin soltarte de golpe."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "bodyweight",
+              "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal ancho aduce el húmero y concentra el tirón vertical; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio fija la escápula y asiste la subida; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo y asiste al dorsal durante la subida; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco firme y sin balanceos durante la serie; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "pull_up__pronated__medium",
+              "primaryMuscles": [
+                "latissimus_dorsi"
+              ],
+              "replacementGroup": "back_pullup_pronated",
+              "replacementPriority": 1,
+              "resistanceProfile": "body_angle",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "vertical_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius",
+                    "biceps",
+                    "rhomboids"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "vertical_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "body_angle",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Balancear las piernas o acortar el rango inferior del tirón."
+                  ],
+                  "cues": [
+                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Sube el pecho hacia la barra con control y baja sin soltarte de golpe."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Cuelga de la barra con el agarre elegido y los hombros activados."
+                  ]
+                },
+                "display": {
+                  "displayName": "Dominadas",
+                  "displaySummary": "pronated · medium",
+                  "selectedOptions": {
+                    "grip_type": "pronated",
+                    "grip_width": "medium"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Dominadas",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "pull_up__pronated__medium",
+                  "definitionId": "pull_up",
+                  "familyId": "upper_vertical_pull_pull_up",
+                  "kind": "PARENT",
+                  "performanceProfileId": "pull_up__pronated__medium",
+                  "searchTerms": [
+                    "dominadas",
+                    "pull up",
+                    "dominadas prono",
+                    "dominadas supino",
+                    "chin up"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar la espalda y el bíceps con el tirón vertical de las dominadas."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el tirón vertical y el reparto muscular del agarre elegido."
+                  ],
+                  "replacementGroup": "back_pullup_pronated",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius",
+                "biceps",
+                "rhomboids"
+              ],
+              "setupCues": [
+                "Cuelga de la barra con el agarre elegido y los hombros activados."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "grip_type": "pronated",
+              "grip_width": "medium"
+            }
+          },
+          {
+            "displaySummary": "pronated · close",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_dominadas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "pull_up__pronated__close",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Balancear las piernas o acortar el rango inferior del tirón."
+              ],
+              "description": "Dominadas con agarre prono y amplitud close: la empuñadura estrecha acerca el codo al tronco y concentra el trabajo en el dorsal ancho, con más ayuda del bíceps.",
+              "efc": 2.5,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Sube el pecho hacia la barra con control y baja sin soltarte de golpe."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "bodyweight",
+              "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal ancho aduce el húmero y concentra el tirón vertical; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo y asiste al dorsal durante la subida; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco firme y sin balanceos durante la serie; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "pull_up__pronated__close",
+              "primaryMuscles": [
+                "latissimus_dorsi"
+              ],
+              "replacementGroup": "back_pullup_pronated",
+              "replacementPriority": 1,
+              "resistanceProfile": "body_angle",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "vertical_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi"
+                  ],
+                  "secondaryMuscles": [
+                    "biceps",
+                    "rhomboids"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "vertical_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "body_angle",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Balancear las piernas o acortar el rango inferior del tirón."
+                  ],
+                  "cues": [
+                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Sube el pecho hacia la barra con control y baja sin soltarte de golpe."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Cuelga de la barra con el agarre elegido y los hombros activados."
+                  ]
+                },
+                "display": {
+                  "displayName": "Dominadas",
+                  "displaySummary": "pronated · close",
+                  "selectedOptions": {
+                    "grip_type": "pronated",
+                    "grip_width": "close"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Dominadas",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "pull_up__pronated__close",
+                  "definitionId": "pull_up",
+                  "familyId": "upper_vertical_pull_pull_up",
+                  "kind": "PARENT",
+                  "performanceProfileId": "pull_up__pronated__close",
+                  "searchTerms": [
+                    "dominadas",
+                    "pull up",
+                    "dominadas prono",
+                    "dominadas supino",
+                    "chin up"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar la espalda y el bíceps con el tirón vertical de las dominadas."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el tirón vertical y el reparto muscular del agarre elegido."
+                  ],
+                  "replacementGroup": "back_pullup_pronated",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "biceps",
+                "rhomboids"
+              ],
+              "setupCues": [
+                "Cuelga de la barra con el agarre elegido y los hombros activados."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "grip_type": "pronated",
+              "grip_width": "close"
+            }
+          },
+          {
+            "displaySummary": "supinated · wide",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_dominadas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "pull_up__supinated__wide",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Balancear las piernas o acortar el rango inferior del tirón."
+              ],
+              "description": "Dominadas con agarre supino y amplitud wide: la empuñadura amplia desplaza el trabajo hacia el trapecio y la espalda alta, y reduce la participación del bíceps. El agarre supino añade una participación notable del bíceps.",
+              "efc": 2.5,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Sube el pecho hacia la barra con control y baja sin soltarte de golpe."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "bodyweight",
+              "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal ancho aduce el húmero y concentra el tirón vertical; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: con el agarre abierto el trapecio fija y rota la escápula y comparte el trabajo de la subida; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: con el agarre supino el bíceps flexiona el codo y participa de forma notable en la subida; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco firme y sin balanceos durante la serie; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "pull_up__supinated__wide",
+              "primaryMuscles": [
+                "latissimus_dorsi",
+                "trapezius",
+                "biceps"
+              ],
+              "replacementGroup": "back_pullup_pronated",
+              "replacementPriority": 1,
+              "resistanceProfile": "body_angle",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "vertical_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi",
+                    "trapezius",
+                    "biceps"
+                  ],
+                  "secondaryMuscles": [
+                    "rhomboids"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi",
+                    "trapezius",
+                    "biceps"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "vertical_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "body_angle",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Balancear las piernas o acortar el rango inferior del tirón."
+                  ],
+                  "cues": [
+                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Sube el pecho hacia la barra con control y baja sin soltarte de golpe."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Cuelga de la barra con el agarre elegido y los hombros activados."
+                  ]
+                },
+                "display": {
+                  "displayName": "Dominadas",
+                  "displaySummary": "supinated · wide",
+                  "selectedOptions": {
+                    "grip_type": "supinated",
+                    "grip_width": "wide"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Dominadas",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "pull_up__supinated__wide",
+                  "definitionId": "pull_up",
+                  "familyId": "upper_vertical_pull_pull_up",
+                  "kind": "PARENT",
+                  "performanceProfileId": "pull_up__supinated__wide",
+                  "searchTerms": [
+                    "dominadas",
+                    "pull up",
+                    "dominadas prono",
+                    "dominadas supino",
+                    "chin up"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar la espalda y el bíceps con el tirón vertical de las dominadas."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el tirón vertical y el reparto muscular del agarre elegido."
+                  ],
+                  "replacementGroup": "back_pullup_pronated",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "rhomboids"
+              ],
+              "setupCues": [
+                "Cuelga de la barra con el agarre elegido y los hombros activados."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "grip_type": "supinated",
+              "grip_width": "wide"
+            }
+          },
+          {
+            "displaySummary": "supinated · medium",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_dominadas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "pull_up__supinated__medium",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Balancear las piernas o acortar el rango inferior del tirón."
+              ],
+              "description": "Dominadas con agarre supino y amplitud medium: la posición intermedia reparte el esfuerzo de forma equilibrada entre el dorsal y la espalda alta, con buena participación del bíceps. El agarre supino añade una participación notable del bíceps.",
+              "efc": 2.5,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Sube el pecho hacia la barra con control y baja sin soltarte de golpe."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "bodyweight",
+              "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal ancho aduce el húmero y concentra el tirón vertical; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: con el agarre supino el bíceps flexiona el codo y participa de forma notable en la subida; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio fija la escápula y asiste la subida; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco firme y sin balanceos durante la serie; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "pull_up__supinated__medium",
+              "primaryMuscles": [
+                "latissimus_dorsi",
+                "biceps"
+              ],
+              "replacementGroup": "back_pullup_pronated",
+              "replacementPriority": 1,
+              "resistanceProfile": "body_angle",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "vertical_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi",
+                    "biceps"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius",
+                    "rhomboids"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi",
+                    "biceps"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "vertical_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "body_angle",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Balancear las piernas o acortar el rango inferior del tirón."
+                  ],
+                  "cues": [
+                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Sube el pecho hacia la barra con control y baja sin soltarte de golpe."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Cuelga de la barra con el agarre elegido y los hombros activados."
+                  ]
+                },
+                "display": {
+                  "displayName": "Dominadas",
+                  "displaySummary": "supinated · medium",
+                  "selectedOptions": {
+                    "grip_type": "supinated",
+                    "grip_width": "medium"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Dominadas",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "pull_up__supinated__medium",
+                  "definitionId": "pull_up",
+                  "familyId": "upper_vertical_pull_pull_up",
+                  "kind": "PARENT",
+                  "performanceProfileId": "pull_up__supinated__medium",
+                  "searchTerms": [
+                    "dominadas",
+                    "pull up",
+                    "dominadas prono",
+                    "dominadas supino",
+                    "chin up"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar la espalda y el bíceps con el tirón vertical de las dominadas."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el tirón vertical y el reparto muscular del agarre elegido."
+                  ],
+                  "replacementGroup": "back_pullup_pronated",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius",
+                "rhomboids"
+              ],
+              "setupCues": [
+                "Cuelga de la barra con el agarre elegido y los hombros activados."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "grip_type": "supinated",
+              "grip_width": "medium"
+            }
+          },
+          {
+            "displaySummary": "supinated · close",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_dominadas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "pull_up__supinated__close",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Balancear las piernas o acortar el rango inferior del tirón."
+              ],
+              "description": "Dominadas con agarre supino y amplitud close: la empuñadura estrecha acerca el codo al tronco y concentra el trabajo en el dorsal ancho, con más ayuda del bíceps. El agarre supino añade una participación notable del bíceps.",
+              "efc": 2.5,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Sube el pecho hacia la barra con control y baja sin soltarte de golpe."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "bodyweight",
+              "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal ancho aduce el húmero y concentra el tirón vertical; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: con el agarre supino el bíceps flexiona el codo y participa de forma notable en la subida; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco firme y sin balanceos durante la serie; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "pull_up__supinated__close",
+              "primaryMuscles": [
+                "latissimus_dorsi",
+                "biceps"
+              ],
+              "replacementGroup": "back_pullup_pronated",
+              "replacementPriority": 1,
+              "resistanceProfile": "body_angle",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "vertical_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi",
+                    "biceps"
+                  ],
+                  "secondaryMuscles": [
+                    "rhomboids"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi",
+                    "biceps"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "vertical_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "body_angle",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Balancear las piernas o acortar el rango inferior del tirón."
+                  ],
+                  "cues": [
+                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Sube el pecho hacia la barra con control y baja sin soltarte de golpe."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Cuelga de la barra con el agarre elegido y los hombros activados."
+                  ]
+                },
+                "display": {
+                  "displayName": "Dominadas",
+                  "displaySummary": "supinated · close",
+                  "selectedOptions": {
+                    "grip_type": "supinated",
+                    "grip_width": "close"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Dominadas",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "pull_up__supinated__close",
+                  "definitionId": "pull_up",
+                  "familyId": "upper_vertical_pull_pull_up",
+                  "kind": "PARENT",
+                  "performanceProfileId": "pull_up__supinated__close",
+                  "searchTerms": [
+                    "dominadas",
+                    "pull up",
+                    "dominadas prono",
+                    "dominadas supino",
+                    "chin up"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar la espalda y el bíceps con el tirón vertical de las dominadas."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el tirón vertical y el reparto muscular del agarre elegido."
+                  ],
+                  "replacementGroup": "back_pullup_pronated",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "rhomboids"
+              ],
+              "setupCues": [
+                "Cuelga de la barra con el agarre elegido y los hombros activados."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "grip_type": "supinated",
+              "grip_width": "close"
+            }
+          },
+          {
+            "displaySummary": "neutral · wide",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_dominadas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "pull_up__neutral__wide",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Balancear las piernas o acortar el rango inferior del tirón."
+              ],
+              "description": "Dominadas con agarre neutro y amplitud wide: la empuñadura amplia desplaza el trabajo hacia el trapecio y la espalda alta, y reduce la participación del bíceps.",
+              "efc": 2.5,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Sube el pecho hacia la barra con control y baja sin soltarte de golpe."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "bodyweight",
+              "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal ancho aduce el húmero y concentra el tirón vertical; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: con el agarre abierto el trapecio fija y rota la escápula y comparte el trabajo de la subida; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo y asiste al dorsal durante la subida; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco firme y sin balanceos durante la serie; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "pull_up__neutral__wide",
+              "primaryMuscles": [
+                "latissimus_dorsi",
+                "trapezius"
+              ],
+              "replacementGroup": "back_pullup_pronated",
+              "replacementPriority": 1,
+              "resistanceProfile": "body_angle",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "vertical_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi",
+                    "trapezius"
+                  ],
+                  "secondaryMuscles": [
+                    "biceps",
+                    "rhomboids"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi",
+                    "trapezius"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "vertical_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "body_angle",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Balancear las piernas o acortar el rango inferior del tirón."
+                  ],
+                  "cues": [
+                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Sube el pecho hacia la barra con control y baja sin soltarte de golpe."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Cuelga de la barra con el agarre elegido y los hombros activados."
+                  ]
+                },
+                "display": {
+                  "displayName": "Dominadas",
+                  "displaySummary": "neutral · wide",
+                  "selectedOptions": {
+                    "grip_type": "neutral",
+                    "grip_width": "wide"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Dominadas",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "pull_up__neutral__wide",
+                  "definitionId": "pull_up",
+                  "familyId": "upper_vertical_pull_pull_up",
+                  "kind": "PARENT",
+                  "performanceProfileId": "pull_up__neutral__wide",
+                  "searchTerms": [
+                    "dominadas",
+                    "pull up",
+                    "dominadas prono",
+                    "dominadas supino",
+                    "chin up"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar la espalda y el bíceps con el tirón vertical de las dominadas."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el tirón vertical y el reparto muscular del agarre elegido."
+                  ],
+                  "replacementGroup": "back_pullup_pronated",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "biceps",
+                "rhomboids"
+              ],
+              "setupCues": [
+                "Cuelga de la barra con el agarre elegido y los hombros activados."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "grip_type": "neutral",
+              "grip_width": "wide"
+            }
+          },
+          {
+            "displaySummary": "neutral · medium",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_dominadas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "pull_up__neutral__medium",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Balancear las piernas o acortar el rango inferior del tirón."
+              ],
+              "description": "Dominadas con agarre neutro y amplitud medium: la posición intermedia reparte el esfuerzo de forma equilibrada entre el dorsal y la espalda alta, con buena participación del bíceps.",
+              "efc": 2.5,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Sube el pecho hacia la barra con control y baja sin soltarte de golpe."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "bodyweight",
+              "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal ancho aduce el húmero y concentra el tirón vertical; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio fija la escápula y asiste la subida; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo y asiste al dorsal durante la subida; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco firme y sin balanceos durante la serie; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "pull_up__neutral__medium",
+              "primaryMuscles": [
+                "latissimus_dorsi"
+              ],
+              "replacementGroup": "back_pullup_pronated",
+              "replacementPriority": 1,
+              "resistanceProfile": "body_angle",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "vertical_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius",
+                    "biceps",
+                    "rhomboids"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "vertical_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "body_angle",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Balancear las piernas o acortar el rango inferior del tirón."
+                  ],
+                  "cues": [
+                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Sube el pecho hacia la barra con control y baja sin soltarte de golpe."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Cuelga de la barra con el agarre elegido y los hombros activados."
+                  ]
+                },
+                "display": {
+                  "displayName": "Dominadas",
+                  "displaySummary": "neutral · medium",
+                  "selectedOptions": {
+                    "grip_type": "neutral",
+                    "grip_width": "medium"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Dominadas",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "pull_up__neutral__medium",
+                  "definitionId": "pull_up",
+                  "familyId": "upper_vertical_pull_pull_up",
+                  "kind": "PARENT",
+                  "performanceProfileId": "pull_up__neutral__medium",
+                  "searchTerms": [
+                    "dominadas",
+                    "pull up",
+                    "dominadas prono",
+                    "dominadas supino",
+                    "chin up"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar la espalda y el bíceps con el tirón vertical de las dominadas."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el tirón vertical y el reparto muscular del agarre elegido."
+                  ],
+                  "replacementGroup": "back_pullup_pronated",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius",
+                "biceps",
+                "rhomboids"
+              ],
+              "setupCues": [
+                "Cuelga de la barra con el agarre elegido y los hombros activados."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "grip_type": "neutral",
+              "grip_width": "medium"
+            }
+          },
+          {
+            "displaySummary": "neutral · close",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_dominadas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "pull_up__neutral__close",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Balancear las piernas o acortar el rango inferior del tirón."
+              ],
+              "description": "Dominadas con agarre neutro y amplitud close: la empuñadura estrecha acerca el codo al tronco y concentra el trabajo en el dorsal ancho, con más ayuda del bíceps.",
+              "efc": 2.5,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Sube el pecho hacia la barra con control y baja sin soltarte de golpe."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "bodyweight",
+              "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal ancho aduce el húmero y concentra el tirón vertical; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo y asiste al dorsal durante la subida; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula y estabilizan la espalda alta; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco firme y sin balanceos durante la serie; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "pull_up__neutral__close",
+              "primaryMuscles": [
+                "latissimus_dorsi"
+              ],
+              "replacementGroup": "back_pullup_pronated",
+              "replacementPriority": 1,
+              "resistanceProfile": "body_angle",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "vertical_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi"
+                  ],
+                  "secondaryMuscles": [
+                    "biceps",
+                    "rhomboids"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "vertical_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "body_angle",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Balancear las piernas o acortar el rango inferior del tirón."
+                  ],
+                  "cues": [
+                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Sube el pecho hacia la barra con control y baja sin soltarte de golpe."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Cuelga de la barra con el agarre elegido y los hombros activados."
+                  ]
+                },
+                "display": {
+                  "displayName": "Dominadas",
+                  "displaySummary": "neutral · close",
+                  "selectedOptions": {
+                    "grip_type": "neutral",
+                    "grip_width": "close"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Dominadas",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "pull_up__neutral__close",
+                  "definitionId": "pull_up",
+                  "familyId": "upper_vertical_pull_pull_up",
+                  "kind": "PARENT",
+                  "performanceProfileId": "pull_up__neutral__close",
+                  "searchTerms": [
+                    "dominadas",
+                    "pull up",
+                    "dominadas prono",
+                    "dominadas supino",
+                    "chin up"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar la espalda y el bíceps con el tirón vertical de las dominadas."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el tirón vertical y el reparto muscular del agarre elegido."
+                  ],
+                  "replacementGroup": "back_pullup_pronated",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "biceps",
+                "rhomboids"
+              ],
+              "setupCues": [
+                "Cuelga de la barra con el agarre elegido y los hombros activados."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "grip_type": "neutral",
+              "grip_width": "close"
+            }
+          }
+        ],
+        "defaultConfigurationId": "pull_up__pronated__medium",
+        "description": "Tirón vertical con el peso corporal donde la elección del agarre y la amplitud cambian el reparto del estímulo: más cerrado concentra el dorsal, más abierto involucra trapecio y espalda alta, y el agarre supino suma bíceps.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:pull_up"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_vertical_pull_pull_up",
+        "id": "pull_up",
+        "kind": "PARENT",
+        "optionAxes": [
+          "grip_type",
+          "grip_width"
+        ],
+        "searchTerms": [
+          "dominadas",
+          "pull up",
+          "dominadas prono",
+          "dominadas supino",
+          "chin up"
+        ]
+      }
+    ],
+    "description": "Familia de tirón vertical con el peso corporal; el tipo de agarre y su amplitud definen cada configuración materializada.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:upper_vertical_pull_pull_up"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "upper_vertical_pull_pull_up",
+    "taxonomy": [
+      "upper",
+      "vertical_pull",
+      "pull_up"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

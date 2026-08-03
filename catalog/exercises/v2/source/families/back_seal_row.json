@@ -1,1 +1,487 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Remo Seal","definitions":[{"canonicalName":"Remo Seal","configurations":[{"displaySummary":"barbell","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_remo_seal_barra_recta","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"seal_row__barbell","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."],"description":"Remo Seal acostado boca abajo en banco elevado. La configuración utiliza barra como implemento. La variante se define por: barra.","efc":2.5,"equipmentId":"barbell","executionCues":["Ejecuta «Remo Seal con Barra Recta» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"horizontal_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal tracciona el brazo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio asiste el movimiento escapular y la postura del hombro; por eso suma 0.5."},{"muscleId":"deltoid","note":"Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."},{"muscleId":"biceps","note":"Secundario: el bíceps asiste la tracción o flexión con contribución real al movimiento; por eso suma 0.5."},{"muscleId":"erector_spinae","note":"Secundario: los erectores asisten la extensión y el control de la columna; por eso suman 0.5."}],"performanceProfileId":"seal_row__barbell__remo_seal","primaryMuscles":["latissimus_dorsi"],"replacementGroup":"back_row_seal","replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["horizontal_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi"],"secondaryMuscles":["trapezius","deltoid","biceps","erector_spinae"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["latissimus_dorsi"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"barbell","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"horizontal_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Remo Seal con Barra Recta» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura barra y adopta la posición específica de «Remo Seal con Barra Recta» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Remo Seal","displaySummary":"barbell","selectedOptions":{"implement":"barbell"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":5.0,"ttc":1.8},"identity":{"canonicalName":"Remo Seal","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"seal_row__barbell","definitionId":"seal_row","familyId":"back_seal_row","kind":"PARENT","performanceProfileId":"seal_row__barbell__remo_seal","searchTerms":["remo seal","remo seal con barra recta","remo seal con mancuernas"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["barbell"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["barbell"],"preservesIntent":["Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."],"replacementGroup":"back_row_seal","replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":["La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."]}},"secondaryMuscles":["trapezius","deltoid","biceps","erector_spinae"],"setupCues":["Configura barra y adopta la posición específica de «Remo Seal con Barra Recta» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":[],"technicalDifficulty":5.0,"ttc":1.8},"selectedOptions":{"implement":"barbell"}},{"displaySummary":"dumbbells","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_remo_seal_mancuernas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"seal_row__dumbbells","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."],"description":"Remo Seal acostado boca abajo con mancuernas. La variante se define por: mancuernas.","efc":2.5,"equipmentId":"dumbbells","executionCues":["Ejecuta «Remo Seal con Mancuernas» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"horizontal_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal tracciona el brazo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio asiste el movimiento escapular y la postura del hombro; por eso suma 0.5."},{"muscleId":"deltoid","note":"Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."},{"muscleId":"biceps","note":"Secundario: el bíceps asiste la tracción o flexión con contribución real al movimiento; por eso suma 0.5."},{"muscleId":"erector_spinae","note":"Secundario: los erectores asisten la extensión y el control de la columna; por eso suman 0.5."}],"performanceProfileId":"seal_row__dumbbells__remo_seal","primaryMuscles":["latissimus_dorsi"],"replacementGroup":"back_row_seal","replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["horizontal_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi"],"secondaryMuscles":["trapezius","deltoid","biceps","erector_spinae"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["latissimus_dorsi"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"dumbbells","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"horizontal_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Remo Seal con Mancuernas» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura mancuerna y adopta la posición específica de «Remo Seal con Mancuernas» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Remo Seal","displaySummary":"dumbbells","selectedOptions":{"implement":"dumbbells"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":5.0,"ttc":1.8},"identity":{"canonicalName":"Remo Seal","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"seal_row__dumbbells","definitionId":"seal_row","familyId":"back_seal_row","kind":"PARENT","performanceProfileId":"seal_row__dumbbells__remo_seal","searchTerms":["remo seal","remo seal con barra recta","remo seal con mancuernas"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["dumbbells"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells"],"preservesIntent":["Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."],"replacementGroup":"back_row_seal","replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":["La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."]}},"secondaryMuscles":["trapezius","deltoid","biceps","erector_spinae"],"setupCues":["Configura mancuerna y adopta la posición específica de «Remo Seal con Mancuernas» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":[],"technicalDifficulty":5.0,"ttc":1.8},"selectedOptions":{"implement":"dumbbells"}}],"defaultConfigurationId":"seal_row__barbell","description":"Remo Seal trabaja principalmente dorsales mediante un patrón de tirón horizontal. La participación secundaria corresponde a trapecio, deltoides, bíceps, erectores espinales.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:seal_row"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"back_seal_row","id":"seal_row","kind":"PARENT","optionAxes":["implement"],"searchTerms":["remo seal","remo seal con barra recta","remo seal con mancuernas"]}],"description":"Familia de tirón horizontal con apoyo de pecho tipo Seal; la elección visible es el implemento materializado.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:back_seal_row"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"back_seal_row","taxonomy":["upper","horizontal_pull","seal_row"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Remo Seal",
+    "definitions": [
+      {
+        "canonicalName": "Remo Seal",
+        "configurations": [
+          {
+            "displaySummary": "barbell",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_remo_seal_barra_recta",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "seal_row__barbell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."
+              ],
+              "description": "Remo Seal acostado boca abajo en banco elevado. La configuración utiliza barra como implemento. La variante se define por: barra.",
+              "efc": 2.5,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Ejecuta «Remo Seal con Barra Recta» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal tracciona el brazo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio asiste el movimiento escapular y la postura del hombro; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps asiste la tracción o flexión con contribución real al movimiento; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Secundario: los erectores asisten la extensión y el control de la columna; por eso suman 0.5."
+                }
+              ],
+              "performanceProfileId": "seal_row__barbell__remo_seal",
+              "primaryMuscles": [
+                "latissimus_dorsi"
+              ],
+              "replacementGroup": "back_row_seal",
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius",
+                    "deltoid",
+                    "biceps",
+                    "erector_spinae"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "horizontal_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Remo Seal con Barra Recta» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura barra y adopta la posición específica de «Remo Seal con Barra Recta» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Remo Seal",
+                  "displaySummary": "barbell",
+                  "selectedOptions": {
+                    "implement": "barbell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 5.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Remo Seal",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "seal_row__barbell",
+                  "definitionId": "seal_row",
+                  "familyId": "back_seal_row",
+                  "kind": "PARENT",
+                  "performanceProfileId": "seal_row__barbell__remo_seal",
+                  "searchTerms": [
+                    "remo seal",
+                    "remo seal con barra recta",
+                    "remo seal con mancuernas"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."
+                  ],
+                  "replacementGroup": "back_row_seal",
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": [
+                    "La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."
+                  ]
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius",
+                "deltoid",
+                "biceps",
+                "erector_spinae"
+              ],
+              "setupCues": [
+                "Configura barra y adopta la posición específica de «Remo Seal con Barra Recta» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 5.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "barbell"
+            }
+          },
+          {
+            "displaySummary": "dumbbells",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_remo_seal_mancuernas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "seal_row__dumbbells",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."
+              ],
+              "description": "Remo Seal acostado boca abajo con mancuernas. La variante se define por: mancuernas.",
+              "efc": 2.5,
+              "equipmentId": "dumbbells",
+              "executionCues": [
+                "Ejecuta «Remo Seal con Mancuernas» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal tracciona el brazo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio asiste el movimiento escapular y la postura del hombro; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps asiste la tracción o flexión con contribución real al movimiento; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Secundario: los erectores asisten la extensión y el control de la columna; por eso suman 0.5."
+                }
+              ],
+              "performanceProfileId": "seal_row__dumbbells__remo_seal",
+              "primaryMuscles": [
+                "latissimus_dorsi"
+              ],
+              "replacementGroup": "back_row_seal",
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius",
+                    "deltoid",
+                    "biceps",
+                    "erector_spinae"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "dumbbells",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "horizontal_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Remo Seal con Mancuernas» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura mancuerna y adopta la posición específica de «Remo Seal con Mancuernas» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Remo Seal",
+                  "displaySummary": "dumbbells",
+                  "selectedOptions": {
+                    "implement": "dumbbells"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 5.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Remo Seal",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "seal_row__dumbbells",
+                  "definitionId": "seal_row",
+                  "familyId": "back_seal_row",
+                  "kind": "PARENT",
+                  "performanceProfileId": "seal_row__dumbbells__remo_seal",
+                  "searchTerms": [
+                    "remo seal",
+                    "remo seal con barra recta",
+                    "remo seal con mancuernas"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "dumbbells"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."
+                  ],
+                  "replacementGroup": "back_row_seal",
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": [
+                    "La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."
+                  ]
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius",
+                "deltoid",
+                "biceps",
+                "erector_spinae"
+              ],
+              "setupCues": [
+                "Configura mancuerna y adopta la posición específica de «Remo Seal con Mancuernas» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 5.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "dumbbells"
+            }
+          }
+        ],
+        "defaultConfigurationId": "seal_row__barbell",
+        "description": "Remo Seal trabaja principalmente dorsales mediante un patrón de tirón horizontal. La participación secundaria corresponde a trapecio, deltoides, bíceps, erectores espinales.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:seal_row"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "back_seal_row",
+        "id": "seal_row",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement"
+        ],
+        "searchTerms": [
+          "remo seal",
+          "remo seal con barra recta",
+          "remo seal con mancuernas"
+        ]
+      }
+    ],
+    "description": "Familia de tirón horizontal con apoyo de pecho tipo Seal; la elección visible es el implemento materializado.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:back_seal_row"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "back_seal_row",
+    "taxonomy": [
+      "upper",
+      "horizontal_pull",
+      "seal_row"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

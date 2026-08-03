@@ -1,1 +1,458 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Floor press","definitions":[{"canonicalName":"Floor Press","configurations":[{"displaySummary":"barbell","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#tren_superior_floor_press_barra","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"floor_press__barbell","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":3.2,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."],"description":"Press tumbado en el suelo. Los codos tocan el suelo limitando el recorrido. Enfatiza tríceps y bloqueo. La configuración utiliza barra como implemento. La variante se define por: barra.","efc":3.5,"equipmentId":"barbell","executionCues":["Ejecuta «Floor Press con Barra» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"horizontal_push","muscleNotes":[{"muscleId":"pectoralis","note":"Principal: el pectoral mayor empuja o aduce el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."},{"muscleId":"triceps","note":"Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."},{"muscleId":"deltoid","note":"Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."}],"performanceProfileId":"floor_press__barbell__floor_press","primaryMuscles":["pectoralis"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["horizontal_push"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["pectoralis"],"secondaryMuscles":["triceps","deltoid"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["pectoralis"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"barbell","kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"horizontal_push","rangeOfMotion":"limited_by_support","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Floor Press con Barra» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura barra y adopta la posición específica de «Floor Press con Barra» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Floor Press","displaySummary":"barbell","selectedOptions":{"implement":"barbell"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":3.2,"efc":3.5,"ssc":1.0,"technicalDifficulty":5.2,"ttc":2.0},"identity":{"canonicalName":"Floor Press","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"floor_press__barbell","definitionId":"floor_press","familyId":"chest_floor_press","kind":"PARENT","performanceProfileId":"floor_press__barbell__floor_press","searchTerms":["floor press","press en el suelo"]},"programming":{"fatigueCost":"high","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar pectoralis dentro del patrón horizontal_push.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"high","requiredEquipment":["barbell"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["barbell"],"preservesIntent":["Conserva el patrón horizontal_push y el objetivo pectoralis."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":["La pérdida de la posición puede trasladar carga fuera del patrón horizontal_push."]}},"secondaryMuscles":["triceps","deltoid"],"setupCues":["Configura barra y adopta la posición específica de «Floor Press con Barra» antes de iniciar; conserva una base estable."],"ssc":1.0,"stabilizerMuscles":[],"technicalDifficulty":5.2,"ttc":2.0},"selectedOptions":{"implement":"barbell"}},{"displaySummary":"dumbbells","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#tren_superior_floor_press_mancuernas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"floor_press__dumbbells","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.8,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."],"description":"Floor press con mancuernas. Mayor libertad y trabajo estabilizador que con barra. La variante se define por: mancuernas.","efc":3.2,"equipmentId":"dumbbells","executionCues":["Ejecuta «Floor Press con Mancuernas» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"horizontal_push","muscleNotes":[{"muscleId":"pectoralis","note":"Principal: el pectoral mayor empuja o aduce el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."},{"muscleId":"triceps","note":"Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."},{"muscleId":"deltoid","note":"Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."}],"performanceProfileId":"floor_press__dumbbells__floor_press","primaryMuscles":["pectoralis"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["horizontal_push"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["pectoralis"],"secondaryMuscles":["triceps","deltoid"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["pectoralis"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"dumbbells","kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"horizontal_push","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Floor Press con Mancuernas» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura mancuerna y adopta la posición específica de «Floor Press con Mancuernas» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Floor Press","displaySummary":"dumbbells","selectedOptions":{"implement":"dumbbells"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.8,"efc":3.2,"ssc":0.9,"technicalDifficulty":4.8,"ttc":2.0},"identity":{"canonicalName":"Floor Press","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"floor_press__dumbbells","definitionId":"floor_press","familyId":"chest_floor_press","kind":"PARENT","performanceProfileId":"floor_press__dumbbells__floor_press","searchTerms":["floor press","press en el suelo"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar pectoralis dentro del patrón horizontal_push.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["dumbbells"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells"],"preservesIntent":["Conserva el patrón horizontal_push y el objetivo pectoralis."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["triceps","deltoid"],"setupCues":["Configura mancuerna y adopta la posición específica de «Floor Press con Mancuernas» antes de iniciar; conserva una base estable."],"ssc":0.9,"stabilizerMuscles":[],"technicalDifficulty":4.8,"ttc":2.0},"selectedOptions":{"implement":"dumbbells"}}],"defaultConfigurationId":"floor_press__barbell","description":"Floor press trabaja principalmente pectorales mediante un patrón de empuje horizontal. La participación secundaria corresponde a tríceps, deltoides.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:floor_press"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"chest_floor_press","id":"floor_press","kind":"PARENT","optionAxes":["implement"],"searchTerms":["floor press","press en el suelo"]}],"description":"Familia de empuje horizontal con los brazos limitados por el suelo; se conserva el implemento como elección explícita.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:chest_floor_press"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"chest_floor_press","taxonomy":["upper","horizontal_push","floor_press"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Floor press",
+    "definitions": [
+      {
+        "canonicalName": "Floor Press",
+        "configurations": [
+          {
+            "displaySummary": "barbell",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#tren_superior_floor_press_barra",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "floor_press__barbell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 3.2,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
+              ],
+              "description": "Press tumbado en el suelo. Los codos tocan el suelo limitando el recorrido. Enfatiza tríceps y bloqueo. La configuración utiliza barra como implemento. La variante se define por: barra.",
+              "efc": 3.5,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Ejecuta «Floor Press con Barra» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: el pectoral mayor empuja o aduce el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "floor_press__barbell__floor_press",
+              "primaryMuscles": [
+                "pectoralis"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_push"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "secondaryMuscles": [
+                    "triceps",
+                    "deltoid"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "pectoralis"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "horizontal_push",
+                  "rangeOfMotion": "limited_by_support",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Floor Press con Barra» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura barra y adopta la posición específica de «Floor Press con Barra» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Floor Press",
+                  "displaySummary": "barbell",
+                  "selectedOptions": {
+                    "implement": "barbell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 3.2,
+                  "efc": 3.5,
+                  "ssc": 1.0,
+                  "technicalDifficulty": 5.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Floor Press",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "floor_press__barbell",
+                  "definitionId": "floor_press",
+                  "familyId": "chest_floor_press",
+                  "kind": "PARENT",
+                  "performanceProfileId": "floor_press__barbell__floor_press",
+                  "searchTerms": [
+                    "floor press",
+                    "press en el suelo"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "high",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar pectoralis dentro del patrón horizontal_push.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "high",
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_push y el objetivo pectoralis."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": [
+                    "La pérdida de la posición puede trasladar carga fuera del patrón horizontal_push."
+                  ]
+                }
+              },
+              "secondaryMuscles": [
+                "triceps",
+                "deltoid"
+              ],
+              "setupCues": [
+                "Configura barra y adopta la posición específica de «Floor Press con Barra» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 1.0,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 5.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "implement": "barbell"
+            }
+          },
+          {
+            "displaySummary": "dumbbells",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#tren_superior_floor_press_mancuernas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "floor_press__dumbbells",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.8,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
+              ],
+              "description": "Floor press con mancuernas. Mayor libertad y trabajo estabilizador que con barra. La variante se define por: mancuernas.",
+              "efc": 3.2,
+              "equipmentId": "dumbbells",
+              "executionCues": [
+                "Ejecuta «Floor Press con Mancuernas» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: el pectoral mayor empuja o aduce el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "floor_press__dumbbells__floor_press",
+              "primaryMuscles": [
+                "pectoralis"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_push"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "secondaryMuscles": [
+                    "triceps",
+                    "deltoid"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "pectoralis"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "dumbbells",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "horizontal_push",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Floor Press con Mancuernas» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura mancuerna y adopta la posición específica de «Floor Press con Mancuernas» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Floor Press",
+                  "displaySummary": "dumbbells",
+                  "selectedOptions": {
+                    "implement": "dumbbells"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.8,
+                  "efc": 3.2,
+                  "ssc": 0.9,
+                  "technicalDifficulty": 4.8,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Floor Press",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "floor_press__dumbbells",
+                  "definitionId": "floor_press",
+                  "familyId": "chest_floor_press",
+                  "kind": "PARENT",
+                  "performanceProfileId": "floor_press__dumbbells__floor_press",
+                  "searchTerms": [
+                    "floor press",
+                    "press en el suelo"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar pectoralis dentro del patrón horizontal_push.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "dumbbells"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_push y el objetivo pectoralis."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "triceps",
+                "deltoid"
+              ],
+              "setupCues": [
+                "Configura mancuerna y adopta la posición específica de «Floor Press con Mancuernas» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.9,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.8,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "implement": "dumbbells"
+            }
+          }
+        ],
+        "defaultConfigurationId": "floor_press__barbell",
+        "description": "Floor press trabaja principalmente pectorales mediante un patrón de empuje horizontal. La participación secundaria corresponde a tríceps, deltoides.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:floor_press"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "chest_floor_press",
+        "id": "floor_press",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement"
+        ],
+        "searchTerms": [
+          "floor press",
+          "press en el suelo"
+        ]
+      }
+    ],
+    "description": "Familia de empuje horizontal con los brazos limitados por el suelo; se conserva el implemento como elección explícita.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:chest_floor_press"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "chest_floor_press",
+    "taxonomy": [
+      "upper",
+      "horizontal_push",
+      "floor_press"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

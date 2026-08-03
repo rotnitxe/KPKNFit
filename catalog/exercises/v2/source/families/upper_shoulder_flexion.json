@@ -1,1 +1,855 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Tren superior · deltoid · shoulder flexion","definitions":[{"canonicalName":"Elevaciones Frontales","configurations":[{"displaySummary":"cable","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_elevaciones_frontales","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"deltoides_elevaciones_frontales__cable","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Impulsar con el tronco o arquear la espalda para ganar altura."],"description":"Elevaciones frontales en polea: la tensión continua mantiene el deltoides anterior activo a lo largo del recorrido.","efc":2.5,"equipmentId":"cable","executionCues":["Eleva el brazo hasta la altura del hombro con control y baja sin balanceo."],"kineticChain":"ANTERIOR","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"shoulder_flexion","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides anterior flexiona el hombro y concentra el trabajo de la elevación frontal; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio asiste la fase final de la elevación frontal; por eso suma 0.5."}],"performanceProfileId":"deltoides_elevaciones_frontales__cable","primaryMuscles":["deltoid"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["shoulder_flexion"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["trapezius"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"cable","kineticChain":"ANTERIOR","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"shoulder_flexion","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Impulsar con el tronco o arquear la espalda para ganar altura."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Eleva el brazo hasta la altura del hombro con control y baja sin balanceo."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Toma el implemento con una postura estable y los brazos extendidos al frente."]},"display":{"displayName":"Elevaciones Frontales","displaySummary":"cable","selectedOptions":{"implement":"cable"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":3.8,"ttc":1.6},"identity":{"canonicalName":"Elevaciones Frontales","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"deltoides_elevaciones_frontales__cable","definitionId":"deltoides_elevaciones_frontales","familyId":"upper_shoulder_flexion","kind":"PARENT","performanceProfileId":"deltoides_elevaciones_frontales__cable","searchTerms":["elevaciones frontales","elevacion frontal","front raise","deltoides anterior"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar el deltoides anterior en flexión de hombro."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable","barbell","dumbbells","kettlebell"],"preservesIntent":["Conserva la flexión de hombro y el objetivo deltoides anterior."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["trapezius"],"setupCues":["Toma el implemento con una postura estable y los brazos extendidos al frente."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":3.8,"ttc":1.6},"selectedOptions":{"implement":"cable"}},{"displaySummary":"barbell","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_elevaciones_frontales","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"deltoides_elevaciones_frontales__barbell","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Impulsar con el tronco o arquear la espalda para ganar altura."],"description":"Elevaciones frontales con barra: la carga libre con ambas manos permite cargar más peso en un movimiento simple.","efc":2.5,"equipmentId":"barbell","executionCues":["Eleva el brazo hasta la altura del hombro con control y baja sin balanceo."],"kineticChain":"ANTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"shoulder_flexion","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides anterior flexiona el hombro y concentra el trabajo de la elevación frontal; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio asiste la fase final de la elevación frontal; por eso suma 0.5."}],"performanceProfileId":"deltoides_elevaciones_frontales__barbell","primaryMuscles":["deltoid"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["shoulder_flexion"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["trapezius"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"barbell","kineticChain":"ANTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"shoulder_flexion","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Impulsar con el tronco o arquear la espalda para ganar altura."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Eleva el brazo hasta la altura del hombro con control y baja sin balanceo."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Toma el implemento con una postura estable y los brazos extendidos al frente."]},"display":{"displayName":"Elevaciones Frontales","displaySummary":"barbell","selectedOptions":{"implement":"barbell"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":3.8,"ttc":1.6},"identity":{"canonicalName":"Elevaciones Frontales","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"deltoides_elevaciones_frontales__barbell","definitionId":"deltoides_elevaciones_frontales","familyId":"upper_shoulder_flexion","kind":"PARENT","performanceProfileId":"deltoides_elevaciones_frontales__barbell","searchTerms":["elevaciones frontales","elevacion frontal","front raise","deltoides anterior"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar el deltoides anterior en flexión de hombro."],"recoveryCost":"moderate","requiredEquipment":["barbell"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable","barbell","dumbbells","kettlebell"],"preservesIntent":["Conserva la flexión de hombro y el objetivo deltoides anterior."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["trapezius"],"setupCues":["Toma el implemento con una postura estable y los brazos extendidos al frente."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":3.8,"ttc":1.6},"selectedOptions":{"implement":"barbell"}},{"displaySummary":"dumbbells","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_elevaciones_frontales","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"deltoides_elevaciones_frontales__dumbbells","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Impulsar con el tronco o arquear la espalda para ganar altura."],"description":"Elevaciones frontales con mancuernas: el trabajo con cada brazo facilita la simetría del deltoides anterior.","efc":2.5,"equipmentId":"dumbbells","executionCues":["Eleva el brazo hasta la altura del hombro con control y baja sin balanceo."],"kineticChain":"ANTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"shoulder_flexion","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides anterior flexiona el hombro y concentra el trabajo de la elevación frontal; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio asiste la fase final de la elevación frontal; por eso suma 0.5."}],"performanceProfileId":"deltoides_elevaciones_frontales__dumbbells","primaryMuscles":["deltoid"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["shoulder_flexion"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["trapezius"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"dumbbells","kineticChain":"ANTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"shoulder_flexion","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Impulsar con el tronco o arquear la espalda para ganar altura."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Eleva el brazo hasta la altura del hombro con control y baja sin balanceo."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Toma el implemento con una postura estable y los brazos extendidos al frente."]},"display":{"displayName":"Elevaciones Frontales","displaySummary":"dumbbells","selectedOptions":{"implement":"dumbbells"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":3.8,"ttc":1.6},"identity":{"canonicalName":"Elevaciones Frontales","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"deltoides_elevaciones_frontales__dumbbells","definitionId":"deltoides_elevaciones_frontales","familyId":"upper_shoulder_flexion","kind":"PARENT","performanceProfileId":"deltoides_elevaciones_frontales__dumbbells","searchTerms":["elevaciones frontales","elevacion frontal","front raise","deltoides anterior"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar el deltoides anterior en flexión de hombro."],"recoveryCost":"moderate","requiredEquipment":["dumbbells"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable","barbell","dumbbells","kettlebell"],"preservesIntent":["Conserva la flexión de hombro y el objetivo deltoides anterior."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["trapezius"],"setupCues":["Toma el implemento con una postura estable y los brazos extendidos al frente."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":3.8,"ttc":1.6},"selectedOptions":{"implement":"dumbbells"}},{"displaySummary":"kettlebell","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_elevaciones_frontales","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"deltoides_elevaciones_frontales__kettlebell","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Impulsar con el tronco o arquear la espalda para ganar altura."],"description":"Elevaciones frontales con kettlebell: la carga compacta es cómoda para series de hombro y rangos controlados.","efc":2.5,"equipmentId":"kettlebell","executionCues":["Eleva el brazo hasta la altura del hombro con control y baja sin balanceo."],"kineticChain":"ANTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"shoulder_flexion","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides anterior flexiona el hombro y concentra el trabajo de la elevación frontal; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio asiste la fase final de la elevación frontal; por eso suma 0.5."}],"performanceProfileId":"deltoides_elevaciones_frontales__kettlebell","primaryMuscles":["deltoid"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["shoulder_flexion"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["trapezius"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"kettlebell","kineticChain":"ANTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"shoulder_flexion","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Impulsar con el tronco o arquear la espalda para ganar altura."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Eleva el brazo hasta la altura del hombro con control y baja sin balanceo."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Toma el implemento con una postura estable y los brazos extendidos al frente."]},"display":{"displayName":"Elevaciones Frontales","displaySummary":"kettlebell","selectedOptions":{"implement":"kettlebell"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":3.8,"ttc":1.6},"identity":{"canonicalName":"Elevaciones Frontales","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"deltoides_elevaciones_frontales__kettlebell","definitionId":"deltoides_elevaciones_frontales","familyId":"upper_shoulder_flexion","kind":"PARENT","performanceProfileId":"deltoides_elevaciones_frontales__kettlebell","searchTerms":["elevaciones frontales","elevacion frontal","front raise","deltoides anterior"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar el deltoides anterior en flexión de hombro."],"recoveryCost":"moderate","requiredEquipment":["kettlebell"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable","barbell","dumbbells","kettlebell"],"preservesIntent":["Conserva la flexión de hombro y el objetivo deltoides anterior."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["trapezius"],"setupCues":["Toma el implemento con una postura estable y los brazos extendidos al frente."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":3.8,"ttc":1.6},"selectedOptions":{"implement":"kettlebell"}}],"defaultConfigurationId":"deltoides_elevaciones_frontales__dumbbells","description":"Elevaciones Frontales trabaja principalmente deltoides mediante un patrón de flexión hombro. La participación secundaria corresponde a trapecio.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:deltoides_elevaciones_frontales"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"upper_shoulder_flexion","id":"deltoides_elevaciones_frontales","kind":"PARENT","optionAxes":["implement"],"searchTerms":["elevaciones frontales","elevacion frontal","front raise","deltoides anterior"]}],"description":"Familia controlada por patrón shoulder_flexion; cada especialidad conserva su perfil resuelto.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:upper_shoulder_flexion"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"upper_shoulder_flexion","taxonomy":["upper","shoulder_flexion"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Tren superior · deltoid · shoulder flexion",
+    "definitions": [
+      {
+        "canonicalName": "Elevaciones Frontales",
+        "configurations": [
+          {
+            "displaySummary": "cable",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_elevaciones_frontales",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "deltoides_elevaciones_frontales__cable",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Impulsar con el tronco o arquear la espalda para ganar altura."
+              ],
+              "description": "Elevaciones frontales en polea: la tensión continua mantiene el deltoides anterior activo a lo largo del recorrido.",
+              "efc": 2.5,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Eleva el brazo hasta la altura del hombro con control y baja sin balanceo."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "shoulder_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides anterior flexiona el hombro y concentra el trabajo de la elevación frontal; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio asiste la fase final de la elevación frontal; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "deltoides_elevaciones_frontales__cable",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "shoulder_flexion"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "cable",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "shoulder_flexion",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Impulsar con el tronco o arquear la espalda para ganar altura."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Eleva el brazo hasta la altura del hombro con control y baja sin balanceo."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Toma el implemento con una postura estable y los brazos extendidos al frente."
+                  ]
+                },
+                "display": {
+                  "displayName": "Elevaciones Frontales",
+                  "displaySummary": "cable",
+                  "selectedOptions": {
+                    "implement": "cable"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 3.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Elevaciones Frontales",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "deltoides_elevaciones_frontales__cable",
+                  "definitionId": "deltoides_elevaciones_frontales",
+                  "familyId": "upper_shoulder_flexion",
+                  "kind": "PARENT",
+                  "performanceProfileId": "deltoides_elevaciones_frontales__cable",
+                  "searchTerms": [
+                    "elevaciones frontales",
+                    "elevacion frontal",
+                    "front raise",
+                    "deltoides anterior"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar el deltoides anterior en flexión de hombro."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable",
+                    "barbell",
+                    "dumbbells",
+                    "kettlebell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la flexión de hombro y el objetivo deltoides anterior."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius"
+              ],
+              "setupCues": [
+                "Toma el implemento con una postura estable y los brazos extendidos al frente."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "cable"
+            }
+          },
+          {
+            "displaySummary": "barbell",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_elevaciones_frontales",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "deltoides_elevaciones_frontales__barbell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Impulsar con el tronco o arquear la espalda para ganar altura."
+              ],
+              "description": "Elevaciones frontales con barra: la carga libre con ambas manos permite cargar más peso en un movimiento simple.",
+              "efc": 2.5,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Eleva el brazo hasta la altura del hombro con control y baja sin balanceo."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "shoulder_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides anterior flexiona el hombro y concentra el trabajo de la elevación frontal; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio asiste la fase final de la elevación frontal; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "deltoides_elevaciones_frontales__barbell",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "shoulder_flexion"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "shoulder_flexion",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Impulsar con el tronco o arquear la espalda para ganar altura."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Eleva el brazo hasta la altura del hombro con control y baja sin balanceo."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Toma el implemento con una postura estable y los brazos extendidos al frente."
+                  ]
+                },
+                "display": {
+                  "displayName": "Elevaciones Frontales",
+                  "displaySummary": "barbell",
+                  "selectedOptions": {
+                    "implement": "barbell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 3.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Elevaciones Frontales",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "deltoides_elevaciones_frontales__barbell",
+                  "definitionId": "deltoides_elevaciones_frontales",
+                  "familyId": "upper_shoulder_flexion",
+                  "kind": "PARENT",
+                  "performanceProfileId": "deltoides_elevaciones_frontales__barbell",
+                  "searchTerms": [
+                    "elevaciones frontales",
+                    "elevacion frontal",
+                    "front raise",
+                    "deltoides anterior"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar el deltoides anterior en flexión de hombro."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable",
+                    "barbell",
+                    "dumbbells",
+                    "kettlebell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la flexión de hombro y el objetivo deltoides anterior."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius"
+              ],
+              "setupCues": [
+                "Toma el implemento con una postura estable y los brazos extendidos al frente."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "barbell"
+            }
+          },
+          {
+            "displaySummary": "dumbbells",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_elevaciones_frontales",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "deltoides_elevaciones_frontales__dumbbells",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Impulsar con el tronco o arquear la espalda para ganar altura."
+              ],
+              "description": "Elevaciones frontales con mancuernas: el trabajo con cada brazo facilita la simetría del deltoides anterior.",
+              "efc": 2.5,
+              "equipmentId": "dumbbells",
+              "executionCues": [
+                "Eleva el brazo hasta la altura del hombro con control y baja sin balanceo."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "shoulder_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides anterior flexiona el hombro y concentra el trabajo de la elevación frontal; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio asiste la fase final de la elevación frontal; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "deltoides_elevaciones_frontales__dumbbells",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "shoulder_flexion"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "dumbbells",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "shoulder_flexion",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Impulsar con el tronco o arquear la espalda para ganar altura."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Eleva el brazo hasta la altura del hombro con control y baja sin balanceo."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Toma el implemento con una postura estable y los brazos extendidos al frente."
+                  ]
+                },
+                "display": {
+                  "displayName": "Elevaciones Frontales",
+                  "displaySummary": "dumbbells",
+                  "selectedOptions": {
+                    "implement": "dumbbells"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 3.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Elevaciones Frontales",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "deltoides_elevaciones_frontales__dumbbells",
+                  "definitionId": "deltoides_elevaciones_frontales",
+                  "familyId": "upper_shoulder_flexion",
+                  "kind": "PARENT",
+                  "performanceProfileId": "deltoides_elevaciones_frontales__dumbbells",
+                  "searchTerms": [
+                    "elevaciones frontales",
+                    "elevacion frontal",
+                    "front raise",
+                    "deltoides anterior"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar el deltoides anterior en flexión de hombro."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "dumbbells"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable",
+                    "barbell",
+                    "dumbbells",
+                    "kettlebell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la flexión de hombro y el objetivo deltoides anterior."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius"
+              ],
+              "setupCues": [
+                "Toma el implemento con una postura estable y los brazos extendidos al frente."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "dumbbells"
+            }
+          },
+          {
+            "displaySummary": "kettlebell",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_elevaciones_frontales",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "deltoides_elevaciones_frontales__kettlebell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Impulsar con el tronco o arquear la espalda para ganar altura."
+              ],
+              "description": "Elevaciones frontales con kettlebell: la carga compacta es cómoda para series de hombro y rangos controlados.",
+              "efc": 2.5,
+              "equipmentId": "kettlebell",
+              "executionCues": [
+                "Eleva el brazo hasta la altura del hombro con control y baja sin balanceo."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "shoulder_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides anterior flexiona el hombro y concentra el trabajo de la elevación frontal; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio asiste la fase final de la elevación frontal; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "deltoides_elevaciones_frontales__kettlebell",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "shoulder_flexion"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "kettlebell",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "shoulder_flexion",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Impulsar con el tronco o arquear la espalda para ganar altura."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Eleva el brazo hasta la altura del hombro con control y baja sin balanceo."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Toma el implemento con una postura estable y los brazos extendidos al frente."
+                  ]
+                },
+                "display": {
+                  "displayName": "Elevaciones Frontales",
+                  "displaySummary": "kettlebell",
+                  "selectedOptions": {
+                    "implement": "kettlebell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 3.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Elevaciones Frontales",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "deltoides_elevaciones_frontales__kettlebell",
+                  "definitionId": "deltoides_elevaciones_frontales",
+                  "familyId": "upper_shoulder_flexion",
+                  "kind": "PARENT",
+                  "performanceProfileId": "deltoides_elevaciones_frontales__kettlebell",
+                  "searchTerms": [
+                    "elevaciones frontales",
+                    "elevacion frontal",
+                    "front raise",
+                    "deltoides anterior"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar el deltoides anterior en flexión de hombro."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "kettlebell"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable",
+                    "barbell",
+                    "dumbbells",
+                    "kettlebell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la flexión de hombro y el objetivo deltoides anterior."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius"
+              ],
+              "setupCues": [
+                "Toma el implemento con una postura estable y los brazos extendidos al frente."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "kettlebell"
+            }
+          }
+        ],
+        "defaultConfigurationId": "deltoides_elevaciones_frontales__dumbbells",
+        "description": "Elevaciones Frontales trabaja principalmente deltoides mediante un patrón de flexión hombro. La participación secundaria corresponde a trapecio.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:deltoides_elevaciones_frontales"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_shoulder_flexion",
+        "id": "deltoides_elevaciones_frontales",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement"
+        ],
+        "searchTerms": [
+          "elevaciones frontales",
+          "elevacion frontal",
+          "front raise",
+          "deltoides anterior"
+        ]
+      }
+    ],
+    "description": "Familia controlada por patrón shoulder_flexion; cada especialidad conserva su perfil resuelto.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:upper_shoulder_flexion"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "upper_shoulder_flexion",
+    "taxonomy": [
+      "upper",
+      "shoulder_flexion"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

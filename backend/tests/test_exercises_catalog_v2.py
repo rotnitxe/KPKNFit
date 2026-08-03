@@ -66,7 +66,7 @@ class ExerciseCatalogV2BackendTest(unittest.TestCase):
     def test_editorial_android_ios_artifacts_have_one_hash_and_revision(self) -> None:
         self.assertEqual(
             verify_shared_catalog_artifacts(),
-            "1db50fb1af0bf04bf5e9509c193f490df596939f0da4086101fe5708d53e3fc6",
+            "b638995379f65d9a0ddc47cc3a728bc79cce7958760d5841684e15808adec7fa",
         )
 
     def test_reverse_fly_is_one_parent_with_explicit_machine_and_cable_configs(self) -> None:
@@ -112,7 +112,8 @@ class ExerciseCatalogV2BackendTest(unittest.TestCase):
         self.assertEqual(definitions["good_morning"]["optionAxes"], ["implement", "laterality"])
         self.assertEqual(definitions["standing_lateral_raise"]["optionAxes"], ["implement"])
         self.assertEqual(definitions["seated_lateral_raise"]["optionAxes"], ["implement"])
-        self.assertEqual(len(definitions["romanian_deadlift"]["configurations"]), 10)
+        self.assertEqual(len(definitions["romanian_deadlift"]["configurations"]), 8)
+        self.assertEqual(len(definitions["romanian_sumo_deadlift"]["configurations"]), 8)
         self.assertEqual(len(definitions["rear_delt_raise"]["configurations"]), 3)
         self.assertEqual(definitions["conventional_deadlift"]["optionAxes"], ["implement", "laterality"])
         self.assertEqual(definitions["sumo_deadlift"]["optionAxes"], ["implement"])

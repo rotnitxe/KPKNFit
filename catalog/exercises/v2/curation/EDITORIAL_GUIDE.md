@@ -152,6 +152,11 @@ v3. Son vinculantes para la siguiente pasada editorial.
    el estímulo, las listas musculares y la descripción lo reflejan por config
    (dominadas: cerrado → dorsal, abierto → trapecio/espalda alta, supino →
    bíceps).
+9. **L9 — Las variantes del mismo patrón heredan el set de implementos del
+   padre**: Peso Muerto Piernas Rígidas y Peso Muerto Rumano usan las mismas
+   opciones que el Peso Muerto Convencional (barra, Smith, mancuernas, hex); el
+   Peso Muerto Rumano Sumo usa las del Rumano. No se inventan implementos por
+   variante ni se quitan opciones que el patrón base ya ofrece.
 
 ## Ontología de músculos (21 IDs)
 

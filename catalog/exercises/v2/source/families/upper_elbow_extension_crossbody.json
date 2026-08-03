@@ -1,1 +1,432 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Extensión de tríceps cruzada","definitions":[{"canonicalName":"Extensión de Tríceps Cruzada en Polea Alta","configurations":[{"displaySummary":"cable · bilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#triceps_crossbody_polea","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"crossbody_triceps__cable__bilateral","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Acompañar el movimiento con el hombro en lugar de aislar la extensión de codo."],"description":"Extensión de Tríceps Cruzada en Polea Alta con ambas manos: el recorrido cruzado mantiene tensión constante en el tríceps.","efc":2.2,"equipmentId":"cable","executionCues":["Extiende el codo cruzando hacia el otro lado con control."],"kineticChain":"FULL","laterality":"BILATERAL","loadMode":"continuous_cable","movementPatternId":"elbow_extension","muscleNotes":[{"muscleId":"triceps","note":"Principal: el tríceps extiende el codo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."}],"performanceProfileId":"crossbody_triceps__cable__bilateral","primaryMuscles":["triceps"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["elbow_extension"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["triceps"],"secondaryMuscles":[],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["triceps"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"cable","kineticChain":"FULL","laterality":"BILATERAL","loadMode":"continuous_cable","movementPatternId":"elbow_extension","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Acompañar el movimiento con el hombro en lugar de aislar la extensión de codo."],"cues":["Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."],"execution":["Extiende el codo cruzando hacia el otro lado con control."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Coloca la polea en la altura alta y lleva el agarre al lado contrario del brazo de trabajo."]},"display":{"displayName":"Extensión de Tríceps Cruzada en Polea Alta","displaySummary":"cable · bilateral","selectedOptions":{"laterality":"bilateral"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.2,"ssc":0.2,"technicalDifficulty":3.8,"ttc":1.6},"identity":{"canonicalName":"Extensión de Tríceps Cruzada en Polea Alta","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"crossbody_triceps__cable__bilateral","definitionId":"crossbody_triceps_extension","familyId":"upper_elbow_extension_crossbody","kind":"PARENT","performanceProfileId":"crossbody_triceps__cable__bilateral","searchTerms":["extension de triceps cruzada","cruzada en polea","crossbody extension","triceps cruzado"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":90,"min":30},"objectives":["Desarrollar triceps en extensión cruzada de codo en polea alta."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable"],"preservesIntent":["Conserva la extensión de codo en polea alta y el objetivo triceps."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":[],"setupCues":["Coloca la polea en la altura alta y lleva el agarre al lado contrario del brazo de trabajo."],"ssc":0.2,"stabilizerMuscles":[],"technicalDifficulty":3.8,"ttc":1.6},"selectedOptions":{"laterality":"bilateral"}},{"displaySummary":"cable · unilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#triceps_crossbody_polea","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"crossbody_triceps__cable__unilateral","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Acompañar el movimiento con el hombro en lugar de aislar la extensión de codo."],"description":"Extensión de Tríceps Cruzada en Polea Alta con un brazo: la variante unilateral aísla cada tríceps y permite un rango mayor de cruce.","efc":2.2,"equipmentId":"cable","executionCues":["Extiende el codo cruzando hacia el otro lado con control."],"kineticChain":"FULL","laterality":"UNILATERAL","loadMode":"continuous_cable","movementPatternId":"elbow_extension","muscleNotes":[{"muscleId":"triceps","note":"Principal: el tríceps extiende el codo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."}],"performanceProfileId":"crossbody_triceps__cable__unilateral","primaryMuscles":["triceps"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["elbow_extension"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["triceps"],"secondaryMuscles":[],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["triceps"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"cable","kineticChain":"FULL","laterality":"UNILATERAL","loadMode":"continuous_cable","movementPatternId":"elbow_extension","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Acompañar el movimiento con el hombro en lugar de aislar la extensión de codo."],"cues":["Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."],"execution":["Extiende el codo cruzando hacia el otro lado con control."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Coloca la polea en la altura alta y lleva el agarre al lado contrario del brazo de trabajo."]},"display":{"displayName":"Extensión de Tríceps Cruzada en Polea Alta","displaySummary":"cable · unilateral","selectedOptions":{"laterality":"unilateral"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.2,"ssc":0.2,"technicalDifficulty":3.8,"ttc":1.6},"identity":{"canonicalName":"Extensión de Tríceps Cruzada en Polea Alta","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"crossbody_triceps__cable__unilateral","definitionId":"crossbody_triceps_extension","familyId":"upper_elbow_extension_crossbody","kind":"PARENT","performanceProfileId":"crossbody_triceps__cable__unilateral","searchTerms":["extension de triceps cruzada","cruzada en polea","crossbody extension","triceps cruzado"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":90,"min":30},"objectives":["Desarrollar triceps en extensión cruzada de codo en polea alta."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable"],"preservesIntent":["Conserva la extensión de codo en polea alta y el objetivo triceps."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":[],"setupCues":["Coloca la polea en la altura alta y lleva el agarre al lado contrario del brazo de trabajo."],"ssc":0.2,"stabilizerMuscles":[],"technicalDifficulty":3.8,"ttc":1.6},"selectedOptions":{"laterality":"unilateral"}}],"defaultConfigurationId":"crossbody_triceps__cable__bilateral","description":"Extensión de codo en polea alta con el brazo cruzado hacia el lado contrario del cuerpo, manteniendo el hombro estable y el foco en el tríceps.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:crossbody_triceps_extension"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"upper_elbow_extension_crossbody","id":"crossbody_triceps_extension","kind":"PARENT","optionAxes":["laterality"],"searchTerms":["extension de triceps cruzada","cruzada en polea","crossbody extension","triceps cruzado"]}],"description":"Familia de extensión de codo cruzada con implemento y lateralidad materializados.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:upper_elbow_extension_crossbody"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"upper_elbow_extension_crossbody","taxonomy":["upper","elbow_extension","crossbody"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Extensión de tríceps cruzada",
+    "definitions": [
+      {
+        "canonicalName": "Extensión de Tríceps Cruzada en Polea Alta",
+        "configurations": [
+          {
+            "displaySummary": "cable · bilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#triceps_crossbody_polea",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "crossbody_triceps__cable__bilateral",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Acompañar el movimiento con el hombro en lugar de aislar la extensión de codo."
+              ],
+              "description": "Extensión de Tríceps Cruzada en Polea Alta con ambas manos: el recorrido cruzado mantiene tensión constante en el tríceps.",
+              "efc": 2.2,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Extiende el codo cruzando hacia el otro lado con control."
+              ],
+              "kineticChain": "FULL",
+              "laterality": "BILATERAL",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: el tríceps extiende el codo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                }
+              ],
+              "performanceProfileId": "crossbody_triceps__cable__bilateral",
+              "primaryMuscles": [
+                "triceps"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "elbow_extension"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "triceps"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "triceps"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "cable",
+                  "kineticChain": "FULL",
+                  "laterality": "BILATERAL",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "elbow_extension",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Acompañar el movimiento con el hombro en lugar de aislar la extensión de codo."
+                  ],
+                  "cues": [
+                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Extiende el codo cruzando hacia el otro lado con control."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Coloca la polea en la altura alta y lleva el agarre al lado contrario del brazo de trabajo."
+                  ]
+                },
+                "display": {
+                  "displayName": "Extensión de Tríceps Cruzada en Polea Alta",
+                  "displaySummary": "cable · bilateral",
+                  "selectedOptions": {
+                    "laterality": "bilateral"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.2,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 3.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Extensión de Tríceps Cruzada en Polea Alta",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "crossbody_triceps__cable__bilateral",
+                  "definitionId": "crossbody_triceps_extension",
+                  "familyId": "upper_elbow_extension_crossbody",
+                  "kind": "PARENT",
+                  "performanceProfileId": "crossbody_triceps__cable__bilateral",
+                  "searchTerms": [
+                    "extension de triceps cruzada",
+                    "cruzada en polea",
+                    "crossbody extension",
+                    "triceps cruzado"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar triceps en extensión cruzada de codo en polea alta."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la extensión de codo en polea alta y el objetivo triceps."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Coloca la polea en la altura alta y lleva el agarre al lado contrario del brazo de trabajo."
+              ],
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "laterality": "bilateral"
+            }
+          },
+          {
+            "displaySummary": "cable · unilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#triceps_crossbody_polea",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "crossbody_triceps__cable__unilateral",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Acompañar el movimiento con el hombro en lugar de aislar la extensión de codo."
+              ],
+              "description": "Extensión de Tríceps Cruzada en Polea Alta con un brazo: la variante unilateral aísla cada tríceps y permite un rango mayor de cruce.",
+              "efc": 2.2,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Extiende el codo cruzando hacia el otro lado con control."
+              ],
+              "kineticChain": "FULL",
+              "laterality": "UNILATERAL",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: el tríceps extiende el codo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                }
+              ],
+              "performanceProfileId": "crossbody_triceps__cable__unilateral",
+              "primaryMuscles": [
+                "triceps"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "elbow_extension"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "triceps"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "triceps"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "cable",
+                  "kineticChain": "FULL",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "elbow_extension",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Acompañar el movimiento con el hombro en lugar de aislar la extensión de codo."
+                  ],
+                  "cues": [
+                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Extiende el codo cruzando hacia el otro lado con control."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Coloca la polea en la altura alta y lleva el agarre al lado contrario del brazo de trabajo."
+                  ]
+                },
+                "display": {
+                  "displayName": "Extensión de Tríceps Cruzada en Polea Alta",
+                  "displaySummary": "cable · unilateral",
+                  "selectedOptions": {
+                    "laterality": "unilateral"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.2,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 3.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Extensión de Tríceps Cruzada en Polea Alta",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "crossbody_triceps__cable__unilateral",
+                  "definitionId": "crossbody_triceps_extension",
+                  "familyId": "upper_elbow_extension_crossbody",
+                  "kind": "PARENT",
+                  "performanceProfileId": "crossbody_triceps__cable__unilateral",
+                  "searchTerms": [
+                    "extension de triceps cruzada",
+                    "cruzada en polea",
+                    "crossbody extension",
+                    "triceps cruzado"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar triceps en extensión cruzada de codo en polea alta."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la extensión de codo en polea alta y el objetivo triceps."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Coloca la polea en la altura alta y lleva el agarre al lado contrario del brazo de trabajo."
+              ],
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "laterality": "unilateral"
+            }
+          }
+        ],
+        "defaultConfigurationId": "crossbody_triceps__cable__bilateral",
+        "description": "Extensión de codo en polea alta con el brazo cruzado hacia el lado contrario del cuerpo, manteniendo el hombro estable y el foco en el tríceps.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:crossbody_triceps_extension"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_elbow_extension_crossbody",
+        "id": "crossbody_triceps_extension",
+        "kind": "PARENT",
+        "optionAxes": [
+          "laterality"
+        ],
+        "searchTerms": [
+          "extension de triceps cruzada",
+          "cruzada en polea",
+          "crossbody extension",
+          "triceps cruzado"
+        ]
+      }
+    ],
+    "description": "Familia de extensión de codo cruzada con implemento y lateralidad materializados.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:upper_elbow_extension_crossbody"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "upper_elbow_extension_crossbody",
+    "taxonomy": [
+      "upper",
+      "elbow_extension",
+      "crossbody"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

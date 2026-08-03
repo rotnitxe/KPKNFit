@@ -1,1 +1,1283 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Abducciones de Pierna","definitions":[{"canonicalName":"Abducciones de Pierna","configurations":[{"displaySummary":"machine · seated · bilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#glutes_abduccion_cadera_sentado_maquina","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"hip_abduction__seated__machine__bilateral","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"LOWER","cnc":2.2,"commonMistakes":["Usar impulso o un recorrido demasiado corto que evita el rango completo de la abducción."],"description":"Abducciones de pierna sentado en máquina con trabajo bilateral: la estación guiada aísla el glúteo medio con tensión constante y recorrido controlado.","efc":2.8,"equipmentId":"machine","executionCues":["Abre y cierra las piernas con recorrido controlado sin despegar la espalda del respaldo."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"hip_abduction","muscleNotes":[{"muscleId":"gluteus_medius","note":"Principal: el glúteo medio abduce el muslo y estabiliza la pelvis durante el movimiento lateral; por eso suma la serie completa (1.0)."},{"muscleId":"tensor_fasciae_latae","note":"Secundario: el tensor asiste la abducción y la estabilización lateral de la cadera; por eso suma 0.5."}],"performanceProfileId":"hip_abduction__machine__abduccion_de_cadera","primaryMuscles":["gluteus_medius"],"replacementGroup":"glute_med_abduction","replacementPriority":1,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["hip_abduction"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["gluteus_medius"],"secondaryMuscles":["tensor_fasciae_latae"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["gluteus_medius"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"machine","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"hip_abduction","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"guided_constant","stability":"guided"},"coaching":{"commonMistakes":["Usar impulso o un recorrido demasiado corto que evita el rango completo de la abducción."],"cues":["Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."],"execution":["Abre y cierra las piernas con recorrido controlado sin despegar la espalda del respaldo."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Ajusta el asiento y las almohadillas a tu altura antes de iniciar."]},"display":{"displayName":"Abducciones de Pierna","displaySummary":"machine · seated · bilateral","selectedOptions":{"implement":"machine","laterality":"bilateral","station":"seated"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.2,"efc":2.8,"ssc":0.5,"technicalDifficulty":4.2,"ttc":2.0},"identity":{"canonicalName":"Abducciones de Pierna","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"hip_abduction__seated__machine__bilateral","definitionId":"hip_abduction","familyId":"hip_abduction","kind":"PARENT","performanceProfileId":"hip_abduction__machine__abduccion_de_cadera","searchTerms":["abducción de cadera","abducción de cadera en máquina","abducción de cadera sentado en máquina","glutes abduccion cadera"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar gluteus_medius dentro del patrón hip_abduction."],"recoveryCost":"moderate","requiredEquipment":["machine"],"role":"accessory_isolation","setupTransitionCost":"high","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["machine","cable","band"],"preservesIntent":["Conserva el patrón hip_abduction y el objetivo gluteus_medius."],"replacementGroup":"glute_med_abduction","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["tensor_fasciae_latae"],"setupCues":["Ajusta el asiento y las almohadillas a tu altura antes de iniciar."],"ssc":0.5,"stabilizerMuscles":[],"technicalDifficulty":4.2,"ttc":2.0},"selectedOptions":{"implement":"machine","laterality":"bilateral","station":"seated"}},{"displaySummary":"machine · seated · unilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#glutes_abduccion_cadera_sentado_maquina","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"hip_abduction__seated__machine__unilateral","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"LOWER","cnc":2.2,"commonMistakes":["Usar impulso o apoyarte en el respaldo para compensar el lado trabajado."],"description":"Abducciones de pierna sentado en máquina con trabajo unilateral: permite aislar cada cadera por separado y corregir desequilibrios de fuerza entre lados.","efc":2.8,"equipmentId":"machine","executionCues":["Abduce una pierna con recorrido controlado, termina la serie completa y cambia de lado."],"kineticChain":"POSTERIOR","laterality":"UNILATERAL","loadMode":"guided_external_load","movementPatternId":"hip_abduction","muscleNotes":[{"muscleId":"gluteus_medius","note":"Principal: el glúteo medio abduce el muslo y estabiliza la pelvis durante el movimiento lateral; por eso suma la serie completa (1.0)."},{"muscleId":"tensor_fasciae_latae","note":"Secundario: el tensor asiste la abducción y la estabilización lateral de la cadera; por eso suma 0.5."}],"performanceProfileId":"hip_abduction__machine__abduccion_de_cadera_unilateral","primaryMuscles":["gluteus_medius"],"replacementGroup":"glute_med_abduction","replacementPriority":1,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["hip_abduction"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["gluteus_medius"],"secondaryMuscles":["tensor_fasciae_latae"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["gluteus_medius"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"machine","kineticChain":"POSTERIOR","laterality":"UNILATERAL","loadMode":"guided_external_load","movementPatternId":"hip_abduction","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"guided_constant","stability":"guided"},"coaching":{"commonMistakes":["Usar impulso o apoyarte en el respaldo para compensar el lado trabajado."],"cues":["Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."],"execution":["Abduce una pierna con recorrido controlado, termina la serie completa y cambia de lado."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Ajusta el asiento y las almohadillas a tu altura antes de iniciar."]},"display":{"displayName":"Abducciones de Pierna","displaySummary":"machine · seated · unilateral","selectedOptions":{"implement":"machine","laterality":"unilateral","station":"seated"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.2,"efc":2.8,"ssc":0.5,"technicalDifficulty":4.2,"ttc":2.0},"identity":{"canonicalName":"Abducciones de Pierna","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"hip_abduction__seated__machine__unilateral","definitionId":"hip_abduction","familyId":"hip_abduction","kind":"PARENT","performanceProfileId":"hip_abduction__machine__abduccion_de_cadera_unilateral","searchTerms":["abducción de cadera","abducción de cadera en máquina","abducción de cadera sentado en máquina","glutes abduccion cadera"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar gluteus_medius dentro del patrón hip_abduction con foco unilateral."],"recoveryCost":"moderate","requiredEquipment":["machine"],"role":"accessory_isolation","setupTransitionCost":"high","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["machine","cable","band"],"preservesIntent":["Conserva el patrón hip_abduction y el objetivo gluteus_medius."],"replacementGroup":"glute_med_abduction","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["tensor_fasciae_latae"],"setupCues":["Ajusta el asiento y las almohadillas a tu altura antes de iniciar."],"ssc":0.5,"stabilizerMuscles":[],"technicalDifficulty":4.2,"ttc":2.0},"selectedOptions":{"implement":"machine","laterality":"unilateral","station":"seated"}},{"displaySummary":"cable · standing · bilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#glutes_abduccion_cadera","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"hip_abduction__standing__cable__bilateral","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"LOWER","cnc":2.2,"commonMistakes":["Balancear el tronco para mover la pierna en lugar de aislar la abducción de cadera."],"description":"Abducciones de pierna de pie en polea con trabajo bilateral: la tensión continua de la polea mantiene el glúteo medio activo a lo largo del recorrido.","efc":2.8,"equipmentId":"cable","executionCues":["Abduce la pierna contra la polea con movimiento controlado en ambos sentidos."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"continuous_cable","movementPatternId":"hip_abduction","muscleNotes":[{"muscleId":"gluteus_medius","note":"Principal: el glúteo medio abduce el muslo y estabiliza la pelvis durante el movimiento lateral; por eso suma la serie completa (1.0)."},{"muscleId":"tensor_fasciae_latae","note":"Secundario: el tensor asiste la abducción y la estabilización lateral de la cadera; por eso suma 0.5."}],"performanceProfileId":"hip_abduction__cable__abduccion_de_cadera","primaryMuscles":["gluteus_medius"],"replacementGroup":"glute_med_abduction","replacementPriority":2,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["hip_abduction"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["gluteus_medius"],"secondaryMuscles":["tensor_fasciae_latae"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["gluteus_medius"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"cable","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"continuous_cable","movementPatternId":"hip_abduction","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Balancear el tronco para mover la pierna en lugar de aislar la abducción de cadera."],"cues":["Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."],"execution":["Abduce la pierna contra la polea con movimiento controlado en ambos sentidos."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Coloca el tobilloera en la polea baja y busca un apoyo firme y estable."]},"display":{"displayName":"Abducciones de Pierna","displaySummary":"cable · standing · bilateral","selectedOptions":{"implement":"cable","laterality":"bilateral","station":"standing"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.2,"efc":2.8,"ssc":0.5,"technicalDifficulty":4.2,"ttc":2.0},"identity":{"canonicalName":"Abducciones de Pierna","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"hip_abduction__standing__cable__bilateral","definitionId":"hip_abduction","familyId":"hip_abduction","kind":"PARENT","performanceProfileId":"hip_abduction__cable__abduccion_de_cadera","searchTerms":["abducción de cadera","abducción de cadera en máquina","abducción de cadera sentado en máquina","glutes abduccion cadera"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar gluteus_medius dentro del patrón hip_abduction con polea."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable","machine","band"],"preservesIntent":["Conserva el patrón hip_abduction y el objetivo gluteus_medius."],"replacementGroup":"glute_med_abduction","replacementPriority":2},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["tensor_fasciae_latae"],"setupCues":["Coloca el tobilloera en la polea baja y busca un apoyo firme y estable."],"ssc":0.5,"stabilizerMuscles":[],"technicalDifficulty":4.2,"ttc":2.0},"selectedOptions":{"implement":"cable","laterality":"bilateral","station":"standing"}},{"displaySummary":"cable · standing · unilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#glutes_abduccion_cadera","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"hip_abduction__standing__cable__unilateral","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"LOWER","cnc":2.2,"commonMistakes":["Perder el control de la pelvis y compensar con inclinación del tronco."],"description":"Abducciones de pierna de pie en polea con trabajo unilateral: ideal para igualar la fuerza de cada cadera y sostener tensión en el punto de máxima contracción.","efc":2.8,"equipmentId":"cable","executionCues":["Abduce una pierna con tensión continua, completa la serie y cambia de lado."],"kineticChain":"POSTERIOR","laterality":"UNILATERAL","loadMode":"continuous_cable","movementPatternId":"hip_abduction","muscleNotes":[{"muscleId":"gluteus_medius","note":"Principal: el glúteo medio abduce el muslo y estabiliza la pelvis durante el movimiento lateral; por eso suma la serie completa (1.0)."},{"muscleId":"tensor_fasciae_latae","note":"Secundario: el tensor asiste la abducción y la estabilización lateral de la cadera; por eso suma 0.5."}],"performanceProfileId":"hip_abduction__cable__abduccion_de_cadera_unilateral","primaryMuscles":["gluteus_medius"],"replacementGroup":"glute_med_abduction","replacementPriority":2,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["hip_abduction"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["gluteus_medius"],"secondaryMuscles":["tensor_fasciae_latae"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["gluteus_medius"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"cable","kineticChain":"POSTERIOR","laterality":"UNILATERAL","loadMode":"continuous_cable","movementPatternId":"hip_abduction","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Perder el control de la pelvis y compensar con inclinación del tronco."],"cues":["Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."],"execution":["Abduce una pierna con tensión continua, completa la serie y cambia de lado."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Coloca el tobilloera en la polea baja y busca un apoyo firme y estable."]},"display":{"displayName":"Abducciones de Pierna","displaySummary":"cable · standing · unilateral","selectedOptions":{"implement":"cable","laterality":"unilateral","station":"standing"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.2,"efc":2.8,"ssc":0.5,"technicalDifficulty":4.2,"ttc":2.0},"identity":{"canonicalName":"Abducciones de Pierna","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"hip_abduction__standing__cable__unilateral","definitionId":"hip_abduction","familyId":"hip_abduction","kind":"PARENT","performanceProfileId":"hip_abduction__cable__abduccion_de_cadera_unilateral","searchTerms":["abducción de cadera","abducción de cadera en máquina","abducción de cadera sentado en máquina","glutes abduccion cadera"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar gluteus_medius dentro del patrón hip_abduction con foco unilateral en polea."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable","machine","band"],"preservesIntent":["Conserva el patrón hip_abduction y el objetivo gluteus_medius."],"replacementGroup":"glute_med_abduction","replacementPriority":2},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["tensor_fasciae_latae"],"setupCues":["Coloca el tobilloera en la polea baja y busca un apoyo firme y estable."],"ssc":0.5,"stabilizerMuscles":[],"technicalDifficulty":4.2,"ttc":2.0},"selectedOptions":{"implement":"cable","laterality":"unilateral","station":"standing"}},{"displaySummary":"band · standing · bilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#glutes_abduccion_cadera","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"hip_abduction__standing__band__bilateral","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"LOWER","cnc":2.2,"commonMistakes":["Reducir el rango al final del movimiento, donde la banda ofrece mayor resistencia."],"description":"Abducciones de pierna de pie con banda elástica y trabajo bilateral: la resistencia variable exige más esfuerzo al final del recorrido, donde más trabaja el glúteo medio.","efc":2.8,"equipmentId":"band","executionCues":["Abduce las piernas contra la banda con control en el retorno."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"variable_band_resistance","movementPatternId":"hip_abduction","muscleNotes":[{"muscleId":"gluteus_medius","note":"Principal: el glúteo medio abduce el muslo y estabiliza la pelvis durante el movimiento lateral; por eso suma la serie completa (1.0)."},{"muscleId":"tensor_fasciae_latae","note":"Secundario: el tensor asiste la abducción y la estabilización lateral de la cadera; por eso suma 0.5."}],"performanceProfileId":"hip_abduction__band__abduccion_de_cadera","primaryMuscles":["gluteus_medius"],"replacementGroup":"glute_med_abduction","replacementPriority":2,"resistanceProfile":"variable_band","richMetadata":{"anatomy":{"jointActions":["hip_abduction"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["gluteus_medius"],"secondaryMuscles":["tensor_fasciae_latae"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["gluteus_medius"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"band","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"variable_band_resistance","movementPatternId":"hip_abduction","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"variable_band","stability":"self_stabilized"},"coaching":{"commonMistakes":["Reducir el rango al final del movimiento, donde la banda ofrece mayor resistencia."],"cues":["Mantén el equipo band alineado con el patrón y controla la fase excéntrica."],"execution":["Abduce las piernas contra la banda con control en el retorno."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Coloca la banda alrededor de los tobillos y separa los pies al ancho de la cadera."]},"display":{"displayName":"Abducciones de Pierna","displaySummary":"band · standing · bilateral","selectedOptions":{"implement":"band","laterality":"bilateral","station":"standing"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.2,"efc":2.8,"ssc":0.5,"technicalDifficulty":4.2,"ttc":2.0},"identity":{"canonicalName":"Abducciones de Pierna","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"hip_abduction__standing__band__bilateral","definitionId":"hip_abduction","familyId":"hip_abduction","kind":"PARENT","performanceProfileId":"hip_abduction__band__abduccion_de_cadera","searchTerms":["abducción de cadera","abducción de cadera en máquina","abducción de cadera sentado en máquina","glutes abduccion cadera"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar gluteus_medius dentro del patrón hip_abduction con banda."],"recoveryCost":"moderate","requiredEquipment":["band"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["band","cable","machine"],"preservesIntent":["Conserva el patrón hip_abduction y el objetivo gluteus_medius."],"replacementGroup":"glute_med_abduction","replacementPriority":2},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["tensor_fasciae_latae"],"setupCues":["Coloca la banda alrededor de los tobillos y separa los pies al ancho de la cadera."],"ssc":0.5,"stabilizerMuscles":[],"technicalDifficulty":4.2,"ttc":2.0},"selectedOptions":{"implement":"band","laterality":"bilateral","station":"standing"}},{"displaySummary":"band · standing · unilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#glutes_abduccion_cadera","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"hip_abduction__standing__band__unilateral","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"LOWER","cnc":2.2,"commonMistakes":["Compensar con la cadera en vez de aislar la abducción con la pierna de trabajo."],"description":"Abducciones de pierna de pie con banda elástica y trabajo unilateral: permite trabajar cada cadera con su propia resistencia y detectar asimetrías de fuerza.","efc":2.8,"equipmentId":"band","executionCues":["Abduce la pierna contra la banda, completa la serie y cambia de lado."],"kineticChain":"POSTERIOR","laterality":"UNILATERAL","loadMode":"variable_band_resistance","movementPatternId":"hip_abduction","muscleNotes":[{"muscleId":"gluteus_medius","note":"Principal: el glúteo medio abduce el muslo y estabiliza la pelvis durante el movimiento lateral; por eso suma la serie completa (1.0)."},{"muscleId":"tensor_fasciae_latae","note":"Secundario: el tensor asiste la abducción y la estabilización lateral de la cadera; por eso suma 0.5."}],"performanceProfileId":"hip_abduction__band__abduccion_de_cadera_unilateral","primaryMuscles":["gluteus_medius"],"replacementGroup":"glute_med_abduction","replacementPriority":2,"resistanceProfile":"variable_band","richMetadata":{"anatomy":{"jointActions":["hip_abduction"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["gluteus_medius"],"secondaryMuscles":["tensor_fasciae_latae"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["gluteus_medius"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"band","kineticChain":"POSTERIOR","laterality":"UNILATERAL","loadMode":"variable_band_resistance","movementPatternId":"hip_abduction","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"variable_band","stability":"self_stabilized"},"coaching":{"commonMistakes":["Compensar con la cadera en vez de aislar la abducción con la pierna de trabajo."],"cues":["Mantén el equipo band alineado con el patrón y controla la fase excéntrica."],"execution":["Abduce la pierna contra la banda, completa la serie y cambia de lado."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Ancla la banda en un punto fijo y coloca el otro extremo en el tobillo."]},"display":{"displayName":"Abducciones de Pierna","displaySummary":"band · standing · unilateral","selectedOptions":{"implement":"band","laterality":"unilateral","station":"standing"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.2,"efc":2.8,"ssc":0.5,"technicalDifficulty":4.2,"ttc":2.0},"identity":{"canonicalName":"Abducciones de Pierna","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"hip_abduction__standing__band__unilateral","definitionId":"hip_abduction","familyId":"hip_abduction","kind":"PARENT","performanceProfileId":"hip_abduction__band__abduccion_de_cadera_unilateral","searchTerms":["abducción de cadera","abducción de cadera en máquina","abducción de cadera sentado en máquina","glutes abduccion cadera"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar gluteus_medius dentro del patrón hip_abduction con foco unilateral en banda."],"recoveryCost":"moderate","requiredEquipment":["band"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["band","cable","machine"],"preservesIntent":["Conserva el patrón hip_abduction y el objetivo gluteus_medius."],"replacementGroup":"glute_med_abduction","replacementPriority":2},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["tensor_fasciae_latae"],"setupCues":["Ancla la banda en un punto fijo y coloca el otro extremo en el tobillo."],"ssc":0.5,"stabilizerMuscles":[],"technicalDifficulty":4.2,"ttc":2.0},"selectedOptions":{"implement":"band","laterality":"unilateral","station":"standing"}}],"defaultConfigurationId":"hip_abduction__seated__machine__bilateral","description":"La pierna se aleja de la línea media del cuerpo con los abductores como motor principal. La estación y el implemento cambian la tensión y el rango de cada variante.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:hip_abduction"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"hip_abduction","id":"hip_abduction","kind":"PARENT","optionAxes":["implement","station","laterality"],"searchTerms":["abducción de cadera","abducción de cadera en máquina","abducción de cadera sentado en máquina","glutes abduccion cadera"]}],"description":"Familia de abducción de la pierna hacia afuera con estación, implemento y lateralidad compatibles; la máquina, la polea y la banda quedan materializadas.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:hip_abduction"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"hip_abduction","taxonomy":["lower","hip_abduction"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Abducciones de Pierna",
+    "definitions": [
+      {
+        "canonicalName": "Abducciones de Pierna",
+        "configurations": [
+          {
+            "displaySummary": "machine · seated · bilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#glutes_abduccion_cadera_sentado_maquina",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "hip_abduction__seated__machine__bilateral",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "cnc": 2.2,
+              "commonMistakes": [
+                "Usar impulso o un recorrido demasiado corto que evita el rango completo de la abducción."
+              ],
+              "description": "Abducciones de pierna sentado en máquina con trabajo bilateral: la estación guiada aísla el glúteo medio con tensión constante y recorrido controlado.",
+              "efc": 2.8,
+              "equipmentId": "machine",
+              "executionCues": [
+                "Abre y cierra las piernas con recorrido controlado sin despegar la espalda del respaldo."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "hip_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_medius",
+                  "note": "Principal: el glúteo medio abduce el muslo y estabiliza la pelvis durante el movimiento lateral; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "tensor_fasciae_latae",
+                  "note": "Secundario: el tensor asiste la abducción y la estabilización lateral de la cadera; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "hip_abduction__machine__abduccion_de_cadera",
+              "primaryMuscles": [
+                "gluteus_medius"
+              ],
+              "replacementGroup": "glute_med_abduction",
+              "replacementPriority": 1,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "hip_abduction"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "gluteus_medius"
+                  ],
+                  "secondaryMuscles": [
+                    "tensor_fasciae_latae"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "gluteus_medius"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "hip_abduction",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso o un recorrido demasiado corto que evita el rango completo de la abducción."
+                  ],
+                  "cues": [
+                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Abre y cierra las piernas con recorrido controlado sin despegar la espalda del respaldo."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Ajusta el asiento y las almohadillas a tu altura antes de iniciar."
+                  ]
+                },
+                "display": {
+                  "displayName": "Abducciones de Pierna",
+                  "displaySummary": "machine · seated · bilateral",
+                  "selectedOptions": {
+                    "implement": "machine",
+                    "laterality": "bilateral",
+                    "station": "seated"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Abducciones de Pierna",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "hip_abduction__seated__machine__bilateral",
+                  "definitionId": "hip_abduction",
+                  "familyId": "hip_abduction",
+                  "kind": "PARENT",
+                  "performanceProfileId": "hip_abduction__machine__abduccion_de_cadera",
+                  "searchTerms": [
+                    "abducción de cadera",
+                    "abducción de cadera en máquina",
+                    "abducción de cadera sentado en máquina",
+                    "glutes abduccion cadera"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar gluteus_medius dentro del patrón hip_abduction."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "machine"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "machine",
+                    "cable",
+                    "band"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón hip_abduction y el objetivo gluteus_medius."
+                  ],
+                  "replacementGroup": "glute_med_abduction",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "tensor_fasciae_latae"
+              ],
+              "setupCues": [
+                "Ajusta el asiento y las almohadillas a tu altura antes de iniciar."
+              ],
+              "ssc": 0.5,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "implement": "machine",
+              "laterality": "bilateral",
+              "station": "seated"
+            }
+          },
+          {
+            "displaySummary": "machine · seated · unilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#glutes_abduccion_cadera_sentado_maquina",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "hip_abduction__seated__machine__unilateral",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "cnc": 2.2,
+              "commonMistakes": [
+                "Usar impulso o apoyarte en el respaldo para compensar el lado trabajado."
+              ],
+              "description": "Abducciones de pierna sentado en máquina con trabajo unilateral: permite aislar cada cadera por separado y corregir desequilibrios de fuerza entre lados.",
+              "efc": 2.8,
+              "equipmentId": "machine",
+              "executionCues": [
+                "Abduce una pierna con recorrido controlado, termina la serie completa y cambia de lado."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "hip_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_medius",
+                  "note": "Principal: el glúteo medio abduce el muslo y estabiliza la pelvis durante el movimiento lateral; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "tensor_fasciae_latae",
+                  "note": "Secundario: el tensor asiste la abducción y la estabilización lateral de la cadera; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "hip_abduction__machine__abduccion_de_cadera_unilateral",
+              "primaryMuscles": [
+                "gluteus_medius"
+              ],
+              "replacementGroup": "glute_med_abduction",
+              "replacementPriority": 1,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "hip_abduction"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "gluteus_medius"
+                  ],
+                  "secondaryMuscles": [
+                    "tensor_fasciae_latae"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "gluteus_medius"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "hip_abduction",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso o apoyarte en el respaldo para compensar el lado trabajado."
+                  ],
+                  "cues": [
+                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Abduce una pierna con recorrido controlado, termina la serie completa y cambia de lado."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Ajusta el asiento y las almohadillas a tu altura antes de iniciar."
+                  ]
+                },
+                "display": {
+                  "displayName": "Abducciones de Pierna",
+                  "displaySummary": "machine · seated · unilateral",
+                  "selectedOptions": {
+                    "implement": "machine",
+                    "laterality": "unilateral",
+                    "station": "seated"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Abducciones de Pierna",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "hip_abduction__seated__machine__unilateral",
+                  "definitionId": "hip_abduction",
+                  "familyId": "hip_abduction",
+                  "kind": "PARENT",
+                  "performanceProfileId": "hip_abduction__machine__abduccion_de_cadera_unilateral",
+                  "searchTerms": [
+                    "abducción de cadera",
+                    "abducción de cadera en máquina",
+                    "abducción de cadera sentado en máquina",
+                    "glutes abduccion cadera"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar gluteus_medius dentro del patrón hip_abduction con foco unilateral."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "machine"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "machine",
+                    "cable",
+                    "band"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón hip_abduction y el objetivo gluteus_medius."
+                  ],
+                  "replacementGroup": "glute_med_abduction",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "tensor_fasciae_latae"
+              ],
+              "setupCues": [
+                "Ajusta el asiento y las almohadillas a tu altura antes de iniciar."
+              ],
+              "ssc": 0.5,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "implement": "machine",
+              "laterality": "unilateral",
+              "station": "seated"
+            }
+          },
+          {
+            "displaySummary": "cable · standing · bilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#glutes_abduccion_cadera",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "hip_abduction__standing__cable__bilateral",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "cnc": 2.2,
+              "commonMistakes": [
+                "Balancear el tronco para mover la pierna en lugar de aislar la abducción de cadera."
+              ],
+              "description": "Abducciones de pierna de pie en polea con trabajo bilateral: la tensión continua de la polea mantiene el glúteo medio activo a lo largo del recorrido.",
+              "efc": 2.8,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Abduce la pierna contra la polea con movimiento controlado en ambos sentidos."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "hip_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_medius",
+                  "note": "Principal: el glúteo medio abduce el muslo y estabiliza la pelvis durante el movimiento lateral; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "tensor_fasciae_latae",
+                  "note": "Secundario: el tensor asiste la abducción y la estabilización lateral de la cadera; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "hip_abduction__cable__abduccion_de_cadera",
+              "primaryMuscles": [
+                "gluteus_medius"
+              ],
+              "replacementGroup": "glute_med_abduction",
+              "replacementPriority": 2,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "hip_abduction"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "gluteus_medius"
+                  ],
+                  "secondaryMuscles": [
+                    "tensor_fasciae_latae"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "gluteus_medius"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "cable",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "hip_abduction",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Balancear el tronco para mover la pierna en lugar de aislar la abducción de cadera."
+                  ],
+                  "cues": [
+                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Abduce la pierna contra la polea con movimiento controlado en ambos sentidos."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Coloca el tobilloera en la polea baja y busca un apoyo firme y estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Abducciones de Pierna",
+                  "displaySummary": "cable · standing · bilateral",
+                  "selectedOptions": {
+                    "implement": "cable",
+                    "laterality": "bilateral",
+                    "station": "standing"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Abducciones de Pierna",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "hip_abduction__standing__cable__bilateral",
+                  "definitionId": "hip_abduction",
+                  "familyId": "hip_abduction",
+                  "kind": "PARENT",
+                  "performanceProfileId": "hip_abduction__cable__abduccion_de_cadera",
+                  "searchTerms": [
+                    "abducción de cadera",
+                    "abducción de cadera en máquina",
+                    "abducción de cadera sentado en máquina",
+                    "glutes abduccion cadera"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar gluteus_medius dentro del patrón hip_abduction con polea."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable",
+                    "machine",
+                    "band"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón hip_abduction y el objetivo gluteus_medius."
+                  ],
+                  "replacementGroup": "glute_med_abduction",
+                  "replacementPriority": 2
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "tensor_fasciae_latae"
+              ],
+              "setupCues": [
+                "Coloca el tobilloera en la polea baja y busca un apoyo firme y estable."
+              ],
+              "ssc": 0.5,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "implement": "cable",
+              "laterality": "bilateral",
+              "station": "standing"
+            }
+          },
+          {
+            "displaySummary": "cable · standing · unilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#glutes_abduccion_cadera",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "hip_abduction__standing__cable__unilateral",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "cnc": 2.2,
+              "commonMistakes": [
+                "Perder el control de la pelvis y compensar con inclinación del tronco."
+              ],
+              "description": "Abducciones de pierna de pie en polea con trabajo unilateral: ideal para igualar la fuerza de cada cadera y sostener tensión en el punto de máxima contracción.",
+              "efc": 2.8,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Abduce una pierna con tensión continua, completa la serie y cambia de lado."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "hip_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_medius",
+                  "note": "Principal: el glúteo medio abduce el muslo y estabiliza la pelvis durante el movimiento lateral; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "tensor_fasciae_latae",
+                  "note": "Secundario: el tensor asiste la abducción y la estabilización lateral de la cadera; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "hip_abduction__cable__abduccion_de_cadera_unilateral",
+              "primaryMuscles": [
+                "gluteus_medius"
+              ],
+              "replacementGroup": "glute_med_abduction",
+              "replacementPriority": 2,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "hip_abduction"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "gluteus_medius"
+                  ],
+                  "secondaryMuscles": [
+                    "tensor_fasciae_latae"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "gluteus_medius"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "cable",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "hip_abduction",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Perder el control de la pelvis y compensar con inclinación del tronco."
+                  ],
+                  "cues": [
+                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Abduce una pierna con tensión continua, completa la serie y cambia de lado."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Coloca el tobilloera en la polea baja y busca un apoyo firme y estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Abducciones de Pierna",
+                  "displaySummary": "cable · standing · unilateral",
+                  "selectedOptions": {
+                    "implement": "cable",
+                    "laterality": "unilateral",
+                    "station": "standing"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Abducciones de Pierna",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "hip_abduction__standing__cable__unilateral",
+                  "definitionId": "hip_abduction",
+                  "familyId": "hip_abduction",
+                  "kind": "PARENT",
+                  "performanceProfileId": "hip_abduction__cable__abduccion_de_cadera_unilateral",
+                  "searchTerms": [
+                    "abducción de cadera",
+                    "abducción de cadera en máquina",
+                    "abducción de cadera sentado en máquina",
+                    "glutes abduccion cadera"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar gluteus_medius dentro del patrón hip_abduction con foco unilateral en polea."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable",
+                    "machine",
+                    "band"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón hip_abduction y el objetivo gluteus_medius."
+                  ],
+                  "replacementGroup": "glute_med_abduction",
+                  "replacementPriority": 2
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "tensor_fasciae_latae"
+              ],
+              "setupCues": [
+                "Coloca el tobilloera en la polea baja y busca un apoyo firme y estable."
+              ],
+              "ssc": 0.5,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "implement": "cable",
+              "laterality": "unilateral",
+              "station": "standing"
+            }
+          },
+          {
+            "displaySummary": "band · standing · bilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#glutes_abduccion_cadera",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "hip_abduction__standing__band__bilateral",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "cnc": 2.2,
+              "commonMistakes": [
+                "Reducir el rango al final del movimiento, donde la banda ofrece mayor resistencia."
+              ],
+              "description": "Abducciones de pierna de pie con banda elástica y trabajo bilateral: la resistencia variable exige más esfuerzo al final del recorrido, donde más trabaja el glúteo medio.",
+              "efc": 2.8,
+              "equipmentId": "band",
+              "executionCues": [
+                "Abduce las piernas contra la banda con control en el retorno."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "variable_band_resistance",
+              "movementPatternId": "hip_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_medius",
+                  "note": "Principal: el glúteo medio abduce el muslo y estabiliza la pelvis durante el movimiento lateral; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "tensor_fasciae_latae",
+                  "note": "Secundario: el tensor asiste la abducción y la estabilización lateral de la cadera; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "hip_abduction__band__abduccion_de_cadera",
+              "primaryMuscles": [
+                "gluteus_medius"
+              ],
+              "replacementGroup": "glute_med_abduction",
+              "replacementPriority": 2,
+              "resistanceProfile": "variable_band",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "hip_abduction"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "gluteus_medius"
+                  ],
+                  "secondaryMuscles": [
+                    "tensor_fasciae_latae"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "gluteus_medius"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "band",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "variable_band_resistance",
+                  "movementPatternId": "hip_abduction",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "variable_band",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Reducir el rango al final del movimiento, donde la banda ofrece mayor resistencia."
+                  ],
+                  "cues": [
+                    "Mantén el equipo band alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Abduce las piernas contra la banda con control en el retorno."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Coloca la banda alrededor de los tobillos y separa los pies al ancho de la cadera."
+                  ]
+                },
+                "display": {
+                  "displayName": "Abducciones de Pierna",
+                  "displaySummary": "band · standing · bilateral",
+                  "selectedOptions": {
+                    "implement": "band",
+                    "laterality": "bilateral",
+                    "station": "standing"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Abducciones de Pierna",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "hip_abduction__standing__band__bilateral",
+                  "definitionId": "hip_abduction",
+                  "familyId": "hip_abduction",
+                  "kind": "PARENT",
+                  "performanceProfileId": "hip_abduction__band__abduccion_de_cadera",
+                  "searchTerms": [
+                    "abducción de cadera",
+                    "abducción de cadera en máquina",
+                    "abducción de cadera sentado en máquina",
+                    "glutes abduccion cadera"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar gluteus_medius dentro del patrón hip_abduction con banda."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "band"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "band",
+                    "cable",
+                    "machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón hip_abduction y el objetivo gluteus_medius."
+                  ],
+                  "replacementGroup": "glute_med_abduction",
+                  "replacementPriority": 2
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "tensor_fasciae_latae"
+              ],
+              "setupCues": [
+                "Coloca la banda alrededor de los tobillos y separa los pies al ancho de la cadera."
+              ],
+              "ssc": 0.5,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "implement": "band",
+              "laterality": "bilateral",
+              "station": "standing"
+            }
+          },
+          {
+            "displaySummary": "band · standing · unilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#glutes_abduccion_cadera",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "hip_abduction__standing__band__unilateral",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "cnc": 2.2,
+              "commonMistakes": [
+                "Compensar con la cadera en vez de aislar la abducción con la pierna de trabajo."
+              ],
+              "description": "Abducciones de pierna de pie con banda elástica y trabajo unilateral: permite trabajar cada cadera con su propia resistencia y detectar asimetrías de fuerza.",
+              "efc": 2.8,
+              "equipmentId": "band",
+              "executionCues": [
+                "Abduce la pierna contra la banda, completa la serie y cambia de lado."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "variable_band_resistance",
+              "movementPatternId": "hip_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_medius",
+                  "note": "Principal: el glúteo medio abduce el muslo y estabiliza la pelvis durante el movimiento lateral; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "tensor_fasciae_latae",
+                  "note": "Secundario: el tensor asiste la abducción y la estabilización lateral de la cadera; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "hip_abduction__band__abduccion_de_cadera_unilateral",
+              "primaryMuscles": [
+                "gluteus_medius"
+              ],
+              "replacementGroup": "glute_med_abduction",
+              "replacementPriority": 2,
+              "resistanceProfile": "variable_band",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "hip_abduction"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "gluteus_medius"
+                  ],
+                  "secondaryMuscles": [
+                    "tensor_fasciae_latae"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "gluteus_medius"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "band",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "variable_band_resistance",
+                  "movementPatternId": "hip_abduction",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "variable_band",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Compensar con la cadera en vez de aislar la abducción con la pierna de trabajo."
+                  ],
+                  "cues": [
+                    "Mantén el equipo band alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Abduce la pierna contra la banda, completa la serie y cambia de lado."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Ancla la banda en un punto fijo y coloca el otro extremo en el tobillo."
+                  ]
+                },
+                "display": {
+                  "displayName": "Abducciones de Pierna",
+                  "displaySummary": "band · standing · unilateral",
+                  "selectedOptions": {
+                    "implement": "band",
+                    "laterality": "unilateral",
+                    "station": "standing"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Abducciones de Pierna",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "hip_abduction__standing__band__unilateral",
+                  "definitionId": "hip_abduction",
+                  "familyId": "hip_abduction",
+                  "kind": "PARENT",
+                  "performanceProfileId": "hip_abduction__band__abduccion_de_cadera_unilateral",
+                  "searchTerms": [
+                    "abducción de cadera",
+                    "abducción de cadera en máquina",
+                    "abducción de cadera sentado en máquina",
+                    "glutes abduccion cadera"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar gluteus_medius dentro del patrón hip_abduction con foco unilateral en banda."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "band"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "band",
+                    "cable",
+                    "machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón hip_abduction y el objetivo gluteus_medius."
+                  ],
+                  "replacementGroup": "glute_med_abduction",
+                  "replacementPriority": 2
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "tensor_fasciae_latae"
+              ],
+              "setupCues": [
+                "Ancla la banda en un punto fijo y coloca el otro extremo en el tobillo."
+              ],
+              "ssc": 0.5,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "implement": "band",
+              "laterality": "unilateral",
+              "station": "standing"
+            }
+          }
+        ],
+        "defaultConfigurationId": "hip_abduction__seated__machine__bilateral",
+        "description": "La pierna se aleja de la línea media del cuerpo con los abductores como motor principal. La estación y el implemento cambian la tensión y el rango de cada variante.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:hip_abduction"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "hip_abduction",
+        "id": "hip_abduction",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement",
+          "station",
+          "laterality"
+        ],
+        "searchTerms": [
+          "abducción de cadera",
+          "abducción de cadera en máquina",
+          "abducción de cadera sentado en máquina",
+          "glutes abduccion cadera"
+        ]
+      }
+    ],
+    "description": "Familia de abducción de la pierna hacia afuera con estación, implemento y lateralidad compatibles; la máquina, la polea y la banda quedan materializadas.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:hip_abduction"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "hip_abduction",
+    "taxonomy": [
+      "lower",
+      "hip_abduction"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

@@ -1,1 +1,431 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Tate press","definitions":[{"canonicalName":"Tate press","configurations":[{"displaySummary":"dumbbells","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#triceps_tate_press_mancuernas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"tate_press__dumbbells","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."],"description":"Tate Press con mancuernas: extensión de tríceps en banco con codos abiertos hacia fuera. Aísla tríceps con recorrido corto y controlado. La variante se define por: mancuernas.","efc":2.2,"equipmentId":"dumbbells","executionCues":["Ejecuta «Tate Press con Mancuernas» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"FULL","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"elbow_extension","muscleNotes":[{"muscleId":"triceps","note":"Principal: el tríceps extiende el codo y concentra la fuerza del movimiento; por eso suma la serie completa (1.0)."}],"performanceProfileId":"tate_press__dumbbells__tate_press","primaryMuscles":["triceps"],"replacementGroup":"triceps_niche","replacementPriority":999,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["elbow_extension"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["triceps"],"secondaryMuscles":[],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["triceps"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"dumbbells","kineticChain":"FULL","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"elbow_extension","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Tate Press con Mancuernas» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura mancuerna y adopta la posición específica de «Tate Press con Mancuernas» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Tate press","displaySummary":"dumbbells","selectedOptions":{"implement":"dumbbells"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.2,"ssc":0.2,"technicalDifficulty":4.8,"ttc":1.6},"identity":{"canonicalName":"Tate press","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"tate_press__dumbbells","definitionId":"tate_press","familyId":"triceps_tate_press","kind":"PARENT","performanceProfileId":"tate_press__dumbbells__tate_press","searchTerms":["tate press","tate press con mancuernas","tate press en polea"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":90,"min":30},"objectives":["Desarrollar triceps dentro del patrón elbow_extension.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["dumbbells"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells"],"preservesIntent":["Conserva el patrón elbow_extension y el objetivo triceps."],"replacementGroup":"triceps_niche","replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":[],"setupCues":["Configura mancuerna y adopta la posición específica de «Tate Press con Mancuernas» antes de iniciar; conserva una base estable."],"ssc":0.2,"stabilizerMuscles":[],"technicalDifficulty":4.8,"ttc":1.6},"selectedOptions":{"implement":"dumbbells"}},{"displaySummary":"cable","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#triceps_tate_press_polea","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"tate_press__cable","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."],"description":"Tate Press en polea: misma mecánica que el Tate Press, con tensión más constante. Útil como finisher de tríceps. La variante se define por: polea.","efc":2.2,"equipmentId":"cable","executionCues":["Ejecuta «Tate Press en Polea» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"FULL","laterality":"BILATERAL","loadMode":"continuous_cable","movementPatternId":"elbow_extension","muscleNotes":[{"muscleId":"triceps","note":"Principal: el tríceps extiende el codo y concentra la fuerza del movimiento; por eso suma la serie completa (1.0)."}],"performanceProfileId":"tate_press__cable__tate_press","primaryMuscles":["triceps"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["elbow_extension"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["triceps"],"secondaryMuscles":[],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["triceps"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"cable","kineticChain":"FULL","laterality":"BILATERAL","loadMode":"continuous_cable","movementPatternId":"elbow_extension","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."],"cues":["Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Tate Press en Polea» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura polea y adopta la posición específica de «Tate Press en Polea» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Tate press","displaySummary":"cable","selectedOptions":{"implement":"cable"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.2,"ssc":0.2,"technicalDifficulty":4.8,"ttc":1.6},"identity":{"canonicalName":"Tate press","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"tate_press__cable","definitionId":"tate_press","familyId":"triceps_tate_press","kind":"PARENT","performanceProfileId":"tate_press__cable__tate_press","searchTerms":["tate press","tate press con mancuernas","tate press en polea"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":90,"min":30},"objectives":["Desarrollar triceps dentro del patrón elbow_extension.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable"],"preservesIntent":["Conserva el patrón elbow_extension y el objetivo triceps."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":[],"setupCues":["Configura polea y adopta la posición específica de «Tate Press en Polea» antes de iniciar; conserva una base estable."],"ssc":0.2,"stabilizerMuscles":[],"technicalDifficulty":4.8,"ttc":1.6},"selectedOptions":{"implement":"cable"}}],"defaultConfigurationId":"tate_press__dumbbells","description":"Tate press trabaja principalmente tríceps mediante un patrón de extensión codo.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:tate_press"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"triceps_tate_press","id":"tate_press","kind":"PARENT","optionAxes":["implement"],"searchTerms":["tate press","tate press con mancuernas","tate press en polea"]}],"description":"Familia de extensión de codo Tate; las configuraciones válidas cambian la resistencia documentada.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:triceps_tate_press"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"triceps_tate_press","taxonomy":["upper","elbow_extension","tate_press"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Tate press",
+    "definitions": [
+      {
+        "canonicalName": "Tate Press",
+        "configurations": [
+          {
+            "displaySummary": "dumbbells",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#triceps_tate_press_mancuernas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "tate_press__dumbbells",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
+              ],
+              "description": "Tate Press con mancuernas: extensión de tríceps en banco con codos abiertos hacia fuera. Aísla tríceps con recorrido corto y controlado. La variante se define por: mancuernas.",
+              "efc": 2.2,
+              "equipmentId": "dumbbells",
+              "executionCues": [
+                "Ejecuta «Tate Press con Mancuernas» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "FULL",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: el tríceps extiende el codo y concentra la fuerza del movimiento; por eso suma la serie completa (1.0)."
+                }
+              ],
+              "performanceProfileId": "tate_press__dumbbells__tate_press",
+              "primaryMuscles": [
+                "triceps"
+              ],
+              "replacementGroup": "triceps_niche",
+              "replacementPriority": 999,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "elbow_extension"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "triceps"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "triceps"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "dumbbells",
+                  "kineticChain": "FULL",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "elbow_extension",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Tate Press con Mancuernas» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura mancuerna y adopta la posición específica de «Tate Press con Mancuernas» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Tate Press",
+                  "displaySummary": "dumbbells",
+                  "selectedOptions": {
+                    "implement": "dumbbells"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.2,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 4.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Tate Press",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "tate_press__dumbbells",
+                  "definitionId": "tate_press",
+                  "familyId": "triceps_tate_press",
+                  "kind": "PARENT",
+                  "performanceProfileId": "tate_press__dumbbells__tate_press",
+                  "searchTerms": [
+                    "tate press",
+                    "tate press con mancuernas",
+                    "tate press en polea"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar triceps dentro del patrón elbow_extension.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "dumbbells"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón elbow_extension y el objetivo triceps."
+                  ],
+                  "replacementGroup": "triceps_niche",
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Configura mancuerna y adopta la posición específica de «Tate Press con Mancuernas» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "dumbbells"
+            }
+          },
+          {
+            "displaySummary": "cable",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#triceps_tate_press_polea",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "tate_press__cable",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
+              ],
+              "description": "Tate Press en polea: misma mecánica que el Tate Press, con tensión más constante. Útil como finisher de tríceps. La variante se define por: polea.",
+              "efc": 2.2,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Ejecuta «Tate Press en Polea» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "FULL",
+              "laterality": "BILATERAL",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: el tríceps extiende el codo y concentra la fuerza del movimiento; por eso suma la serie completa (1.0)."
+                }
+              ],
+              "performanceProfileId": "tate_press__cable__tate_press",
+              "primaryMuscles": [
+                "triceps"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "elbow_extension"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "triceps"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "triceps"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "cable",
+                  "kineticChain": "FULL",
+                  "laterality": "BILATERAL",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "elbow_extension",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Tate Press en Polea» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura polea y adopta la posición específica de «Tate Press en Polea» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Tate Press",
+                  "displaySummary": "cable",
+                  "selectedOptions": {
+                    "implement": "cable"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.2,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 4.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Tate Press",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "tate_press__cable",
+                  "definitionId": "tate_press",
+                  "familyId": "triceps_tate_press",
+                  "kind": "PARENT",
+                  "performanceProfileId": "tate_press__cable__tate_press",
+                  "searchTerms": [
+                    "tate press",
+                    "tate press con mancuernas",
+                    "tate press en polea"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar triceps dentro del patrón elbow_extension.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón elbow_extension y el objetivo triceps."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Configura polea y adopta la posición específica de «Tate Press en Polea» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "cable"
+            }
+          }
+        ],
+        "defaultConfigurationId": "tate_press__dumbbells",
+        "description": "Tate press trabaja principalmente tríceps mediante un patrón de extensión codo.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:tate_press"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "triceps_tate_press",
+        "id": "tate_press",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement"
+        ],
+        "searchTerms": [
+          "tate press",
+          "tate press con mancuernas",
+          "tate press en polea"
+        ]
+      }
+    ],
+    "description": "Familia de extensión de codo Tate; las configuraciones válidas cambian la resistencia documentada.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:triceps_tate_press"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "triceps_tate_press",
+    "taxonomy": [
+      "upper",
+      "elbow_extension",
+      "tate_press"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

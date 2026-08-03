@@ -19,10 +19,12 @@ ROOT = Path(__file__).resolve().parents[1]
 FAMILIES = ROOT / "catalog" / "exercises" / "v2" / "source" / "families"
 
 # ---------------------------------------------------------------------------
-# Serialización canónica idéntica a split/merge
+# Serialización de familias: forma pretty legible (split/merge solo re-leen con
+# json.loads y re-canonicalizan, así que el formato es libre y no afecta el
+# hash del agregado)
 # ---------------------------------------------------------------------------
-def canonical(value) -> bytes:
-    return (json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8")
+def family_canonical(value) -> bytes:
+    return (json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode("utf-8")
 
 
 def load(name: str) -> dict:
@@ -30,7 +32,7 @@ def load(name: str) -> dict:
 
 
 def save(name: str, payload: dict) -> None:
-    (FAMILIES / name).write_bytes(canonical(payload))
+    (FAMILIES / name).write_bytes(family_canonical(payload))
 
 
 def fam_of(payload: dict) -> dict:

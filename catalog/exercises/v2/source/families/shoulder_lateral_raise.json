@@ -1,1 +1,2313 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Elevación Lateral","definitions":[{"canonicalName":"Elevaciones Laterales Sentado","configurations":[{"displaySummary":"dumbbells","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"seated_lateral_raise__dumbbells","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Balancear el cuerpo o subir los hombros para impulsar el peso."],"description":"Elevaciones Laterales Sentado con mancuernas: la carga libre permite ajustar el peso y el rango a la fuerza de cada deltoides lateral.","efc":2.5,"equipmentId":"dumbbells","executionCues":["Eleva los brazos hasta la altura del hombro con control y baja sin golpear."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"shoulder_abduction_full_rom","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides lateral abduce el brazo y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio superior asiste la elevación del brazo en la fase final; por eso suma 0.5."}],"performanceProfileId":"lateral_raise_seated__dumbbells","primaryMuscles":["deltoid"],"replacementGroup":null,"replacementPriority":999,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["shoulder_abduction_full_rom"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["trapezius"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"dumbbells","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"shoulder_abduction_full_rom","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Balancear el cuerpo o subir los hombros para impulsar el peso."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Eleva los brazos hasta la altura del hombro con control y baja sin golpear."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Busca una postura estable y los brazos relajados a los costados antes de empezar."]},"display":{"displayName":"Elevaciones Laterales Sentado","displaySummary":"dumbbells","selectedOptions":{"implement":"dumbbells"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":4.8,"ttc":1.6},"identity":{"canonicalName":"Elevaciones Laterales Sentado","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"seated_lateral_raise__dumbbells","definitionId":"seated_lateral_raise","familyId":"shoulder_lateral_raise","kind":"PARENT","performanceProfileId":"lateral_raise_seated__dumbbells","searchTerms":["elevaciones laterales","elevacion lateral","lateral raise","deltoides lateral"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar el deltoides lateral en abducción de hombro."],"recoveryCost":"moderate","requiredEquipment":["dumbbells"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable","dumbbells","machine","kettlebell"],"preservesIntent":["Conserva la abducción de hombro y el objetivo deltoides lateral."],"replacementGroup":null,"replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["trapezius"],"setupCues":["Busca una postura estable y los brazos relajados a los costados antes de empezar."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":4.8,"ttc":1.6},"selectedOptions":{"implement":"dumbbells"}},{"displaySummary":"cable","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"seated_lateral_raise__cable","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Balancear el cuerpo o subir los hombros para impulsar el peso."],"description":"Elevaciones Laterales Sentado en polea: la tensión continua mantiene el deltoides lateral activo incluso en la fase de bajada.","efc":2.5,"equipmentId":"cable","executionCues":["Eleva los brazos hasta la altura del hombro con control y baja sin golpear."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"shoulder_abduction_full_rom","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides lateral abduce el brazo y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio superior asiste la elevación del brazo en la fase final; por eso suma 0.5."}],"performanceProfileId":"lateral_raise_seated__cable","primaryMuscles":["deltoid"],"replacementGroup":null,"replacementPriority":999,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["shoulder_abduction_full_rom"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["trapezius"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"cable","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"shoulder_abduction_full_rom","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Balancear el cuerpo o subir los hombros para impulsar el peso."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Eleva los brazos hasta la altura del hombro con control y baja sin golpear."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Busca una postura estable y los brazos relajados a los costados antes de empezar."]},"display":{"displayName":"Elevaciones Laterales Sentado","displaySummary":"cable","selectedOptions":{"implement":"cable"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":4.8,"ttc":1.6},"identity":{"canonicalName":"Elevaciones Laterales Sentado","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"seated_lateral_raise__cable","definitionId":"seated_lateral_raise","familyId":"shoulder_lateral_raise","kind":"PARENT","performanceProfileId":"lateral_raise_seated__cable","searchTerms":["elevaciones laterales","elevacion lateral","lateral raise","deltoides lateral"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar el deltoides lateral en abducción de hombro."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable","dumbbells","machine","kettlebell"],"preservesIntent":["Conserva la abducción de hombro y el objetivo deltoides lateral."],"replacementGroup":null,"replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["trapezius"],"setupCues":["Busca una postura estable y los brazos relajados a los costados antes de empezar."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":4.8,"ttc":1.6},"selectedOptions":{"implement":"cable"}},{"displaySummary":"machine","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"seated_lateral_raise__machine","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Balancear el cuerpo o subir los hombros para impulsar el peso."],"description":"Elevaciones Laterales Sentado en máquina: el recorrido guiado elimina el equilibrio y deja el foco en la contracción del deltoides lateral.","efc":2.5,"equipmentId":"machine","executionCues":["Eleva los brazos hasta la altura del hombro con control y baja sin golpear."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"guided_external_load","movementPatternId":"shoulder_abduction_full_rom","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides lateral abduce el brazo y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio superior asiste la elevación del brazo en la fase final; por eso suma 0.5."}],"performanceProfileId":"lateral_raise_seated__machine","primaryMuscles":["deltoid"],"replacementGroup":null,"replacementPriority":999,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["shoulder_abduction_full_rom"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["trapezius"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"machine","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"guided_external_load","movementPatternId":"shoulder_abduction_full_rom","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"guided_constant","stability":"self_stabilized"},"coaching":{"commonMistakes":["Balancear el cuerpo o subir los hombros para impulsar el peso."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Eleva los brazos hasta la altura del hombro con control y baja sin golpear."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Busca una postura estable y los brazos relajados a los costados antes de empezar."]},"display":{"displayName":"Elevaciones Laterales Sentado","displaySummary":"machine","selectedOptions":{"implement":"machine"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":4.8,"ttc":1.6},"identity":{"canonicalName":"Elevaciones Laterales Sentado","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"seated_lateral_raise__machine","definitionId":"seated_lateral_raise","familyId":"shoulder_lateral_raise","kind":"PARENT","performanceProfileId":"lateral_raise_seated__machine","searchTerms":["elevaciones laterales","elevacion lateral","lateral raise","deltoides lateral"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar el deltoides lateral en abducción de hombro."],"recoveryCost":"moderate","requiredEquipment":["machine"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable","dumbbells","machine","kettlebell"],"preservesIntent":["Conserva la abducción de hombro y el objetivo deltoides lateral."],"replacementGroup":null,"replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["trapezius"],"setupCues":["Busca una postura estable y los brazos relajados a los costados antes de empezar."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":4.8,"ttc":1.6},"selectedOptions":{"implement":"machine"}},{"displaySummary":"kettlebell","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"seated_lateral_raise__kettlebell","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Balancear el cuerpo o subir los hombros para impulsar el peso."],"description":"Elevaciones Laterales Sentado con kettlebell: la carga compacta resulta cómoda para sesiones de hombro y permite ritmos controlados.","efc":2.5,"equipmentId":"kettlebell","executionCues":["Eleva los brazos hasta la altura del hombro con control y baja sin golpear."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"shoulder_abduction_full_rom","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides lateral abduce el brazo y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio superior asiste la elevación del brazo en la fase final; por eso suma 0.5."}],"performanceProfileId":"lateral_raise_seated__kettlebell","primaryMuscles":["deltoid"],"replacementGroup":null,"replacementPriority":999,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["shoulder_abduction_full_rom"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["trapezius"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"kettlebell","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"shoulder_abduction_full_rom","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Balancear el cuerpo o subir los hombros para impulsar el peso."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Eleva los brazos hasta la altura del hombro con control y baja sin golpear."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Busca una postura estable y los brazos relajados a los costados antes de empezar."]},"display":{"displayName":"Elevaciones Laterales Sentado","displaySummary":"kettlebell","selectedOptions":{"implement":"kettlebell"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":4.8,"ttc":1.6},"identity":{"canonicalName":"Elevaciones Laterales Sentado","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"seated_lateral_raise__kettlebell","definitionId":"seated_lateral_raise","familyId":"shoulder_lateral_raise","kind":"PARENT","performanceProfileId":"lateral_raise_seated__kettlebell","searchTerms":["elevaciones laterales","elevacion lateral","lateral raise","deltoides lateral"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar el deltoides lateral en abducción de hombro."],"recoveryCost":"moderate","requiredEquipment":["kettlebell"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable","dumbbells","machine","kettlebell"],"preservesIntent":["Conserva la abducción de hombro y el objetivo deltoides lateral."],"replacementGroup":null,"replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["trapezius"],"setupCues":["Busca una postura estable y los brazos relajados a los costados antes de empezar."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":4.8,"ttc":1.6},"selectedOptions":{"implement":"kettlebell"}}],"defaultConfigurationId":"seated_lateral_raise__dumbbells","description":"Abducción del brazo hasta la altura del hombro sentado, que elimina el impulso del cuerpo y aísla el deltoides lateral. El implemento define la curva de tensión de cada variante.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:seated_lateral_raise"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"shoulder_lateral_raise","id":"seated_lateral_raise","kind":"PARENT","optionAxes":["implement"],"searchTerms":["elevaciones laterales","elevacion lateral","lateral raise","deltoides lateral"]},{"canonicalName":"Elevaciones Laterales de Pie","configurations":[{"displaySummary":"dumbbells","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"standing_lateral_raise__dumbbells","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Balancear el cuerpo o subir los hombros para impulsar el peso."],"description":"Elevaciones Laterales de Pie con mancuernas: la carga libre permite ajustar el peso y el rango a la fuerza de cada deltoides lateral.","efc":2.5,"equipmentId":"dumbbells","executionCues":["Eleva los brazos hasta la altura del hombro con control y baja sin golpear."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"shoulder_abduction_full_rom","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides lateral abduce el brazo y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio superior asiste la elevación del brazo en la fase final; por eso suma 0.5."}],"performanceProfileId":"lateral_raise_standing__dumbbells","primaryMuscles":["deltoid"],"replacementGroup":null,"replacementPriority":999,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["shoulder_abduction_full_rom"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["trapezius"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"dumbbells","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"shoulder_abduction_full_rom","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Balancear el cuerpo o subir los hombros para impulsar el peso."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Eleva los brazos hasta la altura del hombro con control y baja sin golpear."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Busca una postura estable y los brazos relajados a los costados antes de empezar."]},"display":{"displayName":"Elevaciones Laterales de Pie","displaySummary":"dumbbells","selectedOptions":{"implement":"dumbbells"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":4.8,"ttc":1.6},"identity":{"canonicalName":"Elevaciones Laterales de Pie","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"standing_lateral_raise__dumbbells","definitionId":"standing_lateral_raise","familyId":"shoulder_lateral_raise","kind":"PARENT","performanceProfileId":"lateral_raise_standing__dumbbells","searchTerms":["elevaciones laterales","elevacion lateral","lateral raise","deltoides lateral"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar el deltoides lateral en abducción de hombro."],"recoveryCost":"moderate","requiredEquipment":["dumbbells"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable","dumbbells","machine","kettlebell"],"preservesIntent":["Conserva la abducción de hombro y el objetivo deltoides lateral."],"replacementGroup":null,"replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["trapezius"],"setupCues":["Busca una postura estable y los brazos relajados a los costados antes de empezar."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":4.8,"ttc":1.6},"selectedOptions":{"implement":"dumbbells"}},{"displaySummary":"cable","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"standing_lateral_raise__cable","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Balancear el cuerpo o subir los hombros para impulsar el peso."],"description":"Elevaciones Laterales de Pie en polea: la tensión continua mantiene el deltoides lateral activo incluso en la fase de bajada.","efc":2.5,"equipmentId":"cable","executionCues":["Eleva los brazos hasta la altura del hombro con control y baja sin golpear."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"shoulder_abduction_full_rom","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides lateral abduce el brazo y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio superior asiste la elevación del brazo en la fase final; por eso suma 0.5."}],"performanceProfileId":"lateral_raise_standing__cable","primaryMuscles":["deltoid"],"replacementGroup":null,"replacementPriority":999,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["shoulder_abduction_full_rom"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["trapezius"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"cable","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"shoulder_abduction_full_rom","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Balancear el cuerpo o subir los hombros para impulsar el peso."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Eleva los brazos hasta la altura del hombro con control y baja sin golpear."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Busca una postura estable y los brazos relajados a los costados antes de empezar."]},"display":{"displayName":"Elevaciones Laterales de Pie","displaySummary":"cable","selectedOptions":{"implement":"cable"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":4.8,"ttc":1.6},"identity":{"canonicalName":"Elevaciones Laterales de Pie","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"standing_lateral_raise__cable","definitionId":"standing_lateral_raise","familyId":"shoulder_lateral_raise","kind":"PARENT","performanceProfileId":"lateral_raise_standing__cable","searchTerms":["elevaciones laterales","elevacion lateral","lateral raise","deltoides lateral"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar el deltoides lateral en abducción de hombro."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable","dumbbells","machine","kettlebell"],"preservesIntent":["Conserva la abducción de hombro y el objetivo deltoides lateral."],"replacementGroup":null,"replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["trapezius"],"setupCues":["Busca una postura estable y los brazos relajados a los costados antes de empezar."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":4.8,"ttc":1.6},"selectedOptions":{"implement":"cable"}},{"displaySummary":"machine","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"standing_lateral_raise__machine","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Balancear el cuerpo o subir los hombros para impulsar el peso."],"description":"Elevaciones Laterales de Pie en máquina: el recorrido guiado elimina el equilibrio y deja el foco en la contracción del deltoides lateral.","efc":2.5,"equipmentId":"machine","executionCues":["Eleva los brazos hasta la altura del hombro con control y baja sin golpear."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"guided_external_load","movementPatternId":"shoulder_abduction_full_rom","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides lateral abduce el brazo y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio superior asiste la elevación del brazo en la fase final; por eso suma 0.5."}],"performanceProfileId":"lateral_raise_standing__machine","primaryMuscles":["deltoid"],"replacementGroup":null,"replacementPriority":999,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["shoulder_abduction_full_rom"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["trapezius"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"machine","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"guided_external_load","movementPatternId":"shoulder_abduction_full_rom","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"guided_constant","stability":"self_stabilized"},"coaching":{"commonMistakes":["Balancear el cuerpo o subir los hombros para impulsar el peso."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Eleva los brazos hasta la altura del hombro con control y baja sin golpear."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Busca una postura estable y los brazos relajados a los costados antes de empezar."]},"display":{"displayName":"Elevaciones Laterales de Pie","displaySummary":"machine","selectedOptions":{"implement":"machine"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":4.8,"ttc":1.6},"identity":{"canonicalName":"Elevaciones Laterales de Pie","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"standing_lateral_raise__machine","definitionId":"standing_lateral_raise","familyId":"shoulder_lateral_raise","kind":"PARENT","performanceProfileId":"lateral_raise_standing__machine","searchTerms":["elevaciones laterales","elevacion lateral","lateral raise","deltoides lateral"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar el deltoides lateral en abducción de hombro."],"recoveryCost":"moderate","requiredEquipment":["machine"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable","dumbbells","machine","kettlebell"],"preservesIntent":["Conserva la abducción de hombro y el objetivo deltoides lateral."],"replacementGroup":null,"replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["trapezius"],"setupCues":["Busca una postura estable y los brazos relajados a los costados antes de empezar."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":4.8,"ttc":1.6},"selectedOptions":{"implement":"machine"}},{"displaySummary":"kettlebell","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"standing_lateral_raise__kettlebell","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Balancear el cuerpo o subir los hombros para impulsar el peso."],"description":"Elevaciones Laterales de Pie con kettlebell: la carga compacta resulta cómoda para sesiones de hombro y permite ritmos controlados.","efc":2.5,"equipmentId":"kettlebell","executionCues":["Eleva los brazos hasta la altura del hombro con control y baja sin golpear."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"shoulder_abduction_full_rom","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides lateral abduce el brazo y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio superior asiste la elevación del brazo en la fase final; por eso suma 0.5."}],"performanceProfileId":"lateral_raise_standing__kettlebell","primaryMuscles":["deltoid"],"replacementGroup":null,"replacementPriority":999,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["shoulder_abduction_full_rom"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["trapezius"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"kettlebell","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"shoulder_abduction_full_rom","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Balancear el cuerpo o subir los hombros para impulsar el peso."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Eleva los brazos hasta la altura del hombro con control y baja sin golpear."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Busca una postura estable y los brazos relajados a los costados antes de empezar."]},"display":{"displayName":"Elevaciones Laterales de Pie","displaySummary":"kettlebell","selectedOptions":{"implement":"kettlebell"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":4.8,"ttc":1.6},"identity":{"canonicalName":"Elevaciones Laterales de Pie","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"standing_lateral_raise__kettlebell","definitionId":"standing_lateral_raise","familyId":"shoulder_lateral_raise","kind":"PARENT","performanceProfileId":"lateral_raise_standing__kettlebell","searchTerms":["elevaciones laterales","elevacion lateral","lateral raise","deltoides lateral"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar el deltoides lateral en abducción de hombro."],"recoveryCost":"moderate","requiredEquipment":["kettlebell"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable","dumbbells","machine","kettlebell"],"preservesIntent":["Conserva la abducción de hombro y el objetivo deltoides lateral."],"replacementGroup":null,"replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["trapezius"],"setupCues":["Busca una postura estable y los brazos relajados a los costados antes de empezar."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":4.8,"ttc":1.6},"selectedOptions":{"implement":"kettlebell"}}],"defaultConfigurationId":"standing_lateral_raise__dumbbells","description":"Abducción del brazo hasta la altura del hombro de pie, que aísla el deltoides lateral con el tronco estable. El implemento define la curva de tensión de cada variante.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:standing_lateral_raise"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"shoulder_lateral_raise","id":"standing_lateral_raise","kind":"PARENT","optionAxes":["implement"],"searchTerms":["elevaciones laterales","elevacion lateral","lateral raise","deltoides lateral"]},{"canonicalName":"Elevaciones Laterales Super ROM","configurations":[{"displaySummary":"cable","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"lateral_raise_super_rom__cable","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Compensar el final del rango elevando el hombro o arqueando el tronco."],"description":"Elevaciones laterales Super ROM en polea: la tensión continua acompaña el rango completo del deltoides lateral, incluido el tramo final sobre la altura del hombro.","efc":2.5,"equipmentId":"cable","executionCues":["Sube el brazo más allá de la altura del hombro con control y vuelve por el mismo camino."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"shoulder_abduction_full_rom","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides lateral abduce el brazo y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio superior asiste la elevación del brazo en la fase final; por eso suma 0.5."}],"performanceProfileId":"lateral_raise_super_rom__cable","primaryMuscles":["deltoid"],"replacementGroup":null,"replacementPriority":999,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["shoulder_abduction_full_rom"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["trapezius"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"cable","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"shoulder_abduction_full_rom","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Compensar el final del rango elevando el hombro o arqueando el tronco."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Sube el brazo más allá de la altura del hombro con control y vuelve por el mismo camino."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Elige una carga ligera y prepara el brazo para un rango de recorrido completo."]},"display":{"displayName":"Elevaciones Laterales Super ROM","displaySummary":"cable","selectedOptions":{"implement":"cable"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":4.8,"ttc":1.6},"identity":{"canonicalName":"Elevaciones Laterales Super ROM","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"lateral_raise_super_rom__cable","definitionId":"lateral_raise_super_rom","familyId":"shoulder_lateral_raise","kind":"PARENT","performanceProfileId":"lateral_raise_super_rom__cable","searchTerms":["elevaciones laterales super rom","super rom lateral","elevacion super rom","full rom lateral raise"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar el deltoides lateral con rango completo de abducción."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable","dumbbells","machine"],"preservesIntent":["Conserva la abducción completa de hombro y el objetivo deltoides lateral."],"replacementGroup":null,"replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["trapezius"],"setupCues":["Elige una carga ligera y prepara el brazo para un rango de recorrido completo."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":4.8,"ttc":1.6},"selectedOptions":{"implement":"cable"}},{"displaySummary":"dumbbells","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"lateral_raise_super_rom__dumbbells","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Compensar el final del rango elevando el hombro o arqueando el tronco."],"description":"Elevaciones laterales Super ROM con mancuernas: el rango extendido sobre la cabeza exige carga ligera y control a lo largo del recorrido.","efc":2.5,"equipmentId":"dumbbells","executionCues":["Sube el brazo más allá de la altura del hombro con control y vuelve por el mismo camino."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"shoulder_abduction_full_rom","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides lateral abduce el brazo y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio superior asiste la elevación del brazo en la fase final; por eso suma 0.5."}],"performanceProfileId":"lateral_raise_super_rom__dumbbells","primaryMuscles":["deltoid"],"replacementGroup":null,"replacementPriority":999,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["shoulder_abduction_full_rom"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["trapezius"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"dumbbells","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"shoulder_abduction_full_rom","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Compensar el final del rango elevando el hombro o arqueando el tronco."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Sube el brazo más allá de la altura del hombro con control y vuelve por el mismo camino."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Elige una carga ligera y prepara el brazo para un rango de recorrido completo."]},"display":{"displayName":"Elevaciones Laterales Super ROM","displaySummary":"dumbbells","selectedOptions":{"implement":"dumbbells"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":4.8,"ttc":1.6},"identity":{"canonicalName":"Elevaciones Laterales Super ROM","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"lateral_raise_super_rom__dumbbells","definitionId":"lateral_raise_super_rom","familyId":"shoulder_lateral_raise","kind":"PARENT","performanceProfileId":"lateral_raise_super_rom__dumbbells","searchTerms":["elevaciones laterales super rom","super rom lateral","elevacion super rom","full rom lateral raise"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar el deltoides lateral con rango completo de abducción."],"recoveryCost":"moderate","requiredEquipment":["dumbbells"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable","dumbbells","machine"],"preservesIntent":["Conserva la abducción completa de hombro y el objetivo deltoides lateral."],"replacementGroup":null,"replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["trapezius"],"setupCues":["Elige una carga ligera y prepara el brazo para un rango de recorrido completo."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":4.8,"ttc":1.6},"selectedOptions":{"implement":"dumbbells"}},{"displaySummary":"machine","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"lateral_raise_super_rom__machine","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Compensar el final del rango elevando el hombro o arqueando el tronco."],"description":"Elevaciones laterales Super ROM en máquina: el recorrido guiado sostiene el rango completo sin comprometer la estabilidad del hombro.","efc":2.5,"equipmentId":"machine","executionCues":["Sube el brazo más allá de la altura del hombro con control y vuelve por el mismo camino."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"guided_external_load","movementPatternId":"shoulder_abduction_full_rom","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides lateral abduce el brazo y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio superior asiste la elevación del brazo en la fase final; por eso suma 0.5."}],"performanceProfileId":"lateral_raise_super_rom__machine","primaryMuscles":["deltoid"],"replacementGroup":null,"replacementPriority":999,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["shoulder_abduction_full_rom"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["trapezius"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"machine","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"guided_external_load","movementPatternId":"shoulder_abduction_full_rom","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"guided_constant","stability":"self_stabilized"},"coaching":{"commonMistakes":["Compensar el final del rango elevando el hombro o arqueando el tronco."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Sube el brazo más allá de la altura del hombro con control y vuelve por el mismo camino."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Elige una carga ligera y prepara el brazo para un rango de recorrido completo."]},"display":{"displayName":"Elevaciones Laterales Super ROM","displaySummary":"machine","selectedOptions":{"implement":"machine"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":4.8,"ttc":1.6},"identity":{"canonicalName":"Elevaciones Laterales Super ROM","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"lateral_raise_super_rom__machine","definitionId":"lateral_raise_super_rom","familyId":"shoulder_lateral_raise","kind":"PARENT","performanceProfileId":"lateral_raise_super_rom__machine","searchTerms":["elevaciones laterales super rom","super rom lateral","elevacion super rom","full rom lateral raise"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar el deltoides lateral con rango completo de abducción."],"recoveryCost":"moderate","requiredEquipment":["machine"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable","dumbbells","machine"],"preservesIntent":["Conserva la abducción completa de hombro y el objetivo deltoides lateral."],"replacementGroup":null,"replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["trapezius"],"setupCues":["Elige una carga ligera y prepara el brazo para un rango de recorrido completo."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":4.8,"ttc":1.6},"selectedOptions":{"implement":"machine"}}],"defaultConfigurationId":"lateral_raise_super_rom__cable","description":"Elevaciones laterales con rango de recorrido completo, por encima de la altura del hombro, para reclutar el deltoides lateral en toda su amplitud de movimiento.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:catalog-v3-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v3; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"familyId":"shoulder_lateral_raise","id":"lateral_raise_super_rom","kind":"PARENT","optionAxes":["implement"],"searchTerms":["elevaciones laterales super rom","super rom lateral","elevacion super rom","full rom lateral raise"]}],"description":"Familia de abducción del hombro; la postura de pie y sentada son padres separados y la versión con barra y Super ROM quedan como especialidades.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:shoulder_lateral_raise"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"shoulder_lateral_raise","taxonomy":["upper","shoulder_abduction"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Elevación Lateral",
+    "definitions": [
+      {
+        "canonicalName": "Elevaciones Laterales Sentado",
+        "configurations": [
+          {
+            "displaySummary": "dumbbells",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "seated_lateral_raise__dumbbells",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Balancear el cuerpo o subir los hombros para impulsar el peso."
+              ],
+              "description": "Elevaciones Laterales Sentado con mancuernas: la carga libre permite ajustar el peso y el rango a la fuerza de cada deltoides lateral.",
+              "efc": 2.5,
+              "equipmentId": "dumbbells",
+              "executionCues": [
+                "Eleva los brazos hasta la altura del hombro con control y baja sin golpear."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "shoulder_abduction_full_rom",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides lateral abduce el brazo y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio superior asiste la elevación del brazo en la fase final; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "lateral_raise_seated__dumbbells",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "shoulder_abduction_full_rom"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "dumbbells",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "shoulder_abduction_full_rom",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Balancear el cuerpo o subir los hombros para impulsar el peso."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Eleva los brazos hasta la altura del hombro con control y baja sin golpear."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Busca una postura estable y los brazos relajados a los costados antes de empezar."
+                  ]
+                },
+                "display": {
+                  "displayName": "Elevaciones Laterales Sentado",
+                  "displaySummary": "dumbbells",
+                  "selectedOptions": {
+                    "implement": "dumbbells"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 4.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Elevaciones Laterales Sentado",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "seated_lateral_raise__dumbbells",
+                  "definitionId": "seated_lateral_raise",
+                  "familyId": "shoulder_lateral_raise",
+                  "kind": "PARENT",
+                  "performanceProfileId": "lateral_raise_seated__dumbbells",
+                  "searchTerms": [
+                    "elevaciones laterales",
+                    "elevacion lateral",
+                    "lateral raise",
+                    "deltoides lateral"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar el deltoides lateral en abducción de hombro."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "dumbbells"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable",
+                    "dumbbells",
+                    "machine",
+                    "kettlebell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la abducción de hombro y el objetivo deltoides lateral."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius"
+              ],
+              "setupCues": [
+                "Busca una postura estable y los brazos relajados a los costados antes de empezar."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "dumbbells"
+            }
+          },
+          {
+            "displaySummary": "cable",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "seated_lateral_raise__cable",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Balancear el cuerpo o subir los hombros para impulsar el peso."
+              ],
+              "description": "Elevaciones Laterales Sentado en polea: la tensión continua mantiene el deltoides lateral activo incluso en la fase de bajada.",
+              "efc": 2.5,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Eleva los brazos hasta la altura del hombro con control y baja sin golpear."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "shoulder_abduction_full_rom",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides lateral abduce el brazo y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio superior asiste la elevación del brazo en la fase final; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "lateral_raise_seated__cable",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "shoulder_abduction_full_rom"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "cable",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "shoulder_abduction_full_rom",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Balancear el cuerpo o subir los hombros para impulsar el peso."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Eleva los brazos hasta la altura del hombro con control y baja sin golpear."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Busca una postura estable y los brazos relajados a los costados antes de empezar."
+                  ]
+                },
+                "display": {
+                  "displayName": "Elevaciones Laterales Sentado",
+                  "displaySummary": "cable",
+                  "selectedOptions": {
+                    "implement": "cable"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 4.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Elevaciones Laterales Sentado",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "seated_lateral_raise__cable",
+                  "definitionId": "seated_lateral_raise",
+                  "familyId": "shoulder_lateral_raise",
+                  "kind": "PARENT",
+                  "performanceProfileId": "lateral_raise_seated__cable",
+                  "searchTerms": [
+                    "elevaciones laterales",
+                    "elevacion lateral",
+                    "lateral raise",
+                    "deltoides lateral"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar el deltoides lateral en abducción de hombro."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable",
+                    "dumbbells",
+                    "machine",
+                    "kettlebell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la abducción de hombro y el objetivo deltoides lateral."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius"
+              ],
+              "setupCues": [
+                "Busca una postura estable y los brazos relajados a los costados antes de empezar."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "cable"
+            }
+          },
+          {
+            "displaySummary": "machine",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "seated_lateral_raise__machine",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Balancear el cuerpo o subir los hombros para impulsar el peso."
+              ],
+              "description": "Elevaciones Laterales Sentado en máquina: el recorrido guiado elimina el equilibrio y deja el foco en la contracción del deltoides lateral.",
+              "efc": 2.5,
+              "equipmentId": "machine",
+              "executionCues": [
+                "Eleva los brazos hasta la altura del hombro con control y baja sin golpear."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "shoulder_abduction_full_rom",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides lateral abduce el brazo y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio superior asiste la elevación del brazo en la fase final; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "lateral_raise_seated__machine",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "shoulder_abduction_full_rom"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "shoulder_abduction_full_rom",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Balancear el cuerpo o subir los hombros para impulsar el peso."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Eleva los brazos hasta la altura del hombro con control y baja sin golpear."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Busca una postura estable y los brazos relajados a los costados antes de empezar."
+                  ]
+                },
+                "display": {
+                  "displayName": "Elevaciones Laterales Sentado",
+                  "displaySummary": "machine",
+                  "selectedOptions": {
+                    "implement": "machine"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 4.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Elevaciones Laterales Sentado",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "seated_lateral_raise__machine",
+                  "definitionId": "seated_lateral_raise",
+                  "familyId": "shoulder_lateral_raise",
+                  "kind": "PARENT",
+                  "performanceProfileId": "lateral_raise_seated__machine",
+                  "searchTerms": [
+                    "elevaciones laterales",
+                    "elevacion lateral",
+                    "lateral raise",
+                    "deltoides lateral"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar el deltoides lateral en abducción de hombro."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "machine"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable",
+                    "dumbbells",
+                    "machine",
+                    "kettlebell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la abducción de hombro y el objetivo deltoides lateral."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius"
+              ],
+              "setupCues": [
+                "Busca una postura estable y los brazos relajados a los costados antes de empezar."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "machine"
+            }
+          },
+          {
+            "displaySummary": "kettlebell",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "seated_lateral_raise__kettlebell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Balancear el cuerpo o subir los hombros para impulsar el peso."
+              ],
+              "description": "Elevaciones Laterales Sentado con kettlebell: la carga compacta resulta cómoda para sesiones de hombro y permite ritmos controlados.",
+              "efc": 2.5,
+              "equipmentId": "kettlebell",
+              "executionCues": [
+                "Eleva los brazos hasta la altura del hombro con control y baja sin golpear."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "shoulder_abduction_full_rom",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides lateral abduce el brazo y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio superior asiste la elevación del brazo en la fase final; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "lateral_raise_seated__kettlebell",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "shoulder_abduction_full_rom"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "kettlebell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "shoulder_abduction_full_rom",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Balancear el cuerpo o subir los hombros para impulsar el peso."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Eleva los brazos hasta la altura del hombro con control y baja sin golpear."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Busca una postura estable y los brazos relajados a los costados antes de empezar."
+                  ]
+                },
+                "display": {
+                  "displayName": "Elevaciones Laterales Sentado",
+                  "displaySummary": "kettlebell",
+                  "selectedOptions": {
+                    "implement": "kettlebell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 4.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Elevaciones Laterales Sentado",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "seated_lateral_raise__kettlebell",
+                  "definitionId": "seated_lateral_raise",
+                  "familyId": "shoulder_lateral_raise",
+                  "kind": "PARENT",
+                  "performanceProfileId": "lateral_raise_seated__kettlebell",
+                  "searchTerms": [
+                    "elevaciones laterales",
+                    "elevacion lateral",
+                    "lateral raise",
+                    "deltoides lateral"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar el deltoides lateral en abducción de hombro."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "kettlebell"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable",
+                    "dumbbells",
+                    "machine",
+                    "kettlebell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la abducción de hombro y el objetivo deltoides lateral."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius"
+              ],
+              "setupCues": [
+                "Busca una postura estable y los brazos relajados a los costados antes de empezar."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "kettlebell"
+            }
+          }
+        ],
+        "defaultConfigurationId": "seated_lateral_raise__dumbbells",
+        "description": "Abducción del brazo hasta la altura del hombro sentado, que elimina el impulso del cuerpo y aísla el deltoides lateral. El implemento define la curva de tensión de cada variante.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:seated_lateral_raise"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "shoulder_lateral_raise",
+        "id": "seated_lateral_raise",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement"
+        ],
+        "searchTerms": [
+          "elevaciones laterales",
+          "elevacion lateral",
+          "lateral raise",
+          "deltoides lateral"
+        ]
+      },
+      {
+        "canonicalName": "Elevaciones Laterales de Pie",
+        "configurations": [
+          {
+            "displaySummary": "dumbbells",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "standing_lateral_raise__dumbbells",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Balancear el cuerpo o subir los hombros para impulsar el peso."
+              ],
+              "description": "Elevaciones Laterales de Pie con mancuernas: la carga libre permite ajustar el peso y el rango a la fuerza de cada deltoides lateral.",
+              "efc": 2.5,
+              "equipmentId": "dumbbells",
+              "executionCues": [
+                "Eleva los brazos hasta la altura del hombro con control y baja sin golpear."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "shoulder_abduction_full_rom",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides lateral abduce el brazo y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio superior asiste la elevación del brazo en la fase final; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "lateral_raise_standing__dumbbells",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "shoulder_abduction_full_rom"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "dumbbells",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "shoulder_abduction_full_rom",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Balancear el cuerpo o subir los hombros para impulsar el peso."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Eleva los brazos hasta la altura del hombro con control y baja sin golpear."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Busca una postura estable y los brazos relajados a los costados antes de empezar."
+                  ]
+                },
+                "display": {
+                  "displayName": "Elevaciones Laterales de Pie",
+                  "displaySummary": "dumbbells",
+                  "selectedOptions": {
+                    "implement": "dumbbells"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 4.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Elevaciones Laterales de Pie",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "standing_lateral_raise__dumbbells",
+                  "definitionId": "standing_lateral_raise",
+                  "familyId": "shoulder_lateral_raise",
+                  "kind": "PARENT",
+                  "performanceProfileId": "lateral_raise_standing__dumbbells",
+                  "searchTerms": [
+                    "elevaciones laterales",
+                    "elevacion lateral",
+                    "lateral raise",
+                    "deltoides lateral"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar el deltoides lateral en abducción de hombro."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "dumbbells"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable",
+                    "dumbbells",
+                    "machine",
+                    "kettlebell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la abducción de hombro y el objetivo deltoides lateral."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius"
+              ],
+              "setupCues": [
+                "Busca una postura estable y los brazos relajados a los costados antes de empezar."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "dumbbells"
+            }
+          },
+          {
+            "displaySummary": "cable",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "standing_lateral_raise__cable",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Balancear el cuerpo o subir los hombros para impulsar el peso."
+              ],
+              "description": "Elevaciones Laterales de Pie en polea: la tensión continua mantiene el deltoides lateral activo incluso en la fase de bajada.",
+              "efc": 2.5,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Eleva los brazos hasta la altura del hombro con control y baja sin golpear."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "shoulder_abduction_full_rom",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides lateral abduce el brazo y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio superior asiste la elevación del brazo en la fase final; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "lateral_raise_standing__cable",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "shoulder_abduction_full_rom"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "cable",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "shoulder_abduction_full_rom",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Balancear el cuerpo o subir los hombros para impulsar el peso."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Eleva los brazos hasta la altura del hombro con control y baja sin golpear."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Busca una postura estable y los brazos relajados a los costados antes de empezar."
+                  ]
+                },
+                "display": {
+                  "displayName": "Elevaciones Laterales de Pie",
+                  "displaySummary": "cable",
+                  "selectedOptions": {
+                    "implement": "cable"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 4.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Elevaciones Laterales de Pie",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "standing_lateral_raise__cable",
+                  "definitionId": "standing_lateral_raise",
+                  "familyId": "shoulder_lateral_raise",
+                  "kind": "PARENT",
+                  "performanceProfileId": "lateral_raise_standing__cable",
+                  "searchTerms": [
+                    "elevaciones laterales",
+                    "elevacion lateral",
+                    "lateral raise",
+                    "deltoides lateral"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar el deltoides lateral en abducción de hombro."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable",
+                    "dumbbells",
+                    "machine",
+                    "kettlebell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la abducción de hombro y el objetivo deltoides lateral."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius"
+              ],
+              "setupCues": [
+                "Busca una postura estable y los brazos relajados a los costados antes de empezar."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "cable"
+            }
+          },
+          {
+            "displaySummary": "machine",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "standing_lateral_raise__machine",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Balancear el cuerpo o subir los hombros para impulsar el peso."
+              ],
+              "description": "Elevaciones Laterales de Pie en máquina: el recorrido guiado elimina el equilibrio y deja el foco en la contracción del deltoides lateral.",
+              "efc": 2.5,
+              "equipmentId": "machine",
+              "executionCues": [
+                "Eleva los brazos hasta la altura del hombro con control y baja sin golpear."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "shoulder_abduction_full_rom",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides lateral abduce el brazo y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio superior asiste la elevación del brazo en la fase final; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "lateral_raise_standing__machine",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "shoulder_abduction_full_rom"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "shoulder_abduction_full_rom",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Balancear el cuerpo o subir los hombros para impulsar el peso."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Eleva los brazos hasta la altura del hombro con control y baja sin golpear."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Busca una postura estable y los brazos relajados a los costados antes de empezar."
+                  ]
+                },
+                "display": {
+                  "displayName": "Elevaciones Laterales de Pie",
+                  "displaySummary": "machine",
+                  "selectedOptions": {
+                    "implement": "machine"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 4.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Elevaciones Laterales de Pie",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "standing_lateral_raise__machine",
+                  "definitionId": "standing_lateral_raise",
+                  "familyId": "shoulder_lateral_raise",
+                  "kind": "PARENT",
+                  "performanceProfileId": "lateral_raise_standing__machine",
+                  "searchTerms": [
+                    "elevaciones laterales",
+                    "elevacion lateral",
+                    "lateral raise",
+                    "deltoides lateral"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar el deltoides lateral en abducción de hombro."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "machine"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable",
+                    "dumbbells",
+                    "machine",
+                    "kettlebell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la abducción de hombro y el objetivo deltoides lateral."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius"
+              ],
+              "setupCues": [
+                "Busca una postura estable y los brazos relajados a los costados antes de empezar."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "machine"
+            }
+          },
+          {
+            "displaySummary": "kettlebell",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "standing_lateral_raise__kettlebell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Balancear el cuerpo o subir los hombros para impulsar el peso."
+              ],
+              "description": "Elevaciones Laterales de Pie con kettlebell: la carga compacta resulta cómoda para sesiones de hombro y permite ritmos controlados.",
+              "efc": 2.5,
+              "equipmentId": "kettlebell",
+              "executionCues": [
+                "Eleva los brazos hasta la altura del hombro con control y baja sin golpear."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "shoulder_abduction_full_rom",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides lateral abduce el brazo y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio superior asiste la elevación del brazo en la fase final; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "lateral_raise_standing__kettlebell",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "shoulder_abduction_full_rom"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "kettlebell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "shoulder_abduction_full_rom",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Balancear el cuerpo o subir los hombros para impulsar el peso."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Eleva los brazos hasta la altura del hombro con control y baja sin golpear."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Busca una postura estable y los brazos relajados a los costados antes de empezar."
+                  ]
+                },
+                "display": {
+                  "displayName": "Elevaciones Laterales de Pie",
+                  "displaySummary": "kettlebell",
+                  "selectedOptions": {
+                    "implement": "kettlebell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 4.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Elevaciones Laterales de Pie",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "standing_lateral_raise__kettlebell",
+                  "definitionId": "standing_lateral_raise",
+                  "familyId": "shoulder_lateral_raise",
+                  "kind": "PARENT",
+                  "performanceProfileId": "lateral_raise_standing__kettlebell",
+                  "searchTerms": [
+                    "elevaciones laterales",
+                    "elevacion lateral",
+                    "lateral raise",
+                    "deltoides lateral"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar el deltoides lateral en abducción de hombro."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "kettlebell"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable",
+                    "dumbbells",
+                    "machine",
+                    "kettlebell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la abducción de hombro y el objetivo deltoides lateral."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius"
+              ],
+              "setupCues": [
+                "Busca una postura estable y los brazos relajados a los costados antes de empezar."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "kettlebell"
+            }
+          }
+        ],
+        "defaultConfigurationId": "standing_lateral_raise__dumbbells",
+        "description": "Abducción del brazo hasta la altura del hombro de pie, que aísla el deltoides lateral con el tronco estable. El implemento define la curva de tensión de cada variante.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:standing_lateral_raise"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "shoulder_lateral_raise",
+        "id": "standing_lateral_raise",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement"
+        ],
+        "searchTerms": [
+          "elevaciones laterales",
+          "elevacion lateral",
+          "lateral raise",
+          "deltoides lateral"
+        ]
+      },
+      {
+        "canonicalName": "Elevaciones Laterales Super ROM",
+        "configurations": [
+          {
+            "displaySummary": "cable",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "lateral_raise_super_rom__cable",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Compensar el final del rango elevando el hombro o arqueando el tronco."
+              ],
+              "description": "Elevaciones laterales Super ROM en polea: la tensión continua acompaña el rango completo del deltoides lateral, incluido el tramo final sobre la altura del hombro.",
+              "efc": 2.5,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Sube el brazo más allá de la altura del hombro con control y vuelve por el mismo camino."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "shoulder_abduction_full_rom",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides lateral abduce el brazo y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio superior asiste la elevación del brazo en la fase final; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "lateral_raise_super_rom__cable",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "shoulder_abduction_full_rom"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "cable",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "shoulder_abduction_full_rom",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Compensar el final del rango elevando el hombro o arqueando el tronco."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Sube el brazo más allá de la altura del hombro con control y vuelve por el mismo camino."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Elige una carga ligera y prepara el brazo para un rango de recorrido completo."
+                  ]
+                },
+                "display": {
+                  "displayName": "Elevaciones Laterales Super ROM",
+                  "displaySummary": "cable",
+                  "selectedOptions": {
+                    "implement": "cable"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 4.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Elevaciones Laterales Super ROM",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "lateral_raise_super_rom__cable",
+                  "definitionId": "lateral_raise_super_rom",
+                  "familyId": "shoulder_lateral_raise",
+                  "kind": "PARENT",
+                  "performanceProfileId": "lateral_raise_super_rom__cable",
+                  "searchTerms": [
+                    "elevaciones laterales super rom",
+                    "super rom lateral",
+                    "elevacion super rom",
+                    "full rom lateral raise"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar el deltoides lateral con rango completo de abducción."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable",
+                    "dumbbells",
+                    "machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la abducción completa de hombro y el objetivo deltoides lateral."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius"
+              ],
+              "setupCues": [
+                "Elige una carga ligera y prepara el brazo para un rango de recorrido completo."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "cable"
+            }
+          },
+          {
+            "displaySummary": "dumbbells",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "lateral_raise_super_rom__dumbbells",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Compensar el final del rango elevando el hombro o arqueando el tronco."
+              ],
+              "description": "Elevaciones laterales Super ROM con mancuernas: el rango extendido sobre la cabeza exige carga ligera y control a lo largo del recorrido.",
+              "efc": 2.5,
+              "equipmentId": "dumbbells",
+              "executionCues": [
+                "Sube el brazo más allá de la altura del hombro con control y vuelve por el mismo camino."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "shoulder_abduction_full_rom",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides lateral abduce el brazo y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio superior asiste la elevación del brazo en la fase final; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "lateral_raise_super_rom__dumbbells",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "shoulder_abduction_full_rom"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "dumbbells",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "shoulder_abduction_full_rom",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Compensar el final del rango elevando el hombro o arqueando el tronco."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Sube el brazo más allá de la altura del hombro con control y vuelve por el mismo camino."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Elige una carga ligera y prepara el brazo para un rango de recorrido completo."
+                  ]
+                },
+                "display": {
+                  "displayName": "Elevaciones Laterales Super ROM",
+                  "displaySummary": "dumbbells",
+                  "selectedOptions": {
+                    "implement": "dumbbells"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 4.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Elevaciones Laterales Super ROM",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "lateral_raise_super_rom__dumbbells",
+                  "definitionId": "lateral_raise_super_rom",
+                  "familyId": "shoulder_lateral_raise",
+                  "kind": "PARENT",
+                  "performanceProfileId": "lateral_raise_super_rom__dumbbells",
+                  "searchTerms": [
+                    "elevaciones laterales super rom",
+                    "super rom lateral",
+                    "elevacion super rom",
+                    "full rom lateral raise"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar el deltoides lateral con rango completo de abducción."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "dumbbells"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable",
+                    "dumbbells",
+                    "machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la abducción completa de hombro y el objetivo deltoides lateral."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius"
+              ],
+              "setupCues": [
+                "Elige una carga ligera y prepara el brazo para un rango de recorrido completo."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "dumbbells"
+            }
+          },
+          {
+            "displaySummary": "machine",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "lateral_raise_super_rom__machine",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Compensar el final del rango elevando el hombro o arqueando el tronco."
+              ],
+              "description": "Elevaciones laterales Super ROM en máquina: el recorrido guiado sostiene el rango completo sin comprometer la estabilidad del hombro.",
+              "efc": 2.5,
+              "equipmentId": "machine",
+              "executionCues": [
+                "Sube el brazo más allá de la altura del hombro con control y vuelve por el mismo camino."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "shoulder_abduction_full_rom",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides lateral abduce el brazo y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio superior asiste la elevación del brazo en la fase final; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "lateral_raise_super_rom__machine",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "shoulder_abduction_full_rom"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "shoulder_abduction_full_rom",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Compensar el final del rango elevando el hombro o arqueando el tronco."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Sube el brazo más allá de la altura del hombro con control y vuelve por el mismo camino."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Elige una carga ligera y prepara el brazo para un rango de recorrido completo."
+                  ]
+                },
+                "display": {
+                  "displayName": "Elevaciones Laterales Super ROM",
+                  "displaySummary": "machine",
+                  "selectedOptions": {
+                    "implement": "machine"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 4.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Elevaciones Laterales Super ROM",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "lateral_raise_super_rom__machine",
+                  "definitionId": "lateral_raise_super_rom",
+                  "familyId": "shoulder_lateral_raise",
+                  "kind": "PARENT",
+                  "performanceProfileId": "lateral_raise_super_rom__machine",
+                  "searchTerms": [
+                    "elevaciones laterales super rom",
+                    "super rom lateral",
+                    "elevacion super rom",
+                    "full rom lateral raise"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar el deltoides lateral con rango completo de abducción."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "machine"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable",
+                    "dumbbells",
+                    "machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la abducción completa de hombro y el objetivo deltoides lateral."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius"
+              ],
+              "setupCues": [
+                "Elige una carga ligera y prepara el brazo para un rango de recorrido completo."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "machine"
+            }
+          }
+        ],
+        "defaultConfigurationId": "lateral_raise_super_rom__cable",
+        "description": "Elevaciones laterales con rango de recorrido completo, por encima de la altura del hombro, para reclutar el deltoides lateral en toda su amplitud de movimiento.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:catalog-v3-2026-08-02"
+          ],
+          "rationale": "Aprobado por decisión explícita de catálogo v3; la configuración está materializada y no depende de inferencia runtime.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "shoulder_lateral_raise",
+        "id": "lateral_raise_super_rom",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement"
+        ],
+        "searchTerms": [
+          "elevaciones laterales super rom",
+          "super rom lateral",
+          "elevacion super rom",
+          "full rom lateral raise"
+        ]
+      }
+    ],
+    "description": "Familia de abducción del hombro; la postura de pie y sentada son padres separados y la versión con barra y Super ROM quedan como especialidades.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:shoulder_lateral_raise"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "shoulder_lateral_raise",
+    "taxonomy": [
+      "upper",
+      "shoulder_abduction"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

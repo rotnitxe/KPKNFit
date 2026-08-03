@@ -1,1 +1,1439 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Remo Pendlay","definitions":[{"canonicalName":"Remo Pendlay","configurations":[{"displaySummary":"barbell","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_remo_pendlay_barra_recta","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"pendlay_row__barbell","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"description":"Remo Pendlay con barra: cada repetición sale del suelo con el tronco casi paralelo y sin impulso de cadera. Es un remo básico libre que desarrolla fuerza de espalda desde el suelo.","efc":2.5,"equipmentId":"barbell","executionCues":["Ejecuta «Remo Pendlay» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"horizontal_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."},{"muscleId":"biceps","note":"Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."},{"muscleId":"deltoid","note":"Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."},{"muscleId":"erector_spinae","note":"Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."},{"muscleId":"core","note":"Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."}],"performanceProfileId":"pendlay_row__barbell__remo_pendlay","primaryMuscles":["latissimus_dorsi","trapezius"],"replacementGroup":"back_row_barbell","replacementPriority":1,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["horizontal_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi","trapezius"],"secondaryMuscles":["biceps","rhomboids","deltoid"],"stabilizationDemand":"moderate","stabilizerMuscles":["erector_spinae","core"],"targetRegions":["latissimus_dorsi"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"barbell","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"horizontal_pull","rangeOfMotion":"limited_by_support","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Remo Pendlay» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura barra y adopta la posición específica de «Remo Pendlay» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Remo Pendlay","displaySummary":"barbell","selectedOptions":{"implement":"barbell"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":5.0,"ttc":1.8},"identity":{"canonicalName":"Remo Pendlay","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"pendlay_row__barbell","definitionId":"pendlay_row","familyId":"back_pendlay_row","kind":"PARENT","performanceProfileId":"pendlay_row__barbell__remo_pendlay","searchTerms":["remo pendlay","back_remo_pendlay_barra_recta","pendlay"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["barbell"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["barbell"],"preservesIntent":["Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."],"replacementGroup":"back_row_barbell","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":["La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."]}},"secondaryMuscles":["biceps","rhomboids","deltoid"],"setupCues":["Configura barra y adopta la posición específica de «Remo Pendlay» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":["erector_spinae","core"],"technicalDifficulty":5.0,"ttc":1.8},"selectedOptions":{"implement":"barbell"}},{"displaySummary":"dumbbells","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_remo_mancuerna","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"pendlay_row__dumbbells","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"description":"Remo Pendlay con mancuernas: la carga vuelve al suelo en cada repetición y el torso mantiene la inclinación paralela. Permite trabajar la salida del dorsal sin la rigidez de la barra.","efc":2.5,"equipmentId":"dumbbells","executionCues":["Ejecuta «Remo Pendlay» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"horizontal_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."},{"muscleId":"biceps","note":"Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."},{"muscleId":"deltoid","note":"Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."},{"muscleId":"erector_spinae","note":"Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."},{"muscleId":"core","note":"Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."}],"performanceProfileId":"pendlay_row__dumbbells__remo_pendlay","primaryMuscles":["latissimus_dorsi","trapezius"],"replacementGroup":"back_row_dumbbell","replacementPriority":2,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["horizontal_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi","trapezius"],"secondaryMuscles":["biceps","rhomboids","deltoid"],"stabilizationDemand":"moderate","stabilizerMuscles":["erector_spinae","core"],"targetRegions":["latissimus_dorsi"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"dumbbells","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"horizontal_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Remo Pendlay» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura mancuernas y adopta la posición específica de «Remo Pendlay» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Remo Pendlay","displaySummary":"dumbbells","selectedOptions":{"implement":"dumbbells"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Remo Pendlay","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"pendlay_row__dumbbells","definitionId":"pendlay_row","familyId":"back_pendlay_row","kind":"PARENT","performanceProfileId":"pendlay_row__dumbbells__remo_pendlay","searchTerms":["remo pendlay","back_remo_pendlay_barra_recta","pendlay"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["dumbbells"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells"],"preservesIntent":["Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."],"replacementGroup":"back_row_dumbbell","replacementPriority":2},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["biceps","rhomboids","deltoid"],"setupCues":["Configura mancuernas y adopta la posición específica de «Remo Pendlay» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":["erector_spinae","core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"dumbbells"}},{"displaySummary":"machine","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_remo_pendlay_barra_recta","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"pendlay_row__machine","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"description":"Remo Pendlay en máquina: el apoyo del pecho fija el tronco y la tracción parte de un recorrido horizontal. Una forma de practicar la mecánica del Pendlay con menor exigencia de espalda baja.","efc":2.5,"equipmentId":"machine","executionCues":["Ejecuta «Remo Pendlay» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"horizontal_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."},{"muscleId":"biceps","note":"Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."},{"muscleId":"deltoid","note":"Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."},{"muscleId":"erector_spinae","note":"Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."},{"muscleId":"core","note":"Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."}],"performanceProfileId":"pendlay_row__machine__remo_pendlay","primaryMuscles":["latissimus_dorsi","trapezius"],"replacementGroup":"back_row_barbell","replacementPriority":1,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["horizontal_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi","trapezius"],"secondaryMuscles":["biceps","rhomboids","deltoid"],"stabilizationDemand":"moderate","stabilizerMuscles":["erector_spinae","core"],"targetRegions":["latissimus_dorsi"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"machine","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"horizontal_pull","rangeOfMotion":"limited_by_support","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"guided_constant","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Remo Pendlay» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura la máquina y adopta la posición específica de «Remo Pendlay» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Remo Pendlay","displaySummary":"machine","selectedOptions":{"implement":"machine"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":5.0,"ttc":1.8},"identity":{"canonicalName":"Remo Pendlay","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"pendlay_row__machine","definitionId":"pendlay_row","familyId":"back_pendlay_row","kind":"PARENT","performanceProfileId":"pendlay_row__machine__remo_pendlay","searchTerms":["remo pendlay","back_remo_pendlay_barra_recta","pendlay"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["machine"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["machine"],"preservesIntent":["Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."],"replacementGroup":"back_row_barbell","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":["La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."]}},"secondaryMuscles":["biceps","rhomboids","deltoid"],"setupCues":["Configura la máquina y adopta la posición específica de «Remo Pendlay» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":["erector_spinae","core"],"technicalDifficulty":5.0,"ttc":1.8},"selectedOptions":{"implement":"machine"}},{"displaySummary":"smith_machine","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_remo_pendlay_barra_recta","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"pendlay_row__smith_machine","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"description":"Remo Pendlay en Smith: el riel guiado mantiene la trayectoria de la barra y el tronco queda libre para la inclinación. Alternativa estable para progresar la carga del remo desde el suelo.","efc":2.5,"equipmentId":"smith_machine","executionCues":["Ejecuta «Remo Pendlay» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"horizontal_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."},{"muscleId":"biceps","note":"Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."},{"muscleId":"deltoid","note":"Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."},{"muscleId":"erector_spinae","note":"Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."},{"muscleId":"core","note":"Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."}],"performanceProfileId":"pendlay_row__smith_machine__remo_pendlay","primaryMuscles":["latissimus_dorsi","trapezius"],"replacementGroup":"back_row_barbell","replacementPriority":1,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["horizontal_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi","trapezius"],"secondaryMuscles":["biceps","rhomboids","deltoid"],"stabilizationDemand":"moderate","stabilizerMuscles":["erector_spinae","core"],"targetRegions":["latissimus_dorsi"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"smith_machine","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"horizontal_pull","rangeOfMotion":"limited_by_support","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"guided_constant","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Remo Pendlay» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura la máquina Smith y adopta la posición específica de «Remo Pendlay» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Remo Pendlay","displaySummary":"smith_machine","selectedOptions":{"implement":"smith_machine"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":5.0,"ttc":1.8},"identity":{"canonicalName":"Remo Pendlay","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"pendlay_row__smith_machine","definitionId":"pendlay_row","familyId":"back_pendlay_row","kind":"PARENT","performanceProfileId":"pendlay_row__smith_machine__remo_pendlay","searchTerms":["remo pendlay","back_remo_pendlay_barra_recta","pendlay"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["smith_machine"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["smith_machine"],"preservesIntent":["Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."],"replacementGroup":"back_row_barbell","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":["La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."]}},"secondaryMuscles":["biceps","rhomboids","deltoid"],"setupCues":["Configura la máquina Smith y adopta la posición específica de «Remo Pendlay» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":["erector_spinae","core"],"technicalDifficulty":5.0,"ttc":1.8},"selectedOptions":{"implement":"smith_machine"}},{"displaySummary":"kettlebell","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_remo_pendlay_barra_recta","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"pendlay_row__kettlebell","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"description":"Remo Pendlay con kettlebell: la empuñadura central permite un agarre neutro y la carga vuelve al suelo en cada repetición. Variante cómoda para la mecánica Pendlay sin barra.","efc":2.5,"equipmentId":"kettlebell","executionCues":["Ejecuta «Remo Pendlay» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"horizontal_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."},{"muscleId":"biceps","note":"Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."},{"muscleId":"deltoid","note":"Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."},{"muscleId":"erector_spinae","note":"Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."},{"muscleId":"core","note":"Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."}],"performanceProfileId":"pendlay_row__kettlebell__remo_pendlay","primaryMuscles":["latissimus_dorsi","trapezius"],"replacementGroup":"back_row_barbell","replacementPriority":1,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["horizontal_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi","trapezius"],"secondaryMuscles":["biceps","rhomboids","deltoid"],"stabilizationDemand":"moderate","stabilizerMuscles":["erector_spinae","core"],"targetRegions":["latissimus_dorsi"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"kettlebell","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"horizontal_pull","rangeOfMotion":"limited_by_support","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Remo Pendlay» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura kettlebell y adopta la posición específica de «Remo Pendlay» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Remo Pendlay","displaySummary":"kettlebell","selectedOptions":{"implement":"kettlebell"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":5.0,"ttc":1.8},"identity":{"canonicalName":"Remo Pendlay","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"pendlay_row__kettlebell","definitionId":"pendlay_row","familyId":"back_pendlay_row","kind":"PARENT","performanceProfileId":"pendlay_row__kettlebell__remo_pendlay","searchTerms":["remo pendlay","back_remo_pendlay_barra_recta","pendlay"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["kettlebell"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["kettlebell"],"preservesIntent":["Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."],"replacementGroup":"back_row_barbell","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":["La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."]}},"secondaryMuscles":["biceps","rhomboids","deltoid"],"setupCues":["Configura kettlebell y adopta la posición específica de «Remo Pendlay» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":["erector_spinae","core"],"technicalDifficulty":5.0,"ttc":1.8},"selectedOptions":{"implement":"kettlebell"}},{"displaySummary":"cable","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_remo_polea","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"pendlay_row__cable","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"description":"Remo Pendlay en polea: la tensión continua acompaña el recorrido y la carga no descansa en el suelo entre repeticiones. Permite un ritmo constante de tracción desde el estiramiento del dorsal.","efc":2.5,"equipmentId":"cable","executionCues":["Ejecuta «Remo Pendlay» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"continuous_cable","movementPatternId":"horizontal_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."},{"muscleId":"biceps","note":"Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."},{"muscleId":"deltoid","note":"Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."},{"muscleId":"erector_spinae","note":"Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."},{"muscleId":"core","note":"Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."}],"performanceProfileId":"pendlay_row__cable__remo_pendlay","primaryMuscles":["latissimus_dorsi","trapezius"],"replacementGroup":"back_row_cable_low","replacementPriority":2,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["horizontal_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi","trapezius"],"secondaryMuscles":["biceps","rhomboids","deltoid"],"stabilizationDemand":"moderate","stabilizerMuscles":["erector_spinae","core"],"targetRegions":["latissimus_dorsi"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"cable","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"continuous_cable","movementPatternId":"horizontal_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."],"cues":["Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Remo Pendlay» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura la polea y adopta la posición específica de «Remo Pendlay» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Remo Pendlay","displaySummary":"cable","selectedOptions":{"implement":"cable"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Remo Pendlay","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"pendlay_row__cable","definitionId":"pendlay_row","familyId":"back_pendlay_row","kind":"PARENT","performanceProfileId":"pendlay_row__cable__remo_pendlay","searchTerms":["remo pendlay","back_remo_pendlay_barra_recta","pendlay"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar trapezius dentro del patrón horizontal_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable"],"preservesIntent":["Conserva el patrón horizontal_pull y el objetivo trapezius."],"replacementGroup":"back_row_cable_low","replacementPriority":2},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["biceps","rhomboids","deltoid"],"setupCues":["Configura la polea y adopta la posición específica de «Remo Pendlay» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":["erector_spinae","core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"cable"}}],"defaultConfigurationId":"pendlay_row__barbell","description":"Tirón horizontal desde el suelo con el tronco casi paralelo al banco o al suelo y sin impulso de cadera. Cada repetición parte del reposo completo, lo que desarrolla la fuerza de arranque del dorsal.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:pendlay_row"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"back_pendlay_row","id":"pendlay_row","kind":"PARENT","optionAxes":["implement"],"searchTerms":["remo pendlay","back_remo_pendlay_barra_recta","pendlay"]}],"description":"Familia de tirón horizontal desde el suelo con tronco casi paralelo y sin impulso; el implemento define cada configuración materializada.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:back_pendlay_row"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"back_pendlay_row","taxonomy":["upper","horizontal_pull","pendlay_row"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Remo Pendlay",
+    "definitions": [
+      {
+        "canonicalName": "Remo Pendlay",
+        "configurations": [
+          {
+            "displaySummary": "barbell",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_remo_pendlay_barra_recta",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "pendlay_row__barbell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+              ],
+              "description": "Remo Pendlay con barra: cada repetición sale del suelo con el tronco casi paralelo y sin impulso de cadera. Es un remo básico libre que desarrolla fuerza de espalda desde el suelo.",
+              "efc": 2.5,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Ejecuta «Remo Pendlay» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "pendlay_row__barbell__remo_pendlay",
+              "primaryMuscles": [
+                "latissimus_dorsi",
+                "trapezius"
+              ],
+              "replacementGroup": "back_row_barbell",
+              "replacementPriority": 1,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi",
+                    "trapezius"
+                  ],
+                  "secondaryMuscles": [
+                    "biceps",
+                    "rhomboids",
+                    "deltoid"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "horizontal_pull",
+                  "rangeOfMotion": "limited_by_support",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Remo Pendlay» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura barra y adopta la posición específica de «Remo Pendlay» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Remo Pendlay",
+                  "displaySummary": "barbell",
+                  "selectedOptions": {
+                    "implement": "barbell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 5.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Remo Pendlay",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "pendlay_row__barbell",
+                  "definitionId": "pendlay_row",
+                  "familyId": "back_pendlay_row",
+                  "kind": "PARENT",
+                  "performanceProfileId": "pendlay_row__barbell__remo_pendlay",
+                  "searchTerms": [
+                    "remo pendlay",
+                    "back_remo_pendlay_barra_recta",
+                    "pendlay"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."
+                  ],
+                  "replacementGroup": "back_row_barbell",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": [
+                    "La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."
+                  ]
+                }
+              },
+              "secondaryMuscles": [
+                "biceps",
+                "rhomboids",
+                "deltoid"
+              ],
+              "setupCues": [
+                "Configura barra y adopta la posición específica de «Remo Pendlay» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
+              "technicalDifficulty": 5.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "barbell"
+            }
+          },
+          {
+            "displaySummary": "dumbbells",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_remo_mancuerna",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "pendlay_row__dumbbells",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+              ],
+              "description": "Remo Pendlay con mancuernas: la carga vuelve al suelo en cada repetición y el torso mantiene la inclinación paralela. Permite trabajar la salida del dorsal sin la rigidez de la barra.",
+              "efc": 2.5,
+              "equipmentId": "dumbbells",
+              "executionCues": [
+                "Ejecuta «Remo Pendlay» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "pendlay_row__dumbbells__remo_pendlay",
+              "primaryMuscles": [
+                "latissimus_dorsi",
+                "trapezius"
+              ],
+              "replacementGroup": "back_row_dumbbell",
+              "replacementPriority": 2,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi",
+                    "trapezius"
+                  ],
+                  "secondaryMuscles": [
+                    "biceps",
+                    "rhomboids",
+                    "deltoid"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "dumbbells",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "horizontal_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Remo Pendlay» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura mancuernas y adopta la posición específica de «Remo Pendlay» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Remo Pendlay",
+                  "displaySummary": "dumbbells",
+                  "selectedOptions": {
+                    "implement": "dumbbells"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Remo Pendlay",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "pendlay_row__dumbbells",
+                  "definitionId": "pendlay_row",
+                  "familyId": "back_pendlay_row",
+                  "kind": "PARENT",
+                  "performanceProfileId": "pendlay_row__dumbbells__remo_pendlay",
+                  "searchTerms": [
+                    "remo pendlay",
+                    "back_remo_pendlay_barra_recta",
+                    "pendlay"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "dumbbells"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."
+                  ],
+                  "replacementGroup": "back_row_dumbbell",
+                  "replacementPriority": 2
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "biceps",
+                "rhomboids",
+                "deltoid"
+              ],
+              "setupCues": [
+                "Configura mancuernas y adopta la posición específica de «Remo Pendlay» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "dumbbells"
+            }
+          },
+          {
+            "displaySummary": "machine",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_remo_pendlay_barra_recta",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "pendlay_row__machine",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+              ],
+              "description": "Remo Pendlay en máquina: el apoyo del pecho fija el tronco y la tracción parte de un recorrido horizontal. Una forma de practicar la mecánica del Pendlay con menor exigencia de espalda baja.",
+              "efc": 2.5,
+              "equipmentId": "machine",
+              "executionCues": [
+                "Ejecuta «Remo Pendlay» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "pendlay_row__machine__remo_pendlay",
+              "primaryMuscles": [
+                "latissimus_dorsi",
+                "trapezius"
+              ],
+              "replacementGroup": "back_row_barbell",
+              "replacementPriority": 1,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi",
+                    "trapezius"
+                  ],
+                  "secondaryMuscles": [
+                    "biceps",
+                    "rhomboids",
+                    "deltoid"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "horizontal_pull",
+                  "rangeOfMotion": "limited_by_support",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Remo Pendlay» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura la máquina y adopta la posición específica de «Remo Pendlay» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Remo Pendlay",
+                  "displaySummary": "machine",
+                  "selectedOptions": {
+                    "implement": "machine"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 5.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Remo Pendlay",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "pendlay_row__machine",
+                  "definitionId": "pendlay_row",
+                  "familyId": "back_pendlay_row",
+                  "kind": "PARENT",
+                  "performanceProfileId": "pendlay_row__machine__remo_pendlay",
+                  "searchTerms": [
+                    "remo pendlay",
+                    "back_remo_pendlay_barra_recta",
+                    "pendlay"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "machine"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."
+                  ],
+                  "replacementGroup": "back_row_barbell",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": [
+                    "La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."
+                  ]
+                }
+              },
+              "secondaryMuscles": [
+                "biceps",
+                "rhomboids",
+                "deltoid"
+              ],
+              "setupCues": [
+                "Configura la máquina y adopta la posición específica de «Remo Pendlay» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
+              "technicalDifficulty": 5.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "machine"
+            }
+          },
+          {
+            "displaySummary": "smith_machine",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_remo_pendlay_barra_recta",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "pendlay_row__smith_machine",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+              ],
+              "description": "Remo Pendlay en Smith: el riel guiado mantiene la trayectoria de la barra y el tronco queda libre para la inclinación. Alternativa estable para progresar la carga del remo desde el suelo.",
+              "efc": 2.5,
+              "equipmentId": "smith_machine",
+              "executionCues": [
+                "Ejecuta «Remo Pendlay» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "pendlay_row__smith_machine__remo_pendlay",
+              "primaryMuscles": [
+                "latissimus_dorsi",
+                "trapezius"
+              ],
+              "replacementGroup": "back_row_barbell",
+              "replacementPriority": 1,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi",
+                    "trapezius"
+                  ],
+                  "secondaryMuscles": [
+                    "biceps",
+                    "rhomboids",
+                    "deltoid"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "smith_machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "horizontal_pull",
+                  "rangeOfMotion": "limited_by_support",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Remo Pendlay» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura la máquina Smith y adopta la posición específica de «Remo Pendlay» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Remo Pendlay",
+                  "displaySummary": "smith_machine",
+                  "selectedOptions": {
+                    "implement": "smith_machine"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 5.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Remo Pendlay",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "pendlay_row__smith_machine",
+                  "definitionId": "pendlay_row",
+                  "familyId": "back_pendlay_row",
+                  "kind": "PARENT",
+                  "performanceProfileId": "pendlay_row__smith_machine__remo_pendlay",
+                  "searchTerms": [
+                    "remo pendlay",
+                    "back_remo_pendlay_barra_recta",
+                    "pendlay"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "smith_machine"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "smith_machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."
+                  ],
+                  "replacementGroup": "back_row_barbell",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": [
+                    "La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."
+                  ]
+                }
+              },
+              "secondaryMuscles": [
+                "biceps",
+                "rhomboids",
+                "deltoid"
+              ],
+              "setupCues": [
+                "Configura la máquina Smith y adopta la posición específica de «Remo Pendlay» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
+              "technicalDifficulty": 5.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "smith_machine"
+            }
+          },
+          {
+            "displaySummary": "kettlebell",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_remo_pendlay_barra_recta",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "pendlay_row__kettlebell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+              ],
+              "description": "Remo Pendlay con kettlebell: la empuñadura central permite un agarre neutro y la carga vuelve al suelo en cada repetición. Variante cómoda para la mecánica Pendlay sin barra.",
+              "efc": 2.5,
+              "equipmentId": "kettlebell",
+              "executionCues": [
+                "Ejecuta «Remo Pendlay» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "pendlay_row__kettlebell__remo_pendlay",
+              "primaryMuscles": [
+                "latissimus_dorsi",
+                "trapezius"
+              ],
+              "replacementGroup": "back_row_barbell",
+              "replacementPriority": 1,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi",
+                    "trapezius"
+                  ],
+                  "secondaryMuscles": [
+                    "biceps",
+                    "rhomboids",
+                    "deltoid"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "kettlebell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "horizontal_pull",
+                  "rangeOfMotion": "limited_by_support",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Remo Pendlay» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura kettlebell y adopta la posición específica de «Remo Pendlay» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Remo Pendlay",
+                  "displaySummary": "kettlebell",
+                  "selectedOptions": {
+                    "implement": "kettlebell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 5.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Remo Pendlay",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "pendlay_row__kettlebell",
+                  "definitionId": "pendlay_row",
+                  "familyId": "back_pendlay_row",
+                  "kind": "PARENT",
+                  "performanceProfileId": "pendlay_row__kettlebell__remo_pendlay",
+                  "searchTerms": [
+                    "remo pendlay",
+                    "back_remo_pendlay_barra_recta",
+                    "pendlay"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "kettlebell"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "kettlebell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."
+                  ],
+                  "replacementGroup": "back_row_barbell",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": [
+                    "La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."
+                  ]
+                }
+              },
+              "secondaryMuscles": [
+                "biceps",
+                "rhomboids",
+                "deltoid"
+              ],
+              "setupCues": [
+                "Configura kettlebell y adopta la posición específica de «Remo Pendlay» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
+              "technicalDifficulty": 5.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "kettlebell"
+            }
+          },
+          {
+            "displaySummary": "cable",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_remo_polea",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "pendlay_row__cable",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+              ],
+              "description": "Remo Pendlay en polea: la tensión continua acompaña el recorrido y la carga no descansa en el suelo entre repeticiones. Permite un ritmo constante de tracción desde el estiramiento del dorsal.",
+              "efc": 2.5,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Ejecuta «Remo Pendlay» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal tira del brazo hacia el cuerpo y concentra el trabajo de la espalda en la remada; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: el trapecio retrae y desciende la escápula y completa el trabajo de la espalda; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo durante la tracción y asiste la remada; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula hacia la columna durante la tracción; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal del brazo; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: los erectores sostienen el tronco en posición neutra durante la remada; por eso suman 0.4."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core transfiere la fuerza del remo sin dejar caer el tronco; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "pendlay_row__cable__remo_pendlay",
+              "primaryMuscles": [
+                "latissimus_dorsi",
+                "trapezius"
+              ],
+              "replacementGroup": "back_row_cable_low",
+              "replacementPriority": 2,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi",
+                    "trapezius"
+                  ],
+                  "secondaryMuscles": [
+                    "biceps",
+                    "rhomboids",
+                    "deltoid"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "cable",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "horizontal_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Remo Pendlay» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura la polea y adopta la posición específica de «Remo Pendlay» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Remo Pendlay",
+                  "displaySummary": "cable",
+                  "selectedOptions": {
+                    "implement": "cable"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Remo Pendlay",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "pendlay_row__cable",
+                  "definitionId": "pendlay_row",
+                  "familyId": "back_pendlay_row",
+                  "kind": "PARENT",
+                  "performanceProfileId": "pendlay_row__cable__remo_pendlay",
+                  "searchTerms": [
+                    "remo pendlay",
+                    "back_remo_pendlay_barra_recta",
+                    "pendlay"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar trapezius dentro del patrón horizontal_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_pull y el objetivo trapezius."
+                  ],
+                  "replacementGroup": "back_row_cable_low",
+                  "replacementPriority": 2
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "biceps",
+                "rhomboids",
+                "deltoid"
+              ],
+              "setupCues": [
+                "Configura la polea y adopta la posición específica de «Remo Pendlay» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "cable"
+            }
+          }
+        ],
+        "defaultConfigurationId": "pendlay_row__barbell",
+        "description": "Tirón horizontal desde el suelo con el tronco casi paralelo al banco o al suelo y sin impulso de cadera. Cada repetición parte del reposo completo, lo que desarrolla la fuerza de arranque del dorsal.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:pendlay_row"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "back_pendlay_row",
+        "id": "pendlay_row",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement"
+        ],
+        "searchTerms": [
+          "remo pendlay",
+          "back_remo_pendlay_barra_recta",
+          "pendlay"
+        ]
+      }
+    ],
+    "description": "Familia de tirón horizontal desde el suelo con tronco casi paralelo y sin impulso; el implemento define cada configuración materializada.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:back_pendlay_row"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "back_pendlay_row",
+    "taxonomy": [
+      "upper",
+      "horizontal_pull",
+      "pendlay_row"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

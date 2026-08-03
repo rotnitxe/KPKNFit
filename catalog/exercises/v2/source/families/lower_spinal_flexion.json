@@ -1,1 +1,889 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Tren inferior · erector spinae · spinal flexion","definitions":[{"canonicalName":"Jefferson Curl","configurations":[{"displaySummary":"barbell","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_jefferson_curl","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"back_jefferson_curl__barbell","profile":{"automationEligible":true,"axialLoadFactor":0.2,"bodyRegion":"LOWER","cnc":2.0,"commonMistakes":["Acelerar la bajada o usar un peso que impide el control del recorrido."],"description":"Jefferson Curl con barra: la barra frente a los muslos permite cargar ligero y sentir la flexión vértebra a vértebra.","efc":2.5,"equipmentId":"barbell","executionCues":["Redondea la columna vértebra a vértebra y vuelve a subir con control."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"spinal_flexion","muscleNotes":[{"muscleId":"erector_spinae","note":"Principal: los erectores trabajan en elongación contra la flexión controlada de la columna; por eso suman la serie completa (1.0)."},{"muscleId":"hamstrings","note":"Secundario: los isquiosurales frenan la flexión de cadera durante el descenso; por eso suman 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco firme y protege la zona lumbar; por eso suma 0.4."}],"performanceProfileId":"back_jefferson_curl__barbell","primaryMuscles":["erector_spinae"],"replacementGroup":null,"replacementPriority":999,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["spinal_flexion"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["erector_spinae"],"secondaryMuscles":["hamstrings"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["erector_spinae"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"barbell","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"spinal_flexion","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Acelerar la bajada o usar un peso que impide el control del recorrido."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Redondea la columna vértebra a vértebra y vuelve a subir con control."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Coloca la carga ligera al frente y los pies separados al ancho de la cadera."]},"display":{"displayName":"Jefferson Curl","displaySummary":"barbell","selectedOptions":{"implement":"barbell"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.2,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":5.0,"ttc":1.8},"identity":{"canonicalName":"Jefferson Curl","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"back_jefferson_curl__barbell","definitionId":"back_jefferson_curl","familyId":"lower_spinal_flexion","kind":"PARENT","performanceProfileId":"back_jefferson_curl__barbell","searchTerms":["jefferson curl","curl de jefferson"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar erector_spinae con la flexión espinal controlada del Jefferson Curl."],"recoveryCost":"moderate","requiredEquipment":["barbell"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["barbell","dumbbells","smith_machine","cable"],"preservesIntent":["Conserva la flexión espinal controlada y el objetivo erector_spinae."],"replacementGroup":null,"replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":["La pérdida de la posición puede trasladar carga fuera del patrón spinal_flexion."]}},"secondaryMuscles":["hamstrings"],"setupCues":["Coloca la carga ligera al frente y los pies separados al ancho de la cadera."],"ssc":0.4,"stabilizerMuscles":["core"],"technicalDifficulty":5.0,"ttc":1.8},"selectedOptions":{"implement":"barbell"}},{"displaySummary":"dumbbells","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_jefferson_curl","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"back_jefferson_curl__dumbbells","profile":{"automationEligible":true,"axialLoadFactor":0.2,"bodyRegion":"LOWER","cnc":2.0,"commonMistakes":["Acelerar la bajada o usar un peso que impide el control del recorrido."],"description":"Jefferson Curl con mancuernas: la carga libre a los costados facilita ajustar el peso con precisión.","efc":2.5,"equipmentId":"dumbbells","executionCues":["Redondea la columna vértebra a vértebra y vuelve a subir con control."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"spinal_flexion","muscleNotes":[{"muscleId":"erector_spinae","note":"Principal: los erectores trabajan en elongación contra la flexión controlada de la columna; por eso suman la serie completa (1.0)."},{"muscleId":"hamstrings","note":"Secundario: los isquiosurales frenan la flexión de cadera durante el descenso; por eso suman 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco firme y protege la zona lumbar; por eso suma 0.4."}],"performanceProfileId":"back_jefferson_curl__dumbbells","primaryMuscles":["erector_spinae"],"replacementGroup":null,"replacementPriority":999,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["spinal_flexion"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["erector_spinae"],"secondaryMuscles":["hamstrings"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["erector_spinae"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"dumbbells","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"spinal_flexion","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Acelerar la bajada o usar un peso que impide el control del recorrido."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Redondea la columna vértebra a vértebra y vuelve a subir con control."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Coloca la carga ligera al frente y los pies separados al ancho de la cadera."]},"display":{"displayName":"Jefferson Curl","displaySummary":"dumbbells","selectedOptions":{"implement":"dumbbells"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.2,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":5.0,"ttc":1.8},"identity":{"canonicalName":"Jefferson Curl","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"back_jefferson_curl__dumbbells","definitionId":"back_jefferson_curl","familyId":"lower_spinal_flexion","kind":"PARENT","performanceProfileId":"back_jefferson_curl__dumbbells","searchTerms":["jefferson curl","curl de jefferson"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar erector_spinae con la flexión espinal controlada del Jefferson Curl."],"recoveryCost":"moderate","requiredEquipment":["dumbbells"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["barbell","dumbbells","smith_machine","cable"],"preservesIntent":["Conserva la flexión espinal controlada y el objetivo erector_spinae."],"replacementGroup":null,"replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":["La pérdida de la posición puede trasladar carga fuera del patrón spinal_flexion."]}},"secondaryMuscles":["hamstrings"],"setupCues":["Coloca la carga ligera al frente y los pies separados al ancho de la cadera."],"ssc":0.4,"stabilizerMuscles":["core"],"technicalDifficulty":5.0,"ttc":1.8},"selectedOptions":{"implement":"dumbbells"}},{"displaySummary":"smith_machine","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_jefferson_curl","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"back_jefferson_curl__smith_machine","profile":{"automationEligible":true,"axialLoadFactor":0.2,"bodyRegion":"LOWER","cnc":2.0,"commonMistakes":["Acelerar la bajada o usar un peso que impide el control del recorrido."],"description":"Jefferson Curl en máquina Smith: el guiado estabiliza la barra y simplifica el control del recorrido.","efc":2.5,"equipmentId":"smith_machine","executionCues":["Redondea la columna vértebra a vértebra y vuelve a subir con control."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"guided_external_load","movementPatternId":"spinal_flexion","muscleNotes":[{"muscleId":"erector_spinae","note":"Principal: los erectores trabajan en elongación contra la flexión controlada de la columna; por eso suman la serie completa (1.0)."},{"muscleId":"hamstrings","note":"Secundario: los isquiosurales frenan la flexión de cadera durante el descenso; por eso suman 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco firme y protege la zona lumbar; por eso suma 0.4."}],"performanceProfileId":"back_jefferson_curl__smith_machine","primaryMuscles":["erector_spinae"],"replacementGroup":null,"replacementPriority":999,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["spinal_flexion"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["erector_spinae"],"secondaryMuscles":["hamstrings"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["erector_spinae"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"smith_machine","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"guided_external_load","movementPatternId":"spinal_flexion","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"guided_constant","stability":"self_stabilized"},"coaching":{"commonMistakes":["Acelerar la bajada o usar un peso que impide el control del recorrido."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Redondea la columna vértebra a vértebra y vuelve a subir con control."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Coloca la carga ligera al frente y los pies separados al ancho de la cadera."]},"display":{"displayName":"Jefferson Curl","displaySummary":"smith_machine","selectedOptions":{"implement":"smith_machine"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.2,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":5.0,"ttc":1.8},"identity":{"canonicalName":"Jefferson Curl","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"back_jefferson_curl__smith_machine","definitionId":"back_jefferson_curl","familyId":"lower_spinal_flexion","kind":"PARENT","performanceProfileId":"back_jefferson_curl__smith_machine","searchTerms":["jefferson curl","curl de jefferson"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar erector_spinae con la flexión espinal controlada del Jefferson Curl."],"recoveryCost":"moderate","requiredEquipment":["smith_machine"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["barbell","dumbbells","smith_machine","cable"],"preservesIntent":["Conserva la flexión espinal controlada y el objetivo erector_spinae."],"replacementGroup":null,"replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":["La pérdida de la posición puede trasladar carga fuera del patrón spinal_flexion."]}},"secondaryMuscles":["hamstrings"],"setupCues":["Coloca la carga ligera al frente y los pies separados al ancho de la cadera."],"ssc":0.4,"stabilizerMuscles":["core"],"technicalDifficulty":5.0,"ttc":1.8},"selectedOptions":{"implement":"smith_machine"}},{"displaySummary":"cable","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_jefferson_curl","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"back_jefferson_curl__cable","profile":{"automationEligible":true,"axialLoadFactor":0.2,"bodyRegion":"LOWER","cnc":2.0,"commonMistakes":["Acelerar la bajada o usar un peso que impide el control del recorrido."],"description":"Jefferson Curl en polea: la tensión continua acompaña la flexión y el retorno de forma constante.","efc":2.5,"equipmentId":"cable","executionCues":["Redondea la columna vértebra a vértebra y vuelve a subir con control."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"spinal_flexion","muscleNotes":[{"muscleId":"erector_spinae","note":"Principal: los erectores trabajan en elongación contra la flexión controlada de la columna; por eso suman la serie completa (1.0)."},{"muscleId":"hamstrings","note":"Secundario: los isquiosurales frenan la flexión de cadera durante el descenso; por eso suman 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco firme y protege la zona lumbar; por eso suma 0.4."}],"performanceProfileId":"back_jefferson_curl__cable","primaryMuscles":["erector_spinae"],"replacementGroup":null,"replacementPriority":999,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["spinal_flexion"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["erector_spinae"],"secondaryMuscles":["hamstrings"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["erector_spinae"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"cable","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"spinal_flexion","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Acelerar la bajada o usar un peso que impide el control del recorrido."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Redondea la columna vértebra a vértebra y vuelve a subir con control."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Coloca la carga ligera al frente y los pies separados al ancho de la cadera."]},"display":{"displayName":"Jefferson Curl","displaySummary":"cable","selectedOptions":{"implement":"cable"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.2,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":5.0,"ttc":1.8},"identity":{"canonicalName":"Jefferson Curl","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"back_jefferson_curl__cable","definitionId":"back_jefferson_curl","familyId":"lower_spinal_flexion","kind":"PARENT","performanceProfileId":"back_jefferson_curl__cable","searchTerms":["jefferson curl","curl de jefferson"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar erector_spinae con la flexión espinal controlada del Jefferson Curl."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["barbell","dumbbells","smith_machine","cable"],"preservesIntent":["Conserva la flexión espinal controlada y el objetivo erector_spinae."],"replacementGroup":null,"replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":["La pérdida de la posición puede trasladar carga fuera del patrón spinal_flexion."]}},"secondaryMuscles":["hamstrings"],"setupCues":["Coloca la carga ligera al frente y los pies separados al ancho de la cadera."],"ssc":0.4,"stabilizerMuscles":["core"],"technicalDifficulty":5.0,"ttc":1.8},"selectedOptions":{"implement":"cable"}}],"defaultConfigurationId":"back_jefferson_curl__barbell","description":"Jefferson Curl trabaja principalmente erectores espinales mediante un patrón de flexión columna. La participación secundaria corresponde a glúteos, isquiosurales.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:back_jefferson_curl"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"lower_spinal_flexion","id":"back_jefferson_curl","kind":"PARENT","optionAxes":["implement"],"searchTerms":["jefferson curl","curl de jefferson"]}],"description":"Familia controlada por patrón spinal_flexion; cada especialidad conserva su perfil resuelto.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:lower_spinal_flexion"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"lower_spinal_flexion","taxonomy":["lower","spinal_flexion"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Tren inferior · erector spinae · spinal flexion",
+    "definitions": [
+      {
+        "canonicalName": "Jefferson Curl",
+        "configurations": [
+          {
+            "displaySummary": "barbell",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_jefferson_curl",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "back_jefferson_curl__barbell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.2,
+              "bodyRegion": "LOWER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Acelerar la bajada o usar un peso que impide el control del recorrido."
+              ],
+              "description": "Jefferson Curl con barra: la barra frente a los muslos permite cargar ligero y sentir la flexión vértebra a vértebra.",
+              "efc": 2.5,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Redondea la columna vértebra a vértebra y vuelve a subir con control."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "spinal_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Principal: los erectores trabajan en elongación contra la flexión controlada de la columna; por eso suman la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: los isquiosurales frenan la flexión de cadera durante el descenso; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco firme y protege la zona lumbar; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "back_jefferson_curl__barbell",
+              "primaryMuscles": [
+                "erector_spinae"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "spinal_flexion"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "erector_spinae"
+                  ],
+                  "secondaryMuscles": [
+                    "hamstrings"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "erector_spinae"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "spinal_flexion",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Acelerar la bajada o usar un peso que impide el control del recorrido."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Redondea la columna vértebra a vértebra y vuelve a subir con control."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Coloca la carga ligera al frente y los pies separados al ancho de la cadera."
+                  ]
+                },
+                "display": {
+                  "displayName": "Jefferson Curl",
+                  "displaySummary": "barbell",
+                  "selectedOptions": {
+                    "implement": "barbell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.2,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 5.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Jefferson Curl",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "back_jefferson_curl__barbell",
+                  "definitionId": "back_jefferson_curl",
+                  "familyId": "lower_spinal_flexion",
+                  "kind": "PARENT",
+                  "performanceProfileId": "back_jefferson_curl__barbell",
+                  "searchTerms": [
+                    "jefferson curl",
+                    "curl de jefferson"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar erector_spinae con la flexión espinal controlada del Jefferson Curl."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell",
+                    "dumbbells",
+                    "smith_machine",
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la flexión espinal controlada y el objetivo erector_spinae."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": [
+                    "La pérdida de la posición puede trasladar carga fuera del patrón spinal_flexion."
+                  ]
+                }
+              },
+              "secondaryMuscles": [
+                "hamstrings"
+              ],
+              "setupCues": [
+                "Coloca la carga ligera al frente y los pies separados al ancho de la cadera."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 5.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "barbell"
+            }
+          },
+          {
+            "displaySummary": "dumbbells",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_jefferson_curl",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "back_jefferson_curl__dumbbells",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.2,
+              "bodyRegion": "LOWER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Acelerar la bajada o usar un peso que impide el control del recorrido."
+              ],
+              "description": "Jefferson Curl con mancuernas: la carga libre a los costados facilita ajustar el peso con precisión.",
+              "efc": 2.5,
+              "equipmentId": "dumbbells",
+              "executionCues": [
+                "Redondea la columna vértebra a vértebra y vuelve a subir con control."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "spinal_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Principal: los erectores trabajan en elongación contra la flexión controlada de la columna; por eso suman la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: los isquiosurales frenan la flexión de cadera durante el descenso; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco firme y protege la zona lumbar; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "back_jefferson_curl__dumbbells",
+              "primaryMuscles": [
+                "erector_spinae"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "spinal_flexion"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "erector_spinae"
+                  ],
+                  "secondaryMuscles": [
+                    "hamstrings"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "erector_spinae"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "dumbbells",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "spinal_flexion",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Acelerar la bajada o usar un peso que impide el control del recorrido."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Redondea la columna vértebra a vértebra y vuelve a subir con control."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Coloca la carga ligera al frente y los pies separados al ancho de la cadera."
+                  ]
+                },
+                "display": {
+                  "displayName": "Jefferson Curl",
+                  "displaySummary": "dumbbells",
+                  "selectedOptions": {
+                    "implement": "dumbbells"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.2,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 5.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Jefferson Curl",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "back_jefferson_curl__dumbbells",
+                  "definitionId": "back_jefferson_curl",
+                  "familyId": "lower_spinal_flexion",
+                  "kind": "PARENT",
+                  "performanceProfileId": "back_jefferson_curl__dumbbells",
+                  "searchTerms": [
+                    "jefferson curl",
+                    "curl de jefferson"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar erector_spinae con la flexión espinal controlada del Jefferson Curl."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "dumbbells"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell",
+                    "dumbbells",
+                    "smith_machine",
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la flexión espinal controlada y el objetivo erector_spinae."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": [
+                    "La pérdida de la posición puede trasladar carga fuera del patrón spinal_flexion."
+                  ]
+                }
+              },
+              "secondaryMuscles": [
+                "hamstrings"
+              ],
+              "setupCues": [
+                "Coloca la carga ligera al frente y los pies separados al ancho de la cadera."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 5.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "dumbbells"
+            }
+          },
+          {
+            "displaySummary": "smith_machine",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_jefferson_curl",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "back_jefferson_curl__smith_machine",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.2,
+              "bodyRegion": "LOWER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Acelerar la bajada o usar un peso que impide el control del recorrido."
+              ],
+              "description": "Jefferson Curl en máquina Smith: el guiado estabiliza la barra y simplifica el control del recorrido.",
+              "efc": 2.5,
+              "equipmentId": "smith_machine",
+              "executionCues": [
+                "Redondea la columna vértebra a vértebra y vuelve a subir con control."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "spinal_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Principal: los erectores trabajan en elongación contra la flexión controlada de la columna; por eso suman la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: los isquiosurales frenan la flexión de cadera durante el descenso; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco firme y protege la zona lumbar; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "back_jefferson_curl__smith_machine",
+              "primaryMuscles": [
+                "erector_spinae"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "spinal_flexion"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "erector_spinae"
+                  ],
+                  "secondaryMuscles": [
+                    "hamstrings"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "erector_spinae"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "smith_machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "spinal_flexion",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Acelerar la bajada o usar un peso que impide el control del recorrido."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Redondea la columna vértebra a vértebra y vuelve a subir con control."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Coloca la carga ligera al frente y los pies separados al ancho de la cadera."
+                  ]
+                },
+                "display": {
+                  "displayName": "Jefferson Curl",
+                  "displaySummary": "smith_machine",
+                  "selectedOptions": {
+                    "implement": "smith_machine"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.2,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 5.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Jefferson Curl",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "back_jefferson_curl__smith_machine",
+                  "definitionId": "back_jefferson_curl",
+                  "familyId": "lower_spinal_flexion",
+                  "kind": "PARENT",
+                  "performanceProfileId": "back_jefferson_curl__smith_machine",
+                  "searchTerms": [
+                    "jefferson curl",
+                    "curl de jefferson"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar erector_spinae con la flexión espinal controlada del Jefferson Curl."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "smith_machine"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell",
+                    "dumbbells",
+                    "smith_machine",
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la flexión espinal controlada y el objetivo erector_spinae."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": [
+                    "La pérdida de la posición puede trasladar carga fuera del patrón spinal_flexion."
+                  ]
+                }
+              },
+              "secondaryMuscles": [
+                "hamstrings"
+              ],
+              "setupCues": [
+                "Coloca la carga ligera al frente y los pies separados al ancho de la cadera."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 5.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "smith_machine"
+            }
+          },
+          {
+            "displaySummary": "cable",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_jefferson_curl",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "back_jefferson_curl__cable",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.2,
+              "bodyRegion": "LOWER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Acelerar la bajada o usar un peso que impide el control del recorrido."
+              ],
+              "description": "Jefferson Curl en polea: la tensión continua acompaña la flexión y el retorno de forma constante.",
+              "efc": 2.5,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Redondea la columna vértebra a vértebra y vuelve a subir con control."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "spinal_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Principal: los erectores trabajan en elongación contra la flexión controlada de la columna; por eso suman la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: los isquiosurales frenan la flexión de cadera durante el descenso; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco firme y protege la zona lumbar; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "back_jefferson_curl__cable",
+              "primaryMuscles": [
+                "erector_spinae"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "spinal_flexion"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "erector_spinae"
+                  ],
+                  "secondaryMuscles": [
+                    "hamstrings"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "erector_spinae"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "cable",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "spinal_flexion",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Acelerar la bajada o usar un peso que impide el control del recorrido."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Redondea la columna vértebra a vértebra y vuelve a subir con control."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Coloca la carga ligera al frente y los pies separados al ancho de la cadera."
+                  ]
+                },
+                "display": {
+                  "displayName": "Jefferson Curl",
+                  "displaySummary": "cable",
+                  "selectedOptions": {
+                    "implement": "cable"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.2,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 5.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Jefferson Curl",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "back_jefferson_curl__cable",
+                  "definitionId": "back_jefferson_curl",
+                  "familyId": "lower_spinal_flexion",
+                  "kind": "PARENT",
+                  "performanceProfileId": "back_jefferson_curl__cable",
+                  "searchTerms": [
+                    "jefferson curl",
+                    "curl de jefferson"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar erector_spinae con la flexión espinal controlada del Jefferson Curl."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell",
+                    "dumbbells",
+                    "smith_machine",
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la flexión espinal controlada y el objetivo erector_spinae."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": [
+                    "La pérdida de la posición puede trasladar carga fuera del patrón spinal_flexion."
+                  ]
+                }
+              },
+              "secondaryMuscles": [
+                "hamstrings"
+              ],
+              "setupCues": [
+                "Coloca la carga ligera al frente y los pies separados al ancho de la cadera."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 5.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "cable"
+            }
+          }
+        ],
+        "defaultConfigurationId": "back_jefferson_curl__barbell",
+        "description": "Jefferson Curl trabaja principalmente erectores espinales mediante un patrón de flexión columna. La participación secundaria corresponde a glúteos, isquiosurales.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:back_jefferson_curl"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "lower_spinal_flexion",
+        "id": "back_jefferson_curl",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement"
+        ],
+        "searchTerms": [
+          "jefferson curl",
+          "curl de jefferson"
+        ]
+      }
+    ],
+    "description": "Familia controlada por patrón spinal_flexion; cada especialidad conserva su perfil resuelto.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:lower_spinal_flexion"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "lower_spinal_flexion",
+    "taxonomy": [
+      "lower",
+      "spinal_flexion"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

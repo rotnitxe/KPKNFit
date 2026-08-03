@@ -1,1 +1,2023 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Tren superior · trapezius · horizontal pull","definitions":[{"canonicalName":"Band Pull-Apart","configurations":[{"displaySummary":"Banda Elástica","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_band_pull_apart","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"back_band_pull_apart__default","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."],"description":"Separación de banda elástica a la altura del pecho. La configuración utiliza banda de resistencia como implemento.","efc":2.5,"equipmentId":"band","executionCues":["Ejecuta «Band Pull-Apart» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"variable_band_resistance","movementPatternId":"horizontal_pull","muscleNotes":[{"muscleId":"trapezius","note":"Principal: el trapecio mueve la escápula y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."},{"muscleId":"deltoid","note":"Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."}],"performanceProfileId":"back_band_pull_apart__band__band_pull_apart","primaryMuscles":["trapezius"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"variable_band","richMetadata":{"anatomy":{"jointActions":["horizontal_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["trapezius"],"secondaryMuscles":["deltoid"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["trapezius"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"band","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"variable_band_resistance","movementPatternId":"horizontal_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"variable_band","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."],"cues":["Mantén el equipo band alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Band Pull-Apart» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura banda elástica y adopta la posición específica de «Band Pull-Apart» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Band Pull-Apart","displaySummary":"Banda Elástica","selectedOptions":{}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Band Pull-Apart","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"back_band_pull_apart__default","definitionId":"back_band_pull_apart","familyId":"upper_horizontal_pull","kind":"SPECIALTY","performanceProfileId":"back_band_pull_apart__band__band_pull_apart","searchTerms":["band pull-apart"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar trapezius dentro del patrón horizontal_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["band"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["band"],"preservesIntent":["Conserva el patrón horizontal_pull y el objetivo trapezius."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["deltoid"],"setupCues":["Configura banda elástica y adopta la posición específica de «Band Pull-Apart» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":[],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{}}],"defaultConfigurationId":"back_band_pull_apart__default","description":"Separación de banda elástica a la altura del pecho.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:back_band_pull_apart"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"upper_horizontal_pull","id":"back_band_pull_apart","kind":"SPECIALTY","optionAxes":[],"searchTerms":["band pull-apart"]},{"canonicalName":"Remo en Banda Elástica","configurations":[{"displaySummary":"Banda Elástica","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_remo_banda","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"back_remo_banda__default","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."],"description":"Remo en Banda Elástica trabaja principalmente trapecio, dorsales mediante un patrón de tirón horizontal. La participación secundaria corresponde a deltoides, bíceps, erectores espinales. La configuración utiliza banda de resistencia como implemento.","efc":2.5,"equipmentId":"band","executionCues":["Ejecuta «Remo en Banda Elástica» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"variable_band_resistance","movementPatternId":"horizontal_pull","muscleNotes":[{"muscleId":"trapezius","note":"Principal: el trapecio mueve la escápula y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."},{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal tracciona el brazo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."},{"muscleId":"deltoid","note":"Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."},{"muscleId":"biceps","note":"Secundario: el bíceps asiste la tracción o flexión con contribución real al movimiento; por eso suma 0.5."},{"muscleId":"erector_spinae","note":"Secundario: los erectores asisten la extensión y el control de la columna; por eso suman 0.5."}],"performanceProfileId":"back_remo_banda__band__remo_en_banda_elastica","primaryMuscles":["trapezius","latissimus_dorsi"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"variable_band","richMetadata":{"anatomy":{"jointActions":["horizontal_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["trapezius","latissimus_dorsi"],"secondaryMuscles":["deltoid","biceps","erector_spinae"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["trapezius"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"band","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"variable_band_resistance","movementPatternId":"horizontal_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"variable_band","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."],"cues":["Mantén el equipo band alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Remo en Banda Elástica» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura banda elástica y adopta la posición específica de «Remo en Banda Elástica» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Remo en Banda Elástica","displaySummary":"Banda Elástica","selectedOptions":{}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Remo en Banda Elástica","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"back_remo_banda__default","definitionId":"back_remo_banda","familyId":"upper_horizontal_pull","kind":"SPECIALTY","performanceProfileId":"back_remo_banda__band__remo_en_banda_elastica","searchTerms":["remo en banda elástica"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar trapezius dentro del patrón horizontal_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["band"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["band"],"preservesIntent":["Conserva el patrón horizontal_pull y el objetivo trapezius."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["deltoid","biceps","erector_spinae"],"setupCues":["Configura banda elástica y adopta la posición específica de «Remo en Banda Elástica» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":[],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{}}],"defaultConfigurationId":"back_remo_banda__default","description":"Remo en Banda Elástica trabaja principalmente trapecio, dorsales mediante un patrón de tirón horizontal. La participación secundaria corresponde a deltoides, bíceps, erectores espinales.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:back_remo_banda"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"upper_horizontal_pull","id":"back_remo_banda","kind":"SPECIALTY","optionAxes":[],"searchTerms":["remo en banda elástica"]},{"canonicalName":"Remo Gorilla","configurations":[{"displaySummary":"dumbbells","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_remo_gorilla_mancuernas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"back_remo_gorilla_mancuernas__dumbbells","profile":{"automationEligible":true,"axialLoadFactor":0.2,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Enderezar el tronco durante la tracción en lugar de mantener la bisagra."],"description":"Remo Gorilla con mancuernas: la bisagra de cadera con el peso colgando exige control del core durante toda la tracción.","efc":2.5,"equipmentId":"dumbbells","executionCues":["Lleva el peso hacia el tronco con los codos pegados y baja con control."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"horizontal_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal ancho lleva el peso hacia el tronco y concentra el trabajo del remo; por eso suma la serie completa (1.0)."},{"muscleId":"biceps","note":"Secundario: el bíceps flexiona el codo y asiste la tracción; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula al final del remo; por eso suman 0.5."}],"performanceProfileId":"back_remo_gorilla__dumbbells","primaryMuscles":["latissimus_dorsi"],"replacementGroup":null,"replacementPriority":999,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["horizontal_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi"],"secondaryMuscles":["biceps","rhomboids"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["latissimus_dorsi"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"dumbbells","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"horizontal_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Enderezar el tronco durante la tracción en lugar de mantener la bisagra."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Lleva el peso hacia el tronco con los codos pegados y baja con control."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Inclina el tronco con la cadera atrás y deja los brazos colgando con el peso."]},"display":{"displayName":"Remo Gorilla","displaySummary":"dumbbells","selectedOptions":{"implement":"dumbbells"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.2,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":5.0,"ttc":1.8},"identity":{"canonicalName":"Remo Gorilla","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"back_remo_gorilla_mancuernas__dumbbells","definitionId":"back_remo_gorilla_mancuernas","familyId":"upper_horizontal_pull","kind":"PARENT","performanceProfileId":"back_remo_gorilla__dumbbells","searchTerms":["remo gorilla","gorilla row","remo con mancuernas"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar latissimus_dorsi con el patrón del remo gorilla."],"recoveryCost":"moderate","requiredEquipment":["dumbbells"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells","kettlebell","cable"],"preservesIntent":["Conserva la tracción horizontal y el objetivo latissimus_dorsi."],"replacementGroup":null,"replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":["La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."]}},"secondaryMuscles":["biceps","rhomboids"],"setupCues":["Inclina el tronco con la cadera atrás y deja los brazos colgando con el peso."],"ssc":0.4,"stabilizerMuscles":[],"technicalDifficulty":5.0,"ttc":1.8},"selectedOptions":{"implement":"dumbbells"}},{"displaySummary":"kettlebell","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_remo_gorilla_mancuernas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"back_remo_gorilla_mancuernas__kettlebell","profile":{"automationEligible":true,"axialLoadFactor":0.2,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Enderezar el tronco durante la tracción en lugar de mantener la bisagra."],"description":"Remo Gorilla con kettlebell: la carga compacta facilita el agarre desde la bisagra y permite ritmos controlados.","efc":2.5,"equipmentId":"kettlebell","executionCues":["Lleva el peso hacia el tronco con los codos pegados y baja con control."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"horizontal_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal ancho lleva el peso hacia el tronco y concentra el trabajo del remo; por eso suma la serie completa (1.0)."},{"muscleId":"biceps","note":"Secundario: el bíceps flexiona el codo y asiste la tracción; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula al final del remo; por eso suman 0.5."}],"performanceProfileId":"back_remo_gorilla__kettlebell","primaryMuscles":["latissimus_dorsi"],"replacementGroup":null,"replacementPriority":999,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["horizontal_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi"],"secondaryMuscles":["biceps","rhomboids"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["latissimus_dorsi"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"kettlebell","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"horizontal_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Enderezar el tronco durante la tracción en lugar de mantener la bisagra."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Lleva el peso hacia el tronco con los codos pegados y baja con control."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Inclina el tronco con la cadera atrás y deja los brazos colgando con el peso."]},"display":{"displayName":"Remo Gorilla","displaySummary":"kettlebell","selectedOptions":{"implement":"kettlebell"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.2,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":5.0,"ttc":1.8},"identity":{"canonicalName":"Remo Gorilla","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"back_remo_gorilla_mancuernas__kettlebell","definitionId":"back_remo_gorilla_mancuernas","familyId":"upper_horizontal_pull","kind":"PARENT","performanceProfileId":"back_remo_gorilla__kettlebell","searchTerms":["remo gorilla","gorilla row","remo con mancuernas"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar latissimus_dorsi con el patrón del remo gorilla."],"recoveryCost":"moderate","requiredEquipment":["kettlebell"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells","kettlebell","cable"],"preservesIntent":["Conserva la tracción horizontal y el objetivo latissimus_dorsi."],"replacementGroup":null,"replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":["La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."]}},"secondaryMuscles":["biceps","rhomboids"],"setupCues":["Inclina el tronco con la cadera atrás y deja los brazos colgando con el peso."],"ssc":0.4,"stabilizerMuscles":[],"technicalDifficulty":5.0,"ttc":1.8},"selectedOptions":{"implement":"kettlebell"}},{"displaySummary":"cable","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_remo_gorilla_mancuernas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"back_remo_gorilla_mancuernas__cable","profile":{"automationEligible":true,"axialLoadFactor":0.2,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Enderezar el tronco durante la tracción en lugar de mantener la bisagra."],"description":"Remo Gorilla en polea: la tensión continua mantiene el dorsal activo durante toda la tracción desde la bisagra.","efc":2.5,"equipmentId":"cable","executionCues":["Lleva el peso hacia el tronco con los codos pegados y baja con control."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"horizontal_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal ancho lleva el peso hacia el tronco y concentra el trabajo del remo; por eso suma la serie completa (1.0)."},{"muscleId":"biceps","note":"Secundario: el bíceps flexiona el codo y asiste la tracción; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula al final del remo; por eso suman 0.5."}],"performanceProfileId":"back_remo_gorilla__cable","primaryMuscles":["latissimus_dorsi"],"replacementGroup":null,"replacementPriority":999,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["horizontal_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi"],"secondaryMuscles":["biceps","rhomboids"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["latissimus_dorsi"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"cable","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"horizontal_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Enderezar el tronco durante la tracción en lugar de mantener la bisagra."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Lleva el peso hacia el tronco con los codos pegados y baja con control."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Inclina el tronco con la cadera atrás y deja los brazos colgando con el peso."]},"display":{"displayName":"Remo Gorilla","displaySummary":"cable","selectedOptions":{"implement":"cable"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.2,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":5.0,"ttc":1.8},"identity":{"canonicalName":"Remo Gorilla","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"back_remo_gorilla_mancuernas__cable","definitionId":"back_remo_gorilla_mancuernas","familyId":"upper_horizontal_pull","kind":"PARENT","performanceProfileId":"back_remo_gorilla__cable","searchTerms":["remo gorilla","gorilla row","remo con mancuernas"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar latissimus_dorsi con el patrón del remo gorilla."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells","kettlebell","cable"],"preservesIntent":["Conserva la tracción horizontal y el objetivo latissimus_dorsi."],"replacementGroup":null,"replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":["La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."]}},"secondaryMuscles":["biceps","rhomboids"],"setupCues":["Inclina el tronco con la cadera atrás y deja los brazos colgando con el peso."],"ssc":0.4,"stabilizerMuscles":[],"technicalDifficulty":5.0,"ttc":1.8},"selectedOptions":{"implement":"cable"}}],"defaultConfigurationId":"back_remo_gorilla_mancuernas__dumbbells","description":"Remo Gorilla con Mancuernas trabaja principalmente dorsales mediante un patrón de tirón horizontal. La participación secundaria corresponde a trapecio, deltoides, bíceps, erectores espinales.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:back_remo_gorilla_mancuernas"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"upper_horizontal_pull","id":"back_remo_gorilla_mancuernas","kind":"PARENT","optionAxes":["implement"],"searchTerms":["remo gorilla","gorilla row","remo con mancuernas"]},{"canonicalName":"Remo Invertido","configurations":[{"displaySummary":"Peso Corporal","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_remo_invertido","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"back_remo_invertido__default","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."],"description":"Remo en suspensión con peso corporal en barra fija.","efc":2.5,"equipmentId":"bodyweight","executionCues":["Ejecuta «Remo Invertido» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"bodyweight","movementPatternId":"horizontal_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal tracciona el brazo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio asiste el movimiento escapular y la postura del hombro; por eso suma 0.5."},{"muscleId":"deltoid","note":"Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."},{"muscleId":"biceps","note":"Secundario: el bíceps asiste la tracción o flexión con contribución real al movimiento; por eso suma 0.5."},{"muscleId":"erector_spinae","note":"Secundario: los erectores asisten la extensión y el control de la columna; por eso suman 0.5."}],"performanceProfileId":"back_remo_invertido__bodyweight__remo_invertido","primaryMuscles":["latissimus_dorsi"],"replacementGroup":"back_row_inverted","replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["horizontal_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi"],"secondaryMuscles":["trapezius","deltoid","biceps","erector_spinae"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["latissimus_dorsi"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"bodyweight","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"bodyweight","movementPatternId":"horizontal_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."],"cues":["Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Remo Invertido» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura peso corporal y adopta la posición específica de «Remo Invertido» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Remo Invertido","displaySummary":"Peso Corporal","selectedOptions":{}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Remo Invertido","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"back_remo_invertido__default","definitionId":"back_remo_invertido","familyId":"upper_horizontal_pull","kind":"SPECIALTY","performanceProfileId":"back_remo_invertido__bodyweight__remo_invertido","searchTerms":["remo invertido"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["bodyweight"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["bodyweight"],"preservesIntent":["Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."],"replacementGroup":"back_row_inverted","replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["trapezius","deltoid","biceps","erector_spinae"],"setupCues":["Configura peso corporal y adopta la posición específica de «Remo Invertido» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":[],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{}}],"defaultConfigurationId":"back_remo_invertido__default","description":"Remo en suspensión con peso corporal en barra fija.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:back_remo_invertido"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"upper_horizontal_pull","id":"back_remo_invertido","kind":"SPECIALTY","optionAxes":[],"searchTerms":["remo invertido"]},{"canonicalName":"Remo Renegado","configurations":[{"displaySummary":"dumbbells","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_remo_renegado_mancuernas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"back_remo_renegado_mancuernas__dumbbells","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Rotar la cadera o hundir la espalda al traccionar cada brazo."],"description":"Remo Renegado con mancuernas: la tracción desde la plancha alta combina el dorsal con una exigencia fuerte de estabilidad del core.","efc":2.5,"equipmentId":"dumbbells","executionCues":["Lleva un peso hacia el tronco manteniendo la cadera firme y alterna de lado."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"horizontal_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal ancho lleva el peso hacia el tronco y concentra el trabajo del remo; por eso suma la serie completa (1.0)."},{"muscleId":"biceps","note":"Secundario: el bíceps flexiona el codo y asiste la tracción; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula al final del remo; por eso suman 0.5."},{"muscleId":"core","note":"Estabilizador: el core sostiene la plancha alta durante la tracción de cada brazo; por eso suma 0.4."}],"performanceProfileId":"back_remo_renegado__dumbbells","primaryMuscles":["latissimus_dorsi"],"replacementGroup":null,"replacementPriority":999,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["horizontal_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi"],"secondaryMuscles":["biceps","rhomboids"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["latissimus_dorsi"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"dumbbells","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"horizontal_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Rotar la cadera o hundir la espalda al traccionar cada brazo."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Lleva un peso hacia el tronco manteniendo la cadera firme y alterna de lado."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Colócate en plancha alta con un peso en cada mano."]},"display":{"displayName":"Remo Renegado","displaySummary":"dumbbells","selectedOptions":{"implement":"dumbbells"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":5.0,"ttc":1.8},"identity":{"canonicalName":"Remo Renegado","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"back_remo_renegado_mancuernas__dumbbells","definitionId":"back_remo_renegado_mancuernas","familyId":"upper_horizontal_pull","kind":"PARENT","performanceProfileId":"back_remo_renegado__dumbbells","searchTerms":["remo renegado","renegade row","remo en plancha"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar latissimus_dorsi con el remo renegado en plancha alta."],"recoveryCost":"moderate","requiredEquipment":["dumbbells"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells","kettlebell"],"preservesIntent":["Conserva la tracción horizontal en plancha y el objetivo latissimus_dorsi."],"replacementGroup":null,"replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":["La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."]}},"secondaryMuscles":["biceps","rhomboids"],"setupCues":["Colócate en plancha alta con un peso en cada mano."],"ssc":0.4,"stabilizerMuscles":["core"],"technicalDifficulty":5.0,"ttc":1.8},"selectedOptions":{"implement":"dumbbells"}},{"displaySummary":"kettlebell","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_remo_renegado_mancuernas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"back_remo_renegado_mancuernas__kettlebell","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Rotar la cadera o hundir la espalda al traccionar cada brazo."],"description":"Remo Renegado con kettlebell: la carga compacta roza menos el suelo y facilita la tracción desde la plancha alta.","efc":2.5,"equipmentId":"kettlebell","executionCues":["Lleva un peso hacia el tronco manteniendo la cadera firme y alterna de lado."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"horizontal_pull","muscleNotes":[{"muscleId":"latissimus_dorsi","note":"Principal: el dorsal ancho lleva el peso hacia el tronco y concentra el trabajo del remo; por eso suma la serie completa (1.0)."},{"muscleId":"biceps","note":"Secundario: el bíceps flexiona el codo y asiste la tracción; por eso suma 0.5."},{"muscleId":"rhomboids","note":"Secundario: los romboides retraen la escápula al final del remo; por eso suman 0.5."},{"muscleId":"core","note":"Estabilizador: el core sostiene la plancha alta durante la tracción de cada brazo; por eso suma 0.4."}],"performanceProfileId":"back_remo_renegado__kettlebell","primaryMuscles":["latissimus_dorsi"],"replacementGroup":null,"replacementPriority":999,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["horizontal_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["latissimus_dorsi"],"secondaryMuscles":["biceps","rhomboids"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["latissimus_dorsi"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"kettlebell","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"horizontal_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Rotar la cadera o hundir la espalda al traccionar cada brazo."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Lleva un peso hacia el tronco manteniendo la cadera firme y alterna de lado."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Colócate en plancha alta con un peso en cada mano."]},"display":{"displayName":"Remo Renegado","displaySummary":"kettlebell","selectedOptions":{"implement":"kettlebell"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":5.0,"ttc":1.8},"identity":{"canonicalName":"Remo Renegado","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"back_remo_renegado_mancuernas__kettlebell","definitionId":"back_remo_renegado_mancuernas","familyId":"upper_horizontal_pull","kind":"PARENT","performanceProfileId":"back_remo_renegado__kettlebell","searchTerms":["remo renegado","renegade row","remo en plancha"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar latissimus_dorsi con el remo renegado en plancha alta."],"recoveryCost":"moderate","requiredEquipment":["kettlebell"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells","kettlebell"],"preservesIntent":["Conserva la tracción horizontal en plancha y el objetivo latissimus_dorsi."],"replacementGroup":null,"replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":["La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."]}},"secondaryMuscles":["biceps","rhomboids"],"setupCues":["Colócate en plancha alta con un peso en cada mano."],"ssc":0.4,"stabilizerMuscles":["core"],"technicalDifficulty":5.0,"ttc":1.8},"selectedOptions":{"implement":"kettlebell"}}],"defaultConfigurationId":"back_remo_renegado_mancuernas__dumbbells","description":"Remo en posición de plancha alternando mancuernas.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:back_remo_renegado_mancuernas"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"upper_horizontal_pull","id":"back_remo_renegado_mancuernas","kind":"PARENT","optionAxes":["implement"],"searchTerms":["remo renegado","renegade row","remo en plancha"]},{"canonicalName":"Face Pull","configurations":[{"displaySummary":"Polea","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#deltoides_face_pull","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"deltoides_face_pull__default","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":1.8,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."],"description":"Face Pull. Ajustable en equipo y lateralidad. La configuración utiliza polea como implemento.","efc":2.5,"equipmentId":"cable","executionCues":["Ejecuta «Face Pull» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"continuous_cable","movementPatternId":"horizontal_pull","muscleNotes":[{"muscleId":"deltoid","note":"Principal: el deltoides mueve el brazo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."},{"muscleId":"trapezius","note":"Secundario: el trapecio asiste el movimiento escapular y la postura del hombro; por eso suma 0.5."},{"muscleId":"latissimus_dorsi","note":"Secundario: el dorsal asiste la tracción del brazo y la estabilidad del hombro; por eso suma 0.5."}],"performanceProfileId":"deltoides_face_pull__cable__face_pull","primaryMuscles":["deltoid"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["horizontal_pull"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["deltoid"],"secondaryMuscles":["trapezius","latissimus_dorsi"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["deltoid"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"cable","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"continuous_cable","movementPatternId":"horizontal_pull","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."],"cues":["Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Face Pull» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura polea y adopta la posición específica de «Face Pull» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Face Pull","displaySummary":"Polea","selectedOptions":{}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.8,"efc":2.5,"ssc":0.3,"technicalDifficulty":3.8,"ttc":1.6},"identity":{"canonicalName":"Face Pull","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"deltoides_face_pull__default","definitionId":"deltoides_face_pull","familyId":"upper_horizontal_pull","kind":"SPECIALTY","performanceProfileId":"deltoides_face_pull__cable__face_pull","searchTerms":["face pull"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":105,"min":45},"objectives":["Desarrollar deltoid dentro del patrón horizontal_pull.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable"],"preservesIntent":["Conserva el patrón horizontal_pull y el objetivo deltoid."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["trapezius","latissimus_dorsi"],"setupCues":["Configura polea y adopta la posición específica de «Face Pull» antes de iniciar; conserva una base estable."],"ssc":0.3,"stabilizerMuscles":[],"technicalDifficulty":3.8,"ttc":1.6},"selectedOptions":{}}],"defaultConfigurationId":"deltoides_face_pull__default","description":"Face Pull. Ajustable en equipo y lateralidad.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:deltoides_face_pull"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"upper_horizontal_pull","id":"deltoides_face_pull","kind":"SPECIALTY","optionAxes":[],"searchTerms":["face pull"]}],"description":"Familia controlada por patrón horizontal_pull; cada especialidad conserva su perfil resuelto.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:upper_horizontal_pull"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"upper_horizontal_pull","taxonomy":["upper","horizontal_pull"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Tren superior · trapezius · horizontal pull",
+    "definitions": [
+      {
+        "canonicalName": "Band Pull-Apart",
+        "configurations": [
+          {
+            "displaySummary": "Banda Elástica",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_band_pull_apart",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "back_band_pull_apart__default",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."
+              ],
+              "description": "Separación de banda elástica a la altura del pecho. La configuración utiliza banda de resistencia como implemento.",
+              "efc": 2.5,
+              "equipmentId": "band",
+              "executionCues": [
+                "Ejecuta «Band Pull-Apart» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "variable_band_resistance",
+              "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: el trapecio mueve la escápula y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "back_band_pull_apart__band__band_pull_apart",
+              "primaryMuscles": [
+                "trapezius"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "variable_band",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "trapezius"
+                  ],
+                  "secondaryMuscles": [
+                    "deltoid"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "trapezius"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "band",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "variable_band_resistance",
+                  "movementPatternId": "horizontal_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "variable_band",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo band alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Band Pull-Apart» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura banda elástica y adopta la posición específica de «Band Pull-Apart» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Band Pull-Apart",
+                  "displaySummary": "Banda Elástica",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Band Pull-Apart",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "back_band_pull_apart__default",
+                  "definitionId": "back_band_pull_apart",
+                  "familyId": "upper_horizontal_pull",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "back_band_pull_apart__band__band_pull_apart",
+                  "searchTerms": [
+                    "band pull-apart"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar trapezius dentro del patrón horizontal_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "band"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "band"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_pull y el objetivo trapezius."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "deltoid"
+              ],
+              "setupCues": [
+                "Configura banda elástica y adopta la posición específica de «Band Pull-Apart» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "back_band_pull_apart__default",
+        "description": "Separación de banda elástica a la altura del pecho.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:back_band_pull_apart"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_horizontal_pull",
+        "id": "back_band_pull_apart",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "band pull-apart"
+        ]
+      },
+      {
+        "canonicalName": "Remo en Banda Elástica",
+        "configurations": [
+          {
+            "displaySummary": "Banda Elástica",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_remo_banda",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "back_remo_banda__default",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."
+              ],
+              "description": "Remo en Banda Elástica trabaja principalmente trapecio, dorsales mediante un patrón de tirón horizontal. La participación secundaria corresponde a deltoides, bíceps, erectores espinales. La configuración utiliza banda de resistencia como implemento.",
+              "efc": 2.5,
+              "equipmentId": "band",
+              "executionCues": [
+                "Ejecuta «Remo en Banda Elástica» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "variable_band_resistance",
+              "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: el trapecio mueve la escápula y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal tracciona el brazo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps asiste la tracción o flexión con contribución real al movimiento; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Secundario: los erectores asisten la extensión y el control de la columna; por eso suman 0.5."
+                }
+              ],
+              "performanceProfileId": "back_remo_banda__band__remo_en_banda_elastica",
+              "primaryMuscles": [
+                "trapezius",
+                "latissimus_dorsi"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "variable_band",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "trapezius",
+                    "latissimus_dorsi"
+                  ],
+                  "secondaryMuscles": [
+                    "deltoid",
+                    "biceps",
+                    "erector_spinae"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "trapezius"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "band",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "variable_band_resistance",
+                  "movementPatternId": "horizontal_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "variable_band",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo band alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Remo en Banda Elástica» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura banda elástica y adopta la posición específica de «Remo en Banda Elástica» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Remo en Banda Elástica",
+                  "displaySummary": "Banda Elástica",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Remo en Banda Elástica",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "back_remo_banda__default",
+                  "definitionId": "back_remo_banda",
+                  "familyId": "upper_horizontal_pull",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "back_remo_banda__band__remo_en_banda_elastica",
+                  "searchTerms": [
+                    "remo en banda elástica"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar trapezius dentro del patrón horizontal_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "band"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "band"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_pull y el objetivo trapezius."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "deltoid",
+                "biceps",
+                "erector_spinae"
+              ],
+              "setupCues": [
+                "Configura banda elástica y adopta la posición específica de «Remo en Banda Elástica» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "back_remo_banda__default",
+        "description": "Remo en Banda Elástica trabaja principalmente trapecio, dorsales mediante un patrón de tirón horizontal. La participación secundaria corresponde a deltoides, bíceps, erectores espinales.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:back_remo_banda"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_horizontal_pull",
+        "id": "back_remo_banda",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "remo en banda elástica"
+        ]
+      },
+      {
+        "canonicalName": "Remo Gorilla",
+        "configurations": [
+          {
+            "displaySummary": "dumbbells",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_remo_gorilla_mancuernas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "back_remo_gorilla_mancuernas__dumbbells",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.2,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Enderezar el tronco durante la tracción en lugar de mantener la bisagra."
+              ],
+              "description": "Remo Gorilla con mancuernas: la bisagra de cadera con el peso colgando exige control del core durante toda la tracción.",
+              "efc": 2.5,
+              "equipmentId": "dumbbells",
+              "executionCues": [
+                "Lleva el peso hacia el tronco con los codos pegados y baja con control."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal ancho lleva el peso hacia el tronco y concentra el trabajo del remo; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo y asiste la tracción; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula al final del remo; por eso suman 0.5."
+                }
+              ],
+              "performanceProfileId": "back_remo_gorilla__dumbbells",
+              "primaryMuscles": [
+                "latissimus_dorsi"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi"
+                  ],
+                  "secondaryMuscles": [
+                    "biceps",
+                    "rhomboids"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "dumbbells",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "horizontal_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Enderezar el tronco durante la tracción en lugar de mantener la bisagra."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Lleva el peso hacia el tronco con los codos pegados y baja con control."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Inclina el tronco con la cadera atrás y deja los brazos colgando con el peso."
+                  ]
+                },
+                "display": {
+                  "displayName": "Remo Gorilla",
+                  "displaySummary": "dumbbells",
+                  "selectedOptions": {
+                    "implement": "dumbbells"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.2,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 5.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Remo Gorilla",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "back_remo_gorilla_mancuernas__dumbbells",
+                  "definitionId": "back_remo_gorilla_mancuernas",
+                  "familyId": "upper_horizontal_pull",
+                  "kind": "PARENT",
+                  "performanceProfileId": "back_remo_gorilla__dumbbells",
+                  "searchTerms": [
+                    "remo gorilla",
+                    "gorilla row",
+                    "remo con mancuernas"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar latissimus_dorsi con el patrón del remo gorilla."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "dumbbells"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells",
+                    "kettlebell",
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la tracción horizontal y el objetivo latissimus_dorsi."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": [
+                    "La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."
+                  ]
+                }
+              },
+              "secondaryMuscles": [
+                "biceps",
+                "rhomboids"
+              ],
+              "setupCues": [
+                "Inclina el tronco con la cadera atrás y deja los brazos colgando con el peso."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 5.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "dumbbells"
+            }
+          },
+          {
+            "displaySummary": "kettlebell",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_remo_gorilla_mancuernas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "back_remo_gorilla_mancuernas__kettlebell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.2,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Enderezar el tronco durante la tracción en lugar de mantener la bisagra."
+              ],
+              "description": "Remo Gorilla con kettlebell: la carga compacta facilita el agarre desde la bisagra y permite ritmos controlados.",
+              "efc": 2.5,
+              "equipmentId": "kettlebell",
+              "executionCues": [
+                "Lleva el peso hacia el tronco con los codos pegados y baja con control."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal ancho lleva el peso hacia el tronco y concentra el trabajo del remo; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo y asiste la tracción; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula al final del remo; por eso suman 0.5."
+                }
+              ],
+              "performanceProfileId": "back_remo_gorilla__kettlebell",
+              "primaryMuscles": [
+                "latissimus_dorsi"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi"
+                  ],
+                  "secondaryMuscles": [
+                    "biceps",
+                    "rhomboids"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "kettlebell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "horizontal_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Enderezar el tronco durante la tracción en lugar de mantener la bisagra."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Lleva el peso hacia el tronco con los codos pegados y baja con control."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Inclina el tronco con la cadera atrás y deja los brazos colgando con el peso."
+                  ]
+                },
+                "display": {
+                  "displayName": "Remo Gorilla",
+                  "displaySummary": "kettlebell",
+                  "selectedOptions": {
+                    "implement": "kettlebell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.2,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 5.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Remo Gorilla",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "back_remo_gorilla_mancuernas__kettlebell",
+                  "definitionId": "back_remo_gorilla_mancuernas",
+                  "familyId": "upper_horizontal_pull",
+                  "kind": "PARENT",
+                  "performanceProfileId": "back_remo_gorilla__kettlebell",
+                  "searchTerms": [
+                    "remo gorilla",
+                    "gorilla row",
+                    "remo con mancuernas"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar latissimus_dorsi con el patrón del remo gorilla."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "kettlebell"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells",
+                    "kettlebell",
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la tracción horizontal y el objetivo latissimus_dorsi."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": [
+                    "La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."
+                  ]
+                }
+              },
+              "secondaryMuscles": [
+                "biceps",
+                "rhomboids"
+              ],
+              "setupCues": [
+                "Inclina el tronco con la cadera atrás y deja los brazos colgando con el peso."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 5.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "kettlebell"
+            }
+          },
+          {
+            "displaySummary": "cable",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_remo_gorilla_mancuernas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "back_remo_gorilla_mancuernas__cable",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.2,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Enderezar el tronco durante la tracción en lugar de mantener la bisagra."
+              ],
+              "description": "Remo Gorilla en polea: la tensión continua mantiene el dorsal activo durante toda la tracción desde la bisagra.",
+              "efc": 2.5,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Lleva el peso hacia el tronco con los codos pegados y baja con control."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal ancho lleva el peso hacia el tronco y concentra el trabajo del remo; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo y asiste la tracción; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula al final del remo; por eso suman 0.5."
+                }
+              ],
+              "performanceProfileId": "back_remo_gorilla__cable",
+              "primaryMuscles": [
+                "latissimus_dorsi"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi"
+                  ],
+                  "secondaryMuscles": [
+                    "biceps",
+                    "rhomboids"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "cable",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "horizontal_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Enderezar el tronco durante la tracción en lugar de mantener la bisagra."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Lleva el peso hacia el tronco con los codos pegados y baja con control."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Inclina el tronco con la cadera atrás y deja los brazos colgando con el peso."
+                  ]
+                },
+                "display": {
+                  "displayName": "Remo Gorilla",
+                  "displaySummary": "cable",
+                  "selectedOptions": {
+                    "implement": "cable"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.2,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 5.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Remo Gorilla",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "back_remo_gorilla_mancuernas__cable",
+                  "definitionId": "back_remo_gorilla_mancuernas",
+                  "familyId": "upper_horizontal_pull",
+                  "kind": "PARENT",
+                  "performanceProfileId": "back_remo_gorilla__cable",
+                  "searchTerms": [
+                    "remo gorilla",
+                    "gorilla row",
+                    "remo con mancuernas"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar latissimus_dorsi con el patrón del remo gorilla."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells",
+                    "kettlebell",
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la tracción horizontal y el objetivo latissimus_dorsi."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": [
+                    "La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."
+                  ]
+                }
+              },
+              "secondaryMuscles": [
+                "biceps",
+                "rhomboids"
+              ],
+              "setupCues": [
+                "Inclina el tronco con la cadera atrás y deja los brazos colgando con el peso."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 5.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "cable"
+            }
+          }
+        ],
+        "defaultConfigurationId": "back_remo_gorilla_mancuernas__dumbbells",
+        "description": "Remo Gorilla con Mancuernas trabaja principalmente dorsales mediante un patrón de tirón horizontal. La participación secundaria corresponde a trapecio, deltoides, bíceps, erectores espinales.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:back_remo_gorilla_mancuernas"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_horizontal_pull",
+        "id": "back_remo_gorilla_mancuernas",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement"
+        ],
+        "searchTerms": [
+          "remo gorilla",
+          "gorilla row",
+          "remo con mancuernas"
+        ]
+      },
+      {
+        "canonicalName": "Remo Invertido",
+        "configurations": [
+          {
+            "displaySummary": "Peso Corporal",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_remo_invertido",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "back_remo_invertido__default",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."
+              ],
+              "description": "Remo en suspensión con peso corporal en barra fija.",
+              "efc": 2.5,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Ejecuta «Remo Invertido» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "bodyweight",
+              "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal tracciona el brazo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio asiste el movimiento escapular y la postura del hombro; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps asiste la tracción o flexión con contribución real al movimiento; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Secundario: los erectores asisten la extensión y el control de la columna; por eso suman 0.5."
+                }
+              ],
+              "performanceProfileId": "back_remo_invertido__bodyweight__remo_invertido",
+              "primaryMuscles": [
+                "latissimus_dorsi"
+              ],
+              "replacementGroup": "back_row_inverted",
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius",
+                    "deltoid",
+                    "biceps",
+                    "erector_spinae"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "horizontal_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Remo Invertido» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura peso corporal y adopta la posición específica de «Remo Invertido» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Remo Invertido",
+                  "displaySummary": "Peso Corporal",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Remo Invertido",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "back_remo_invertido__default",
+                  "definitionId": "back_remo_invertido",
+                  "familyId": "upper_horizontal_pull",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "back_remo_invertido__bodyweight__remo_invertido",
+                  "searchTerms": [
+                    "remo invertido"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."
+                  ],
+                  "replacementGroup": "back_row_inverted",
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius",
+                "deltoid",
+                "biceps",
+                "erector_spinae"
+              ],
+              "setupCues": [
+                "Configura peso corporal y adopta la posición específica de «Remo Invertido» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "back_remo_invertido__default",
+        "description": "Remo en suspensión con peso corporal en barra fija.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:back_remo_invertido"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_horizontal_pull",
+        "id": "back_remo_invertido",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "remo invertido"
+        ]
+      },
+      {
+        "canonicalName": "Remo Renegado",
+        "configurations": [
+          {
+            "displaySummary": "dumbbells",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_remo_renegado_mancuernas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "back_remo_renegado_mancuernas__dumbbells",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Rotar la cadera o hundir la espalda al traccionar cada brazo."
+              ],
+              "description": "Remo Renegado con mancuernas: la tracción desde la plancha alta combina el dorsal con una exigencia fuerte de estabilidad del core.",
+              "efc": 2.5,
+              "equipmentId": "dumbbells",
+              "executionCues": [
+                "Lleva un peso hacia el tronco manteniendo la cadera firme y alterna de lado."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal ancho lleva el peso hacia el tronco y concentra el trabajo del remo; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo y asiste la tracción; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula al final del remo; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core sostiene la plancha alta durante la tracción de cada brazo; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "back_remo_renegado__dumbbells",
+              "primaryMuscles": [
+                "latissimus_dorsi"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi"
+                  ],
+                  "secondaryMuscles": [
+                    "biceps",
+                    "rhomboids"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "dumbbells",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "horizontal_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Rotar la cadera o hundir la espalda al traccionar cada brazo."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Lleva un peso hacia el tronco manteniendo la cadera firme y alterna de lado."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Colócate en plancha alta con un peso en cada mano."
+                  ]
+                },
+                "display": {
+                  "displayName": "Remo Renegado",
+                  "displaySummary": "dumbbells",
+                  "selectedOptions": {
+                    "implement": "dumbbells"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 5.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Remo Renegado",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "back_remo_renegado_mancuernas__dumbbells",
+                  "definitionId": "back_remo_renegado_mancuernas",
+                  "familyId": "upper_horizontal_pull",
+                  "kind": "PARENT",
+                  "performanceProfileId": "back_remo_renegado__dumbbells",
+                  "searchTerms": [
+                    "remo renegado",
+                    "renegade row",
+                    "remo en plancha"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar latissimus_dorsi con el remo renegado en plancha alta."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "dumbbells"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells",
+                    "kettlebell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la tracción horizontal en plancha y el objetivo latissimus_dorsi."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": [
+                    "La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."
+                  ]
+                }
+              },
+              "secondaryMuscles": [
+                "biceps",
+                "rhomboids"
+              ],
+              "setupCues": [
+                "Colócate en plancha alta con un peso en cada mano."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 5.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "dumbbells"
+            }
+          },
+          {
+            "displaySummary": "kettlebell",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_remo_renegado_mancuernas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "back_remo_renegado_mancuernas__kettlebell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Rotar la cadera o hundir la espalda al traccionar cada brazo."
+              ],
+              "description": "Remo Renegado con kettlebell: la carga compacta roza menos el suelo y facilita la tracción desde la plancha alta.",
+              "efc": 2.5,
+              "equipmentId": "kettlebell",
+              "executionCues": [
+                "Lleva un peso hacia el tronco manteniendo la cadera firme y alterna de lado."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: el dorsal ancho lleva el peso hacia el tronco y concentra el trabajo del remo; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: el bíceps flexiona el codo y asiste la tracción; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: los romboides retraen la escápula al final del remo; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core sostiene la plancha alta durante la tracción de cada brazo; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "back_remo_renegado__kettlebell",
+              "primaryMuscles": [
+                "latissimus_dorsi"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "latissimus_dorsi"
+                  ],
+                  "secondaryMuscles": [
+                    "biceps",
+                    "rhomboids"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "latissimus_dorsi"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "kettlebell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "horizontal_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Rotar la cadera o hundir la espalda al traccionar cada brazo."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Lleva un peso hacia el tronco manteniendo la cadera firme y alterna de lado."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Colócate en plancha alta con un peso en cada mano."
+                  ]
+                },
+                "display": {
+                  "displayName": "Remo Renegado",
+                  "displaySummary": "kettlebell",
+                  "selectedOptions": {
+                    "implement": "kettlebell"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 5.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Remo Renegado",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "back_remo_renegado_mancuernas__kettlebell",
+                  "definitionId": "back_remo_renegado_mancuernas",
+                  "familyId": "upper_horizontal_pull",
+                  "kind": "PARENT",
+                  "performanceProfileId": "back_remo_renegado__kettlebell",
+                  "searchTerms": [
+                    "remo renegado",
+                    "renegade row",
+                    "remo en plancha"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar latissimus_dorsi con el remo renegado en plancha alta."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "kettlebell"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells",
+                    "kettlebell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la tracción horizontal en plancha y el objetivo latissimus_dorsi."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": [
+                    "La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."
+                  ]
+                }
+              },
+              "secondaryMuscles": [
+                "biceps",
+                "rhomboids"
+              ],
+              "setupCues": [
+                "Colócate en plancha alta con un peso en cada mano."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 5.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "kettlebell"
+            }
+          }
+        ],
+        "defaultConfigurationId": "back_remo_renegado_mancuernas__dumbbells",
+        "description": "Remo en posición de plancha alternando mancuernas.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:back_remo_renegado_mancuernas"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_horizontal_pull",
+        "id": "back_remo_renegado_mancuernas",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement"
+        ],
+        "searchTerms": [
+          "remo renegado",
+          "renegade row",
+          "remo en plancha"
+        ]
+      },
+      {
+        "canonicalName": "Face Pull",
+        "configurations": [
+          {
+            "displaySummary": "Polea",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#deltoides_face_pull",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "deltoides_face_pull__default",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 1.8,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."
+              ],
+              "description": "Face Pull. Ajustable en equipo y lateralidad. La configuración utiliza polea como implemento.",
+              "efc": 2.5,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Ejecuta «Face Pull» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: el deltoides mueve el brazo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: el trapecio asiste el movimiento escapular y la postura del hombro; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Secundario: el dorsal asiste la tracción del brazo y la estabilidad del hombro; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "deltoides_face_pull__cable__face_pull",
+              "primaryMuscles": [
+                "deltoid"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_pull"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "deltoid"
+                  ],
+                  "secondaryMuscles": [
+                    "trapezius",
+                    "latissimus_dorsi"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "deltoid"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "cable",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "horizontal_pull",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Face Pull» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura polea y adopta la posición específica de «Face Pull» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Face Pull",
+                  "displaySummary": "Polea",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.5,
+                  "ssc": 0.3,
+                  "technicalDifficulty": 3.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Face Pull",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "deltoides_face_pull__default",
+                  "definitionId": "deltoides_face_pull",
+                  "familyId": "upper_horizontal_pull",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "deltoides_face_pull__cable__face_pull",
+                  "searchTerms": [
+                    "face pull"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 105,
+                    "min": 45
+                  },
+                  "objectives": [
+                    "Desarrollar deltoid dentro del patrón horizontal_pull.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_pull y el objetivo deltoid."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "trapezius",
+                "latissimus_dorsi"
+              ],
+              "setupCues": [
+                "Configura polea y adopta la posición específica de «Face Pull» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.3,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "deltoides_face_pull__default",
+        "description": "Face Pull. Ajustable en equipo y lateralidad.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:deltoides_face_pull"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_horizontal_pull",
+        "id": "deltoides_face_pull",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "face pull"
+        ]
+      }
+    ],
+    "description": "Familia controlada por patrón horizontal_pull; cada especialidad conserva su perfil resuelto.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:upper_horizontal_pull"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "upper_horizontal_pull",
+    "taxonomy": [
+      "upper",
+      "horizontal_pull"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

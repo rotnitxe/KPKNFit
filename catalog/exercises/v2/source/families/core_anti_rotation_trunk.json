@@ -1,1 +1,239 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Core · core · anti rotation trunk","definitions":[{"canonicalName":"Press Pallof","configurations":[{"displaySummary":"Polea","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#core_press_pallof","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"core_press_pallof__default","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"CORE","cnc":1.5,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón anti-rotación tronco para completar la repetición."],"description":"Press Pallof trabaja principalmente core mediante un patrón de anti-rotación tronco. La participación secundaria corresponde a abdomen. La configuración utiliza polea como implemento.","efc":2.0,"equipmentId":"cable","executionCues":["Ejecuta «Press Pallof» siguiendo el patrón anti-rotación tronco con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"anti_rotation_trunk","muscleNotes":[{"muscleId":"core","note":"Principal: el core controla el tronco y concentra la demanda del patrón; por eso suma la serie completa (1.0)."},{"muscleId":"abdominals","note":"Secundario: el abdomen acompaña la estabilización del tronco durante el movimiento; por eso suma 0.5."}],"performanceProfileId":"core_press_pallof__cable__press_pallof","primaryMuscles":["core"],"replacementGroup":"core_pallof_press","replacementPriority":1,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["anti_rotation_trunk"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["core"],"secondaryMuscles":["abdominals"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["core"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"CORE","equipmentId":"cable","kineticChain":"ANTERIOR","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"anti_rotation_trunk","rangeOfMotion":"controlled_full_available","relevantJoints":["spine","hip"],"relevantTendons":["spine_tendon","hip_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón anti-rotación tronco para completar la repetición."],"cues":["Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Press Pallof» siguiendo el patrón anti-rotación tronco con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de spine según tolerancia y rango disponible.","Movilidad de hip según tolerancia y rango disponible."],"setup":["Configura polea y adopta la posición específica de «Press Pallof» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Press Pallof","displaySummary":"Polea","selectedOptions":{}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":1.5,"efc":2.0,"ssc":0.2,"technicalDifficulty":4.5,"ttc":1.5},"identity":{"canonicalName":"Press Pallof","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"core_press_pallof__default","definitionId":"core_press_pallof","familyId":"core_anti_rotation_trunk","kind":"SPECIALTY","performanceProfileId":"core_press_pallof__cable__press_pallof","searchTerms":["core press pallof","press pallof"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":90,"min":30},"objectives":["Desarrollar core dentro del patrón anti_rotation_trunk.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","core_accessory"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable"],"preservesIntent":["Conserva el patrón anti_rotation_trunk y el objetivo core."],"replacementGroup":"core_pallof_press","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["abdominals"],"setupCues":["Configura polea y adopta la posición específica de «Press Pallof» antes de iniciar; conserva una base estable."],"ssc":0.2,"stabilizerMuscles":[],"technicalDifficulty":4.5,"ttc":1.5},"selectedOptions":{}}],"defaultConfigurationId":"core_press_pallof__default","description":"Press Pallof trabaja principalmente core mediante un patrón de anti-rotación tronco. La participación secundaria corresponde a abdomen.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:core_press_pallof"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"core_anti_rotation_trunk","id":"core_press_pallof","kind":"SPECIALTY","optionAxes":[],"searchTerms":["core press pallof","press pallof"]}],"description":"Familia controlada por patrón anti_rotation_trunk; cada especialidad conserva su perfil resuelto.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:core_anti_rotation_trunk"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"core_anti_rotation_trunk","taxonomy":["core","anti_rotation_trunk"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Core · core · anti rotation trunk",
+    "definitions": [
+      {
+        "canonicalName": "Press Pallof",
+        "configurations": [
+          {
+            "displaySummary": "Polea",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#core_press_pallof",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "core_press_pallof__default",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "CORE",
+              "cnc": 1.5,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón anti-rotación tronco para completar la repetición."
+              ],
+              "description": "Press Pallof trabaja principalmente core mediante un patrón de anti-rotación tronco. La participación secundaria corresponde a abdomen. La configuración utiliza polea como implemento.",
+              "efc": 2.0,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Ejecuta «Press Pallof» siguiendo el patrón anti-rotación tronco con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "anti_rotation_trunk",
+              "muscleNotes": [
+                {
+                  "muscleId": "core",
+                  "note": "Principal: el core controla el tronco y concentra la demanda del patrón; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "abdominals",
+                  "note": "Secundario: el abdomen acompaña la estabilización del tronco durante el movimiento; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "core_press_pallof__cable__press_pallof",
+              "primaryMuscles": [
+                "core"
+              ],
+              "replacementGroup": "core_pallof_press",
+              "replacementPriority": 1,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "anti_rotation_trunk"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "core"
+                  ],
+                  "secondaryMuscles": [
+                    "abdominals"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "core"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "CORE",
+                  "equipmentId": "cable",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "anti_rotation_trunk",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "spine",
+                    "hip"
+                  ],
+                  "relevantTendons": [
+                    "spine_tendon",
+                    "hip_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón anti-rotación tronco para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Press Pallof» siguiendo el patrón anti-rotación tronco con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de spine según tolerancia y rango disponible.",
+                    "Movilidad de hip según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura polea y adopta la posición específica de «Press Pallof» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Press Pallof",
+                  "displaySummary": "Polea",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.5,
+                  "efc": 2.0,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 4.5,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Press Pallof",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "core_press_pallof__default",
+                  "definitionId": "core_press_pallof",
+                  "familyId": "core_anti_rotation_trunk",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "core_press_pallof__cable__press_pallof",
+                  "searchTerms": [
+                    "core press pallof",
+                    "press pallof"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar core dentro del patrón anti_rotation_trunk.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "core_accessory"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón anti_rotation_trunk y el objetivo core."
+                  ],
+                  "replacementGroup": "core_pallof_press",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "abdominals"
+              ],
+              "setupCues": [
+                "Configura polea y adopta la posición específica de «Press Pallof» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.5,
+              "ttc": 1.5
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "core_press_pallof__default",
+        "description": "Press Pallof trabaja principalmente core mediante un patrón de anti-rotación tronco. La participación secundaria corresponde a abdomen.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:core_press_pallof"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "core_anti_rotation_trunk",
+        "id": "core_press_pallof",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "core press pallof",
+          "press pallof"
+        ]
+      }
+    ],
+    "description": "Familia controlada por patrón anti_rotation_trunk; cada especialidad conserva su perfil resuelto.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:core_anti_rotation_trunk"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "core_anti_rotation_trunk",
+    "taxonomy": [
+      "core",
+      "anti_rotation_trunk"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

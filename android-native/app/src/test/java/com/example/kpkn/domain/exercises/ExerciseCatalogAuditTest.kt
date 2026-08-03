@@ -136,7 +136,8 @@ class ExerciseCatalogAuditTest {
             byId.getValue("chest_supported_row").optionAxes,
         )
 
-        assertEquals(10, byId.getValue("romanian_deadlift").configurations.size)
+        assertEquals(8, byId.getValue("romanian_deadlift").configurations.size)
+        assertEquals(8, byId.getValue("romanian_sumo_deadlift").configurations.size)
         assertEquals(18, byId.getValue("chest_supported_row").configurations.size)
         assertEquals(9, byId.getValue("pull_up").configurations.size)
         assertTrue(byId.getValue("bench_press").configurations.map { it.profile.equipmentId }.containsAll(listOf("barbell", "dumbbells")))

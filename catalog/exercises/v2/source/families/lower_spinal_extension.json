@@ -1,1 +1,682 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Tren inferior · erector spinae · spinal extension","definitions":[{"canonicalName":"Hiperextensiones de Espalda Baja","configurations":[{"displaySummary":"Máquina","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_extension_lumbar","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"back_extension_lumbar__default","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"LOWER","cnc":2.0,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón extensión columna para completar la repetición."],"description":"Extensión Lumbar trabaja principalmente erectores espinales mediante un patrón de extensión columna. La participación secundaria corresponde a glúteos. La configuración utiliza máquina como implemento.","efc":2.5,"equipmentId":"machine","executionCues":["Ejecuta «Extensión Lumbar» siguiendo el patrón extensión columna con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"spinal_extension","muscleNotes":[{"muscleId":"erector_spinae","note":"Principal: los erectores extienden la columna y concentran la fuerza del movimiento; por eso suman la serie completa (1.0)."},{"muscleId":"gluteus_maximus","note":"Secundario: el glúteo mayor asiste la extensión de cadera y completa el movimiento; por eso suma 0.5."}],"performanceProfileId":"back_extension_lumbar__machine__extension_lumbar","primaryMuscles":["erector_spinae"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["spinal_extension"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["erector_spinae"],"secondaryMuscles":["gluteus_maximus"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["erector_spinae"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"machine","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"spinal_extension","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"guided_constant","stability":"guided"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón extensión columna para completar la repetición."],"cues":["Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Extensión Lumbar» siguiendo el patrón extensión columna con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Configura máquina y adopta la posición específica de «Extensión Lumbar» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Hiperextensiones de Espalda Baja","displaySummary":"Máquina","selectedOptions":{}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Hiperextensiones de Espalda Baja","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"back_extension_lumbar__default","definitionId":"back_extension_lumbar","familyId":"lower_spinal_extension","kind":"SPECIALTY","performanceProfileId":"back_extension_lumbar__machine__extension_lumbar","searchTerms":["hiperextensiones de espalda baja","extension lumbar","back extension"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar erector_spinae dentro del patrón spinal_extension.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["machine"],"role":"accessory_isolation","setupTransitionCost":"high","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["machine"],"preservesIntent":["Conserva el patrón spinal_extension y el objetivo erector_spinae."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["gluteus_maximus"],"setupCues":["Configura máquina y adopta la posición específica de «Extensión Lumbar» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":[],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{}}],"defaultConfigurationId":"back_extension_lumbar__default","description":"Extensión Lumbar trabaja principalmente erectores espinales mediante un patrón de extensión columna. La participación secundaria corresponde a glúteos.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:back_extension_lumbar"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"lower_spinal_extension","id":"back_extension_lumbar","kind":"SPECIALTY","optionAxes":[],"searchTerms":["hiperextensiones de espalda baja","extension lumbar","back extension"]},{"canonicalName":"Superman en Suelo","configurations":[{"displaySummary":"Peso Corporal","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_superman_suelo","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"back_superman_suelo__default","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"LOWER","cnc":2.0,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón extensión columna para completar la repetición."],"description":"Extensión isométrica lumbar tumbado en el suelo. La configuración utiliza peso corporal como implemento.","efc":2.5,"equipmentId":"bodyweight","executionCues":["Ejecuta «Superman en Suelo» siguiendo el patrón extensión columna con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"bodyweight","movementPatternId":"spinal_extension","muscleNotes":[{"muscleId":"erector_spinae","note":"Principal: los erectores extienden la columna y concentran la fuerza del movimiento; por eso suman la serie completa (1.0)."},{"muscleId":"gluteus_maximus","note":"Secundario: el glúteo mayor asiste la extensión de cadera y completa el movimiento; por eso suma 0.5."},{"muscleId":"hamstrings","note":"Secundario: los isquiosurales asisten la cadena posterior y estabilizan la rodilla; por eso suman 0.5."}],"performanceProfileId":"back_superman_suelo__bodyweight__superman_en_suelo","primaryMuscles":["erector_spinae"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["spinal_extension"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["erector_spinae"],"secondaryMuscles":["gluteus_maximus","hamstrings"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["erector_spinae"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"bodyweight","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"bodyweight","movementPatternId":"spinal_extension","rangeOfMotion":"limited_by_support","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón extensión columna para completar la repetición."],"cues":["Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Superman en Suelo» siguiendo el patrón extensión columna con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Configura peso corporal y adopta la posición específica de «Superman en Suelo» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Superman en Suelo","displaySummary":"Peso Corporal","selectedOptions":{}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Superman en Suelo","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"back_superman_suelo__default","definitionId":"back_superman_suelo","familyId":"lower_spinal_extension","kind":"SPECIALTY","performanceProfileId":"back_superman_suelo__bodyweight__superman_en_suelo","searchTerms":["superman en suelo"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar erector_spinae dentro del patrón spinal_extension.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["bodyweight"],"role":"accessory_isolation","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["bodyweight"],"preservesIntent":["Conserva el patrón spinal_extension y el objetivo erector_spinae."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["gluteus_maximus","hamstrings"],"setupCues":["Configura peso corporal y adopta la posición específica de «Superman en Suelo» antes de iniciar; conserva una base estable."],"ssc":0.4,"stabilizerMuscles":[],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{}}],"defaultConfigurationId":"back_superman_suelo__default","description":"Extensión isométrica lumbar tumbado en el suelo.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:back_superman_suelo"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"lower_spinal_extension","id":"back_superman_suelo","kind":"SPECIALTY","optionAxes":[],"searchTerms":["superman en suelo"]},{"canonicalName":"Hiperextensión a 45 Zercher para Espalda Baja","configurations":[{"displaySummary":"zercher","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#back_extension_lumbar","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"back_hiperextension_45_zercher_espalda_baja__default","profile":{"automationEligible":true,"axialLoadFactor":0.4,"bodyRegion":"LOWER","cnc":2.0,"commonMistakes":["Redondear la espalda al final del recorrido para ganar profundidad."],"description":"Hiperextensión a 45 grados en posición Zercher orientada a la espalda baja: los erectores sostienen la columna contra la flexión controlada con la carga frontal.","efc":2.5,"equipmentId":"barbell","executionCues":["Extiende el tronco con control manteniendo la zona lumbar neutra."],"kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"spinal_extension","muscleNotes":[{"muscleId":"erector_spinae","note":"Principal: los erectores extienden la columna contra la carga y concentran el trabajo de esta variante; por eso suman la serie completa (1.0)."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco firme y protege la zona lumbar durante el recorrido; por eso suma 0.4."}],"performanceProfileId":"back_hiperextension_45_zercher_espalda_baja","primaryMuscles":["erector_spinae"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["spinal_extension"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["erector_spinae"],"secondaryMuscles":[],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["erector_spinae"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"barbell","kineticChain":"POSTERIOR","laterality":"NOT_APPLICABLE","loadMode":"free_external_load","movementPatternId":"spinal_extension","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"gravity_arc","stability":"guided"},"coaching":{"commonMistakes":["Redondear la espalda al final del recorrido para ganar profundidad."],"cues":["Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."],"execution":["Extiende el tronco con control manteniendo la zona lumbar neutra."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Ajusta el banco a 45 grados y sostén la carga en posición Zercher contra el pecho."]},"display":{"displayName":"Hiperextensión a 45 Zercher para Espalda Baja","displaySummary":"zercher","selectedOptions":{}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.4,"cnc":2.0,"efc":2.5,"ssc":0.4,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Hiperextensión a 45 Zercher para Espalda Baja","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"back_hiperextension_45_zercher_espalda_baja__default","definitionId":"back_hiperextension_45_zercher_espalda_baja","familyId":"lower_spinal_extension","kind":"SPECIALTY","performanceProfileId":"back_hiperextension_45_zercher_espalda_baja","searchTerms":["hiperextension zercher espalda baja","zercher back extension","hiperextension 45 zercher"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar erector_spinae con la hiperextensión Zercher a 45 grados."],"recoveryCost":"moderate","requiredEquipment":["barbell"],"role":"accessory_isolation","setupTransitionCost":"high","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["barbell"],"preservesIntent":["Conserva la extensión de columna y el objetivo erector_spinae."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":[],"setupCues":["Ajusta el banco a 45 grados y sostén la carga en posición Zercher contra el pecho."],"ssc":0.4,"stabilizerMuscles":["core"],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{}}],"defaultConfigurationId":"back_hiperextension_45_zercher_espalda_baja__default","description":"Hiperextensión en banco a 45 grados con la carga en posición Zercher orientada a la espalda baja: los erectores sostienen la columna contra la flexión controlada.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:catalog-v3-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v3; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"familyId":"lower_spinal_extension","id":"back_hiperextension_45_zercher_espalda_baja","kind":"SPECIALTY","optionAxes":[],"searchTerms":["hiperextension zercher espalda baja","zercher back extension","hiperextension 45 zercher"]}],"description":"Familia controlada por patrón spinal_extension; cada especialidad conserva su perfil resuelto.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:lower_spinal_extension"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"lower_spinal_extension","taxonomy":["lower","spinal_extension"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Tren inferior · erector spinae · spinal extension",
+    "definitions": [
+      {
+        "canonicalName": "Hiperextensiones de Espalda Baja",
+        "configurations": [
+          {
+            "displaySummary": "Máquina",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_extension_lumbar",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "back_extension_lumbar__default",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón extensión columna para completar la repetición."
+              ],
+              "description": "Extensión Lumbar trabaja principalmente erectores espinales mediante un patrón de extensión columna. La participación secundaria corresponde a glúteos. La configuración utiliza máquina como implemento.",
+              "efc": 2.5,
+              "equipmentId": "machine",
+              "executionCues": [
+                "Ejecuta «Extensión Lumbar» siguiendo el patrón extensión columna con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "spinal_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Principal: los erectores extienden la columna y concentran la fuerza del movimiento; por eso suman la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: el glúteo mayor asiste la extensión de cadera y completa el movimiento; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "back_extension_lumbar__machine__extension_lumbar",
+              "primaryMuscles": [
+                "erector_spinae"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "spinal_extension"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "erector_spinae"
+                  ],
+                  "secondaryMuscles": [
+                    "gluteus_maximus"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "erector_spinae"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "spinal_extension",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón extensión columna para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Extensión Lumbar» siguiendo el patrón extensión columna con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura máquina y adopta la posición específica de «Extensión Lumbar» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Hiperextensiones de Espalda Baja",
+                  "displaySummary": "Máquina",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Hiperextensiones de Espalda Baja",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "back_extension_lumbar__default",
+                  "definitionId": "back_extension_lumbar",
+                  "familyId": "lower_spinal_extension",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "back_extension_lumbar__machine__extension_lumbar",
+                  "searchTerms": [
+                    "hiperextensiones de espalda baja",
+                    "extension lumbar",
+                    "back extension"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar erector_spinae dentro del patrón spinal_extension.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "machine"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón spinal_extension y el objetivo erector_spinae."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "gluteus_maximus"
+              ],
+              "setupCues": [
+                "Configura máquina y adopta la posición específica de «Extensión Lumbar» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "back_extension_lumbar__default",
+        "description": "Extensión Lumbar trabaja principalmente erectores espinales mediante un patrón de extensión columna. La participación secundaria corresponde a glúteos.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:back_extension_lumbar"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "lower_spinal_extension",
+        "id": "back_extension_lumbar",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "hiperextensiones de espalda baja",
+          "extension lumbar",
+          "back extension"
+        ]
+      },
+      {
+        "canonicalName": "Superman en Suelo",
+        "configurations": [
+          {
+            "displaySummary": "Peso Corporal",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_superman_suelo",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "back_superman_suelo__default",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón extensión columna para completar la repetición."
+              ],
+              "description": "Extensión isométrica lumbar tumbado en el suelo. La configuración utiliza peso corporal como implemento.",
+              "efc": 2.5,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Ejecuta «Superman en Suelo» siguiendo el patrón extensión columna con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "bodyweight",
+              "movementPatternId": "spinal_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Principal: los erectores extienden la columna y concentran la fuerza del movimiento; por eso suman la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: el glúteo mayor asiste la extensión de cadera y completa el movimiento; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: los isquiosurales asisten la cadena posterior y estabilizan la rodilla; por eso suman 0.5."
+                }
+              ],
+              "performanceProfileId": "back_superman_suelo__bodyweight__superman_en_suelo",
+              "primaryMuscles": [
+                "erector_spinae"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "spinal_extension"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "erector_spinae"
+                  ],
+                  "secondaryMuscles": [
+                    "gluteus_maximus",
+                    "hamstrings"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "erector_spinae"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "spinal_extension",
+                  "rangeOfMotion": "limited_by_support",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón extensión columna para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Superman en Suelo» siguiendo el patrón extensión columna con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura peso corporal y adopta la posición específica de «Superman en Suelo» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Superman en Suelo",
+                  "displaySummary": "Peso Corporal",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Superman en Suelo",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "back_superman_suelo__default",
+                  "definitionId": "back_superman_suelo",
+                  "familyId": "lower_spinal_extension",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "back_superman_suelo__bodyweight__superman_en_suelo",
+                  "searchTerms": [
+                    "superman en suelo"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar erector_spinae dentro del patrón spinal_extension.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón spinal_extension y el objetivo erector_spinae."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "gluteus_maximus",
+                "hamstrings"
+              ],
+              "setupCues": [
+                "Configura peso corporal y adopta la posición específica de «Superman en Suelo» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "back_superman_suelo__default",
+        "description": "Extensión isométrica lumbar tumbado en el suelo.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:back_superman_suelo"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "lower_spinal_extension",
+        "id": "back_superman_suelo",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "superman en suelo"
+        ]
+      },
+      {
+        "canonicalName": "Hiperextensión a 45 Zercher para Espalda Baja",
+        "configurations": [
+          {
+            "displaySummary": "zercher",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#back_extension_lumbar",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "back_hiperextension_45_zercher_espalda_baja__default",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.4,
+              "bodyRegion": "LOWER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Redondear la espalda al final del recorrido para ganar profundidad."
+              ],
+              "description": "Hiperextensión a 45 grados en posición Zercher orientada a la espalda baja: los erectores sostienen la columna contra la flexión controlada con la carga frontal.",
+              "efc": 2.5,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Extiende el tronco con control manteniendo la zona lumbar neutra."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "free_external_load",
+              "movementPatternId": "spinal_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Principal: los erectores extienden la columna contra la carga y concentran el trabajo de esta variante; por eso suman la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco firme y protege la zona lumbar durante el recorrido; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "back_hiperextension_45_zercher_espalda_baja",
+              "primaryMuscles": [
+                "erector_spinae"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "spinal_extension"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "erector_spinae"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "erector_spinae"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "spinal_extension",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Redondear la espalda al final del recorrido para ganar profundidad."
+                  ],
+                  "cues": [
+                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Extiende el tronco con control manteniendo la zona lumbar neutra."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Ajusta el banco a 45 grados y sostén la carga en posición Zercher contra el pecho."
+                  ]
+                },
+                "display": {
+                  "displayName": "Hiperextensión a 45 Zercher para Espalda Baja",
+                  "displaySummary": "zercher",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.4,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Hiperextensión a 45 Zercher para Espalda Baja",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "back_hiperextension_45_zercher_espalda_baja__default",
+                  "definitionId": "back_hiperextension_45_zercher_espalda_baja",
+                  "familyId": "lower_spinal_extension",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "back_hiperextension_45_zercher_espalda_baja",
+                  "searchTerms": [
+                    "hiperextension zercher espalda baja",
+                    "zercher back extension",
+                    "hiperextension 45 zercher"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar erector_spinae con la hiperextensión Zercher a 45 grados."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la extensión de columna y el objetivo erector_spinae."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Ajusta el banco a 45 grados y sostén la carga en posición Zercher contra el pecho."
+              ],
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "back_hiperextension_45_zercher_espalda_baja__default",
+        "description": "Hiperextensión en banco a 45 grados con la carga en posición Zercher orientada a la espalda baja: los erectores sostienen la columna contra la flexión controlada.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:catalog-v3-2026-08-02"
+          ],
+          "rationale": "Aprobado por decisión explícita de catálogo v3; la configuración está materializada y no depende de inferencia runtime.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "lower_spinal_extension",
+        "id": "back_hiperextension_45_zercher_espalda_baja",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "hiperextension zercher espalda baja",
+          "zercher back extension",
+          "hiperextension 45 zercher"
+        ]
+      }
+    ],
+    "description": "Familia controlada por patrón spinal_extension; cada especialidad conserva su perfil resuelto.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:lower_spinal_extension"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "lower_spinal_extension",
+    "taxonomy": [
+      "lower",
+      "spinal_extension"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

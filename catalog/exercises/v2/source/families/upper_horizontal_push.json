@@ -1,1 +1,2903 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Empuje horizontal","definitions":[{"canonicalName":"Flexiones de brazos","configurations":[{"displaySummary":"flat","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#tren_superior_flexiones","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"push_up__flat","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":3.0,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."],"description":"Flexiones de Brazos trabaja principalmente pectorales mediante un patrón de empuje horizontal. La participación secundaria corresponde a tríceps, deltoides. La configuración utiliza peso corporal como implemento. La variante se define por: ángulo plano.","efc":3.5,"equipmentId":"bodyweight","executionCues":["Ejecuta «Flexiones de Brazos» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"bodyweight","movementPatternId":"horizontal_push","muscleNotes":[{"muscleId":"pectoralis","note":"Principal: el pectoral mayor empuja o aduce el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."},{"muscleId":"triceps","note":"Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."},{"muscleId":"deltoid","note":"Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."},{"muscleId":"core","note":"Estabilizador: el core protege la columna y transmite la fuerza de forma isométrica; por eso suma 0.4."}],"performanceProfileId":"push_up__bodyweight__flexiones_de_brazos","primaryMuscles":["pectoralis"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["horizontal_push"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["pectoralis"],"secondaryMuscles":["triceps","deltoid"],"stabilizationDemand":"high","stabilizerMuscles":["core"],"targetRegions":["pectoralis"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"bodyweight","kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"bodyweight","movementPatternId":"horizontal_push","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."],"cues":["Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Flexiones de Brazos» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura peso corporal y adopta la posición específica de «Flexiones de Brazos» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Flexiones de brazos","displaySummary":"flat","selectedOptions":{"support_angle":"flat"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":3.0,"efc":3.5,"ssc":0.9,"technicalDifficulty":6.0,"ttc":1.8},"identity":{"canonicalName":"Flexiones de brazos","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"push_up__flat","definitionId":"push_up","familyId":"upper_horizontal_push","kind":"PARENT","performanceProfileId":"push_up__bodyweight__flexiones_de_brazos","searchTerms":["flexiones con pies elevados","flexiones de brazos","flexiones de brazos clásicas","tren superior flexiones"]},"programming":{"fatigueCost":"high","indicativeRestSeconds":{"max":150,"min":90},"objectives":["Desarrollar pectoralis dentro del patrón horizontal_push.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"high","requiredEquipment":["bodyweight"],"role":"primary_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["4-8","6-12"]},"replacement":{"compatibleEquipmentIds":["bodyweight"],"preservesIntent":["Conserva el patrón horizontal_push y el objetivo pectoralis."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":["La pérdida de la posición puede trasladar carga fuera del patrón horizontal_push."]}},"secondaryMuscles":["triceps","deltoid"],"setupCues":["Configura peso corporal y adopta la posición específica de «Flexiones de Brazos» antes de iniciar; conserva una base estable."],"ssc":0.9,"stabilizerMuscles":["core"],"technicalDifficulty":6.0,"ttc":1.8},"selectedOptions":{"support_angle":"flat"}},{"displaySummary":"feet_elevated","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#tren_superior_flexiones_pies_elevados","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"push_up__feet_elevated","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.8,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."],"description":"Pies elevados sobre banco o caja. Mayor carga sobre la parte superior del pectoral. La configuración utiliza peso corporal como implemento. La variante se define por: pies elevados.","efc":3.2,"equipmentId":"bodyweight","executionCues":["Ejecuta «Flexiones con Pies Elevados» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"bodyweight","movementPatternId":"horizontal_push","muscleNotes":[{"muscleId":"pectoralis","note":"Principal: el pectoral mayor empuja o aduce el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."},{"muscleId":"triceps","note":"Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."},{"muscleId":"deltoid","note":"Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."},{"muscleId":"core","note":"Estabilizador: el core protege la columna y transmite la fuerza de forma isométrica; por eso suma 0.4."}],"performanceProfileId":"push_up__bodyweight__flexiones_de_brazos","primaryMuscles":["pectoralis"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["horizontal_push"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["pectoralis"],"secondaryMuscles":["triceps","deltoid"],"stabilizationDemand":"high","stabilizerMuscles":["core"],"targetRegions":["pectoralis"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"bodyweight","kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"bodyweight","movementPatternId":"horizontal_push","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."],"cues":["Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Flexiones con Pies Elevados» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura peso corporal y adopta la posición específica de «Flexiones con Pies Elevados» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Flexiones de brazos","displaySummary":"feet_elevated","selectedOptions":{"support_angle":"feet_elevated"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.8,"efc":3.2,"ssc":0.8,"technicalDifficulty":4.8,"ttc":1.8},"identity":{"canonicalName":"Flexiones de brazos","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"push_up__feet_elevated","definitionId":"push_up","familyId":"upper_horizontal_push","kind":"PARENT","performanceProfileId":"push_up__bodyweight__flexiones_de_brazos","searchTerms":["flexiones con pies elevados","flexiones de brazos","flexiones de brazos clásicas","tren superior flexiones"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar pectoralis dentro del patrón horizontal_push.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["bodyweight"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["bodyweight"],"preservesIntent":["Conserva el patrón horizontal_push y el objetivo pectoralis."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["triceps","deltoid"],"setupCues":["Configura peso corporal y adopta la posición específica de «Flexiones con Pies Elevados» antes de iniciar; conserva una base estable."],"ssc":0.8,"stabilizerMuscles":["core"],"technicalDifficulty":4.8,"ttc":1.8},"selectedOptions":{"support_angle":"feet_elevated"}}],"defaultConfigurationId":"push_up__flat","description":"Flexiones de brazos trabaja principalmente pectorales mediante un patrón de empuje horizontal. La participación secundaria corresponde a tríceps, deltoides.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:push_up"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"upper_horizontal_push","id":"push_up","kind":"PARENT","optionAxes":["support_angle"],"searchTerms":["flexiones con pies elevados","flexiones de brazos","flexiones de brazos clásicas","tren superior flexiones"]},{"canonicalName":"Cruce de Poleas","configurations":[{"displaySummary":"cable · high","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#tren_superior_cruce_poleas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"tren_superior_cruce_poleas__high","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar el peso del cuerpo para completar el cruce en lugar de aislar el pectoral."],"description":"Cruce de poleas con las poleas en altura alta: el ángulo descendente pone el énfasis en la porción inferior del pectoral.","efc":2.4,"equipmentId":"cable","executionCues":["Junta las manos frente al pecho con control y deja que los brazos vuelvan con tensión."],"kineticChain":"ANTERIOR","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"horizontal_push","muscleNotes":[{"muscleId":"pectoralis","note":"Principal: el pectoral aduce el brazo hacia la línea media y concentra el trabajo del cruce; por eso suma la serie completa (1.0)."},{"muscleId":"deltoid","note":"Secundario: el deltoides anterior asiste la flexión de hombro durante el cruce; por eso suma 0.5."}],"performanceProfileId":"tren_superior_cruce_poleas__high","primaryMuscles":["pectoralis"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["horizontal_push"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["pectoralis"],"secondaryMuscles":["deltoid"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["pectoralis"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"cable","kineticChain":"ANTERIOR","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"horizontal_push","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar el peso del cuerpo para completar el cruce en lugar de aislar el pectoral."],"cues":["Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."],"execution":["Junta las manos frente al pecho con control y deja que los brazos vuelvan con tensión."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Ajusta ambas poleas a la misma altura y coloca un pie adelantado para estabilizarte."]},"display":{"displayName":"Cruce de Poleas","displaySummary":"cable · high","selectedOptions":{"implement":"cable","pulley_height":"high"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.4,"ssc":0.6,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Cruce de Poleas","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"tren_superior_cruce_poleas__high","definitionId":"tren_superior_cruce_poleas","familyId":"upper_horizontal_push","kind":"PARENT","performanceProfileId":"tren_superior_cruce_poleas__high","searchTerms":["cruce de poleas","crossover","cable crossover","cruces","pecho en polea"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar pectoralis en aducción horizontal con cruce de poleas."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable"],"preservesIntent":["Conserva la aducción horizontal y el objetivo pectoralis."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["deltoid"],"setupCues":["Ajusta ambas poleas a la misma altura y coloca un pie adelantado para estabilizarte."],"ssc":0.6,"stabilizerMuscles":[],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"cable","pulley_height":"high"}},{"displaySummary":"cable · mid","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#tren_superior_cruce_poleas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"tren_superior_cruce_poleas__mid","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar el peso del cuerpo para completar el cruce en lugar de aislar el pectoral."],"description":"Cruce de poleas con las poleas a la altura media: el recorrido horizontal reparte el trabajo de forma equilibrada por el pectoral completo.","efc":2.4,"equipmentId":"cable","executionCues":["Junta las manos frente al pecho con control y deja que los brazos vuelvan con tensión."],"kineticChain":"ANTERIOR","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"horizontal_push","muscleNotes":[{"muscleId":"pectoralis","note":"Principal: el pectoral aduce el brazo hacia la línea media y concentra el trabajo del cruce; por eso suma la serie completa (1.0)."},{"muscleId":"deltoid","note":"Secundario: el deltoides anterior asiste la flexión de hombro durante el cruce; por eso suma 0.5."}],"performanceProfileId":"tren_superior_cruce_poleas__mid","primaryMuscles":["pectoralis"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["horizontal_push"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["pectoralis"],"secondaryMuscles":["deltoid"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["pectoralis"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"cable","kineticChain":"ANTERIOR","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"horizontal_push","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar el peso del cuerpo para completar el cruce en lugar de aislar el pectoral."],"cues":["Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."],"execution":["Junta las manos frente al pecho con control y deja que los brazos vuelvan con tensión."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Ajusta ambas poleas a la misma altura y coloca un pie adelantado para estabilizarte."]},"display":{"displayName":"Cruce de Poleas","displaySummary":"cable · mid","selectedOptions":{"implement":"cable","pulley_height":"mid"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.4,"ssc":0.6,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Cruce de Poleas","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"tren_superior_cruce_poleas__mid","definitionId":"tren_superior_cruce_poleas","familyId":"upper_horizontal_push","kind":"PARENT","performanceProfileId":"tren_superior_cruce_poleas__mid","searchTerms":["cruce de poleas","crossover","cable crossover","cruces","pecho en polea"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar pectoralis en aducción horizontal con cruce de poleas."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable"],"preservesIntent":["Conserva la aducción horizontal y el objetivo pectoralis."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["deltoid"],"setupCues":["Ajusta ambas poleas a la misma altura y coloca un pie adelantado para estabilizarte."],"ssc":0.6,"stabilizerMuscles":[],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"cable","pulley_height":"mid"}},{"displaySummary":"cable · low","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#tren_superior_cruce_poleas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"tren_superior_cruce_poleas__low","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.0,"commonMistakes":["Usar el peso del cuerpo para completar el cruce en lugar de aislar el pectoral."],"description":"Cruce de poleas con las poleas en altura baja: el ángulo ascendente pone el énfasis en la porción superior del pectoral.","efc":2.4,"equipmentId":"cable","executionCues":["Junta las manos frente al pecho con control y deja que los brazos vuelvan con tensión."],"kineticChain":"ANTERIOR","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"horizontal_push","muscleNotes":[{"muscleId":"pectoralis","note":"Principal: el pectoral aduce el brazo hacia la línea media y concentra el trabajo del cruce; por eso suma la serie completa (1.0)."},{"muscleId":"deltoid","note":"Secundario: el deltoides anterior asiste la flexión de hombro durante el cruce; por eso suma 0.5."}],"performanceProfileId":"tren_superior_cruce_poleas__low","primaryMuscles":["pectoralis"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["horizontal_push"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["pectoralis"],"secondaryMuscles":["deltoid"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["pectoralis"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"cable","kineticChain":"ANTERIOR","laterality":"NOT_APPLICABLE","loadMode":"continuous_cable","movementPatternId":"horizontal_push","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar el peso del cuerpo para completar el cruce en lugar de aislar el pectoral."],"cues":["Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."],"execution":["Junta las manos frente al pecho con control y deja que los brazos vuelvan con tensión."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Ajusta ambas poleas a la misma altura y coloca un pie adelantado para estabilizarte."]},"display":{"displayName":"Cruce de Poleas","displaySummary":"cable · low","selectedOptions":{"implement":"cable","pulley_height":"low"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.0,"efc":2.4,"ssc":0.6,"technicalDifficulty":4.0,"ttc":1.8},"identity":{"canonicalName":"Cruce de Poleas","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"tren_superior_cruce_poleas__low","definitionId":"tren_superior_cruce_poleas","familyId":"upper_horizontal_push","kind":"PARENT","performanceProfileId":"tren_superior_cruce_poleas__low","searchTerms":["cruce de poleas","crossover","cable crossover","cruces","pecho en polea"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar pectoralis en aducción horizontal con cruce de poleas."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable"],"preservesIntent":["Conserva la aducción horizontal y el objetivo pectoralis."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["deltoid"],"setupCues":["Ajusta ambas poleas a la misma altura y coloca un pie adelantado para estabilizarte."],"ssc":0.6,"stabilizerMuscles":[],"technicalDifficulty":4.0,"ttc":1.8},"selectedOptions":{"implement":"cable","pulley_height":"low"}}],"defaultConfigurationId":"tren_superior_cruce_poleas__mid","description":"Aducción horizontal del pectoral en estación de poleas dobles. La altura de la polea cambia el enfoque del pecho: desde la altura alta el trabajo se concentra en la porción inferior del pectoral.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:tren_superior_cruce_poleas"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"upper_horizontal_push","id":"tren_superior_cruce_poleas","kind":"PARENT","optionAxes":["implement","pulley_height"],"searchTerms":["cruce de poleas","crossover","cable crossover","cruces","pecho en polea"]},{"canonicalName":"Fondos en Paralelas","configurations":[{"displaySummary":"Peso Corporal","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#tren_superior_fondos","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"tren_superior_fondos__default","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":3.0,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."],"description":"Fondos trabaja principalmente pectorales mediante un patrón de empuje horizontal. La participación secundaria corresponde a tríceps, deltoides. La configuración utiliza peso corporal como implemento.","efc":3.5,"equipmentId":"bodyweight","executionCues":["Ejecuta «Fondos» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"bodyweight","movementPatternId":"horizontal_push","muscleNotes":[{"muscleId":"pectoralis","note":"Principal: el pectoral mayor empuja o aduce el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."},{"muscleId":"triceps","note":"Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."},{"muscleId":"deltoid","note":"Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."},{"muscleId":"core","note":"Estabilizador: el core protege la columna y transmite la fuerza de forma isométrica; por eso suma 0.4."}],"performanceProfileId":"tren_superior_fondos__bodyweight__fondos","primaryMuscles":["pectoralis"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["horizontal_push"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["pectoralis"],"secondaryMuscles":["triceps","deltoid"],"stabilizationDemand":"high","stabilizerMuscles":["core"],"targetRegions":["pectoralis"],"volumeContribution":"direct"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"bodyweight","kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"bodyweight","movementPatternId":"horizontal_push","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."],"cues":["Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Fondos» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura peso corporal y adopta la posición específica de «Fondos» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Fondos en Paralelas","displaySummary":"Peso Corporal","selectedOptions":{}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":3.0,"efc":3.5,"ssc":0.9,"technicalDifficulty":6.0,"ttc":2.0},"identity":{"canonicalName":"Fondos en Paralelas","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"tren_superior_fondos__default","definitionId":"tren_superior_fondos","familyId":"upper_horizontal_push","kind":"SPECIALTY","performanceProfileId":"tren_superior_fondos__bodyweight__fondos","searchTerms":["fondos en paralelas","fondos","parallel dips","dips"]},"programming":{"fatigueCost":"high","indicativeRestSeconds":{"max":150,"min":90},"objectives":["Desarrollar pectoralis dentro del patrón horizontal_push.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"high","requiredEquipment":["bodyweight"],"role":"primary_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["4-8","6-12"]},"replacement":{"compatibleEquipmentIds":["bodyweight"],"preservesIntent":["Conserva el patrón horizontal_push y el objetivo pectoralis."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":["La pérdida de la posición puede trasladar carga fuera del patrón horizontal_push."]}},"secondaryMuscles":["triceps","deltoid"],"setupCues":["Configura peso corporal y adopta la posición específica de «Fondos» antes de iniciar; conserva una base estable."],"ssc":0.9,"stabilizerMuscles":["core"],"technicalDifficulty":6.0,"ttc":2.0},"selectedOptions":{}}],"defaultConfigurationId":"tren_superior_fondos__default","description":"Fondos trabaja principalmente pectorales mediante un patrón de empuje horizontal. La participación secundaria corresponde a tríceps, deltoides.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:tren_superior_fondos"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"upper_horizontal_push","id":"tren_superior_fondos","kind":"SPECIALTY","optionAxes":[],"searchTerms":["fondos en paralelas","fondos","parallel dips","dips"]},{"canonicalName":"Press de Banca con Cadenas","configurations":[{"displaySummary":"Barra","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#tren_superior_press_banca_cadenas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"tren_superior_press_banca_cadenas__default","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":3.8,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."],"description":"Press con cadenas colgando. Resistencia variable que aumenta en el bloqueo. La configuración utiliza barra como implemento.","efc":4.0,"equipmentId":"barbell","executionCues":["Ejecuta «Press de Banca con Cadenas» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"horizontal_push","muscleNotes":[{"muscleId":"pectoralis","note":"Principal: el pectoral mayor empuja o aduce el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."},{"muscleId":"deltoid","note":"Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."},{"muscleId":"triceps","note":"Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."}],"performanceProfileId":"tren_superior_press_banca_cadenas__barbell__press_de_banca_con_cadenas","primaryMuscles":["pectoralis"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["horizontal_push"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["pectoralis"],"secondaryMuscles":["deltoid","triceps"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["pectoralis"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"barbell","kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"horizontal_push","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Press de Banca con Cadenas» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura barra y adopta la posición específica de «Press de Banca con Cadenas» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Press de Banca con Cadenas","displaySummary":"Barra","selectedOptions":{}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":3.8,"efc":4.0,"ssc":1.1,"technicalDifficulty":6.8,"ttc":2.2},"identity":{"canonicalName":"Press de Banca con Cadenas","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"tren_superior_press_banca_cadenas__default","definitionId":"tren_superior_press_banca_cadenas","familyId":"upper_horizontal_push","kind":"SPECIALTY","performanceProfileId":"tren_superior_press_banca_cadenas__barbell__press_de_banca_con_cadenas","searchTerms":["press de banca con cadenas"]},"programming":{"fatigueCost":"high","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar pectoralis dentro del patrón horizontal_push.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"high","requiredEquipment":["barbell"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["barbell"],"preservesIntent":["Conserva el patrón horizontal_push y el objetivo pectoralis."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":["La pérdida de la posición puede trasladar carga fuera del patrón horizontal_push."]}},"secondaryMuscles":["deltoid","triceps"],"setupCues":["Configura barra y adopta la posición específica de «Press de Banca con Cadenas» antes de iniciar; conserva una base estable."],"ssc":1.1,"stabilizerMuscles":[],"technicalDifficulty":6.8,"ttc":2.2},"selectedOptions":{}}],"defaultConfigurationId":"tren_superior_press_banca_cadenas__default","description":"Press con cadenas colgando. Resistencia variable que aumenta en el bloqueo.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:tren_superior_press_banca_cadenas"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"upper_horizontal_push","id":"tren_superior_press_banca_cadenas","kind":"SPECIALTY","optionAxes":[],"searchTerms":["press de banca con cadenas"]},{"canonicalName":"Press con Banda de Resistencia","configurations":[{"displaySummary":"Banda","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#tren_superior_press_banda_resistencia","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"tren_superior_press_banda_resistencia__default","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":3.0,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."],"description":"Press de banca con bandas para resistencia variable. Mayor tensión en el punto de bloqueo. La configuración utiliza banda de resistencia como implemento.","efc":3.2,"equipmentId":"band","executionCues":["Ejecuta «Press con Banda de Resistencia» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"variable_band_resistance","movementPatternId":"horizontal_push","muscleNotes":[{"muscleId":"pectoralis","note":"Principal: el pectoral mayor empuja o aduce el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."},{"muscleId":"deltoid","note":"Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."},{"muscleId":"triceps","note":"Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."}],"performanceProfileId":"tren_superior_press_banda_resistencia__band__press_con_banda_de_resistencia","primaryMuscles":["pectoralis"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"variable_band","richMetadata":{"anatomy":{"jointActions":["horizontal_push"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["pectoralis"],"secondaryMuscles":["deltoid","triceps"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["pectoralis"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"band","kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"variable_band_resistance","movementPatternId":"horizontal_push","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"variable_band","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."],"cues":["Mantén el equipo band alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Press con Banda de Resistencia» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura banda y adopta la posición específica de «Press con Banda de Resistencia» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Press con Banda de Resistencia","displaySummary":"Banda","selectedOptions":{}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":3.0,"efc":3.2,"ssc":0.9,"technicalDifficulty":5.0,"ttc":2.0},"identity":{"canonicalName":"Press con Banda de Resistencia","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"tren_superior_press_banda_resistencia__default","definitionId":"tren_superior_press_banda_resistencia","familyId":"upper_horizontal_push","kind":"SPECIALTY","performanceProfileId":"tren_superior_press_banda_resistencia__band__press_con_banda_de_resistencia","searchTerms":["press con banda de resistencia"]},"programming":{"fatigueCost":"high","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar pectoralis dentro del patrón horizontal_push.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"high","requiredEquipment":["band"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["band"],"preservesIntent":["Conserva el patrón horizontal_push y el objetivo pectoralis."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":["La pérdida de la posición puede trasladar carga fuera del patrón horizontal_push."]}},"secondaryMuscles":["deltoid","triceps"],"setupCues":["Configura banda y adopta la posición específica de «Press con Banda de Resistencia» antes de iniciar; conserva una base estable."],"ssc":0.9,"stabilizerMuscles":[],"technicalDifficulty":5.0,"ttc":2.0},"selectedOptions":{}}],"defaultConfigurationId":"tren_superior_press_banda_resistencia__default","description":"Press de banca con bandas para resistencia variable. Mayor tensión en el punto de bloqueo.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:tren_superior_press_banda_resistencia"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"upper_horizontal_push","id":"tren_superior_press_banda_resistencia","kind":"SPECIALTY","optionAxes":[],"searchTerms":["press con banda de resistencia"]},{"canonicalName":"Press Plano en Máquina Convergente","configurations":[{"displaySummary":"Máquina","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#tren_superior_press_pecho_maquina_convergente","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"tren_superior_press_pecho_maquina_convergente__default","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.8,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."],"description":"Máquina con brazos convergentes. Estabilidad máxima y aislamiento del pectoral.","efc":3.2,"equipmentId":"machine","executionCues":["Ejecuta «Press de Pecho en Máquina Convergente» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"horizontal_push","muscleNotes":[{"muscleId":"pectoralis","note":"Principal: el pectoral mayor empuja o aduce el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."},{"muscleId":"deltoid","note":"Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."},{"muscleId":"triceps","note":"Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."}],"performanceProfileId":"tren_superior_press_pecho_maquina_convergente__machine__press_de_pecho_en_maquina_convergente","primaryMuscles":["pectoralis"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["horizontal_push"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["pectoralis"],"secondaryMuscles":["deltoid","triceps"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["pectoralis"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"machine","kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"horizontal_push","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"guided_constant","stability":"guided"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."],"cues":["Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Press de Pecho en Máquina Convergente» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura máquina y adopta la posición específica de «Press de Pecho en Máquina Convergente» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Press Plano en Máquina Convergente","displaySummary":"Máquina","selectedOptions":{}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.8,"efc":3.2,"ssc":0.8,"technicalDifficulty":4.8,"ttc":2.0},"identity":{"canonicalName":"Press Plano en Máquina Convergente","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"tren_superior_press_pecho_maquina_convergente__default","definitionId":"tren_superior_press_pecho_maquina_convergente","familyId":"upper_horizontal_push","kind":"SPECIALTY","performanceProfileId":"tren_superior_press_pecho_maquina_convergente__machine__press_de_pecho_en_maquina_convergente","searchTerms":["press plano maquina convergente","press de pecho convergente","converging press","chest press convergente"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar pectoralis dentro del patrón horizontal_push.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["machine"],"role":"accessory_compound","setupTransitionCost":"high","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["machine"],"preservesIntent":["Conserva el patrón horizontal_push y el objetivo pectoralis."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["deltoid","triceps"],"setupCues":["Configura máquina y adopta la posición específica de «Press de Pecho en Máquina Convergente» antes de iniciar; conserva una base estable."],"ssc":0.8,"stabilizerMuscles":[],"technicalDifficulty":4.8,"ttc":2.0},"selectedOptions":{}}],"defaultConfigurationId":"tren_superior_press_pecho_maquina_convergente__default","description":"Máquina con brazos convergentes. Estabilidad máxima y aislamiento del pectoral.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:tren_superior_press_pecho_maquina_convergente"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"upper_horizontal_push","id":"tren_superior_press_pecho_maquina_convergente","kind":"SPECIALTY","optionAxes":[],"searchTerms":["press plano maquina convergente","press de pecho convergente","converging press","chest press convergente"]},{"canonicalName":"Press Spoto con Barra","configurations":[{"displaySummary":"Barra","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#tren_superior_press_spoto_barra","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"tren_superior_press_spoto_barra__default","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":3.8,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."],"description":"Variante de banca donde la barra hace pausa corta a 2-3 cm del pecho. Elimina rebote y trabaja punto muerto.","efc":4.0,"equipmentId":"barbell","executionCues":["Ejecuta «Press Spoto con Barra» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"horizontal_push","muscleNotes":[{"muscleId":"pectoralis","note":"Principal: el pectoral mayor empuja o aduce el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."},{"muscleId":"deltoid","note":"Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."},{"muscleId":"triceps","note":"Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."}],"performanceProfileId":"tren_superior_press_spoto_barra__barbell__press_spoto_con_barra","primaryMuscles":["pectoralis"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["horizontal_push"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["pectoralis"],"secondaryMuscles":["deltoid","triceps"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["pectoralis"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"barbell","kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"horizontal_push","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Press Spoto con Barra» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura barra y adopta la posición específica de «Press Spoto con Barra» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Press Spoto con Barra","displaySummary":"Barra","selectedOptions":{}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":3.8,"efc":4.0,"ssc":1.2,"technicalDifficulty":6.8,"ttc":2.2},"identity":{"canonicalName":"Press Spoto con Barra","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"tren_superior_press_spoto_barra__default","definitionId":"tren_superior_press_spoto_barra","familyId":"upper_horizontal_push","kind":"SPECIALTY","performanceProfileId":"tren_superior_press_spoto_barra__barbell__press_spoto_con_barra","searchTerms":["press spoto con barra"]},"programming":{"fatigueCost":"high","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar pectoralis dentro del patrón horizontal_push.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"high","requiredEquipment":["barbell"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["barbell"],"preservesIntent":["Conserva el patrón horizontal_push y el objetivo pectoralis."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":["La pérdida de la posición puede trasladar carga fuera del patrón horizontal_push."]}},"secondaryMuscles":["deltoid","triceps"],"setupCues":["Configura barra y adopta la posición específica de «Press Spoto con Barra» antes de iniciar; conserva una base estable."],"ssc":1.2,"stabilizerMuscles":[],"technicalDifficulty":6.8,"ttc":2.2},"selectedOptions":{}}],"defaultConfigurationId":"tren_superior_press_spoto_barra__default","description":"Variante de banca donde la barra hace pausa corta a 2-3 cm del pecho. Elimina rebote y trabaja punto muerto.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:tren_superior_press_spoto_barra"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"upper_horizontal_push","id":"tren_superior_press_spoto_barra","kind":"SPECIALTY","optionAxes":[],"searchTerms":["press spoto con barra"]},{"canonicalName":"Press Unilateral en Polea","configurations":[{"displaySummary":"Polea","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#tren_superior_press_unilateral_polea","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"tren_superior_press_unilateral_polea__default","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.5,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."],"description":"Press con una mano en polea baja. Permite corrección de desbalances y trabajo unilateral.","efc":2.8,"equipmentId":"cable","executionCues":["Ejecuta «Press Unilateral en Polea» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"UNILATERAL","loadMode":"continuous_cable","movementPatternId":"horizontal_push","muscleNotes":[{"muscleId":"pectoralis","note":"Principal: el pectoral mayor empuja o aduce el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."},{"muscleId":"deltoid","note":"Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."},{"muscleId":"triceps","note":"Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."}],"performanceProfileId":"tren_superior_press_unilateral_polea__cable__press_unilateral_en_polea","primaryMuscles":["pectoralis"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"continuous_cable","richMetadata":{"anatomy":{"jointActions":["horizontal_push"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["pectoralis"],"secondaryMuscles":["deltoid","triceps"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["pectoralis"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"cable","kineticChain":"ANTERIOR","laterality":"UNILATERAL","loadMode":"continuous_cable","movementPatternId":"horizontal_push","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"continuous_cable","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."],"cues":["Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Press Unilateral en Polea» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura polea y adopta la posición específica de «Press Unilateral en Polea» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Press Unilateral en Polea","displaySummary":"Polea","selectedOptions":{}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.5,"efc":2.8,"ssc":0.7,"technicalDifficulty":4.5,"ttc":2.0},"identity":{"canonicalName":"Press Unilateral en Polea","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"tren_superior_press_unilateral_polea__default","definitionId":"tren_superior_press_unilateral_polea","familyId":"upper_horizontal_push","kind":"SPECIALTY","performanceProfileId":"tren_superior_press_unilateral_polea__cable__press_unilateral_en_polea","searchTerms":["press unilateral en polea"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar pectoralis dentro del patrón horizontal_push.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["cable"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["cable"],"preservesIntent":["Conserva el patrón horizontal_push y el objetivo pectoralis."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["deltoid","triceps"],"setupCues":["Configura polea y adopta la posición específica de «Press Unilateral en Polea» antes de iniciar; conserva una base estable."],"ssc":0.7,"stabilizerMuscles":[],"technicalDifficulty":4.5,"ttc":2.0},"selectedOptions":{}}],"defaultConfigurationId":"tren_superior_press_unilateral_polea__default","description":"Press con una mano en polea baja. Permite corrección de desbalances y trabajo unilateral.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:tren_superior_press_unilateral_polea"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"upper_horizontal_push","id":"tren_superior_press_unilateral_polea","kind":"SPECIALTY","optionAxes":[],"searchTerms":["press unilateral en polea"]},{"canonicalName":"Squeeze Press con Mancuernas","configurations":[{"displaySummary":"Mancuerna","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#tren_superior_squeeze_press_mancuernas","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"tren_superior_squeeze_press_mancuernas__default","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.5,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."],"description":"Press con mancuernas manteniendo palmas enfrentadas y comprimiendo. Tensión continua en pectoral.","efc":3.0,"equipmentId":"dumbbells","executionCues":["Ejecuta «Squeeze Press con Mancuernas» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"horizontal_push","muscleNotes":[{"muscleId":"pectoralis","note":"Principal: el pectoral mayor empuja o aduce el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."},{"muscleId":"deltoid","note":"Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."},{"muscleId":"triceps","note":"Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."}],"performanceProfileId":"tren_superior_squeeze_press_mancuernas__dumbbells__squeeze_press_con_mancuernas","primaryMuscles":["pectoralis"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["horizontal_push"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["pectoralis"],"secondaryMuscles":["deltoid","triceps"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["pectoralis"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"dumbbells","kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"horizontal_push","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."],"cues":["Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Squeeze Press con Mancuernas» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura mancuerna y adopta la posición específica de «Squeeze Press con Mancuernas» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Squeeze Press con Mancuernas","displaySummary":"Mancuerna","selectedOptions":{}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.5,"efc":3.0,"ssc":0.7,"technicalDifficulty":4.5,"ttc":2.0},"identity":{"canonicalName":"Squeeze Press con Mancuernas","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"tren_superior_squeeze_press_mancuernas__default","definitionId":"tren_superior_squeeze_press_mancuernas","familyId":"upper_horizontal_push","kind":"SPECIALTY","performanceProfileId":"tren_superior_squeeze_press_mancuernas__dumbbells__squeeze_press_con_mancuernas","searchTerms":["squeeze press con mancuernas"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar pectoralis dentro del patrón horizontal_push.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["dumbbells"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["dumbbells"],"preservesIntent":["Conserva el patrón horizontal_push y el objetivo pectoralis."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["deltoid","triceps"],"setupCues":["Configura mancuerna y adopta la posición específica de «Squeeze Press con Mancuernas» antes de iniciar; conserva una base estable."],"ssc":0.7,"stabilizerMuscles":[],"technicalDifficulty":4.5,"ttc":2.0},"selectedOptions":{}}],"defaultConfigurationId":"tren_superior_squeeze_press_mancuernas__default","description":"Press con mancuernas manteniendo palmas enfrentadas y comprimiendo. Tensión continua en pectoral.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:tren_superior_squeeze_press_mancuernas"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"upper_horizontal_push","id":"tren_superior_squeeze_press_mancuernas","kind":"SPECIALTY","optionAxes":[],"searchTerms":["squeeze press con mancuernas"]},{"canonicalName":"Press Inclinado en Máquina Convergente","configurations":[{"displaySummary":"Máquina","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#tren_superior_press_pecho_maquina_convergente","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"tren_superior_press_inclinado_maquina_convergente__default","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"UPPER","cnc":2.8,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."],"description":"Press de pecho inclinado en máquina convergente: el ángulo del banco enfatiza la porción superior del pectoral con el recorrido guiado de la máquina.","efc":3.2,"equipmentId":"machine","executionCues":["Ejecuta «Press de Pecho en Máquina Convergente» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"horizontal_push","muscleNotes":[{"muscleId":"pectoralis","note":"Principal: el pectoral mayor empuja o aduce el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."},{"muscleId":"deltoid","note":"Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."},{"muscleId":"triceps","note":"Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."}],"performanceProfileId":"tren_superior_press_pecho_maquina_convergente__machine__press_de_pecho_en_maquina_convergente","primaryMuscles":["pectoralis"],"replacementGroup":null,"replacementPriority":null,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["horizontal_push"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["pectoralis"],"secondaryMuscles":["deltoid","triceps"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["pectoralis"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"UPPER","equipmentId":"machine","kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"horizontal_push","rangeOfMotion":"controlled_full_available","relevantJoints":["shoulder","elbow","scapulothoracic"],"relevantTendons":["shoulder_tendon","elbow_tendon"],"resistanceProfile":"guided_constant","stability":"guided"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."],"cues":["Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Press de Pecho en Máquina Convergente» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de shoulder según tolerancia y rango disponible.","Movilidad de elbow según tolerancia y rango disponible."],"setup":["Configura máquina y adopta la posición específica de «Press de Pecho en Máquina Convergente» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Press Inclinado en Máquina Convergente","displaySummary":"Máquina","selectedOptions":{}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.8,"efc":3.2,"ssc":0.8,"technicalDifficulty":4.8,"ttc":2.0},"identity":{"canonicalName":"Press Inclinado en Máquina Convergente","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"tren_superior_press_inclinado_maquina_convergente__default","definitionId":"tren_superior_press_inclinado_maquina_convergente","familyId":"upper_horizontal_push","kind":"SPECIALTY","performanceProfileId":"tren_superior_press_pecho_maquina_convergente__machine__press_de_pecho_en_maquina_convergente","searchTerms":["press inclinado maquina convergente","incline converging press","press convergente inclinado"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar pectoralis dentro del patrón horizontal_push.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["machine"],"role":"accessory_compound","setupTransitionCost":"high","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["machine"],"preservesIntent":["Conserva el patrón horizontal_push y el objetivo pectoralis."],"replacementGroup":null,"replacementPriority":null},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["deltoid","triceps"],"setupCues":["Configura máquina y adopta la posición específica de «Press de Pecho en Máquina Convergente» antes de iniciar; conserva una base estable."],"ssc":0.8,"stabilizerMuscles":[],"technicalDifficulty":4.8,"ttc":2.0},"selectedOptions":{}}],"defaultConfigurationId":"tren_superior_press_inclinado_maquina_convergente__default","description":"Press de pecho en banco inclinado dentro de una máquina convergente: el ángulo desplaza el trabajo hacia la porción superior del pectoral manteniendo el recorrido guiado.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:tren_superior_press_pecho_maquina_convergente"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"upper_horizontal_push","id":"tren_superior_press_inclinado_maquina_convergente","kind":"SPECIALTY","optionAxes":[],"searchTerms":["press inclinado maquina convergente","incline converging press","press convergente inclinado"]}],"description":"Familia de empuje horizontal; las flexiones de brazos usan un padre propio con el ángulo de apoyo materializado.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:upper_horizontal_push"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"upper_horizontal_push","taxonomy":["upper","horizontal_push"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Empuje horizontal",
+    "definitions": [
+      {
+        "canonicalName": "Flexiones de Brazos",
+        "configurations": [
+          {
+            "displaySummary": "flat",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#tren_superior_flexiones",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "push_up__flat",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 3.0,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
+              ],
+              "description": "Flexiones de Brazos trabaja principalmente pectorales mediante un patrón de empuje horizontal. La participación secundaria corresponde a tríceps, deltoides. La configuración utiliza peso corporal como implemento. La variante se define por: ángulo plano.",
+              "efc": 3.5,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Ejecuta «Flexiones de Brazos» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "bodyweight",
+              "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: el pectoral mayor empuja o aduce el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core protege la columna y transmite la fuerza de forma isométrica; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "push_up__bodyweight__flexiones_de_brazos",
+              "primaryMuscles": [
+                "pectoralis"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_push"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "secondaryMuscles": [
+                    "triceps",
+                    "deltoid"
+                  ],
+                  "stabilizationDemand": "high",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "pectoralis"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "horizontal_push",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Flexiones de Brazos» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura peso corporal y adopta la posición específica de «Flexiones de Brazos» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Flexiones de Brazos",
+                  "displaySummary": "flat",
+                  "selectedOptions": {
+                    "support_angle": "flat"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 3.0,
+                  "efc": 3.5,
+                  "ssc": 0.9,
+                  "technicalDifficulty": 6.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Flexiones de Brazos",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "push_up__flat",
+                  "definitionId": "push_up",
+                  "familyId": "upper_horizontal_push",
+                  "kind": "PARENT",
+                  "performanceProfileId": "push_up__bodyweight__flexiones_de_brazos",
+                  "searchTerms": [
+                    "flexiones con pies elevados",
+                    "flexiones de brazos",
+                    "flexiones de brazos clásicas",
+                    "tren superior flexiones"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "high",
+                  "indicativeRestSeconds": {
+                    "max": 150,
+                    "min": 90
+                  },
+                  "objectives": [
+                    "Desarrollar pectoralis dentro del patrón horizontal_push.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "high",
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "primary_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "4-8",
+                    "6-12"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_push y el objetivo pectoralis."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": [
+                    "La pérdida de la posición puede trasladar carga fuera del patrón horizontal_push."
+                  ]
+                }
+              },
+              "secondaryMuscles": [
+                "triceps",
+                "deltoid"
+              ],
+              "setupCues": [
+                "Configura peso corporal y adopta la posición específica de «Flexiones de Brazos» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.9,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 6.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "support_angle": "flat"
+            }
+          },
+          {
+            "displaySummary": "feet_elevated",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#tren_superior_flexiones_pies_elevados",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "push_up__feet_elevated",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.8,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
+              ],
+              "description": "Pies elevados sobre banco o caja. Mayor carga sobre la parte superior del pectoral. La configuración utiliza peso corporal como implemento. La variante se define por: pies elevados.",
+              "efc": 3.2,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Ejecuta «Flexiones con Pies Elevados» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "bodyweight",
+              "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: el pectoral mayor empuja o aduce el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core protege la columna y transmite la fuerza de forma isométrica; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "push_up__bodyweight__flexiones_de_brazos",
+              "primaryMuscles": [
+                "pectoralis"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_push"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "secondaryMuscles": [
+                    "triceps",
+                    "deltoid"
+                  ],
+                  "stabilizationDemand": "high",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "pectoralis"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "horizontal_push",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Flexiones con Pies Elevados» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura peso corporal y adopta la posición específica de «Flexiones con Pies Elevados» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Flexiones de Brazos",
+                  "displaySummary": "feet_elevated",
+                  "selectedOptions": {
+                    "support_angle": "feet_elevated"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.8,
+                  "efc": 3.2,
+                  "ssc": 0.8,
+                  "technicalDifficulty": 4.8,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Flexiones de Brazos",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "push_up__feet_elevated",
+                  "definitionId": "push_up",
+                  "familyId": "upper_horizontal_push",
+                  "kind": "PARENT",
+                  "performanceProfileId": "push_up__bodyweight__flexiones_de_brazos",
+                  "searchTerms": [
+                    "flexiones con pies elevados",
+                    "flexiones de brazos",
+                    "flexiones de brazos clásicas",
+                    "tren superior flexiones"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar pectoralis dentro del patrón horizontal_push.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_push y el objetivo pectoralis."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "triceps",
+                "deltoid"
+              ],
+              "setupCues": [
+                "Configura peso corporal y adopta la posición específica de «Flexiones con Pies Elevados» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.8,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.8,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "support_angle": "feet_elevated"
+            }
+          }
+        ],
+        "defaultConfigurationId": "push_up__flat",
+        "description": "Flexiones de brazos trabaja principalmente pectorales mediante un patrón de empuje horizontal. La participación secundaria corresponde a tríceps, deltoides.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:push_up"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_horizontal_push",
+        "id": "push_up",
+        "kind": "PARENT",
+        "optionAxes": [
+          "support_angle"
+        ],
+        "searchTerms": [
+          "flexiones con pies elevados",
+          "flexiones de brazos",
+          "flexiones de brazos clásicas",
+          "tren superior flexiones"
+        ]
+      },
+      {
+        "canonicalName": "Cruce de Poleas",
+        "configurations": [
+          {
+            "displaySummary": "cable · high",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#tren_superior_cruce_poleas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "tren_superior_cruce_poleas__high",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar el peso del cuerpo para completar el cruce en lugar de aislar el pectoral."
+              ],
+              "description": "Cruce de poleas con las poleas en altura alta: el ángulo descendente pone el énfasis en la porción inferior del pectoral.",
+              "efc": 2.4,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Junta las manos frente al pecho con control y deja que los brazos vuelvan con tensión."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: el pectoral aduce el brazo hacia la línea media y concentra el trabajo del cruce; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides anterior asiste la flexión de hombro durante el cruce; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "tren_superior_cruce_poleas__high",
+              "primaryMuscles": [
+                "pectoralis"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_push"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "secondaryMuscles": [
+                    "deltoid"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "pectoralis"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "cable",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "horizontal_push",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar el peso del cuerpo para completar el cruce en lugar de aislar el pectoral."
+                  ],
+                  "cues": [
+                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Junta las manos frente al pecho con control y deja que los brazos vuelvan con tensión."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Ajusta ambas poleas a la misma altura y coloca un pie adelantado para estabilizarte."
+                  ]
+                },
+                "display": {
+                  "displayName": "Cruce de Poleas",
+                  "displaySummary": "cable · high",
+                  "selectedOptions": {
+                    "implement": "cable",
+                    "pulley_height": "high"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.4,
+                  "ssc": 0.6,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Cruce de Poleas",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "tren_superior_cruce_poleas__high",
+                  "definitionId": "tren_superior_cruce_poleas",
+                  "familyId": "upper_horizontal_push",
+                  "kind": "PARENT",
+                  "performanceProfileId": "tren_superior_cruce_poleas__high",
+                  "searchTerms": [
+                    "cruce de poleas",
+                    "crossover",
+                    "cable crossover",
+                    "cruces",
+                    "pecho en polea"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar pectoralis en aducción horizontal con cruce de poleas."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la aducción horizontal y el objetivo pectoralis."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "deltoid"
+              ],
+              "setupCues": [
+                "Ajusta ambas poleas a la misma altura y coloca un pie adelantado para estabilizarte."
+              ],
+              "ssc": 0.6,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "cable",
+              "pulley_height": "high"
+            }
+          },
+          {
+            "displaySummary": "cable · mid",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#tren_superior_cruce_poleas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "tren_superior_cruce_poleas__mid",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar el peso del cuerpo para completar el cruce en lugar de aislar el pectoral."
+              ],
+              "description": "Cruce de poleas con las poleas a la altura media: el recorrido horizontal reparte el trabajo de forma equilibrada por el pectoral completo.",
+              "efc": 2.4,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Junta las manos frente al pecho con control y deja que los brazos vuelvan con tensión."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: el pectoral aduce el brazo hacia la línea media y concentra el trabajo del cruce; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides anterior asiste la flexión de hombro durante el cruce; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "tren_superior_cruce_poleas__mid",
+              "primaryMuscles": [
+                "pectoralis"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_push"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "secondaryMuscles": [
+                    "deltoid"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "pectoralis"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "cable",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "horizontal_push",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar el peso del cuerpo para completar el cruce en lugar de aislar el pectoral."
+                  ],
+                  "cues": [
+                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Junta las manos frente al pecho con control y deja que los brazos vuelvan con tensión."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Ajusta ambas poleas a la misma altura y coloca un pie adelantado para estabilizarte."
+                  ]
+                },
+                "display": {
+                  "displayName": "Cruce de Poleas",
+                  "displaySummary": "cable · mid",
+                  "selectedOptions": {
+                    "implement": "cable",
+                    "pulley_height": "mid"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.4,
+                  "ssc": 0.6,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Cruce de Poleas",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "tren_superior_cruce_poleas__mid",
+                  "definitionId": "tren_superior_cruce_poleas",
+                  "familyId": "upper_horizontal_push",
+                  "kind": "PARENT",
+                  "performanceProfileId": "tren_superior_cruce_poleas__mid",
+                  "searchTerms": [
+                    "cruce de poleas",
+                    "crossover",
+                    "cable crossover",
+                    "cruces",
+                    "pecho en polea"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar pectoralis en aducción horizontal con cruce de poleas."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la aducción horizontal y el objetivo pectoralis."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "deltoid"
+              ],
+              "setupCues": [
+                "Ajusta ambas poleas a la misma altura y coloca un pie adelantado para estabilizarte."
+              ],
+              "ssc": 0.6,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "cable",
+              "pulley_height": "mid"
+            }
+          },
+          {
+            "displaySummary": "cable · low",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#tren_superior_cruce_poleas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "tren_superior_cruce_poleas__low",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.0,
+              "commonMistakes": [
+                "Usar el peso del cuerpo para completar el cruce en lugar de aislar el pectoral."
+              ],
+              "description": "Cruce de poleas con las poleas en altura baja: el ángulo ascendente pone el énfasis en la porción superior del pectoral.",
+              "efc": 2.4,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Junta las manos frente al pecho con control y deja que los brazos vuelvan con tensión."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: el pectoral aduce el brazo hacia la línea media y concentra el trabajo del cruce; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides anterior asiste la flexión de hombro durante el cruce; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "tren_superior_cruce_poleas__low",
+              "primaryMuscles": [
+                "pectoralis"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_push"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "secondaryMuscles": [
+                    "deltoid"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "pectoralis"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "cable",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "horizontal_push",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar el peso del cuerpo para completar el cruce en lugar de aislar el pectoral."
+                  ],
+                  "cues": [
+                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Junta las manos frente al pecho con control y deja que los brazos vuelvan con tensión."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Ajusta ambas poleas a la misma altura y coloca un pie adelantado para estabilizarte."
+                  ]
+                },
+                "display": {
+                  "displayName": "Cruce de Poleas",
+                  "displaySummary": "cable · low",
+                  "selectedOptions": {
+                    "implement": "cable",
+                    "pulley_height": "low"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.4,
+                  "ssc": 0.6,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Cruce de Poleas",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "tren_superior_cruce_poleas__low",
+                  "definitionId": "tren_superior_cruce_poleas",
+                  "familyId": "upper_horizontal_push",
+                  "kind": "PARENT",
+                  "performanceProfileId": "tren_superior_cruce_poleas__low",
+                  "searchTerms": [
+                    "cruce de poleas",
+                    "crossover",
+                    "cable crossover",
+                    "cruces",
+                    "pecho en polea"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar pectoralis en aducción horizontal con cruce de poleas."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva la aducción horizontal y el objetivo pectoralis."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "deltoid"
+              ],
+              "setupCues": [
+                "Ajusta ambas poleas a la misma altura y coloca un pie adelantado para estabilizarte."
+              ],
+              "ssc": 0.6,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "implement": "cable",
+              "pulley_height": "low"
+            }
+          }
+        ],
+        "defaultConfigurationId": "tren_superior_cruce_poleas__mid",
+        "description": "Aducción horizontal del pectoral en estación de poleas dobles. La altura de la polea cambia el enfoque del pecho: desde la altura alta el trabajo se concentra en la porción inferior del pectoral.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:tren_superior_cruce_poleas"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_horizontal_push",
+        "id": "tren_superior_cruce_poleas",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement",
+          "pulley_height"
+        ],
+        "searchTerms": [
+          "cruce de poleas",
+          "crossover",
+          "cable crossover",
+          "cruces",
+          "pecho en polea"
+        ]
+      },
+      {
+        "canonicalName": "Fondos en Paralelas",
+        "configurations": [
+          {
+            "displaySummary": "Peso Corporal",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#tren_superior_fondos",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "tren_superior_fondos__default",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 3.0,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
+              ],
+              "description": "Fondos trabaja principalmente pectorales mediante un patrón de empuje horizontal. La participación secundaria corresponde a tríceps, deltoides. La configuración utiliza peso corporal como implemento.",
+              "efc": 3.5,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Ejecuta «Fondos» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "bodyweight",
+              "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: el pectoral mayor empuja o aduce el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core protege la columna y transmite la fuerza de forma isométrica; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "tren_superior_fondos__bodyweight__fondos",
+              "primaryMuscles": [
+                "pectoralis"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_push"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "secondaryMuscles": [
+                    "triceps",
+                    "deltoid"
+                  ],
+                  "stabilizationDemand": "high",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "pectoralis"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "horizontal_push",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Fondos» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura peso corporal y adopta la posición específica de «Fondos» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Fondos en Paralelas",
+                  "displaySummary": "Peso Corporal",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 3.0,
+                  "efc": 3.5,
+                  "ssc": 0.9,
+                  "technicalDifficulty": 6.0,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Fondos en Paralelas",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "tren_superior_fondos__default",
+                  "definitionId": "tren_superior_fondos",
+                  "familyId": "upper_horizontal_push",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "tren_superior_fondos__bodyweight__fondos",
+                  "searchTerms": [
+                    "fondos en paralelas",
+                    "fondos",
+                    "parallel dips",
+                    "dips"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "high",
+                  "indicativeRestSeconds": {
+                    "max": 150,
+                    "min": 90
+                  },
+                  "objectives": [
+                    "Desarrollar pectoralis dentro del patrón horizontal_push.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "high",
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "primary_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "4-8",
+                    "6-12"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_push y el objetivo pectoralis."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": [
+                    "La pérdida de la posición puede trasladar carga fuera del patrón horizontal_push."
+                  ]
+                }
+              },
+              "secondaryMuscles": [
+                "triceps",
+                "deltoid"
+              ],
+              "setupCues": [
+                "Configura peso corporal y adopta la posición específica de «Fondos» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.9,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 6.0,
+              "ttc": 2.0
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "tren_superior_fondos__default",
+        "description": "Fondos trabaja principalmente pectorales mediante un patrón de empuje horizontal. La participación secundaria corresponde a tríceps, deltoides.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:tren_superior_fondos"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_horizontal_push",
+        "id": "tren_superior_fondos",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "fondos en paralelas",
+          "fondos",
+          "parallel dips",
+          "dips"
+        ]
+      },
+      {
+        "canonicalName": "Press de Banca con Cadenas",
+        "configurations": [
+          {
+            "displaySummary": "Barra",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#tren_superior_press_banca_cadenas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "tren_superior_press_banca_cadenas__default",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 3.8,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
+              ],
+              "description": "Press con cadenas colgando. Resistencia variable que aumenta en el bloqueo. La configuración utiliza barra como implemento.",
+              "efc": 4.0,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Ejecuta «Press de Banca con Cadenas» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: el pectoral mayor empuja o aduce el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "tren_superior_press_banca_cadenas__barbell__press_de_banca_con_cadenas",
+              "primaryMuscles": [
+                "pectoralis"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_push"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "secondaryMuscles": [
+                    "deltoid",
+                    "triceps"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "pectoralis"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "horizontal_push",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Press de Banca con Cadenas» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura barra y adopta la posición específica de «Press de Banca con Cadenas» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Press de Banca con Cadenas",
+                  "displaySummary": "Barra",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 3.8,
+                  "efc": 4.0,
+                  "ssc": 1.1,
+                  "technicalDifficulty": 6.8,
+                  "ttc": 2.2
+                },
+                "identity": {
+                  "canonicalName": "Press de Banca con Cadenas",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "tren_superior_press_banca_cadenas__default",
+                  "definitionId": "tren_superior_press_banca_cadenas",
+                  "familyId": "upper_horizontal_push",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "tren_superior_press_banca_cadenas__barbell__press_de_banca_con_cadenas",
+                  "searchTerms": [
+                    "press de banca con cadenas"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "high",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar pectoralis dentro del patrón horizontal_push.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "high",
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_push y el objetivo pectoralis."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": [
+                    "La pérdida de la posición puede trasladar carga fuera del patrón horizontal_push."
+                  ]
+                }
+              },
+              "secondaryMuscles": [
+                "deltoid",
+                "triceps"
+              ],
+              "setupCues": [
+                "Configura barra y adopta la posición específica de «Press de Banca con Cadenas» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 1.1,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 6.8,
+              "ttc": 2.2
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "tren_superior_press_banca_cadenas__default",
+        "description": "Press con cadenas colgando. Resistencia variable que aumenta en el bloqueo.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:tren_superior_press_banca_cadenas"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_horizontal_push",
+        "id": "tren_superior_press_banca_cadenas",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "press de banca con cadenas"
+        ]
+      },
+      {
+        "canonicalName": "Press con Banda de Resistencia",
+        "configurations": [
+          {
+            "displaySummary": "Banda",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#tren_superior_press_banda_resistencia",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "tren_superior_press_banda_resistencia__default",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 3.0,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
+              ],
+              "description": "Press de banca con bandas para resistencia variable. Mayor tensión en el punto de bloqueo. La configuración utiliza banda de resistencia como implemento.",
+              "efc": 3.2,
+              "equipmentId": "band",
+              "executionCues": [
+                "Ejecuta «Press con Banda de Resistencia» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "variable_band_resistance",
+              "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: el pectoral mayor empuja o aduce el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "tren_superior_press_banda_resistencia__band__press_con_banda_de_resistencia",
+              "primaryMuscles": [
+                "pectoralis"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "variable_band",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_push"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "secondaryMuscles": [
+                    "deltoid",
+                    "triceps"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "pectoralis"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "band",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "variable_band_resistance",
+                  "movementPatternId": "horizontal_push",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "variable_band",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo band alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Press con Banda de Resistencia» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura banda y adopta la posición específica de «Press con Banda de Resistencia» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Press con Banda de Resistencia",
+                  "displaySummary": "Banda",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 3.0,
+                  "efc": 3.2,
+                  "ssc": 0.9,
+                  "technicalDifficulty": 5.0,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Press con Banda de Resistencia",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "tren_superior_press_banda_resistencia__default",
+                  "definitionId": "tren_superior_press_banda_resistencia",
+                  "familyId": "upper_horizontal_push",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "tren_superior_press_banda_resistencia__band__press_con_banda_de_resistencia",
+                  "searchTerms": [
+                    "press con banda de resistencia"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "high",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar pectoralis dentro del patrón horizontal_push.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "high",
+                  "requiredEquipment": [
+                    "band"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "band"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_push y el objetivo pectoralis."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": [
+                    "La pérdida de la posición puede trasladar carga fuera del patrón horizontal_push."
+                  ]
+                }
+              },
+              "secondaryMuscles": [
+                "deltoid",
+                "triceps"
+              ],
+              "setupCues": [
+                "Configura banda y adopta la posición específica de «Press con Banda de Resistencia» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.9,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 5.0,
+              "ttc": 2.0
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "tren_superior_press_banda_resistencia__default",
+        "description": "Press de banca con bandas para resistencia variable. Mayor tensión en el punto de bloqueo.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:tren_superior_press_banda_resistencia"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_horizontal_push",
+        "id": "tren_superior_press_banda_resistencia",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "press con banda de resistencia"
+        ]
+      },
+      {
+        "canonicalName": "Press Plano en Máquina Convergente",
+        "configurations": [
+          {
+            "displaySummary": "Máquina",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#tren_superior_press_pecho_maquina_convergente",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "tren_superior_press_pecho_maquina_convergente__default",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.8,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
+              ],
+              "description": "Máquina con brazos convergentes. Estabilidad máxima y aislamiento del pectoral.",
+              "efc": 3.2,
+              "equipmentId": "machine",
+              "executionCues": [
+                "Ejecuta «Press de Pecho en Máquina Convergente» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: el pectoral mayor empuja o aduce el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "tren_superior_press_pecho_maquina_convergente__machine__press_de_pecho_en_maquina_convergente",
+              "primaryMuscles": [
+                "pectoralis"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_push"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "secondaryMuscles": [
+                    "deltoid",
+                    "triceps"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "pectoralis"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "machine",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "horizontal_push",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Press de Pecho en Máquina Convergente» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura máquina y adopta la posición específica de «Press de Pecho en Máquina Convergente» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Press Plano en Máquina Convergente",
+                  "displaySummary": "Máquina",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.8,
+                  "efc": 3.2,
+                  "ssc": 0.8,
+                  "technicalDifficulty": 4.8,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Press Plano en Máquina Convergente",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "tren_superior_press_pecho_maquina_convergente__default",
+                  "definitionId": "tren_superior_press_pecho_maquina_convergente",
+                  "familyId": "upper_horizontal_push",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "tren_superior_press_pecho_maquina_convergente__machine__press_de_pecho_en_maquina_convergente",
+                  "searchTerms": [
+                    "press plano maquina convergente",
+                    "press de pecho convergente",
+                    "converging press",
+                    "chest press convergente"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar pectoralis dentro del patrón horizontal_push.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "machine"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_push y el objetivo pectoralis."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "deltoid",
+                "triceps"
+              ],
+              "setupCues": [
+                "Configura máquina y adopta la posición específica de «Press de Pecho en Máquina Convergente» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.8,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.8,
+              "ttc": 2.0
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "tren_superior_press_pecho_maquina_convergente__default",
+        "description": "Máquina con brazos convergentes. Estabilidad máxima y aislamiento del pectoral.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:tren_superior_press_pecho_maquina_convergente"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_horizontal_push",
+        "id": "tren_superior_press_pecho_maquina_convergente",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "press plano maquina convergente",
+          "press de pecho convergente",
+          "converging press",
+          "chest press convergente"
+        ]
+      },
+      {
+        "canonicalName": "Press Spoto con Barra",
+        "configurations": [
+          {
+            "displaySummary": "Barra",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#tren_superior_press_spoto_barra",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "tren_superior_press_spoto_barra__default",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 3.8,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
+              ],
+              "description": "Variante de banca donde la barra hace pausa corta a 2-3 cm del pecho. Elimina rebote y trabaja punto muerto.",
+              "efc": 4.0,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Ejecuta «Press Spoto con Barra» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: el pectoral mayor empuja o aduce el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "tren_superior_press_spoto_barra__barbell__press_spoto_con_barra",
+              "primaryMuscles": [
+                "pectoralis"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_push"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "secondaryMuscles": [
+                    "deltoid",
+                    "triceps"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "pectoralis"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "horizontal_push",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Press Spoto con Barra» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura barra y adopta la posición específica de «Press Spoto con Barra» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Press Spoto con Barra",
+                  "displaySummary": "Barra",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 3.8,
+                  "efc": 4.0,
+                  "ssc": 1.2,
+                  "technicalDifficulty": 6.8,
+                  "ttc": 2.2
+                },
+                "identity": {
+                  "canonicalName": "Press Spoto con Barra",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "tren_superior_press_spoto_barra__default",
+                  "definitionId": "tren_superior_press_spoto_barra",
+                  "familyId": "upper_horizontal_push",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "tren_superior_press_spoto_barra__barbell__press_spoto_con_barra",
+                  "searchTerms": [
+                    "press spoto con barra"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "high",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar pectoralis dentro del patrón horizontal_push.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "high",
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_push y el objetivo pectoralis."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": [
+                    "La pérdida de la posición puede trasladar carga fuera del patrón horizontal_push."
+                  ]
+                }
+              },
+              "secondaryMuscles": [
+                "deltoid",
+                "triceps"
+              ],
+              "setupCues": [
+                "Configura barra y adopta la posición específica de «Press Spoto con Barra» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 1.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 6.8,
+              "ttc": 2.2
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "tren_superior_press_spoto_barra__default",
+        "description": "Variante de banca donde la barra hace pausa corta a 2-3 cm del pecho. Elimina rebote y trabaja punto muerto.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:tren_superior_press_spoto_barra"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_horizontal_push",
+        "id": "tren_superior_press_spoto_barra",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "press spoto con barra"
+        ]
+      },
+      {
+        "canonicalName": "Press Unilateral en Polea",
+        "configurations": [
+          {
+            "displaySummary": "Polea",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#tren_superior_press_unilateral_polea",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "tren_superior_press_unilateral_polea__default",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.5,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
+              ],
+              "description": "Press con una mano en polea baja. Permite corrección de desbalances y trabajo unilateral.",
+              "efc": 2.8,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Ejecuta «Press Unilateral en Polea» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: el pectoral mayor empuja o aduce el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "tren_superior_press_unilateral_polea__cable__press_unilateral_en_polea",
+              "primaryMuscles": [
+                "pectoralis"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_push"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "secondaryMuscles": [
+                    "deltoid",
+                    "triceps"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "pectoralis"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "cable",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "horizontal_push",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Press Unilateral en Polea» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura polea y adopta la posición específica de «Press Unilateral en Polea» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Press Unilateral en Polea",
+                  "displaySummary": "Polea",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.5,
+                  "efc": 2.8,
+                  "ssc": 0.7,
+                  "technicalDifficulty": 4.5,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Press Unilateral en Polea",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "tren_superior_press_unilateral_polea__default",
+                  "definitionId": "tren_superior_press_unilateral_polea",
+                  "familyId": "upper_horizontal_push",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "tren_superior_press_unilateral_polea__cable__press_unilateral_en_polea",
+                  "searchTerms": [
+                    "press unilateral en polea"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar pectoralis dentro del patrón horizontal_push.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_push y el objetivo pectoralis."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "deltoid",
+                "triceps"
+              ],
+              "setupCues": [
+                "Configura polea y adopta la posición específica de «Press Unilateral en Polea» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.7,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.5,
+              "ttc": 2.0
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "tren_superior_press_unilateral_polea__default",
+        "description": "Press con una mano en polea baja. Permite corrección de desbalances y trabajo unilateral.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:tren_superior_press_unilateral_polea"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_horizontal_push",
+        "id": "tren_superior_press_unilateral_polea",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "press unilateral en polea"
+        ]
+      },
+      {
+        "canonicalName": "Squeeze Press con Mancuernas",
+        "configurations": [
+          {
+            "displaySummary": "Mancuerna",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#tren_superior_squeeze_press_mancuernas",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "tren_superior_squeeze_press_mancuernas__default",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.5,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
+              ],
+              "description": "Press con mancuernas manteniendo palmas enfrentadas y comprimiendo. Tensión continua en pectoral.",
+              "efc": 3.0,
+              "equipmentId": "dumbbells",
+              "executionCues": [
+                "Ejecuta «Squeeze Press con Mancuernas» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: el pectoral mayor empuja o aduce el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "tren_superior_squeeze_press_mancuernas__dumbbells__squeeze_press_con_mancuernas",
+              "primaryMuscles": [
+                "pectoralis"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_push"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "secondaryMuscles": [
+                    "deltoid",
+                    "triceps"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "pectoralis"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "dumbbells",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "horizontal_push",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Squeeze Press con Mancuernas» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura mancuerna y adopta la posición específica de «Squeeze Press con Mancuernas» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Squeeze Press con Mancuernas",
+                  "displaySummary": "Mancuerna",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.5,
+                  "efc": 3.0,
+                  "ssc": 0.7,
+                  "technicalDifficulty": 4.5,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Squeeze Press con Mancuernas",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "tren_superior_squeeze_press_mancuernas__default",
+                  "definitionId": "tren_superior_squeeze_press_mancuernas",
+                  "familyId": "upper_horizontal_push",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "tren_superior_squeeze_press_mancuernas__dumbbells__squeeze_press_con_mancuernas",
+                  "searchTerms": [
+                    "squeeze press con mancuernas"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar pectoralis dentro del patrón horizontal_push.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "dumbbells"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_push y el objetivo pectoralis."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "deltoid",
+                "triceps"
+              ],
+              "setupCues": [
+                "Configura mancuerna y adopta la posición específica de «Squeeze Press con Mancuernas» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.7,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.5,
+              "ttc": 2.0
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "tren_superior_squeeze_press_mancuernas__default",
+        "description": "Press con mancuernas manteniendo palmas enfrentadas y comprimiendo. Tensión continua en pectoral.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:tren_superior_squeeze_press_mancuernas"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_horizontal_push",
+        "id": "tren_superior_squeeze_press_mancuernas",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "squeeze press con mancuernas"
+        ]
+      },
+      {
+        "canonicalName": "Press Inclinado en Máquina Convergente",
+        "configurations": [
+          {
+            "displaySummary": "Máquina",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#tren_superior_press_pecho_maquina_convergente",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "tren_superior_press_inclinado_maquina_convergente__default",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "cnc": 2.8,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
+              ],
+              "description": "Press de pecho inclinado en máquina convergente: el ángulo del banco enfatiza la porción superior del pectoral con el recorrido guiado de la máquina.",
+              "efc": 3.2,
+              "equipmentId": "machine",
+              "executionCues": [
+                "Ejecuta «Press de Pecho en Máquina Convergente» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: el pectoral mayor empuja o aduce el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "tren_superior_press_pecho_maquina_convergente__machine__press_de_pecho_en_maquina_convergente",
+              "primaryMuscles": [
+                "pectoralis"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "horizontal_push"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "secondaryMuscles": [
+                    "deltoid",
+                    "triceps"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "pectoralis"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "machine",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "horizontal_push",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "shoulder",
+                    "elbow",
+                    "scapulothoracic"
+                  ],
+                  "relevantTendons": [
+                    "shoulder_tendon",
+                    "elbow_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Press de Pecho en Máquina Convergente» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de shoulder según tolerancia y rango disponible.",
+                    "Movilidad de elbow según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura máquina y adopta la posición específica de «Press de Pecho en Máquina Convergente» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Press Inclinado en Máquina Convergente",
+                  "displaySummary": "Máquina",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.8,
+                  "efc": 3.2,
+                  "ssc": 0.8,
+                  "technicalDifficulty": 4.8,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Press Inclinado en Máquina Convergente",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "tren_superior_press_inclinado_maquina_convergente__default",
+                  "definitionId": "tren_superior_press_inclinado_maquina_convergente",
+                  "familyId": "upper_horizontal_push",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "tren_superior_press_pecho_maquina_convergente__machine__press_de_pecho_en_maquina_convergente",
+                  "searchTerms": [
+                    "press inclinado maquina convergente",
+                    "incline converging press",
+                    "press convergente inclinado"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar pectoralis dentro del patrón horizontal_push.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "machine"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón horizontal_push y el objetivo pectoralis."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "deltoid",
+                "triceps"
+              ],
+              "setupCues": [
+                "Configura máquina y adopta la posición específica de «Press de Pecho en Máquina Convergente» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.8,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.8,
+              "ttc": 2.0
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "tren_superior_press_inclinado_maquina_convergente__default",
+        "description": "Press de pecho en banco inclinado dentro de una máquina convergente: el ángulo desplaza el trabajo hacia la porción superior del pectoral manteniendo el recorrido guiado.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:tren_superior_press_pecho_maquina_convergente"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_horizontal_push",
+        "id": "tren_superior_press_inclinado_maquina_convergente",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "press inclinado maquina convergente",
+          "incline converging press",
+          "press convergente inclinado"
+        ]
+      }
+    ],
+    "description": "Familia de empuje horizontal; las flexiones de brazos usan un padre propio con el ángulo de apoyo materializado.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:upper_horizontal_push"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "upper_horizontal_push",
+    "taxonomy": [
+      "upper",
+      "horizontal_push"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

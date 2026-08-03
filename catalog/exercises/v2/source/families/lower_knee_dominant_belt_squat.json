@@ -1,1 +1,446 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Sentadilla Belt Squat","definitions":[{"canonicalName":"Sentadilla \"Belt Squat\"","configurations":[{"displaySummary":"bilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#quads_sentadilla_belt_squat_maquina","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"belt_squat__bilateral","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"LOWER","cnc":2.2,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla para completar la repetición."],"description":"Sentadilla con carga al cinturón en máquina Belt Squat. La variante se define por: bilateral.","efc":2.8,"equipmentId":"machine","executionCues":["Ejecuta «Sentadilla en Máquina Belt Squat» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"knee_dominant","muscleNotes":[{"muscleId":"quadriceps","note":"Principal: el cuádriceps extiende la rodilla y concentra la fuerza del movimiento; por eso suma la serie completa (1.0)."},{"muscleId":"gluteus_maximus","note":"Secundario: el glúteo mayor asiste la extensión de cadera y completa el movimiento; por eso suma 0.5."}],"performanceProfileId":"belt_squat__machine__sentadilla_belt_squat","primaryMuscles":["quadriceps"],"replacementGroup":"quad_machine_squat","replacementPriority":2,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["knee_dominant"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["quadriceps"],"secondaryMuscles":["gluteus_maximus"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["quadriceps"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"machine","kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"knee_dominant","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"guided_constant","stability":"guided"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla para completar la repetición."],"cues":["Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Sentadilla en Máquina Belt Squat» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Configura máquina y adopta la posición específica de «Sentadilla en Máquina Belt Squat» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Sentadilla \"Belt Squat\"","displaySummary":"bilateral","selectedOptions":{"laterality":"bilateral"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.2,"efc":2.8,"ssc":0.5,"technicalDifficulty":4.2,"ttc":2.0},"identity":{"canonicalName":"Sentadilla \"Belt Squat\"","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"belt_squat__bilateral","definitionId":"belt_squat","familyId":"lower_knee_dominant_belt_squat","kind":"PARENT","performanceProfileId":"belt_squat__machine__sentadilla_belt_squat","searchTerms":["sentadilla belt squat","belt squat"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar quadriceps dentro del patrón knee_dominant.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["machine"],"role":"accessory_compound","setupTransitionCost":"high","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["machine"],"preservesIntent":["Conserva el patrón knee_dominant y el objetivo quadriceps."],"replacementGroup":"quad_machine_squat","replacementPriority":2},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["gluteus_maximus"],"setupCues":["Configura máquina y adopta la posición específica de «Sentadilla en Máquina Belt Squat» antes de iniciar; conserva una base estable."],"ssc":0.5,"stabilizerMuscles":[],"technicalDifficulty":4.2,"ttc":2.0},"selectedOptions":{"laterality":"bilateral"}},{"displaySummary":"unilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#quads_sentadilla_belt_squat_unilateral_maquina","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"belt_squat__unilateral","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"LOWER","cnc":2.2,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral para completar la repetición."],"description":"Sentadilla a 1 pierna con carga al cinturón en máquina Belt Squat. La variante se define por: unilateral.","efc":2.8,"equipmentId":"machine","executionCues":["Ejecuta «Sentadilla Unilateral en Máquina Belt Squat» siguiendo el patrón dominante de rodilla unilateral con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"UNILATERAL","loadMode":"guided_external_load","movementPatternId":"unilateral_knee_dominant","muscleNotes":[{"muscleId":"quadriceps","note":"Principal: el cuádriceps extiende la rodilla y concentra la fuerza del movimiento; por eso suma la serie completa (1.0)."},{"muscleId":"gluteus_maximus","note":"Secundario: el glúteo mayor asiste la extensión de cadera y completa el movimiento; por eso suma 0.5."}],"performanceProfileId":"belt_squat__machine__sentadilla_belt_squat","primaryMuscles":["quadriceps"],"replacementGroup":"quad_machine_squat","replacementPriority":2,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["unilateral_knee_dominant"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["quadriceps"],"secondaryMuscles":["gluteus_maximus"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["quadriceps"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"machine","kineticChain":"ANTERIOR","laterality":"UNILATERAL","loadMode":"guided_external_load","movementPatternId":"unilateral_knee_dominant","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"guided_constant","stability":"guided"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral para completar la repetición."],"cues":["Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Sentadilla Unilateral en Máquina Belt Squat» siguiendo el patrón dominante de rodilla unilateral con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Configura máquina y adopta la posición específica de «Sentadilla Unilateral en Máquina Belt Squat» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Sentadilla \"Belt Squat\"","displaySummary":"unilateral","selectedOptions":{"laterality":"unilateral"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.2,"efc":2.8,"ssc":0.5,"technicalDifficulty":4.2,"ttc":2.0},"identity":{"canonicalName":"Sentadilla \"Belt Squat\"","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"belt_squat__unilateral","definitionId":"belt_squat","familyId":"lower_knee_dominant_belt_squat","kind":"PARENT","performanceProfileId":"belt_squat__machine__sentadilla_belt_squat","searchTerms":["sentadilla belt squat","belt squat"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar quadriceps dentro del patrón unilateral_knee_dominant.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["machine"],"role":"accessory_compound","setupTransitionCost":"high","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["machine"],"preservesIntent":["Conserva el patrón unilateral_knee_dominant y el objetivo quadriceps."],"replacementGroup":"quad_machine_squat","replacementPriority":2},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["gluteus_maximus"],"setupCues":["Configura máquina y adopta la posición específica de «Sentadilla Unilateral en Máquina Belt Squat» antes de iniciar; conserva una base estable."],"ssc":0.5,"stabilizerMuscles":[],"technicalDifficulty":4.2,"ttc":2.0},"selectedOptions":{"laterality":"unilateral"}}],"defaultConfigurationId":"belt_squat__bilateral","description":"Sentadilla Belt Squat trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla. La participación secundaria corresponde a glúteos.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:belt_squat"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"lower_knee_dominant_belt_squat","id":"belt_squat","kind":"PARENT","optionAxes":["laterality"],"searchTerms":["sentadilla belt squat","belt squat"]}],"description":"Familia de sentadilla con carga al cinturón; la lateralidad bilateral o unilateral es explícita.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:lower_knee_dominant_belt_squat"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"lower_knee_dominant_belt_squat","taxonomy":["lower","knee_dominant","belt_squat"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Sentadilla Belt Squat",
+    "definitions": [
+      {
+        "canonicalName": "Sentadilla \"Belt Squat\"",
+        "configurations": [
+          {
+            "displaySummary": "bilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#quads_sentadilla_belt_squat_maquina",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "belt_squat__bilateral",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "cnc": 2.2,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla para completar la repetición."
+              ],
+              "description": "Sentadilla con carga al cinturón en máquina Belt Squat. La variante se define por: bilateral.",
+              "efc": 2.8,
+              "equipmentId": "machine",
+              "executionCues": [
+                "Ejecuta «Sentadilla en Máquina Belt Squat» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: el cuádriceps extiende la rodilla y concentra la fuerza del movimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: el glúteo mayor asiste la extensión de cadera y completa el movimiento; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "belt_squat__machine__sentadilla_belt_squat",
+              "primaryMuscles": [
+                "quadriceps"
+              ],
+              "replacementGroup": "quad_machine_squat",
+              "replacementPriority": 2,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "knee_dominant"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "quadriceps"
+                  ],
+                  "secondaryMuscles": [
+                    "gluteus_maximus"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "quadriceps"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "machine",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "knee_dominant",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Sentadilla en Máquina Belt Squat» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura máquina y adopta la posición específica de «Sentadilla en Máquina Belt Squat» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Sentadilla \"Belt Squat\"",
+                  "displaySummary": "bilateral",
+                  "selectedOptions": {
+                    "laterality": "bilateral"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Sentadilla \"Belt Squat\"",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "belt_squat__bilateral",
+                  "definitionId": "belt_squat",
+                  "familyId": "lower_knee_dominant_belt_squat",
+                  "kind": "PARENT",
+                  "performanceProfileId": "belt_squat__machine__sentadilla_belt_squat",
+                  "searchTerms": [
+                    "sentadilla belt squat",
+                    "belt squat"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar quadriceps dentro del patrón knee_dominant.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "machine"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón knee_dominant y el objetivo quadriceps."
+                  ],
+                  "replacementGroup": "quad_machine_squat",
+                  "replacementPriority": 2
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "gluteus_maximus"
+              ],
+              "setupCues": [
+                "Configura máquina y adopta la posición específica de «Sentadilla en Máquina Belt Squat» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.5,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "laterality": "bilateral"
+            }
+          },
+          {
+            "displaySummary": "unilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#quads_sentadilla_belt_squat_unilateral_maquina",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "belt_squat__unilateral",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "cnc": 2.2,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral para completar la repetición."
+              ],
+              "description": "Sentadilla a 1 pierna con carga al cinturón en máquina Belt Squat. La variante se define por: unilateral.",
+              "efc": 2.8,
+              "equipmentId": "machine",
+              "executionCues": [
+                "Ejecuta «Sentadilla Unilateral en Máquina Belt Squat» siguiendo el patrón dominante de rodilla unilateral con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "unilateral_knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: el cuádriceps extiende la rodilla y concentra la fuerza del movimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: el glúteo mayor asiste la extensión de cadera y completa el movimiento; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "belt_squat__machine__sentadilla_belt_squat",
+              "primaryMuscles": [
+                "quadriceps"
+              ],
+              "replacementGroup": "quad_machine_squat",
+              "replacementPriority": 2,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "unilateral_knee_dominant"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "quadriceps"
+                  ],
+                  "secondaryMuscles": [
+                    "gluteus_maximus"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "quadriceps"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "machine",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "unilateral_knee_dominant",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Sentadilla Unilateral en Máquina Belt Squat» siguiendo el patrón dominante de rodilla unilateral con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura máquina y adopta la posición específica de «Sentadilla Unilateral en Máquina Belt Squat» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Sentadilla \"Belt Squat\"",
+                  "displaySummary": "unilateral",
+                  "selectedOptions": {
+                    "laterality": "unilateral"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Sentadilla \"Belt Squat\"",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "belt_squat__unilateral",
+                  "definitionId": "belt_squat",
+                  "familyId": "lower_knee_dominant_belt_squat",
+                  "kind": "PARENT",
+                  "performanceProfileId": "belt_squat__machine__sentadilla_belt_squat",
+                  "searchTerms": [
+                    "sentadilla belt squat",
+                    "belt squat"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar quadriceps dentro del patrón unilateral_knee_dominant.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "machine"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón unilateral_knee_dominant y el objetivo quadriceps."
+                  ],
+                  "replacementGroup": "quad_machine_squat",
+                  "replacementPriority": 2
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "gluteus_maximus"
+              ],
+              "setupCues": [
+                "Configura máquina y adopta la posición específica de «Sentadilla Unilateral en Máquina Belt Squat» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.5,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "laterality": "unilateral"
+            }
+          }
+        ],
+        "defaultConfigurationId": "belt_squat__bilateral",
+        "description": "Sentadilla Belt Squat trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla. La participación secundaria corresponde a glúteos.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:belt_squat"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "lower_knee_dominant_belt_squat",
+        "id": "belt_squat",
+        "kind": "PARENT",
+        "optionAxes": [
+          "laterality"
+        ],
+        "searchTerms": [
+          "sentadilla belt squat",
+          "belt squat"
+        ]
+      }
+    ],
+    "description": "Familia de sentadilla con carga al cinturón; la lateralidad bilateral o unilateral es explícita.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:lower_knee_dominant_belt_squat"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "lower_knee_dominant_belt_squat",
+    "taxonomy": [
+      "lower",
+      "knee_dominant",
+      "belt_squat"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

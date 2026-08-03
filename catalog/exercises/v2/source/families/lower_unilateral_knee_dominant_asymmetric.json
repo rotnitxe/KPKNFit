@@ -1,1 +1,249 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Tren inferior · quadriceps · unilateral knee dominant asymmetric","definitions":[{"canonicalName":"Sentadilla Búlgara Jefferson","configurations":[{"displaySummary":"Barra","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#quads_sentadilla_bulgara_jefferson","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"quads_sentadilla_bulgara_jefferson__default","profile":{"automationEligible":true,"axialLoadFactor":0.7,"bodyRegion":"LOWER","cnc":2.2,"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral asimétrico para completar la repetición."],"description":"Sentadilla Búlgara Jefferson trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla unilateral asimétrico. La participación secundaria corresponde a aductores, glúteos. La configuración utiliza barra como implemento.","efc":2.8,"equipmentId":"barbell","executionCues":["Ejecuta «Sentadilla Búlgara Jefferson» siguiendo el patrón dominante de rodilla unilateral asimétrico con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"unilateral_knee_dominant_asymmetric","muscleNotes":[{"muscleId":"quadriceps","note":"Principal: el cuádriceps extiende la rodilla y concentra la fuerza del movimiento; por eso suma la serie completa (1.0)."},{"muscleId":"adductors","note":"Secundario: los aductores asisten la estabilización de la pierna y el control de la rodilla; por eso suman 0.5."},{"muscleId":"gluteus_maximus","note":"Secundario: el glúteo mayor asiste la extensión de cadera y completa el movimiento; por eso suma 0.5."}],"performanceProfileId":"quads_sentadilla_bulgara_jefferson__barbell__sentadilla_bulgara_jefferson","primaryMuscles":["quadriceps"],"replacementGroup":null,"replacementPriority":999,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["unilateral_knee_dominant_asymmetric"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["quadriceps"],"secondaryMuscles":["adductors","gluteus_maximus"],"stabilizationDemand":"moderate","stabilizerMuscles":[],"targetRegions":["quadriceps"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"barbell","kineticChain":"ANTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"unilateral_knee_dominant_asymmetric","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral asimétrico para completar la repetición."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Sentadilla Búlgara Jefferson» siguiendo el patrón dominante de rodilla unilateral asimétrico con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Configura barra y adopta la posición específica de «Sentadilla Búlgara Jefferson» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Sentadilla Búlgara Jefferson","displaySummary":"Barra","selectedOptions":{}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.7,"cnc":2.2,"efc":2.8,"ssc":0.5,"technicalDifficulty":5.2,"ttc":2.0},"identity":{"canonicalName":"Sentadilla Búlgara Jefferson","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"quads_sentadilla_bulgara_jefferson__default","definitionId":"quads_sentadilla_bulgara_jefferson","familyId":"lower_unilateral_knee_dominant_asymmetric","kind":"SPECIALTY","performanceProfileId":"quads_sentadilla_bulgara_jefferson__barbell__sentadilla_bulgara_jefferson","searchTerms":["quads sentadilla bulgara jefferson","sentadilla búlgara jefferson"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar quadriceps dentro del patrón unilateral_knee_dominant_asymmetric.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["barbell"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["barbell"],"preservesIntent":["Conserva el patrón unilateral_knee_dominant_asymmetric y el objetivo quadriceps."],"replacementGroup":null,"replacementPriority":999},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":["La pérdida de la posición puede trasladar carga fuera del patrón unilateral_knee_dominant_asymmetric."]}},"secondaryMuscles":["adductors","gluteus_maximus"],"setupCues":["Configura barra y adopta la posición específica de «Sentadilla Búlgara Jefferson» antes de iniciar; conserva una base estable."],"ssc":0.5,"stabilizerMuscles":[],"technicalDifficulty":5.2,"ttc":2.0},"selectedOptions":{}}],"defaultConfigurationId":"quads_sentadilla_bulgara_jefferson__default","description":"Sentadilla Búlgara Jefferson trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla unilateral asimétrico. La participación secundaria corresponde a aductores, glúteos.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:quads_sentadilla_bulgara_jefferson"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"lower_unilateral_knee_dominant_asymmetric","id":"quads_sentadilla_bulgara_jefferson","kind":"SPECIALTY","optionAxes":[],"searchTerms":["quads sentadilla bulgara jefferson","sentadilla búlgara jefferson"]}],"description":"Familia controlada por patrón unilateral_knee_dominant_asymmetric; cada especialidad conserva su perfil resuelto.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:lower_unilateral_knee_dominant_asymmetric"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"lower_unilateral_knee_dominant_asymmetric","taxonomy":["lower","unilateral_knee_dominant_asymmetric"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Tren inferior · quadriceps · unilateral knee dominant asymmetric",
+    "definitions": [
+      {
+        "canonicalName": "Sentadilla Búlgara Jefferson",
+        "configurations": [
+          {
+            "displaySummary": "Barra",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#quads_sentadilla_bulgara_jefferson",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "quads_sentadilla_bulgara_jefferson__default",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.7,
+              "bodyRegion": "LOWER",
+              "cnc": 2.2,
+              "commonMistakes": [
+                "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral asimétrico para completar la repetición."
+              ],
+              "description": "Sentadilla Búlgara Jefferson trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla unilateral asimétrico. La participación secundaria corresponde a aductores, glúteos. La configuración utiliza barra como implemento.",
+              "efc": 2.8,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Ejecuta «Sentadilla Búlgara Jefferson» siguiendo el patrón dominante de rodilla unilateral asimétrico con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "unilateral_knee_dominant_asymmetric",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: el cuádriceps extiende la rodilla y concentra la fuerza del movimiento; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "adductors",
+                  "note": "Secundario: los aductores asisten la estabilización de la pierna y el control de la rodilla; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: el glúteo mayor asiste la extensión de cadera y completa el movimiento; por eso suma 0.5."
+                }
+              ],
+              "performanceProfileId": "quads_sentadilla_bulgara_jefferson__barbell__sentadilla_bulgara_jefferson",
+              "primaryMuscles": [
+                "quadriceps"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": 999,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "unilateral_knee_dominant_asymmetric"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "quadriceps"
+                  ],
+                  "secondaryMuscles": [
+                    "adductors",
+                    "gluteus_maximus"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "quadriceps"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "unilateral_knee_dominant_asymmetric",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral asimétrico para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Sentadilla Búlgara Jefferson» siguiendo el patrón dominante de rodilla unilateral asimétrico con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura barra y adopta la posición específica de «Sentadilla Búlgara Jefferson» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Sentadilla Búlgara Jefferson",
+                  "displaySummary": "Barra",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.7,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 5.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Sentadilla Búlgara Jefferson",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "quads_sentadilla_bulgara_jefferson__default",
+                  "definitionId": "quads_sentadilla_bulgara_jefferson",
+                  "familyId": "lower_unilateral_knee_dominant_asymmetric",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "quads_sentadilla_bulgara_jefferson__barbell__sentadilla_bulgara_jefferson",
+                  "searchTerms": [
+                    "quads sentadilla bulgara jefferson",
+                    "sentadilla búlgara jefferson"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar quadriceps dentro del patrón unilateral_knee_dominant_asymmetric.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón unilateral_knee_dominant_asymmetric y el objetivo quadriceps."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": 999
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": [
+                    "La pérdida de la posición puede trasladar carga fuera del patrón unilateral_knee_dominant_asymmetric."
+                  ]
+                }
+              },
+              "secondaryMuscles": [
+                "adductors",
+                "gluteus_maximus"
+              ],
+              "setupCues": [
+                "Configura barra y adopta la posición específica de «Sentadilla Búlgara Jefferson» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.5,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 5.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "quads_sentadilla_bulgara_jefferson__default",
+        "description": "Sentadilla Búlgara Jefferson trabaja principalmente cuádriceps mediante un patrón de dominante de rodilla unilateral asimétrico. La participación secundaria corresponde a aductores, glúteos.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:quads_sentadilla_bulgara_jefferson"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "lower_unilateral_knee_dominant_asymmetric",
+        "id": "quads_sentadilla_bulgara_jefferson",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "quads sentadilla bulgara jefferson",
+          "sentadilla búlgara jefferson"
+        ]
+      }
+    ],
+    "description": "Familia controlada por patrón unilateral_knee_dominant_asymmetric; cada especialidad conserva su perfil resuelto.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:lower_unilateral_knee_dominant_asymmetric"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "lower_unilateral_knee_dominant_asymmetric",
+    "taxonomy": [
+      "lower",
+      "unilateral_knee_dominant_asymmetric"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}

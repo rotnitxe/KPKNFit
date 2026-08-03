@@ -1,1 +1,1765 @@
-{"catalogRevision":"v2-approved-2026-08-02-c","family":{"canonicalName":"Hip Thrust","definitions":[{"canonicalName":"Hip Thrust","configurations":[{"displaySummary":"barbell · bilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#glutes_hip_thrust","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"hip_thrust__bilateral__barbell","profile":{"automationEligible":true,"axialLoadFactor":0.7,"bodyRegion":"LOWER","cnc":2.2,"commonMistakes":["Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."],"description":"Hip Thrust con barra y ambas piernas: la espalda apoya en el banco y la barra sobre la cadera, con la pelvis que sube hasta el bloqueo. Es la referencia de la familia para progresar la carga del glúteo.","efc":2.8,"equipmentId":"barbell","executionCues":["Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"hip_extension","muscleNotes":[{"muscleId":"gluteus_maximus","note":"Principal: el glúteo mayor extiende la cadera en el bloqueo y concentra el trabajo del hip thrust; por eso suma la serie completa (1.0)."},{"muscleId":"hamstrings","note":"Secundario: los isquiosurales asisten la extensión de cadera y estabilizan la rodilla; por eso suman 0.5."},{"muscleId":"quadriceps","note":"Secundario: el cuádriceps sostiene la rodilla flexionada durante el empuje; por eso suma 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco alineado con el banco durante el empuje; por eso suma 0.4."}],"performanceProfileId":"hip_thrust__barbell__hip_thrust","primaryMuscles":["gluteus_maximus"],"replacementGroup":"glute_hip_thrust","replacementPriority":1,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["hip_extension"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["gluteus_maximus"],"secondaryMuscles":["hamstrings","quadriceps"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["gluteus_maximus"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"barbell","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"free_external_load","movementPatternId":"hip_extension","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Configura barra y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Hip Thrust","displaySummary":"barbell · bilateral","selectedOptions":{"implement":"barbell","laterality":"bilateral"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.7,"cnc":2.2,"efc":2.8,"ssc":0.5,"technicalDifficulty":4.2,"ttc":2.0},"identity":{"canonicalName":"Hip Thrust","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"hip_thrust__bilateral__barbell","definitionId":"hip_thrust","familyId":"lower_hip_extension_hip_thrust","kind":"PARENT","performanceProfileId":"hip_thrust__barbell__hip_thrust","searchTerms":["hip thrust","glutes_hip_thrust"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar gluteus_maximus dentro del patrón hip_extension.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["barbell"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["barbell"],"preservesIntent":["Conserva el patrón hip_extension y el objetivo gluteus_maximus."],"replacementGroup":"glute_hip_thrust","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["hamstrings","quadriceps"],"setupCues":["Configura barra y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."],"ssc":0.5,"stabilizerMuscles":["core"],"technicalDifficulty":4.2,"ttc":2.0},"selectedOptions":{"implement":"barbell","laterality":"bilateral"}},{"displaySummary":"barbell · unilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#glutes_hip_thrust","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"hip_thrust__unilateral__barbell","profile":{"automationEligible":true,"axialLoadFactor":0.7,"bodyRegion":"LOWER","cnc":2.2,"commonMistakes":["Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."],"description":"Hip Thrust con barra y una pierna: un pie apoya en el suelo y la cadera sube contra la barra con el glúteo del lado activo. Permite corregir asimetrías con la misma carga.","efc":2.8,"equipmentId":"barbell","executionCues":["Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"UNILATERAL","loadMode":"free_external_load","movementPatternId":"hip_extension","muscleNotes":[{"muscleId":"gluteus_maximus","note":"Principal: el glúteo mayor extiende la cadera en el bloqueo y concentra el trabajo del hip thrust; por eso suma la serie completa (1.0)."},{"muscleId":"hamstrings","note":"Secundario: los isquiosurales asisten la extensión de cadera y estabilizan la rodilla; por eso suman 0.5."},{"muscleId":"quadriceps","note":"Secundario: el cuádriceps sostiene la rodilla flexionada durante el empuje; por eso suma 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco alineado con el banco durante el empuje; por eso suma 0.4."}],"performanceProfileId":"hip_thrust__barbell__hip_thrust","primaryMuscles":["gluteus_maximus"],"replacementGroup":"glute_hip_thrust","replacementPriority":1,"resistanceProfile":"gravity_arc","richMetadata":{"anatomy":{"jointActions":["hip_extension"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["gluteus_maximus"],"secondaryMuscles":["hamstrings","quadriceps"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["gluteus_maximus"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"barbell","kineticChain":"POSTERIOR","laterality":"UNILATERAL","loadMode":"free_external_load","movementPatternId":"hip_extension","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"gravity_arc","stability":"self_stabilized"},"coaching":{"commonMistakes":["Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Configura barra y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Hip Thrust","displaySummary":"barbell · unilateral","selectedOptions":{"implement":"barbell","laterality":"unilateral"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.7,"cnc":2.2,"efc":2.8,"ssc":0.5,"technicalDifficulty":4.2,"ttc":2.0},"identity":{"canonicalName":"Hip Thrust","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"hip_thrust__unilateral__barbell","definitionId":"hip_thrust","familyId":"lower_hip_extension_hip_thrust","kind":"PARENT","performanceProfileId":"hip_thrust__barbell__hip_thrust","searchTerms":["hip thrust","glutes_hip_thrust"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar gluteus_maximus dentro del patrón hip_extension.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["barbell"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["barbell"],"preservesIntent":["Conserva el patrón hip_extension y el objetivo gluteus_maximus."],"replacementGroup":"glute_hip_thrust","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["hamstrings","quadriceps"],"setupCues":["Configura barra y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."],"ssc":0.5,"stabilizerMuscles":["core"],"technicalDifficulty":4.2,"ttc":2.0},"selectedOptions":{"implement":"barbell","laterality":"unilateral"}},{"displaySummary":"smith_machine · bilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#glutes_hip_thrust","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"hip_thrust__bilateral__smith_machine","profile":{"automationEligible":true,"axialLoadFactor":0.7,"bodyRegion":"LOWER","cnc":2.2,"commonMistakes":["Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."],"description":"Hip Thrust en Smith con ambas piernas: el riel guiado fija la trayectoria de la barra sobre la cadera. La máquina reduce el equilibrio del empuje de cadera.","efc":2.8,"equipmentId":"smith_machine","executionCues":["Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"hip_extension","muscleNotes":[{"muscleId":"gluteus_maximus","note":"Principal: el glúteo mayor extiende la cadera en el bloqueo y concentra el trabajo del hip thrust; por eso suma la serie completa (1.0)."},{"muscleId":"hamstrings","note":"Secundario: los isquiosurales asisten la extensión de cadera y estabilizan la rodilla; por eso suman 0.5."},{"muscleId":"quadriceps","note":"Secundario: el cuádriceps sostiene la rodilla flexionada durante el empuje; por eso suma 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco alineado con el banco durante el empuje; por eso suma 0.4."}],"performanceProfileId":"hip_thrust__smith_machine__hip_thrust","primaryMuscles":["gluteus_maximus"],"replacementGroup":"glute_hip_thrust","replacementPriority":1,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["hip_extension"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["gluteus_maximus"],"secondaryMuscles":["hamstrings","quadriceps"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["gluteus_maximus"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"smith_machine","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"hip_extension","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"guided_constant","stability":"self_stabilized"},"coaching":{"commonMistakes":["Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Configura la máquina Smith y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Hip Thrust","displaySummary":"smith_machine · bilateral","selectedOptions":{"implement":"smith_machine","laterality":"bilateral"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.7,"cnc":2.2,"efc":2.8,"ssc":0.5,"technicalDifficulty":4.2,"ttc":2.0},"identity":{"canonicalName":"Hip Thrust","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"hip_thrust__bilateral__smith_machine","definitionId":"hip_thrust","familyId":"lower_hip_extension_hip_thrust","kind":"PARENT","performanceProfileId":"hip_thrust__smith_machine__hip_thrust","searchTerms":["hip thrust","glutes_hip_thrust"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar gluteus_maximus dentro del patrón hip_extension.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["smith_machine"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["smith_machine"],"preservesIntent":["Conserva el patrón hip_extension y el objetivo gluteus_maximus."],"replacementGroup":"glute_hip_thrust","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["hamstrings","quadriceps"],"setupCues":["Configura la máquina Smith y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."],"ssc":0.5,"stabilizerMuscles":["core"],"technicalDifficulty":4.2,"ttc":2.0},"selectedOptions":{"implement":"smith_machine","laterality":"bilateral"}},{"displaySummary":"smith_machine · unilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#glutes_hip_thrust","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"hip_thrust__unilateral__smith_machine","profile":{"automationEligible":true,"axialLoadFactor":0.7,"bodyRegion":"LOWER","cnc":2.2,"commonMistakes":["Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."],"description":"Hip Thrust en Smith con una pierna: la barra guiada acompaña la elevación unilateral de la cadera. La máquina fija el plano del movimiento del glúteo.","efc":2.8,"equipmentId":"smith_machine","executionCues":["Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"UNILATERAL","loadMode":"guided_external_load","movementPatternId":"hip_extension","muscleNotes":[{"muscleId":"gluteus_maximus","note":"Principal: el glúteo mayor extiende la cadera en el bloqueo y concentra el trabajo del hip thrust; por eso suma la serie completa (1.0)."},{"muscleId":"hamstrings","note":"Secundario: los isquiosurales asisten la extensión de cadera y estabilizan la rodilla; por eso suman 0.5."},{"muscleId":"quadriceps","note":"Secundario: el cuádriceps sostiene la rodilla flexionada durante el empuje; por eso suma 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco alineado con el banco durante el empuje; por eso suma 0.4."}],"performanceProfileId":"hip_thrust__smith_machine__hip_thrust","primaryMuscles":["gluteus_maximus"],"replacementGroup":"glute_hip_thrust","replacementPriority":1,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["hip_extension"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["gluteus_maximus"],"secondaryMuscles":["hamstrings","quadriceps"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["gluteus_maximus"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"smith_machine","kineticChain":"POSTERIOR","laterality":"UNILATERAL","loadMode":"guided_external_load","movementPatternId":"hip_extension","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"guided_constant","stability":"self_stabilized"},"coaching":{"commonMistakes":["Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Configura la máquina Smith y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Hip Thrust","displaySummary":"smith_machine · unilateral","selectedOptions":{"implement":"smith_machine","laterality":"unilateral"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.7,"cnc":2.2,"efc":2.8,"ssc":0.5,"technicalDifficulty":4.2,"ttc":2.0},"identity":{"canonicalName":"Hip Thrust","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"hip_thrust__unilateral__smith_machine","definitionId":"hip_thrust","familyId":"lower_hip_extension_hip_thrust","kind":"PARENT","performanceProfileId":"hip_thrust__smith_machine__hip_thrust","searchTerms":["hip thrust","glutes_hip_thrust"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar gluteus_maximus dentro del patrón hip_extension.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["smith_machine"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["smith_machine"],"preservesIntent":["Conserva el patrón hip_extension y el objetivo gluteus_maximus."],"replacementGroup":"glute_hip_thrust","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["hamstrings","quadriceps"],"setupCues":["Configura la máquina Smith y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."],"ssc":0.5,"stabilizerMuscles":["core"],"technicalDifficulty":4.2,"ttc":2.0},"selectedOptions":{"implement":"smith_machine","laterality":"unilateral"}},{"displaySummary":"machine · bilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#glutes_hip_thrust","editorial:configuration:glutes_hip_thrust__machine__bilateral","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"hip_thrust__bilateral__machine","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"LOWER","cnc":2.2,"commonMistakes":["Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."],"description":"Hip Thrust en máquina con ambas piernas: el cojín presiona la cadera y la pelvis sube contra la resistencia guiada. La estación fija el tronco y aísla el glúteo.","efc":2.8,"equipmentId":"machine","executionCues":["Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"hip_extension","muscleNotes":[{"muscleId":"gluteus_maximus","note":"Principal: el glúteo mayor extiende la cadera en el bloqueo y concentra el trabajo del hip thrust; por eso suma la serie completa (1.0)."},{"muscleId":"hamstrings","note":"Secundario: los isquiosurales asisten la extensión de cadera y estabilizan la rodilla; por eso suman 0.5."},{"muscleId":"quadriceps","note":"Secundario: el cuádriceps sostiene la rodilla flexionada durante el empuje; por eso suma 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco alineado con el banco durante el empuje; por eso suma 0.4."}],"performanceProfileId":"hip_thrust__machine__hip_thrust","primaryMuscles":["gluteus_maximus"],"replacementGroup":"glute_hip_thrust","replacementPriority":1,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["hip_extension"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["gluteus_maximus"],"secondaryMuscles":["hamstrings","quadriceps"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["gluteus_maximus"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"machine","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"guided_external_load","movementPatternId":"hip_extension","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"guided_constant","stability":"guided"},"coaching":{"commonMistakes":["Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."],"cues":["Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Configura la máquina y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Hip Thrust","displaySummary":"machine · bilateral","selectedOptions":{"implement":"machine","laterality":"bilateral"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.2,"efc":2.8,"ssc":0.5,"technicalDifficulty":4.2,"ttc":2.0},"identity":{"canonicalName":"Hip Thrust","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"hip_thrust__bilateral__machine","definitionId":"hip_thrust","familyId":"lower_hip_extension_hip_thrust","kind":"PARENT","performanceProfileId":"hip_thrust__machine__hip_thrust","searchTerms":["hip thrust","glutes_hip_thrust"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar gluteus_maximus dentro del patrón hip_extension.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["machine"],"role":"accessory_compound","setupTransitionCost":"high","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["machine"],"preservesIntent":["Conserva el patrón hip_extension y el objetivo gluteus_maximus."],"replacementGroup":"glute_hip_thrust","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["hamstrings","quadriceps"],"setupCues":["Configura la máquina y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."],"ssc":0.5,"stabilizerMuscles":["core"],"technicalDifficulty":4.2,"ttc":2.0},"selectedOptions":{"implement":"machine","laterality":"bilateral"}},{"displaySummary":"machine · unilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#glutes_hip_thrust","editorial:configuration:glutes_hip_thrust__machine__bilateral","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"hip_thrust__unilateral__machine","profile":{"automationEligible":true,"axialLoadFactor":0.0,"bodyRegion":"LOWER","cnc":2.2,"commonMistakes":["Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."],"description":"Hip Thrust en máquina con una pierna: el cojín acompaña la elevación de un solo lado con el tronco apoyado. Permite trabajar el glúteo de forma independiente.","efc":2.8,"equipmentId":"machine","executionCues":["Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"UNILATERAL","loadMode":"guided_external_load","movementPatternId":"hip_extension","muscleNotes":[{"muscleId":"gluteus_maximus","note":"Principal: el glúteo mayor extiende la cadera en el bloqueo y concentra el trabajo del hip thrust; por eso suma la serie completa (1.0)."},{"muscleId":"hamstrings","note":"Secundario: los isquiosurales asisten la extensión de cadera y estabilizan la rodilla; por eso suman 0.5."},{"muscleId":"quadriceps","note":"Secundario: el cuádriceps sostiene la rodilla flexionada durante el empuje; por eso suma 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco alineado con el banco durante el empuje; por eso suma 0.4."}],"performanceProfileId":"hip_thrust__machine__hip_thrust","primaryMuscles":["gluteus_maximus"],"replacementGroup":"glute_hip_thrust","replacementPriority":1,"resistanceProfile":"guided_constant","richMetadata":{"anatomy":{"jointActions":["hip_extension"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["gluteus_maximus"],"secondaryMuscles":["hamstrings","quadriceps"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["gluteus_maximus"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"machine","kineticChain":"POSTERIOR","laterality":"UNILATERAL","loadMode":"guided_external_load","movementPatternId":"hip_extension","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"guided_constant","stability":"guided"},"coaching":{"commonMistakes":["Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."],"cues":["Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Configura la máquina y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Hip Thrust","displaySummary":"machine · unilateral","selectedOptions":{"implement":"machine","laterality":"unilateral"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.0,"cnc":2.2,"efc":2.8,"ssc":0.5,"technicalDifficulty":4.2,"ttc":2.0},"identity":{"canonicalName":"Hip Thrust","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"hip_thrust__unilateral__machine","definitionId":"hip_thrust","familyId":"lower_hip_extension_hip_thrust","kind":"PARENT","performanceProfileId":"hip_thrust__machine__hip_thrust","searchTerms":["hip thrust","glutes_hip_thrust"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar gluteus_maximus dentro del patrón hip_extension.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["machine"],"role":"accessory_compound","setupTransitionCost":"high","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["machine"],"preservesIntent":["Conserva el patrón hip_extension y el objetivo gluteus_maximus."],"replacementGroup":"glute_hip_thrust","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["hamstrings","quadriceps"],"setupCues":["Configura la máquina y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."],"ssc":0.5,"stabilizerMuscles":["core"],"technicalDifficulty":4.2,"ttc":2.0},"selectedOptions":{"implement":"machine","laterality":"unilateral"}},{"displaySummary":"band · bilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#glutes_hip_thrust","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"hip_thrust__bilateral__band","profile":{"automationEligible":true,"axialLoadFactor":0.7,"bodyRegion":"LOWER","cnc":2.2,"commonMistakes":["Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."],"description":"Hip Thrust con banda y ambas piernas: la banda rodea la cadera y añade resistencia progresiva en el bloqueo. Variante portátil del empuje de cadera.","efc":2.8,"equipmentId":"band","executionCues":["Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"variable_band_resistance","movementPatternId":"hip_extension","muscleNotes":[{"muscleId":"gluteus_maximus","note":"Principal: el glúteo mayor extiende la cadera en el bloqueo y concentra el trabajo del hip thrust; por eso suma la serie completa (1.0)."},{"muscleId":"hamstrings","note":"Secundario: los isquiosurales asisten la extensión de cadera y estabilizan la rodilla; por eso suman 0.5."},{"muscleId":"quadriceps","note":"Secundario: el cuádriceps sostiene la rodilla flexionada durante el empuje; por eso suma 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco alineado con el banco durante el empuje; por eso suma 0.4."}],"performanceProfileId":"hip_thrust__band__hip_thrust","primaryMuscles":["gluteus_maximus"],"replacementGroup":"glute_hip_thrust","replacementPriority":1,"resistanceProfile":"variable_band","richMetadata":{"anatomy":{"jointActions":["hip_extension"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["gluteus_maximus"],"secondaryMuscles":["hamstrings","quadriceps"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["gluteus_maximus"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"band","kineticChain":"POSTERIOR","laterality":"BILATERAL","loadMode":"variable_band_resistance","movementPatternId":"hip_extension","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"variable_band","stability":"self_stabilized"},"coaching":{"commonMistakes":["Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Configura la banda y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Hip Thrust","displaySummary":"band · bilateral","selectedOptions":{"implement":"band","laterality":"bilateral"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.7,"cnc":2.2,"efc":2.8,"ssc":0.5,"technicalDifficulty":4.2,"ttc":2.0},"identity":{"canonicalName":"Hip Thrust","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"hip_thrust__bilateral__band","definitionId":"hip_thrust","familyId":"lower_hip_extension_hip_thrust","kind":"PARENT","performanceProfileId":"hip_thrust__band__hip_thrust","searchTerms":["hip thrust","glutes_hip_thrust"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar gluteus_maximus dentro del patrón hip_extension.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["band"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["band"],"preservesIntent":["Conserva el patrón hip_extension y el objetivo gluteus_maximus."],"replacementGroup":"glute_hip_thrust","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["hamstrings","quadriceps"],"setupCues":["Configura la banda y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."],"ssc":0.5,"stabilizerMuscles":["core"],"technicalDifficulty":4.2,"ttc":2.0},"selectedOptions":{"implement":"band","laterality":"bilateral"}},{"displaySummary":"band · unilateral","evidence":{"confidence":"MEDIUM","evidenceRefs":["legacy:exercise_database.json#glutes_hip_thrust","editorial:catalog-v2-full-2026-08-02"],"rationale":"Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.","reviewStatus":"APPROVED"},"id":"hip_thrust__unilateral__band","profile":{"automationEligible":true,"axialLoadFactor":0.7,"bodyRegion":"LOWER","cnc":2.2,"commonMistakes":["Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."],"description":"Hip Thrust con banda y una pierna: la banda sobre la cadera y un pie en el suelo concentran el empuje en el glúteo del lado activo. Variante para asimetrías sin equipamiento pesado.","efc":2.8,"equipmentId":"band","executionCues":["Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."],"kineticChain":"POSTERIOR","laterality":"UNILATERAL","loadMode":"variable_band_resistance","movementPatternId":"hip_extension","muscleNotes":[{"muscleId":"gluteus_maximus","note":"Principal: el glúteo mayor extiende la cadera en el bloqueo y concentra el trabajo del hip thrust; por eso suma la serie completa (1.0)."},{"muscleId":"hamstrings","note":"Secundario: los isquiosurales asisten la extensión de cadera y estabilizan la rodilla; por eso suman 0.5."},{"muscleId":"quadriceps","note":"Secundario: el cuádriceps sostiene la rodilla flexionada durante el empuje; por eso suma 0.5."},{"muscleId":"core","note":"Estabilizador: el core mantiene el tronco alineado con el banco durante el empuje; por eso suma 0.4."}],"performanceProfileId":"hip_thrust__band__hip_thrust","primaryMuscles":["gluteus_maximus"],"replacementGroup":"glute_hip_thrust","replacementPriority":1,"resistanceProfile":"variable_band","richMetadata":{"anatomy":{"jointActions":["hip_extension"],"muscleLengthBias":"mixed_controlled","primaryMuscles":["gluteus_maximus"],"secondaryMuscles":["hamstrings","quadriceps"],"stabilizationDemand":"moderate","stabilizerMuscles":["core"],"targetRegions":["gluteus_maximus"],"volumeContribution":"indirect"},"biomechanics":{"bodyRegion":"LOWER","equipmentId":"band","kineticChain":"POSTERIOR","laterality":"UNILATERAL","loadMode":"variable_band_resistance","movementPatternId":"hip_extension","rangeOfMotion":"controlled_full_available","relevantJoints":["hip","knee","ankle"],"relevantTendons":["hip_tendon","knee_tendon","ankle_tendon"],"resistanceProfile":"variable_band","stability":"self_stabilized"},"coaching":{"commonMistakes":["Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."],"cues":["Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."],"execution":["Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."],"progressions":["Aumentar gradualmente la carga solo si se conserva la configuración exacta."],"regressions":["Reducir carga o rango manteniendo la misma configuración y el mismo patrón."],"relevantMobility":["Movilidad de hip según tolerancia y rango disponible.","Movilidad de knee según tolerancia y rango disponible."],"setup":["Configura la banda y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."]},"display":{"displayName":"Hip Thrust","displaySummary":"band · unilateral","selectedOptions":{"implement":"band","laterality":"unilateral"}},"evidenceConfidence":"MEDIUM","fatigue":{"axialLoadFactor":0.7,"cnc":2.2,"efc":2.8,"ssc":0.5,"technicalDifficulty":4.2,"ttc":2.0},"identity":{"canonicalName":"Hip Thrust","catalogRevision":"v2-approved-2026-08-02-c","configurationId":"hip_thrust__unilateral__band","definitionId":"hip_thrust","familyId":"lower_hip_extension_hip_thrust","kind":"PARENT","performanceProfileId":"hip_thrust__band__hip_thrust","searchTerms":["hip thrust","glutes_hip_thrust"]},"programming":{"fatigueCost":"moderate","indicativeRestSeconds":{"max":120,"min":60},"objectives":["Desarrollar gluteus_maximus dentro del patrón hip_extension.","Mantener la técnica de la configuración seleccionada."],"recoveryCost":"moderate","requiredEquipment":["band"],"role":"accessory_compound","setupTransitionCost":"low","splitSuitability":["full_body","upper_lower"],"suitableRepRanges":["8-15","12-20"]},"replacement":{"compatibleEquipmentIds":["band"],"preservesIntent":["Conserva el patrón hip_extension y el objetivo gluteus_maximus."],"replacementGroup":"glute_hip_thrust","replacementPriority":1},"safety":{"medicalDisclaimerRequired":false,"precautions":["Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."],"risks":[]}},"secondaryMuscles":["hamstrings","quadriceps"],"setupCues":["Configura la banda y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."],"ssc":0.5,"stabilizerMuscles":["core"],"technicalDifficulty":4.2,"ttc":2.0},"selectedOptions":{"implement":"band","laterality":"unilateral"}}],"defaultConfigurationId":"hip_thrust__bilateral__barbell","description":"Empuje de cadera con la espalda apoyada en un banco, que aísla el glúteo mayor con el tronco fijo. El implemento y la lateralidad definen cada configuración.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:definition:hip_thrust"],"rationale":"Revisada; las configuraciones válidas están enumeradas de forma explícita.","reviewStatus":"APPROVED"},"familyId":"lower_hip_extension_hip_thrust","id":"hip_thrust","kind":"PARENT","optionAxes":["implement","laterality"],"searchTerms":["hip thrust","glutes_hip_thrust"]}],"description":"Familia de extensión de cadera con la espalda apoyada; el implemento y la lateralidad son las decisiones visibles de cada variante.","evidence":{"confidence":"MEDIUM","evidenceRefs":["editorial:family:lower_hip_extension_hip_thrust"],"rationale":"Aprobada para runtime tras validación de identidad, metadata y configuraciones.","reviewStatus":"APPROVED"},"id":"lower_hip_extension_hip_thrust","taxonomy":["lower","hip_extension","hip_thrust"]},"ontologyRevision":"wikilab-v2-2026-08-02","schemaVersion":2}
+{
+  "catalogRevision": "v2-approved-2026-08-02-c",
+  "family": {
+    "canonicalName": "Hip Thrust",
+    "definitions": [
+      {
+        "canonicalName": "Hip Thrust",
+        "configurations": [
+          {
+            "displaySummary": "barbell · bilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#glutes_hip_thrust",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "hip_thrust__bilateral__barbell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.7,
+              "bodyRegion": "LOWER",
+              "cnc": 2.2,
+              "commonMistakes": [
+                "Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."
+              ],
+              "description": "Hip Thrust con barra y ambas piernas: la espalda apoya en el banco y la barra sobre la cadera, con la pelvis que sube hasta el bloqueo. Es la referencia de la familia para progresar la carga del glúteo.",
+              "efc": 2.8,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "hip_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: el glúteo mayor extiende la cadera en el bloqueo y concentra el trabajo del hip thrust; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: los isquiosurales asisten la extensión de cadera y estabilizan la rodilla; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Secundario: el cuádriceps sostiene la rodilla flexionada durante el empuje; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco alineado con el banco durante el empuje; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "hip_thrust__barbell__hip_thrust",
+              "primaryMuscles": [
+                "gluteus_maximus"
+              ],
+              "replacementGroup": "glute_hip_thrust",
+              "replacementPriority": 1,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "hip_extension"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "gluteus_maximus"
+                  ],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "quadriceps"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "gluteus_maximus"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "hip_extension",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura barra y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Hip Thrust",
+                  "displaySummary": "barbell · bilateral",
+                  "selectedOptions": {
+                    "implement": "barbell",
+                    "laterality": "bilateral"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.7,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Hip Thrust",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "hip_thrust__bilateral__barbell",
+                  "definitionId": "hip_thrust",
+                  "familyId": "lower_hip_extension_hip_thrust",
+                  "kind": "PARENT",
+                  "performanceProfileId": "hip_thrust__barbell__hip_thrust",
+                  "searchTerms": [
+                    "hip thrust",
+                    "glutes_hip_thrust"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar gluteus_maximus dentro del patrón hip_extension.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón hip_extension y el objetivo gluteus_maximus."
+                  ],
+                  "replacementGroup": "glute_hip_thrust",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "hamstrings",
+                "quadriceps"
+              ],
+              "setupCues": [
+                "Configura barra y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "implement": "barbell",
+              "laterality": "bilateral"
+            }
+          },
+          {
+            "displaySummary": "barbell · unilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#glutes_hip_thrust",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "hip_thrust__unilateral__barbell",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.7,
+              "bodyRegion": "LOWER",
+              "cnc": 2.2,
+              "commonMistakes": [
+                "Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."
+              ],
+              "description": "Hip Thrust con barra y una pierna: un pie apoya en el suelo y la cadera sube contra la barra con el glúteo del lado activo. Permite corregir asimetrías con la misma carga.",
+              "efc": 2.8,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "hip_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: el glúteo mayor extiende la cadera en el bloqueo y concentra el trabajo del hip thrust; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: los isquiosurales asisten la extensión de cadera y estabilizan la rodilla; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Secundario: el cuádriceps sostiene la rodilla flexionada durante el empuje; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco alineado con el banco durante el empuje; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "hip_thrust__barbell__hip_thrust",
+              "primaryMuscles": [
+                "gluteus_maximus"
+              ],
+              "replacementGroup": "glute_hip_thrust",
+              "replacementPriority": 1,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "hip_extension"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "gluteus_maximus"
+                  ],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "quadriceps"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "gluteus_maximus"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "hip_extension",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura barra y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Hip Thrust",
+                  "displaySummary": "barbell · unilateral",
+                  "selectedOptions": {
+                    "implement": "barbell",
+                    "laterality": "unilateral"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.7,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Hip Thrust",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "hip_thrust__unilateral__barbell",
+                  "definitionId": "hip_thrust",
+                  "familyId": "lower_hip_extension_hip_thrust",
+                  "kind": "PARENT",
+                  "performanceProfileId": "hip_thrust__barbell__hip_thrust",
+                  "searchTerms": [
+                    "hip thrust",
+                    "glutes_hip_thrust"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar gluteus_maximus dentro del patrón hip_extension.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón hip_extension y el objetivo gluteus_maximus."
+                  ],
+                  "replacementGroup": "glute_hip_thrust",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "hamstrings",
+                "quadriceps"
+              ],
+              "setupCues": [
+                "Configura barra y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "implement": "barbell",
+              "laterality": "unilateral"
+            }
+          },
+          {
+            "displaySummary": "smith_machine · bilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#glutes_hip_thrust",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "hip_thrust__bilateral__smith_machine",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.7,
+              "bodyRegion": "LOWER",
+              "cnc": 2.2,
+              "commonMistakes": [
+                "Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."
+              ],
+              "description": "Hip Thrust en Smith con ambas piernas: el riel guiado fija la trayectoria de la barra sobre la cadera. La máquina reduce el equilibrio del empuje de cadera.",
+              "efc": 2.8,
+              "equipmentId": "smith_machine",
+              "executionCues": [
+                "Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "hip_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: el glúteo mayor extiende la cadera en el bloqueo y concentra el trabajo del hip thrust; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: los isquiosurales asisten la extensión de cadera y estabilizan la rodilla; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Secundario: el cuádriceps sostiene la rodilla flexionada durante el empuje; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco alineado con el banco durante el empuje; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "hip_thrust__smith_machine__hip_thrust",
+              "primaryMuscles": [
+                "gluteus_maximus"
+              ],
+              "replacementGroup": "glute_hip_thrust",
+              "replacementPriority": 1,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "hip_extension"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "gluteus_maximus"
+                  ],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "quadriceps"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "gluteus_maximus"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "smith_machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "hip_extension",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura la máquina Smith y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Hip Thrust",
+                  "displaySummary": "smith_machine · bilateral",
+                  "selectedOptions": {
+                    "implement": "smith_machine",
+                    "laterality": "bilateral"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.7,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Hip Thrust",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "hip_thrust__bilateral__smith_machine",
+                  "definitionId": "hip_thrust",
+                  "familyId": "lower_hip_extension_hip_thrust",
+                  "kind": "PARENT",
+                  "performanceProfileId": "hip_thrust__smith_machine__hip_thrust",
+                  "searchTerms": [
+                    "hip thrust",
+                    "glutes_hip_thrust"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar gluteus_maximus dentro del patrón hip_extension.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "smith_machine"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "smith_machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón hip_extension y el objetivo gluteus_maximus."
+                  ],
+                  "replacementGroup": "glute_hip_thrust",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "hamstrings",
+                "quadriceps"
+              ],
+              "setupCues": [
+                "Configura la máquina Smith y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "implement": "smith_machine",
+              "laterality": "bilateral"
+            }
+          },
+          {
+            "displaySummary": "smith_machine · unilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#glutes_hip_thrust",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "hip_thrust__unilateral__smith_machine",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.7,
+              "bodyRegion": "LOWER",
+              "cnc": 2.2,
+              "commonMistakes": [
+                "Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."
+              ],
+              "description": "Hip Thrust en Smith con una pierna: la barra guiada acompaña la elevación unilateral de la cadera. La máquina fija el plano del movimiento del glúteo.",
+              "efc": 2.8,
+              "equipmentId": "smith_machine",
+              "executionCues": [
+                "Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "hip_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: el glúteo mayor extiende la cadera en el bloqueo y concentra el trabajo del hip thrust; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: los isquiosurales asisten la extensión de cadera y estabilizan la rodilla; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Secundario: el cuádriceps sostiene la rodilla flexionada durante el empuje; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco alineado con el banco durante el empuje; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "hip_thrust__smith_machine__hip_thrust",
+              "primaryMuscles": [
+                "gluteus_maximus"
+              ],
+              "replacementGroup": "glute_hip_thrust",
+              "replacementPriority": 1,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "hip_extension"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "gluteus_maximus"
+                  ],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "quadriceps"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "gluteus_maximus"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "smith_machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "hip_extension",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura la máquina Smith y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Hip Thrust",
+                  "displaySummary": "smith_machine · unilateral",
+                  "selectedOptions": {
+                    "implement": "smith_machine",
+                    "laterality": "unilateral"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.7,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Hip Thrust",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "hip_thrust__unilateral__smith_machine",
+                  "definitionId": "hip_thrust",
+                  "familyId": "lower_hip_extension_hip_thrust",
+                  "kind": "PARENT",
+                  "performanceProfileId": "hip_thrust__smith_machine__hip_thrust",
+                  "searchTerms": [
+                    "hip thrust",
+                    "glutes_hip_thrust"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar gluteus_maximus dentro del patrón hip_extension.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "smith_machine"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "smith_machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón hip_extension y el objetivo gluteus_maximus."
+                  ],
+                  "replacementGroup": "glute_hip_thrust",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "hamstrings",
+                "quadriceps"
+              ],
+              "setupCues": [
+                "Configura la máquina Smith y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "implement": "smith_machine",
+              "laterality": "unilateral"
+            }
+          },
+          {
+            "displaySummary": "machine · bilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#glutes_hip_thrust",
+                "editorial:configuration:glutes_hip_thrust__machine__bilateral",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "hip_thrust__bilateral__machine",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "cnc": 2.2,
+              "commonMistakes": [
+                "Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."
+              ],
+              "description": "Hip Thrust en máquina con ambas piernas: el cojín presiona la cadera y la pelvis sube contra la resistencia guiada. La estación fija el tronco y aísla el glúteo.",
+              "efc": 2.8,
+              "equipmentId": "machine",
+              "executionCues": [
+                "Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "hip_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: el glúteo mayor extiende la cadera en el bloqueo y concentra el trabajo del hip thrust; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: los isquiosurales asisten la extensión de cadera y estabilizan la rodilla; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Secundario: el cuádriceps sostiene la rodilla flexionada durante el empuje; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco alineado con el banco durante el empuje; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "hip_thrust__machine__hip_thrust",
+              "primaryMuscles": [
+                "gluteus_maximus"
+              ],
+              "replacementGroup": "glute_hip_thrust",
+              "replacementPriority": 1,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "hip_extension"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "gluteus_maximus"
+                  ],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "quadriceps"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "gluteus_maximus"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "hip_extension",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura la máquina y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Hip Thrust",
+                  "displaySummary": "machine · bilateral",
+                  "selectedOptions": {
+                    "implement": "machine",
+                    "laterality": "bilateral"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Hip Thrust",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "hip_thrust__bilateral__machine",
+                  "definitionId": "hip_thrust",
+                  "familyId": "lower_hip_extension_hip_thrust",
+                  "kind": "PARENT",
+                  "performanceProfileId": "hip_thrust__machine__hip_thrust",
+                  "searchTerms": [
+                    "hip thrust",
+                    "glutes_hip_thrust"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar gluteus_maximus dentro del patrón hip_extension.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "machine"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón hip_extension y el objetivo gluteus_maximus."
+                  ],
+                  "replacementGroup": "glute_hip_thrust",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "hamstrings",
+                "quadriceps"
+              ],
+              "setupCues": [
+                "Configura la máquina y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "implement": "machine",
+              "laterality": "bilateral"
+            }
+          },
+          {
+            "displaySummary": "machine · unilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#glutes_hip_thrust",
+                "editorial:configuration:glutes_hip_thrust__machine__bilateral",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "hip_thrust__unilateral__machine",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "LOWER",
+              "cnc": 2.2,
+              "commonMistakes": [
+                "Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."
+              ],
+              "description": "Hip Thrust en máquina con una pierna: el cojín acompaña la elevación de un solo lado con el tronco apoyado. Permite trabajar el glúteo de forma independiente.",
+              "efc": 2.8,
+              "equipmentId": "machine",
+              "executionCues": [
+                "Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "hip_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: el glúteo mayor extiende la cadera en el bloqueo y concentra el trabajo del hip thrust; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: los isquiosurales asisten la extensión de cadera y estabilizan la rodilla; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Secundario: el cuádriceps sostiene la rodilla flexionada durante el empuje; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco alineado con el banco durante el empuje; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "hip_thrust__machine__hip_thrust",
+              "primaryMuscles": [
+                "gluteus_maximus"
+              ],
+              "replacementGroup": "glute_hip_thrust",
+              "replacementPriority": 1,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "hip_extension"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "gluteus_maximus"
+                  ],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "quadriceps"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "gluteus_maximus"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "hip_extension",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura la máquina y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Hip Thrust",
+                  "displaySummary": "machine · unilateral",
+                  "selectedOptions": {
+                    "implement": "machine",
+                    "laterality": "unilateral"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Hip Thrust",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "hip_thrust__unilateral__machine",
+                  "definitionId": "hip_thrust",
+                  "familyId": "lower_hip_extension_hip_thrust",
+                  "kind": "PARENT",
+                  "performanceProfileId": "hip_thrust__machine__hip_thrust",
+                  "searchTerms": [
+                    "hip thrust",
+                    "glutes_hip_thrust"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar gluteus_maximus dentro del patrón hip_extension.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "machine"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "machine"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón hip_extension y el objetivo gluteus_maximus."
+                  ],
+                  "replacementGroup": "glute_hip_thrust",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "hamstrings",
+                "quadriceps"
+              ],
+              "setupCues": [
+                "Configura la máquina y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "implement": "machine",
+              "laterality": "unilateral"
+            }
+          },
+          {
+            "displaySummary": "band · bilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#glutes_hip_thrust",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "hip_thrust__bilateral__band",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.7,
+              "bodyRegion": "LOWER",
+              "cnc": 2.2,
+              "commonMistakes": [
+                "Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."
+              ],
+              "description": "Hip Thrust con banda y ambas piernas: la banda rodea la cadera y añade resistencia progresiva en el bloqueo. Variante portátil del empuje de cadera.",
+              "efc": 2.8,
+              "equipmentId": "band",
+              "executionCues": [
+                "Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "variable_band_resistance",
+              "movementPatternId": "hip_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: el glúteo mayor extiende la cadera en el bloqueo y concentra el trabajo del hip thrust; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: los isquiosurales asisten la extensión de cadera y estabilizan la rodilla; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Secundario: el cuádriceps sostiene la rodilla flexionada durante el empuje; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco alineado con el banco durante el empuje; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "hip_thrust__band__hip_thrust",
+              "primaryMuscles": [
+                "gluteus_maximus"
+              ],
+              "replacementGroup": "glute_hip_thrust",
+              "replacementPriority": 1,
+              "resistanceProfile": "variable_band",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "hip_extension"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "gluteus_maximus"
+                  ],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "quadriceps"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "gluteus_maximus"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "band",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "variable_band_resistance",
+                  "movementPatternId": "hip_extension",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "variable_band",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura la banda y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Hip Thrust",
+                  "displaySummary": "band · bilateral",
+                  "selectedOptions": {
+                    "implement": "band",
+                    "laterality": "bilateral"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.7,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Hip Thrust",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "hip_thrust__bilateral__band",
+                  "definitionId": "hip_thrust",
+                  "familyId": "lower_hip_extension_hip_thrust",
+                  "kind": "PARENT",
+                  "performanceProfileId": "hip_thrust__band__hip_thrust",
+                  "searchTerms": [
+                    "hip thrust",
+                    "glutes_hip_thrust"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar gluteus_maximus dentro del patrón hip_extension.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "band"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "band"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón hip_extension y el objetivo gluteus_maximus."
+                  ],
+                  "replacementGroup": "glute_hip_thrust",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "hamstrings",
+                "quadriceps"
+              ],
+              "setupCues": [
+                "Configura la banda y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "implement": "band",
+              "laterality": "bilateral"
+            }
+          },
+          {
+            "displaySummary": "band · unilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#glutes_hip_thrust",
+                "editorial:catalog-v2-full-2026-08-02"
+              ],
+              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "hip_thrust__unilateral__band",
+            "profile": {
+              "automationEligible": true,
+              "axialLoadFactor": 0.7,
+              "bodyRegion": "LOWER",
+              "cnc": 2.2,
+              "commonMistakes": [
+                "Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."
+              ],
+              "description": "Hip Thrust con banda y una pierna: la banda sobre la cadera y un pie en el suelo concentran el empuje en el glúteo del lado activo. Variante para asimetrías sin equipamiento pesado.",
+              "efc": 2.8,
+              "equipmentId": "band",
+              "executionCues": [
+                "Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "variable_band_resistance",
+              "movementPatternId": "hip_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: el glúteo mayor extiende la cadera en el bloqueo y concentra el trabajo del hip thrust; por eso suma la serie completa (1.0)."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: los isquiosurales asisten la extensión de cadera y estabilizan la rodilla; por eso suman 0.5."
+                },
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Secundario: el cuádriceps sostiene la rodilla flexionada durante el empuje; por eso suma 0.5."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: el core mantiene el tronco alineado con el banco durante el empuje; por eso suma 0.4."
+                }
+              ],
+              "performanceProfileId": "hip_thrust__band__hip_thrust",
+              "primaryMuscles": [
+                "gluteus_maximus"
+              ],
+              "replacementGroup": "glute_hip_thrust",
+              "replacementPriority": 1,
+              "resistanceProfile": "variable_band",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "hip_extension"
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "gluteus_maximus"
+                  ],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "quadriceps"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "gluteus_maximus"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "band",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "variable_band_resistance",
+                  "movementPatternId": "hip_extension",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "hip",
+                    "knee",
+                    "ankle"
+                  ],
+                  "relevantTendons": [
+                    "hip_tendon",
+                    "knee_tendon",
+                    "ankle_tendon"
+                  ],
+                  "resistanceProfile": "variable_band",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Hiperextender la zona lumbar, rebotar en el bloqueo o reducir el rango para completar la repetición."
+                  ],
+                  "cues": [
+                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                  ],
+                  "execution": [
+                    "Ejecuta «Hip Thrust» siguiendo el patrón extensión de cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                  ],
+                  "progressions": [
+                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                  ],
+                  "regressions": [
+                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hip según tolerancia y rango disponible.",
+                    "Movilidad de knee según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Configura la banda y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."
+                  ]
+                },
+                "display": {
+                  "displayName": "Hip Thrust",
+                  "displaySummary": "band · unilateral",
+                  "selectedOptions": {
+                    "implement": "band",
+                    "laterality": "unilateral"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.7,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Hip Thrust",
+                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "configurationId": "hip_thrust__unilateral__band",
+                  "definitionId": "hip_thrust",
+                  "familyId": "lower_hip_extension_hip_thrust",
+                  "kind": "PARENT",
+                  "performanceProfileId": "hip_thrust__band__hip_thrust",
+                  "searchTerms": [
+                    "hip thrust",
+                    "glutes_hip_thrust"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar gluteus_maximus dentro del patrón hip_extension.",
+                    "Mantener la técnica de la configuración seleccionada."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "band"
+                  ],
+                  "role": "accessory_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "band"
+                  ],
+                  "preservesIntent": [
+                    "Conserva el patrón hip_extension y el objetivo gluteus_maximus."
+                  ],
+                  "replacementGroup": "glute_hip_thrust",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "hamstrings",
+                "quadriceps"
+              ],
+              "setupCues": [
+                "Configura la banda y adopta la posición específica de «Hip Thrust» antes de iniciar; conserva una base estable."
+              ],
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {
+              "implement": "band",
+              "laterality": "unilateral"
+            }
+          }
+        ],
+        "defaultConfigurationId": "hip_thrust__bilateral__barbell",
+        "description": "Empuje de cadera con la espalda apoyada en un banco, que aísla el glúteo mayor con el tronco fijo. El implemento y la lateralidad definen cada configuración.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:definition:hip_thrust"
+          ],
+          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "lower_hip_extension_hip_thrust",
+        "id": "hip_thrust",
+        "kind": "PARENT",
+        "optionAxes": [
+          "implement",
+          "laterality"
+        ],
+        "searchTerms": [
+          "hip thrust",
+          "glutes_hip_thrust"
+        ]
+      }
+    ],
+    "description": "Familia de extensión de cadera con la espalda apoyada; el implemento y la lateralidad son las decisiones visibles de cada variante.",
+    "evidence": {
+      "confidence": "MEDIUM",
+      "evidenceRefs": [
+        "editorial:family:lower_hip_extension_hip_thrust"
+      ],
+      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "reviewStatus": "APPROVED"
+    },
+    "id": "lower_hip_extension_hip_thrust",
+    "taxonomy": [
+      "lower",
+      "hip_extension",
+      "hip_thrust"
+    ]
+  },
+  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "schemaVersion": 2
+}
