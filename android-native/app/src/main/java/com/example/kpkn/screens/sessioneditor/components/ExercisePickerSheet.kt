@@ -127,6 +127,7 @@ internal fun ExercisePickerSheet(
         onSelectionChange = onSelectionChange,
         onOpenExerciseDetail = onOpenExerciseDetail,
         onOpenExerciseCreator = onOpenExerciseCreator,
+        onCreateSuperset = onCreateSuperset,
         onDismiss = onDismiss,
         initialCatalogDefinitionId = editingCatalogDefinitionId,
         initialCatalogConfigurationId = editingCatalogConfigurationId,

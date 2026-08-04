@@ -55,7 +55,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -111,7 +110,6 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.filled.AutoAwesome
@@ -282,15 +280,13 @@ fun SessionEditorScreen(
         }
     }
     // Sticky compact header ONLY when the expanded hero (item 0) has fully left the viewport.
-    // Never mutate the hero height on scroll — that caused the flicker loop.
+    // Es un overlay translúcido: NO empuja el contenido (empujarlo/animarlo durante
+    // el scroll hacía que el contenido se moviera más rápido que el dedo).
     val showCompactHero by remember(listState, scrollableListItems) {
         derivedStateOf {
             scrollableListItems.isNotEmpty() && listState.firstVisibleItemIndex > 0
         }
     }
-    var compactHeroHeightPx by remember { mutableIntStateOf(0) }
-    val heroInset = if (showCompactHero) with(density) { compactHeroHeightPx.toDp() } else 0.dp
-    val animatedHeroInset by animateDpAsState(heroInset, tween(220), label = "compactHeroInset")
 
     // Auto-scroll al ejercicio recién añadido (índice = Hero + offset en scrollable)
     LaunchedEffect(pendingAutoExpandExerciseId, scrollableListItems) {
@@ -388,10 +384,7 @@ fun SessionEditorScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .imePadding(),
-            contentPadding = PaddingValues(
-                top = animatedHeroInset,
-                bottom = padding.calculateBottomPadding() + contentBottomPadding,
-            ),
+            contentPadding = PaddingValues(bottom = padding.calculateBottomPadding() + contentBottomPadding),
         ) {
             item {
                 SessionHero(
@@ -508,8 +501,7 @@ fun SessionEditorScreen(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
-                .zIndex(270f)
-                .onSizeChanged { compactHeroHeightPx = it.height },
+                .zIndex(270f),
             enter = fadeIn() + slideInVertically { -it / 3 },
             exit = fadeOut() + slideOutVertically { -it / 3 },
         ) {

@@ -1,8 +1,10 @@
 package com.example.kpkn.screens.sessioneditor.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
-import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -35,7 +37,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -44,6 +49,7 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -72,8 +78,10 @@ import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogRepositoryV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogStateV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Resolver
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseConfigurationV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseDefinitionV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseSearchFiltersV2
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseSearchHitV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseSelectionV2
 import com.example.kpkn.screens.sessioneditor.CatalogSearchField
 import com.example.kpkn.screens.wikilab.wikilabMuscleColor
@@ -97,6 +105,7 @@ internal fun ExercisePickerV2Catalog(
     onSelectionChange: (List<ExerciseMuscleInfo>) -> Unit,
     onOpenExerciseDetail: (String) -> Unit,
     onOpenExerciseCreator: () -> Unit,
+    onCreateSuperset: ((List<ExerciseMuscleInfo>) -> Unit)? = null,
     onDismiss: () -> Unit,
     initialCatalogDefinitionId: String? = null,
     initialCatalogConfigurationId: String? = null,
@@ -207,6 +216,7 @@ internal fun ExercisePickerV2Catalog(
                     onMultiSelect = onMultiSelect,
                     onSelectionChange = onSelectionChange,
                     onOpenExerciseDetail = onOpenExerciseDetail,
+                    onCreateSuperset = onCreateSuperset,
                     onDismiss = onDismiss,
                     initialCatalogDefinitionId = initialCatalogDefinitionId,
                     initialCatalogConfigurationId = initialCatalogConfigurationId,
@@ -260,11 +270,13 @@ private fun ColumnScope.CatalogReadyContent(
     onMultiSelect: (List<ExerciseMuscleInfo>) -> List<String>,
     onSelectionChange: (List<ExerciseMuscleInfo>) -> Unit,
     onOpenExerciseDetail: (String) -> Unit,
+    onCreateSuperset: ((List<ExerciseMuscleInfo>) -> Unit)?,
     onDismiss: () -> Unit,
     initialCatalogDefinitionId: String?,
     initialCatalogConfigurationId: String?,
 ) {
     val resolver = remember(catalog) { ExerciseCatalogV2Resolver(catalog) }
+    val scope = rememberCoroutineScope()
     val definitionsById = remember(catalog) {
         catalog.families.flatMap { it.definitions }.associateBy { it.id }
     }
@@ -328,12 +340,22 @@ private fun ColumnScope.CatalogReadyContent(
         }.toMap()
     }
     // Cuando el usuario escribe "Press Inclinado con Mancuernas", el mejor hit
-    // trae su configuración sugerida: se preseleccionan los chips del draft y
-    // se expande esa tarjeta para que el ejercicio quede listo.
+    // trae su configuración sugerida: se preseleccionan los chips del draft para
+    // que al presionar el ejercicio quede agregado al instante (sin expandir).
     LaunchedEffect(query, suggestedDrafts) {
         if (query.isNotBlank() && suggestedDrafts.isNotEmpty()) {
             draftByDefinition.value = draftByDefinition.value + suggestedDrafts
         }
+    }
+    // Chips del título: las opciones coincidentes de la búsqueda, de-duplicadas
+    // y solo las más específicas (ej. "Polea Baja" y no "Polea" + "Polea Baja").
+    val searchMatchChips = remember(searchHits, definitionsById) {
+        searchHits.mapNotNull { hit ->
+            val def = definitionsById[hit.definitionId] ?: return@mapNotNull null
+            val cfgId = hit.suggestedConfigurationId ?: return@mapNotNull null
+            val cfg = def.configurations.firstOrNull { it.id == cfgId } ?: return@mapNotNull null
+            def.id to searchMatchChipLabels(cfg, def)
+        }.toMap()
     }
     val selectedRows = remember { mutableStateOf<Map<String, ExerciseMuscleInfo>>(emptyMap()) }
     var expandedDefinitionId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -364,13 +386,6 @@ private fun ColumnScope.CatalogReadyContent(
         if (delta != 0) listState.animateScrollBy(delta.toFloat())
     }
 
-    // Expande el mejor hit de la búsqueda para que sus chips queden visibles.
-    LaunchedEffect(query, searchHits) {
-        if (query.isNotBlank()) {
-            searchHits.firstOrNull()?.let { expandedDefinitionId = it.definitionId }
-        }
-    }
-
     // Los chips de filtro se ocultan al hacer scroll para no tapar el catálogo.
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
@@ -379,7 +394,9 @@ private fun ColumnScope.CatalogReadyContent(
             }
     }
 
-    AnimatedVisibility(visible = chipsVisible, enter = fadeIn(), exit = shrinkVertically()) {
+    // Ocultar los chips sin animar su altura: una animación de tamaño contra el
+    // scroll se siente artificial. El colapso es instantáneo y solo se funde el alpha.
+    AnimatedVisibility(visible = chipsVisible, enter = fadeIn(tween(140)), exit = fadeOut(tween(90))) {
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(
                 modifier = Modifier
@@ -522,24 +539,30 @@ private fun ColumnScope.CatalogReadyContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
-                        if (isExpanded) {
-                            expandedDefinitionId = null
-                            if (editingExisting) {
-                                exactInfo(catalog, definition, selectedConfigurationId)?.let(onSelect)
-                            } else if (isSelected) {
+                        when {
+                            isExpanded -> {
+                                expandedDefinitionId = null
+                                if (editingExisting) {
+                                    exactInfo(catalog, definition, selectedConfigurationId)?.let(onSelect)
+                                }
+                            }
+                            isSelected -> {
+                                // Deseleccionar con un toque.
                                 val next = selectedRows.value - definition.id
                                 selectedRows.value = next
                                 onSelectionChange(next.values.toList())
                             }
-                        } else {
-                            expandedDefinitionId = definition.id
-                            if (!editingExisting && !isSelected) {
-                                exactInfo(catalog, definition, selectedConfigurationId)?.let { info ->
+                            editingExisting -> expandedDefinitionId = definition.id
+                            !hasOptions || definition.id in suggestedDrafts -> {
+                                // 2B/2C: sin opciones o ya pre-configurado por la búsqueda
+                                // → se agrega al instante, sin pasar por opciones.
+                                exactInfo(catalog, definition, selectedConfigurationId ?: default?.id)?.let { info ->
                                     val next = selectedRows.value + (definition.id to info)
                                     selectedRows.value = next
                                     onSelectionChange(next.values.toList())
                                 }
                             }
+                            else -> expandedDefinitionId = definition.id
                         }
                     },
             ) {
@@ -554,7 +577,46 @@ private fun ColumnScope.CatalogReadyContent(
                                     style = MaterialTheme.typography.titleSmall,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f, fill = false),
                                 )
+                                // Chips del título: opciones coincidentes de la búsqueda,
+                                // pequeñas y de-duplicadas (solo la más específica).
+                                if (!isExpanded && query.isNotBlank()) {
+                                    val searchChips = searchMatchChips[definition.id].orEmpty()
+                                    if (searchChips.isNotEmpty()) {
+                                        Spacer(Modifier.width(6.dp))
+                                        Row(
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .horizontalScroll(rememberScrollState()),
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                        ) {
+                                            searchChips.take(3).forEach { label ->
+                                                Box(
+                                                    modifier = Modifier
+                                                        .clip(RoundedCornerShape(6.dp))
+                                                        .background(Color.White.copy(alpha = 0.14f))
+                                                        .padding(horizontal = 5.dp, vertical = 1.dp),
+                                                ) {
+                                                    Text(
+                                                        label,
+                                                        color = Color.White.copy(alpha = 0.92f),
+                                                        style = MaterialTheme.typography.titleSmall,
+                                                        maxLines = 1,
+                                                    )
+                                                }
+                                            }
+                                            if (searchChips.size > 3) {
+                                                Text(
+                                                    "+${searchChips.size - 3}",
+                                                    color = Color.White.copy(alpha = 0.55f),
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
                                 if (isSelected) {
                                     Spacer(Modifier.width(6.dp))
                                     Icon(
@@ -651,14 +713,6 @@ private fun ColumnScope.CatalogReadyContent(
                                     value = value,
                                 )
                                 draftByDefinition.value = draftByDefinition.value + (definition.id to newDraft)
-                                if (!editingExisting && isSelected) {
-                                    val newConfigurationId = repository.compatibility(definition.id, newDraft).exactConfigurationId
-                                    newConfigurationId?.let { exactInfo(catalog, definition, it) }?.let { info ->
-                                        val next = selectedRows.value + (definition.id to info)
-                                        selectedRows.value = next
-                                        onSelectionChange(next.values.toList())
-                                    }
-                                }
                             }
                             if (compactAxes) {
                                 FlowRow(
@@ -751,6 +805,31 @@ private fun ColumnScope.CatalogReadyContent(
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.SemiBold,
                         )
+
+                        // Selección explícita: el usuario elige opciones y confirma.
+                        Button(
+                            onClick = {
+                                val info = if (editingExisting) {
+                                    exactInfo(catalog, definition, selectedConfigurationId)
+                                } else {
+                                    exactInfo(catalog, definition, selectedConfigurationId ?: default?.id)
+                                }
+                                if (info != null) {
+                                    if (editingExisting) {
+                                        onSelect(info)
+                                    } else {
+                                        val next = selectedRows.value + (definition.id to info)
+                                        selectedRows.value = next
+                                        onSelectionChange(next.values.toList())
+                                    }
+                                }
+                                expandedDefinitionId = null
+                            },
+                            enabled = selectedConfiguration != null || !hasOptions,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(if (editingExisting) "Usar este ejercicio" else "Seleccionar ejercicio")
+                        }
                     }
                 }
             }
@@ -768,21 +847,81 @@ private fun ColumnScope.CatalogReadyContent(
         item { Spacer(Modifier.height(4.dp)) }
     }
 
-    FloatingCatalogSearch(
-        value = query,
-        onValueChange = onSearch,
-        modifier = Modifier.align(Alignment.BottomCenter),
-    )
+    // Franja flotante de seleccionados + buscador, anclados al borde inferior.
+    Column(
+        modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        if (!editingExisting && selectedRows.value.isNotEmpty()) {
+            SelectedExercisesAccordion(
+                selected = selectedRows.value.entries.toList(),
+                onRemove = { id ->
+                    val next = selectedRows.value - id
+                    selectedRows.value = next
+                    onSelectionChange(next.values.toList())
+                },
+                onMove = { index, delta ->
+                    val ids = selectedRows.value.keys.toMutableList()
+                    val toIndex = (index + delta).coerceIn(0, ids.lastIndex)
+                    if (toIndex == index) return@SelectedExercisesAccordion
+                    val moved = ids.removeAt(index)
+                    ids.add(toIndex, moved)
+                    selectedRows.value = ids.associateWith { selectedRows.value.getValue(it) }
+                    onSelectionChange(selectedRows.value.values.toList())
+                },
+                onTap = { id ->
+                    val customOffset = if (visibleCustomExercises.isNotEmpty()) visibleCustomExercises.size + 1 else 0
+                    val indexInDefinitions = definitions.indexOfFirst { it.id == id }
+                    if (indexInDefinitions >= 0) {
+                        scope.launch {
+                            listState.animateScrollToItem(1 + customOffset + indexInDefinitions)
+                        }
+                    }
+                },
+            )
+        }
+        FloatingCatalogSearch(
+            value = query,
+            onValueChange = onSearch,
+        )
+    }
     }
 
     if (!editingExisting && selectedRows.value.isNotEmpty()) {
-        Button(
-            onClick = {
-                val ids = onMultiSelect(selectedRows.value.values.toList())
-                if (ids.isNotEmpty()) onDismiss()
-            },
+        Row(
             modifier = Modifier.fillMaxWidth(),
-        ) { Text("Agregar ${selectedRows.value.size} ejercicio(s)") }
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (selectedRows.value.size >= 2 && onCreateSuperset != null) {
+                Button(
+                    onClick = {
+                        onCreateSuperset(selectedRows.value.values.toList())
+                        selectedRows.value = emptyMap()
+                        onSelectionChange(emptyList())
+                        onDismiss()
+                    },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White.copy(alpha = 0.14f),
+                        contentColor = Color.White,
+                    ),
+                ) {
+                    Text("Crear superserie", fontWeight = FontWeight.Black)
+                }
+            }
+            Button(
+                onClick = {
+                    val ids = onMultiSelect(selectedRows.value.values.toList())
+                    if (ids.isNotEmpty()) onDismiss()
+                },
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(14.dp),
+            ) { Text("Agregar ${selectedRows.value.size} ejercicio(s)", fontWeight = FontWeight.Black) }
+        }
     }
 }
 
@@ -933,7 +1072,149 @@ private fun AxisChip(
     )
 }
 
-private fun exactInfo(    catalog: ExerciseCatalogV2,
+/** Chips del título: opciones coincidentes de la búsqueda, sin duplicados y solo
+ *  las más específicas (ej. "Polea Baja", no "Polea" + "Polea Baja"). */
+private fun searchMatchChipLabels(
+    configuration: ExerciseConfigurationV2,
+    definition: ExerciseDefinitionV2,
+): List<String> {
+    val labels = configuration.selectedOptions.values
+        .map { exerciseCatalogOptionLabel(it, definition.id) }
+        .filter { it.isNotBlank() }
+    val mostSpecific = labels.filter { label ->
+        !labels.any { other -> other != label && other.contains(label, ignoreCase = true) }
+    }
+    val name = definition.canonicalName
+    return mostSpecific
+        .filter { label -> !name.contains(label, ignoreCase = true) }
+        .distinct()
+}
+
+/** Lista flotante de los ejercicios seleccionados, plegable tipo acordeón:
+ *  quitar, reordenar con flechas y tocar para ir al ejercicio. Ahorra espacio
+ *  porque por defecto queda colapsada en una barra compacta. */
+@Composable
+private fun SelectedExercisesAccordion(
+    selected: List<Map.Entry<String, ExerciseMuscleInfo>>,
+    onRemove: (String) -> Unit,
+    onMove: (Int, Int) -> Unit,
+    onTap: (String) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Surface(
+            shape = RoundedCornerShape(14.dp),
+            color = Color(0xFF1E2129),
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.18f)),
+            shadowElevation = 10.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .clickable { expanded = !expanded },
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    "${selected.size} seleccionado${if (selected.size == 1) "" else "s"}",
+                    color = Color.White,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f),
+                )
+                Icon(
+                    if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = if (expanded) "Plegar seleccionados" else "Desplegar seleccionados",
+                    tint = Color.White.copy(alpha = 0.75f),
+                    modifier = Modifier.size(16.dp),
+                )
+            }
+        }
+
+        AnimatedVisibility(
+            visible = expanded,
+            enter = fadeIn(tween(140)),
+            exit = fadeOut(tween(90)),
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                selected.forEachIndexed { index, (id, info) ->
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color(0xFF1E2129),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.14f)),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(start = 4.dp, end = 4.dp, top = 2.dp, bottom = 2.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(2.dp),
+                        ) {
+                            IconButton(
+                                onClick = { onMove(index, -1) },
+                                enabled = index > 0,
+                                modifier = Modifier.size(30.dp),
+                            ) {
+                                Icon(
+                                    Icons.Default.KeyboardArrowUp,
+                                    contentDescription = "Subir en el orden",
+                                    tint = Color.White.copy(alpha = 0.75f),
+                                    modifier = Modifier.size(15.dp),
+                                )
+                            }
+                            IconButton(
+                                onClick = { onMove(index, 1) },
+                                enabled = index < selected.lastIndex,
+                                modifier = Modifier.size(30.dp),
+                            ) {
+                                Icon(
+                                    Icons.Default.KeyboardArrowDown,
+                                    contentDescription = "Bajar en el orden",
+                                    tint = Color.White.copy(alpha = 0.75f),
+                                    modifier = Modifier.size(15.dp),
+                                )
+                            }
+                            Text(
+                                info.name,
+                                color = Color.White,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .clickable { onTap(id) }
+                                    .padding(vertical = 8.dp),
+                            )
+                            IconButton(
+                                onClick = { onRemove(id) },
+                                modifier = Modifier.size(30.dp),
+                            ) {
+                                Icon(
+                                    Icons.Default.Close,
+                                    contentDescription = "Quitar seleccionado",
+                                    tint = Color.White.copy(alpha = 0.85f),
+                                    modifier = Modifier.size(15.dp),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun exactInfo(
+    catalog: ExerciseCatalogV2,
     definition: ExerciseDefinitionV2,
     configurationId: String?,
 ): ExerciseMuscleInfo? = configurationId?.let {

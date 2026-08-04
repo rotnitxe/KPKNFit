@@ -72,11 +72,11 @@ sealed class SetEditorAction {
 }
 
 object KpknSetEditorTokens {
-    val CardShape = RoundedCornerShape(20.dp)
-    val MiniFieldShape = RoundedCornerShape(14.dp)
+    val CardShape = RoundedCornerShape(24.dp)
+    val MiniFieldShape = RoundedCornerShape(16.dp)
     val ChipShape = RoundedCornerShape(999.dp)
-    val CardPadding = PaddingValues(10.dp)
-    val FieldGap = 8.dp
+    val CardPadding = PaddingValues(8.dp)
+    val FieldGap = 6.dp
 }
 
 @Composable

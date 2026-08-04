@@ -82,7 +82,7 @@ internal fun EditorMiniField(
         modifier = modifier.onFocusChanged { focusState ->
             isFocused = focusState.isFocused
         },
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(16.dp),
         textStyle = MaterialTheme.typography.bodySmall.copy(
             fontWeight = FontWeight.Bold,
             color = Color.White.copy(alpha = 0.92f),
@@ -93,18 +93,18 @@ internal fun EditorMiniField(
 
 @Composable
 internal fun kpknEditorFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedContainerColor = Color.White.copy(alpha = 0.12f),
-    unfocusedContainerColor = Color.White.copy(alpha = 0.08f),
-    disabledContainerColor = Color.White.copy(alpha = 0.05f),
-    focusedTextColor = Color.White.copy(alpha = 0.94f),
-    unfocusedTextColor = Color.White.copy(alpha = 0.90f),
-    disabledTextColor = Color.White.copy(alpha = 0.42f),
-    focusedLabelColor = Color.White.copy(alpha = 0.58f),
-    unfocusedLabelColor = Color.White.copy(alpha = 0.48f),
-    disabledLabelColor = Color.White.copy(alpha = 0.32f),
+    focusedContainerColor = Color.White.copy(alpha = 0.16f),
+    unfocusedContainerColor = Color.White.copy(alpha = 0.12f),
+    disabledContainerColor = Color.White.copy(alpha = 0.07f),
+    focusedTextColor = Color.White.copy(alpha = 0.96f),
+    unfocusedTextColor = Color.White.copy(alpha = 0.92f),
+    disabledTextColor = Color.White.copy(alpha = 0.45f),
+    focusedLabelColor = Color.White.copy(alpha = 0.78f),
+    unfocusedLabelColor = Color.White.copy(alpha = 0.62f),
+    disabledLabelColor = Color.White.copy(alpha = 0.35f),
     cursorColor = Color.White.copy(alpha = 0.9f),
-    focusedBorderColor = Color.White.copy(alpha = 0.16f),
-    unfocusedBorderColor = Color.White.copy(alpha = 0.08f),
+    focusedBorderColor = Color.White.copy(alpha = 0.30f),
+    unfocusedBorderColor = Color.White.copy(alpha = 0.10f),
     disabledBorderColor = Color.Transparent,
     focusedPlaceholderColor = Color.White.copy(alpha = 0.35f),
     unfocusedPlaceholderColor = Color.White.copy(alpha = 0.35f),
