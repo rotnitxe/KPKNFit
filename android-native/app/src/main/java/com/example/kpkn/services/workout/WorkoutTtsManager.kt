@@ -146,7 +146,7 @@ class WorkoutTtsManager(context: Context) {
         if (romPercent != null) parts.add("ROM $romPercent por ciento")
         if (!tagName.isNullOrBlank()) parts.add("etiqueta $tagName")
         parts.addAll(advancedDetails.filter(String::isNotBlank))
-        speak("${parts.joinToString(", ")}. ¿Confirmar?", queueFlush = true)
+        speak("${parts.joinToString(", ")}. ¿Lo registro?", queueFlush = true)
     }
     fun speakSetRegistered(
         weightKg: Double?,
@@ -236,6 +236,14 @@ class WorkoutTtsManager(context: Context) {
             "Ronda completada. Descanso de ronda por $restText."
         }
         speak(text, queueFlush = false)
+    }
+
+    fun speakAskTechnicalQuality() {
+        speak("¿Cómo estuvo la técnica? Del 1 al 10.", queueFlush = false)
+    }
+
+    fun speakAskDiscomfort() {
+        speak("¿Sientes alguna molestia o dolor?", queueFlush = false)
     }
 
     fun speakUnilateralSideRegistered(completedSide: String, pendingSide: String) {

@@ -61,6 +61,20 @@ class WorkoutVoiceConfirmWaitParserTest {
     }
 
     @Test
+    fun confirmWait_wide_cancel_vocabulary_is_cancel() {
+        listOf("borrar", "elimina", "olvida", "incorrecto").forEach { transcript ->
+            val cmd = WorkoutVoiceCommandParser.parseCommand(
+                transcript = transcript,
+                isTimeMode = false,
+                isUnilateral = false,
+                hasPendingConfirmation = true,
+                isRestTimerActive = false,
+            )
+            assertTrue("'$transcript' should cancel", cmd is VoiceSessionCommand.Cancel)
+        }
+    }
+
+    @Test
     fun correction_utterance_reparses_as_register_set() {
         // Controller: first parse with pending=true may fall through; re-parse with pending=false.
         val reparsed = WorkoutVoiceCommandParser.parseCommand(

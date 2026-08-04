@@ -285,6 +285,15 @@ internal fun extractFirstVoiceNumber(text: String): Double? {
     return parseVoiceInteger(tokens.subList(first, last + 1))
 }
 
+internal fun extractFirstVoiceDecimalNumber(text: String): Double? {
+    val normalized = normalizeWorkoutVoiceTranscriptString(text)
+    val tokens = normalized.split(' ').filter { it.isNotBlank() }
+    val first = tokens.indexOfFirst { it.isVoiceNumberToken() }
+    if (first < 0) return null
+    val last = tokens.indexOfLast { it.isVoiceNumberToken() }
+    return parseVoiceNumberTokens(tokens.subList(first, last + 1))
+}
+
 internal fun workoutVoiceSummary(
     interpretation: WorkoutVoiceInterpretation,
     isTimeMode: Boolean,
@@ -488,6 +497,14 @@ private fun parseVoiceNumberTokens(tokens: List<String>, allowGymDecimal: Boolea
         gymDecimal(tokens)?.let { return it }
     }
 
+    if (tokens.size == 2) {
+        val tens = VOICE_INTEGER_WORDS[tokens[0]]
+        val teen = VOICE_INTEGER_WORDS[tokens[1]]
+        if (tens != null && tens % 10 == 0 && tens in 30..90 && teen != null && teen in 11..19) {
+            return (tens + teen - 10).toDouble()
+        }
+    }
+
     return parseVoiceInteger(tokens)
 }
 
@@ -521,12 +538,13 @@ private fun gymDecimal(tokens: List<String>): Double? {
         val fraction = parseVoiceInteger(fractionTokens) ?: continue
         if (fraction <= 0.0 || fraction >= 100.0) continue
 
-        return if (fraction % 1.0 != 0.0) {
-            whole + fraction
-        } else {
-            val scale = if (fraction < 10.0) 10 else 100
-            whole + fraction / scale
+        if (fraction % 1.0 != 0.0) return whole + fraction
+        if (fraction < 10.0) {
+            if (fraction != 5.0) continue
+            return whole + fraction / 10
         }
+        if (fraction !in listOf(25.0, 50.0, 75.0)) continue
+        return whole + fraction / 100
     }
     return null
 }

@@ -59,6 +59,7 @@ object KpknDiagnosticLogger {
     private val activeFiles = mutableMapOf<String, File>()
     private var appContext: Context? = null
     private var screen: String = "unknown"
+    private var currentSessionId: String? = null
 
     fun initialize(context: Context) = synchronized(lock) {
         appContext = context.applicationContext
@@ -70,6 +71,15 @@ object KpknDiagnosticLogger {
 
     fun setCurrentScreen(value: String?) = synchronized(lock) {
         screen = value?.trim()?.takeIf { it.isNotEmpty() }?.take(180) ?: "unknown"
+    }
+
+    /** Starts a new analytics session; returns the new session id. */
+    fun beginSession(): String = synchronized(lock) {
+        UUID.randomUUID().toString().also { currentSessionId = it }
+    }
+
+    private fun activeSessionId(): String = synchronized(lock) {
+        currentSessionId ?: UUID.randomUUID().toString().also { currentSessionId = it }
     }
 
     fun event(
@@ -93,7 +103,7 @@ object KpknDiagnosticLogger {
             "processName" to processName(),
             "namespace" to safeNamespace,
             "traceId" to (traceId ?: eventId),
-            "sessionId" to sessionId,
+            "sessionId" to (sessionId ?: activeSessionId()),
             "reportId" to reportId,
             "screen" to screen,
             "event" to name.take(180),
@@ -108,7 +118,6 @@ object KpknDiagnosticLogger {
                 output.write(line.toByteArray(Charsets.UTF_8))
                 output.write('\n'.code)
                 output.flush()
-                runCatching { output.fd.sync() }
             }
             KpknDiagnosticStorage.enqueueMirror(context, safeNamespace, file, line)
             eventId

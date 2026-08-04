@@ -72,9 +72,14 @@ class WorkoutContinuousVoiceEngine internal constructor(
     )
     private val queuedGrammarKey = AtomicLong(Long.MIN_VALUE)
     private val generationCounter = AtomicLong(0L)
+    private val actorRunning = AtomicBoolean(false)
 
     @Volatile
     private var activeRequested = false
+
+    /** True mientras hay una clarificación pendiente; agrega sí/no a la gramática efectiva. */
+    @Volatile
+    private var pendingClarificationActive = false
 
     @Volatile
     private var discardPcmOnly = false
@@ -188,17 +193,24 @@ class WorkoutContinuousVoiceEngine internal constructor(
     override fun updateCommandContext(
         context: VoiceCommandContext?,
         stage: VoicePipelineStage,
+        pendingClarification: Boolean,
     ) {
         currentContext = context
         currentStage = stage
+        pendingClarificationActive = pendingClarification
         grammarOverride = null
-        val grammarKey = 31L * stage.ordinal + (context?.hashCode()?.toLong() ?: 0L)
+        val grammarKey = voiceGrammarKey(
+            stage = stage,
+            contextHash = context?.hashCode()?.toLong() ?: 0L,
+            pendingClarification = pendingClarification,
+        )
         if (queuedGrammarKey.getAndSet(grammarKey) == grammarKey) return
         commands.trySend(
             EngineCommand.UpdateGrammar(
                 generation = generationCounter.get(),
                 context = context,
                 stage = stage,
+                pendingClarification = pendingClarification,
             ),
         )
     }
@@ -213,6 +225,10 @@ class WorkoutContinuousVoiceEngine internal constructor(
                 stage = stage,
             ),
         )
+    }
+
+    fun releaseCachedRecognizers() {
+        commands.trySend(EngineCommand.ReleaseCachedRecognizers(generationCounter.get()))
     }
 
     override fun start(
@@ -302,6 +318,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
     }
 
     override fun stop() {
+        logVoiceStopRequested()
         val generation = generationCounter.incrementAndGet()
         activeRequested = false
         discardPcmOnly = false
@@ -315,6 +332,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
     }
 
     override suspend fun stopAndAwait(timeoutMs: Long): Boolean {
+        logVoiceStopRequested()
         val generation = generationCounter.incrementAndGet()
         activeRequested = false
         discardPcmOnly = false
@@ -355,6 +373,19 @@ class WorkoutContinuousVoiceEngine internal constructor(
         return sent
     }
 
+    private fun logVoiceStopRequested() {
+        val origin = when (_captureState.value) {
+            VoiceCaptureState.MIC_BUSY -> "mic_busy"
+            VoiceCaptureState.ERROR_RECOVERY -> "error_recovery"
+            else -> null
+        } ?: return
+        WorkoutVoiceDiagnosticLogger.event(
+            "voice_stop_requested",
+            mapOf("origin" to origin, "captureState" to _captureState.value.name) +
+                WorkoutVoiceDiagnosticLogger.runtimeStateFields(context),
+        )
+    }
+
     private fun ensureActor(ownerScope: CoroutineScope) {
         if (actorJob?.isActive == true) return
         actorJob = ownerScope.launch(Dispatchers.IO) {
@@ -364,6 +395,13 @@ class WorkoutContinuousVoiceEngine internal constructor(
 
     @Suppress("LongMethod", "CyclomaticComplexMethod")
     private suspend fun runActor() {
+        if (!actorRunning.compareAndSet(false, true)) {
+            WorkoutVoiceDiagnosticLogger.event(
+                "vosk_actor_duplicate_aborted",
+                mapOf("reason" to "actor_already_active"),
+            )
+            return
+        }
         var running = false
         var actorGeneration = generationCounter.get()
         var captureDesired = false
@@ -428,7 +466,8 @@ class WorkoutContinuousVoiceEngine internal constructor(
 
         fun createRecognizerForCurrentPhase(force: Boolean = true): Boolean {
             val activeModel = model ?: return false
-            val grammar = grammarOverride ?: WorkoutVoiceGrammarBuilder.build(currentStage, currentContext)
+            val grammar = grammarOverride
+                ?: WorkoutVoiceGrammarBuilder.build(currentStage, currentContext, pendingClarificationActive)
             val grammarHash = grammar.hashCode()
             if (!force && recognizer != null && currentGrammarHash == grammarHash) {
                 runCatching { recognizer?.reset() }
@@ -777,6 +816,8 @@ class WorkoutContinuousVoiceEngine internal constructor(
 
                 is EngineCommand.UpdateCaptureMode -> {
                     if (command.generation != actorGeneration) return
+                    // Handler secuencial dentro del canal del único actor: nunca lanza
+                    // un segundo runActor, así que no puede haber dos decodificadores.
                     val enableExternal = command.mode == com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE
                     if (micRouter.externalRouteEnabled == enableExternal) return
                     micRouter.externalRouteEnabled = enableExternal
@@ -848,6 +889,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
                     if (command.generation != actorGeneration && running) return
                     currentContext = command.context
                     currentStage = command.stage
+                    pendingClarificationActive = command.pendingClarification
                     runCatching { createRecognizerForCurrentPhase(force = false) }
                 }
 
@@ -856,6 +898,12 @@ class WorkoutContinuousVoiceEngine internal constructor(
                     grammarOverride = command.grammarJson
                     currentStage = command.stage
                     runCatching { createRecognizerForCurrentPhase(force = false) }
+                }
+
+                is EngineCommand.ReleaseCachedRecognizers -> {
+                    if (command.generation != actorGeneration && running) return
+                    recognizerCache.values.toList().forEach { cached -> runCatching { cached.close() } }
+                    recognizerCache.clear()
                 }
 
                 is EngineCommand.ModelReady -> {
@@ -1131,7 +1179,14 @@ class WorkoutContinuousVoiceEngine internal constructor(
                                     } else {
                                         val partial = lastPartialText
                                         if (sawSpeechInCurrentUtterance) {
-                                            if (partial.isNotBlank()) {
+                                            val emptyFinalAtMs = clockMs()
+                                            val guardDeadline = postTtsGuardUntilMs
+                                            if (guardDeadline != null && emptyFinalAtMs < guardDeadline) {
+                                                WorkoutVoiceDiagnosticLogger.event(
+                                                    "vosk_empty_final_partial_suppressed",
+                                                    mapOf("partial" to partial, "reason" to "post_tts_guard"),
+                                                )
+                                            } else if (partial.isNotBlank()) {
                                                 // El final vino vacío pero el partial traía la
                                                 // frase: emitirlo como hipótesis de respaldo en
                                                 // vez de perder el comando.
@@ -1240,9 +1295,15 @@ class WorkoutContinuousVoiceEngine internal constructor(
         } catch (error: Throwable) {
             activeRequested = false
             _captureState.value = VoiceCaptureState.ERROR_RECOVERY
+            WorkoutVoiceDiagnosticLogger.event(
+                "voice_stop_requested",
+                mapOf("origin" to "error_recovery", "captureState" to _captureState.value.name) +
+                    WorkoutVoiceDiagnosticLogger.runtimeStateFields(context),
+            )
             _errors.tryEmit("El motor local de voz se detuvo de forma segura" )
             WorkoutVoiceDiagnosticLogger.exception("vosk_engine_fatal", error)
         } finally {
+            actorRunning.set(false)
             cancelFallback()
             modelPrepareJob?.cancel()
             modelPrepareJob = null
@@ -1365,12 +1426,17 @@ class WorkoutContinuousVoiceEngine internal constructor(
             val generation: Long,
             val context: VoiceCommandContext?,
             val stage: VoicePipelineStage,
+            val pendingClarification: Boolean = false,
         ) : EngineCommand
 
         data class UpdateGrammarOverride(
             val generation: Long,
             val grammarJson: String,
             val stage: VoicePipelineStage,
+        ) : EngineCommand
+
+        data class ReleaseCachedRecognizers(
+            val generation: Long,
         ) : EngineCommand
 
         data class ModelReady(
@@ -1410,9 +1476,11 @@ class WorkoutContinuousVoiceEngine internal constructor(
         internal const val SAMPLE_RATE = 16_000
         private const val PCM_FRAME_SHORTS = 1_600
         private const val ACTOR_POLL_DELAY_MS = 20L
-        private const val RECOGNIZER_CACHE_SIZE = 2
+        // Memoria del proceso :voice: las gramáticas cambian por stage y un caché de 2
+        // duplica el FST del modelo en RAM; con 1 basta (principal en uso + reutilización).
+        private const val RECOGNIZER_CACHE_SIZE = 1
         private const val PARTIAL_EMIT_INTERVAL_MS = 250L
-        private const val POST_TTS_GUARD_MS = 250L
+        private const val POST_TTS_GUARD_MS = 600L
         private const val PCM_START_WATCHDOG_MS = 1_500L
         private const val MIC_BUSY_TIMEOUT_MS = 5_000L
         private const val MISSING_SESSION_RETRY_MS = 300L
@@ -1437,6 +1505,16 @@ class WorkoutContinuousVoiceEngine internal constructor(
         private const val PAUSE_ACK_TIMEOUT_MS = 1_500L
     }
 }
+
+/**
+ * Clave del dedup de gramáticas: la clarificación pendiente debe invalidar la
+ * clave aunque stage y contexto no cambien, o el flag nunca se aplicaría.
+ */
+internal fun voiceGrammarKey(
+    stage: VoicePipelineStage,
+    contextHash: Long,
+    pendingClarification: Boolean,
+): Long = 31L * stage.ordinal + contextHash + if (pendingClarification) 1L shl 40 else 0L
 
 enum class VoiceCaptureState {
     IDLE,

@@ -438,4 +438,21 @@ class WorkoutVoiceInputTest {
         assertEquals(100.0, result?.weightKg ?: 0.0, 0.0)
         assertEquals(5, result?.metricValue)
     }
+
+    @Test
+    fun compound_numbers_are_not_gym_decimals() {
+        val cincuentaYuno = parseWorkoutVoiceTranscript("cincuenta y uno kilos", false, false)
+        val setentaYsiete = parseWorkoutVoiceTranscript("setenta y siete kilos", false, false)
+        val ochentaYcinco = parseWorkoutVoiceTranscript("ochenta y cinco kilos cinco repeticiones rir dos", false, false)
+        val setentaDiecisiete = parseWorkoutVoiceTranscript("setenta diecisiete kilos", false, false)
+        val veintidosCinco = parseWorkoutVoiceTranscript("veintidos cinco kilos", false, false)
+        val veintidosComaCinco = parseWorkoutVoiceTranscript("veintidos coma cinco kilos", false, false)
+
+        assertEquals(51.0, cincuentaYuno?.weightKg ?: 0.0, 0.0)
+        assertEquals(77.0, setentaYsiete?.weightKg ?: 0.0, 0.0)
+        assertEquals(85.0, ochentaYcinco?.weightKg ?: 0.0, 0.0)
+        assertEquals(77.0, setentaDiecisiete?.weightKg ?: 0.0, 0.0)
+        assertEquals(22.5, veintidosCinco?.weightKg ?: 0.0, 0.0)
+        assertEquals(22.5, veintidosComaCinco?.weightKg ?: 0.0, 0.0)
+    }
 }

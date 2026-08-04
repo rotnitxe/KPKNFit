@@ -88,18 +88,21 @@ object WorkoutVoiceDiagnosticStorage {
         }
     }
 
+    private val mirroredRecoveryFiles = mutableSetOf<String>()
+
     fun mirrorRecoveryFiles(context: Context, files: List<File>) {
         if (files.isEmpty() || !isConfigured(context)) return
         val appContext = context.applicationContext
         writer.execute {
-            files.filter(File::exists).forEach { source ->
+            files.filter { it.exists() && mirroredRecoveryFiles.add(it.name) }.forEach { source ->
                 runCatching {
                     val mime = when (source.extension.lowercase()) {
                         "jsonl" -> "application/x-ndjson"
                         "json" -> "application/json"
                         else -> "application/octet-stream"
                     }
-                    val target = createDocument(appContext, source.name, mime)
+                    val target = findChild(appContext, source.name, mime)
+                        ?: createDocument(appContext, source.name, mime)
                         ?: error("No se pudo crear ${source.name}")
                     appContext.contentResolver.openOutputStream(target, "w")?.use { output ->
                         source.inputStream().use { input -> input.copyTo(output) }
@@ -129,6 +132,33 @@ object WorkoutVoiceDiagnosticStorage {
             mimeType,
             sanitizeDisplayName(displayName),
         )
+    }
+
+    private fun findChild(context: Context, displayName: String, mimeType: String): Uri? {
+        val treeUri = configuredTreeUri(context) ?: return null
+        val children = DocumentsContract.buildChildDocumentsUriUsingTree(
+            treeUri,
+            DocumentsContract.getTreeDocumentId(treeUri),
+        )
+        return runCatching {
+            context.contentResolver.query(
+                children,
+                arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID, DocumentsContract.Document.COLUMN_DISPLAY_NAME),
+                null,
+                null,
+                null,
+            )?.use { cursor ->
+                val idIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
+                val nameIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
+                while (cursor.moveToNext()) {
+                    if (cursor.getString(nameIndex) == sanitizeDisplayName(displayName)) {
+                        val id = cursor.getString(idIndex)
+                        return@use DocumentsContract.buildDocumentUriUsingTree(treeUri, id)
+                    }
+                }
+                null
+            }
+        }.getOrNull()
     }
 
     private fun configuredTreeUri(context: Context): Uri? {

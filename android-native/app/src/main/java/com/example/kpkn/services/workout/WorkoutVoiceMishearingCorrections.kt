@@ -18,6 +18,16 @@ internal object WorkoutVoiceMishearingCorrections {
         "la varra" to "la barra",
     )
 
+    private val PAIR_CORRECTIONS = mapOf(
+        "rir voz" to "rir dos",
+        "rpe voz" to "rpe dos",
+        "rir toca" to "rir dos",
+        "rpe toca" to "rpe dos",
+        "rir kilos" to "rir dos",
+        "rpe kilos" to "rpe dos",
+        "ritmo doce" to "rir dos",
+    )
+
     private val DOMAIN_LEXICON = setOf(
         "kilo", "kilos", "peso", "carga", "lastre", "asistencia", "contrapeso", "barra",
         "mancuerna", "mancuernas", "repeticion", "repeticiones", "segundo", "segundos",
@@ -49,6 +59,11 @@ internal object WorkoutVoiceMishearingCorrections {
     fun correct(normalizedText: String): String {
         if (normalizedText.isBlank()) return normalizedText
         var result = normalizedText
+        for ((from, to) in PAIR_CORRECTIONS) {
+            if (result.contains(from)) {
+                result = result.replace(from, to)
+            }
+        }
         for ((from, to) in PHRASE_CORRECTIONS) {
             if (result.contains(from)) {
                 result = result.replace(from, to)

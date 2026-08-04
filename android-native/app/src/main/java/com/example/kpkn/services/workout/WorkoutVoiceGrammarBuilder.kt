@@ -8,7 +8,11 @@ package com.example.kpkn.services.workout
  * original por una sustitución local.
  */
 object WorkoutVoiceGrammarBuilder {
-    fun build(stage: VoicePipelineStage, context: VoiceCommandContext?): String {
+    fun build(
+        stage: VoicePipelineStage,
+        context: VoiceCommandContext?,
+        pendingClarification: Boolean = false,
+    ): String {
         val tokens = linkedSetOf<String>()
         // Reportes globales deben sobrevivir a las gramáticas específicas de cada etapa.
         tokens += "reportar equipo"
@@ -69,6 +73,11 @@ object WorkoutVoiceGrammarBuilder {
             }
             context?.tagNames.orEmpty().forEach { tag ->
                 expandForVosk(tag).forEach { expanded -> phrases += "etiqueta $expanded" }
+            }
+        }
+        if (stage == VoicePipelineStage.LISTENING && pendingClarification) {
+            WorkoutVoiceCommandParser.clarificationReplyGrammarTokens().forEach { token ->
+                expandForVosk(token).forEach { phrases += it }
             }
         }
         phrases += "[unk]"

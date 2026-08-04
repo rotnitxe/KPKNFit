@@ -19,6 +19,7 @@ object WorkoutVoiceCommandParser {
         "equivocado", "error", "descartar", "anular", "nulo",
         "cancelado", "niego",
         "negativo", "incorrecto", "espera", "cancela", "quita",
+        "elimina", "olvida",
     )
 
     private val SKIP_SET_KEYWORDS = setOf(
@@ -245,7 +246,7 @@ object WorkoutVoiceCommandParser {
 
     fun defaultNumericGrammarTokens(): Set<String> = buildSet {
         addAll(VOICE_INTEGER_WORDS.keys)
-        addAll(setOf("punto", "coma", "medio", "media", "cuarto", "cuartos", "kilo", "kilos", "peso", "carga"))
+        addAll(setOf("punto", "coma", "y", "medio", "media", "cuarto", "cuartos", "kilo", "kilos", "peso", "carga"))
         addAll(setOf("repeticion", "repetición", "repeticiones", "segundo", "segundos"))
         addAll(setOf(
             "minuto", "minutos", "esfuerzo", "intensidad", "reservas", "reserva", "ritmo", "porcentaje", "por",
@@ -271,6 +272,17 @@ object WorkoutVoiceCommandParser {
             "sin energia", "sin energía", "agotado", "agotada", "quede agotado", "quede agotada",
         ))
         // No añadir "0".."120" ni abreviaturas (rpe/reps/kg): Vosk small-es las descarta.
+    }
+
+    fun clarificationReplyGrammarTokens(): Set<String> = buildSet {
+        addAll(setOf(
+            "si", "sí", "dale", "ok", "okey", "confirmar", "confirmado",
+            "listo", "aplica", "usar", "usa", "bueno", "bien", "vale", "eso",
+        ))
+        addAll(setOf(
+            "no", "nope", "negativo", "cancelar", "cancela", "cambiar",
+            "otro", "otra", "borrar", "elimina", "quita", "olvida", "incorrecto",
+        ))
     }
 
     fun parseCommand(

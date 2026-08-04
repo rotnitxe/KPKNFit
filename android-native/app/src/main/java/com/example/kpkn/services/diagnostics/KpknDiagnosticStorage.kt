@@ -16,6 +16,11 @@ object KpknDiagnosticStorage {
     private const val KEY_TREE_URI = "tree_uri"
     private const val KEY_TREE_LABEL = "tree_label"
     private const val ROOT_NAME = "KPKN"
+    private const val MAX_MIRROR_FILES = 64
+    private const val MAX_MIRROR_TOTAL_BYTES = 50L * 1024L * 1024L
+    private const val PRUNE_EVERY_EVENTS = 32
+    /** Sync del fd local cada N escrituras, en el hilo del writer (no en el llamante). */
+    private const val SYNC_EVERY_EVENTS = 25
     private val NAMESPACES = listOf(
         "voice", "nutrition", "auge", "app", "workout", "performance", "assistant",
         "programs", "learn", "health", "tts", "backend", "reports",
@@ -24,6 +29,11 @@ object KpknDiagnosticStorage {
     private val writer = Executors.newSingleThreadExecutor { runnable ->
         Thread(runnable, "kpkn-jsonl-mirror").apply { isDaemon = true }
     }
+
+    private val fileUris = mutableMapOf<String, Uri>()
+    private var eventsSincePrune = 0
+    private var eventsSinceSync = 0
+    private val mirroredRecoveryFiles = mutableSetOf<String>()
 
     fun configure(context: Context, treeUri: Uri): Result<String> = runCatching {
         require(DocumentsContract.isTreeUri(treeUri)) { "La ubicación seleccionada no es una carpeta válida" }
@@ -74,20 +84,51 @@ object KpknDiagnosticStorage {
         if (!isConfigured(context)) return
         val appContext = context.applicationContext
         writer.execute {
-            runCatching {
-                val directory = ensureNamespaceDirectory(appContext, namespace)
-                    ?: error("No se pudo crear KPKN/$namespace")
-                val target = ensureFile(appContext, directory, source.name)
-                    ?: error("No se pudo crear ${source.name}")
-                appContext.contentResolver.openOutputStream(target, "wa")?.use { output ->
-                    output.write(line.toByteArray(Charsets.UTF_8))
-                    output.write('\n'.code)
-                    output.flush()
-                } ?: error("El proveedor SAF no permitió escribir ${source.name}")
-            }.onFailure { error ->
-                Log.e(TAG, "SAF mirror deferred; local source retained", error)
+            val first = runCatching { writeMirrorLine(appContext, namespace, source, line) }
+            if (first.isFailure) {
+                val error = first.exceptionOrNull()
+                if (error is java.io.FileNotFoundException || error is SecurityException) {
+                    fileUris.remove(source.name)
+                    runCatching { writeMirrorLine(appContext, namespace, source, line) }
+                        .onFailure { retryError ->
+                            fileUris.remove(source.name)
+                            Log.e(TAG, "SAF mirror deferred; local source retained", retryError)
+                        }
+                } else {
+                    fileUris.remove(source.name)
+                    Log.e(TAG, "SAF mirror deferred; local source retained", error)
+                }
+            }
+            if (++eventsSinceSync >= SYNC_EVERY_EVENTS) {
+                eventsSinceSync = 0
+                runCatching { java.io.FileInputStream(source).use { it.fd.sync() } }
+            }
+            if (++eventsSincePrune >= PRUNE_EVERY_EVENTS) {
+                eventsSincePrune = 0
+                runCatching {
+                    ensureNamespaceDirectory(appContext, namespace)?.let { directory ->
+                        pruneMirror(appContext, directory)
+                    }
+                }.onFailure { error ->
+                    Log.e(TAG, "SAF mirror prune failed", error)
+                }
             }
         }
+    }
+
+    private fun writeMirrorLine(appContext: Context, namespace: String, source: File, line: String): Boolean {
+        val directory = ensureNamespaceDirectory(appContext, namespace)
+            ?: error("No se pudo crear KPKN/$namespace")
+        val target = fileUris[source.name]
+            ?: ensureFile(appContext, directory, source.name)
+                ?.also { fileUris[source.name] = it }
+            ?: error("No se pudo crear ${source.name}")
+        appContext.contentResolver.openOutputStream(target, "wa")?.use { output ->
+            output.write(line.toByteArray(Charsets.UTF_8))
+            output.write('\n'.code)
+            output.flush()
+        } ?: error("El proveedor SAF no permitió escribir ${source.name}")
+        return true
     }
 
     fun mirrorRecoveryFiles(context: Context) {
@@ -96,7 +137,7 @@ object KpknDiagnosticStorage {
         if (!root.exists() || !isConfigured(appContext)) return
         writer.execute {
             root.walkTopDown()
-                .filter { it.isFile && it.extension == "jsonl" }
+                .filter { it.isFile && it.extension == "jsonl" && mirroredRecoveryFiles.add(it.name) }
                 .forEach { source ->
                     val namespace = source.parentFile?.name ?: "app"
                     runCatching {
@@ -138,17 +179,20 @@ object KpknDiagnosticStorage {
     }
 
     private fun ensureFile(context: Context, parent: Uri, name: String): Uri? {
+        fileUris[name]?.let { return it }
         val treeUri = configuredTreeUri(context) ?: return null
-        return findChild(context, treeUri, parent, name, "application/x-ndjson")
+        val found = findChild(context, treeUri, parent, name, null)
             ?: DocumentsContract.createDocument(
                 context.contentResolver,
                 parent,
                 "application/x-ndjson",
                 sanitize(name),
             )
+        if (found != null) fileUris[name] = found
+        return found
     }
 
-    private fun findChild(context: Context, treeUri: Uri?, parent: Uri, name: String, mimeType: String): Uri? {
+    private fun findChild(context: Context, treeUri: Uri?, parent: Uri, name: String, mimeType: String?): Uri? {
         val children = DocumentsContract.buildChildDocumentsUriUsingTree(
             treeUri ?: parent,
             DocumentsContract.getDocumentId(parent),
@@ -165,7 +209,9 @@ object KpknDiagnosticStorage {
                 val nameIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
                 val mimeIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_MIME_TYPE)
                 while (cursor.moveToNext()) {
-                    if (cursor.getString(nameIndex) == name && cursor.getString(mimeIndex) == mimeType) {
+                    val sameName = cursor.getString(nameIndex) == name
+                    val matchesType = mimeType == null || cursor.getString(mimeIndex) == mimeType
+                    if (sameName && matchesType) {
                         val id = cursor.getString(idIndex)
                         return@use DocumentsContract.buildDocumentUriUsingTree(
                             treeUri ?: parent,
@@ -176,6 +222,62 @@ object KpknDiagnosticStorage {
                 null
             }
         }.getOrNull()
+    }
+
+    private fun pruneMirror(context: Context, directory: Uri) {
+        val treeUri = configuredTreeUri(context) ?: return
+        val children = DocumentsContract.buildChildDocumentsUriUsingTree(
+            treeUri,
+            DocumentsContract.getDocumentId(directory),
+        )
+        val files = context.contentResolver.query(
+            children,
+            arrayOf(
+                DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+                DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+                DocumentsContract.Document.COLUMN_MIME_TYPE,
+                DocumentsContract.Document.COLUMN_LAST_MODIFIED,
+                DocumentsContract.Document.COLUMN_SIZE,
+            ),
+            null,
+            null,
+            null,
+        )?.use { cursor ->
+            val idIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
+            val nameIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
+            val mimeIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_MIME_TYPE)
+            val modifiedIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
+            val sizeIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_SIZE)
+            buildList {
+                while (cursor.moveToNext()) {
+                    if (cursor.getString(mimeIndex) == DocumentsContract.Document.MIME_TYPE_DIR) continue
+                    val id = cursor.getString(idIndex) ?: continue
+                    val lastModified = if (modifiedIndex >= 0) cursor.getLong(modifiedIndex) else 0L
+                    val size = if (sizeIndex >= 0) cursor.getLong(sizeIndex) else 0L
+                    add(
+                        Triple(
+                            DocumentsContract.buildDocumentUriUsingTree(treeUri, id),
+                            lastModified,
+                            size,
+                        )
+                    )
+                }
+            }
+        }.orEmpty()
+        if (files.isEmpty()) return
+        val sorted = files.sortedBy { it.second }
+        var total = sorted.sumOf { it.third }
+        var index = 0
+        while (sorted.size - index > MAX_MIRROR_FILES || total > MAX_MIRROR_TOTAL_BYTES) {
+            if (index >= sorted.size) break
+            val oldest = sorted[index]
+            index++
+            runCatching {
+                DocumentsContract.deleteDocument(context.contentResolver, oldest.first)
+                fileUris.entries.removeIf { it.value == oldest.first }
+            }
+            total -= oldest.third
+        }
     }
 
     private fun configuredTreeUri(context: Context): Uri? {

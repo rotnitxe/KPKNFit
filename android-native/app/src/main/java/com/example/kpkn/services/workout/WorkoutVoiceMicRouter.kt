@@ -51,6 +51,7 @@ class WorkoutVoiceMicRouter(
         appContext.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
 
     private val mainHandler = Handler(Looper.getMainLooper())
+    private val routeLock = Any()
     private var acquired = false
     private var mode: RouteMode = RouteMode.CONTINUOUS_VOICE_FIRST
     private var callbackRegistered = false
@@ -60,6 +61,7 @@ class WorkoutVoiceMicRouter(
     private var legacyScoRequested = false
     private var previousAudioMode: Int? = null
     private var communicationModeApplied = false
+    private var lastAlreadySelectedLoggedId: Int? = null
 
     /**
      * En modo MÚSICA no se solicita ruta de comunicación: el SCO queda libre y
@@ -107,14 +109,16 @@ class WorkoutVoiceMicRouter(
     }
 
     fun acquire(routeMode: RouteMode = RouteMode.CONTINUOUS_VOICE_FIRST) {
-        if (acquired && mode != routeMode) {
-            clearCommunicationDeviceIfNeeded()
+        synchronized(routeLock) {
+            if (acquired && mode != routeMode) {
+                clearCommunicationDeviceIfNeeded()
+            }
+            mode = routeMode
+            acquired = true
+            registerCallbackIfNeeded()
+            requestCommunicationRoute()
+            refreshLabelOnly()
         }
-        mode = routeMode
-        acquired = true
-        registerCallbackIfNeeded()
-        requestCommunicationRoute()
-        refreshLabelOnly()
     }
 
     fun release() {
@@ -229,6 +233,10 @@ class WorkoutVoiceMicRouter(
             return
         }
         val am = audioManager ?: return
+        if (!externalRouteEnabled) {
+            _activeRouteLabel.value = "phone"
+            return
+        }
         val preferred = when (mode) {
             RouteMode.CONTINUOUS_VOICE_FIRST,
             RouteMode.CONTINUOUS_MUSIC_FIRST,
@@ -322,16 +330,20 @@ class WorkoutVoiceMicRouter(
         ) {
             val selectedId = runCatching { am.communicationDevice?.id }.getOrNull()
             if (selectedId == preferred.id) {
-                logRouteRequest(
-                    requested = preferred,
-                    accepted = true,
-                    reason = "communication_device_already_selected",
-                )
+                if (lastAlreadySelectedLoggedId != preferred.id) {
+                    lastAlreadySelectedLoggedId = preferred.id
+                    logRouteRequest(
+                        requested = preferred,
+                        accepted = true,
+                        reason = "communication_device_already_selected",
+                    )
+                }
                 return
             }
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            lastAlreadySelectedLoggedId = null
             val accepted = runCatching { am.setCommunicationDevice(preferred) }
                 .onFailure {
                     logRouteRequest(
@@ -451,6 +463,7 @@ class WorkoutVoiceMicRouter(
         communicationDeviceRequested = false
         communicationDeviceId = null
         legacyScoRequested = false
+        lastAlreadySelectedLoggedId = null
         restoreAudioModeIfNeeded()
     }
 

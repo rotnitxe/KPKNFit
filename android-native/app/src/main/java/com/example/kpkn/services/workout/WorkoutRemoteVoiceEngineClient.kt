@@ -153,9 +153,13 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
         noiseProfile = profile
     }
 
-    override fun updateCommandContext(context: VoiceCommandContext?, stage: VoicePipelineStage) {
+    override fun updateCommandContext(
+        context: VoiceCommandContext?,
+        stage: VoicePipelineStage,
+        pendingClarification: Boolean,
+    ) {
         currentStage = stage
-        currentGrammar = WorkoutVoiceGrammarBuilder.build(stage, context)
+        currentGrammar = WorkoutVoiceGrammarBuilder.build(stage, context, pendingClarification)
         if (activeRequested && !failedTerminal) {
             runCatching { remote?.updateGrammar(generation, currentGrammar, stage.ordinal) }
                 .onFailure { handleBinderDeath() }

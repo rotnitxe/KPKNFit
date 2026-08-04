@@ -24,7 +24,11 @@ internal interface WorkoutVoiceEnginePort {
     val isActive: Boolean
 
     fun setNoiseProfile(profile: VoiceNoiseProfile)
-    fun updateCommandContext(context: VoiceCommandContext?, stage: VoicePipelineStage)
+    fun updateCommandContext(
+        context: VoiceCommandContext?,
+        stage: VoicePipelineStage,
+        pendingClarification: Boolean = false,
+    )
     fun start(scope: CoroutineScope, holdMicRouteAcrossPause: Boolean = true, captureMode: VoiceCaptureMode = VoiceCaptureMode.HANDS_FREE)
     fun updateCaptureMode(mode: VoiceCaptureMode)
     fun pause()

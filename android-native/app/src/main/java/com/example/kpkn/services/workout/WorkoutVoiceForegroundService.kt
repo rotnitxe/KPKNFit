@@ -130,6 +130,11 @@ class WorkoutVoiceForegroundService : Service() {
         override fun stop(generation: Long): Boolean {
             if (generation != clientGeneration) return false
             sessionRequested = false
+            WorkoutVoiceDiagnosticLogger.event(
+                "voice_stop_requested",
+                mapOf("origin" to "binder_stop") +
+                    WorkoutVoiceDiagnosticLogger.runtimeStateFields(this@WorkoutVoiceForegroundService),
+            )
             return runBlocking(Dispatchers.IO) { engine.stopAndAwait(1_500L) }
         }
 
@@ -171,7 +176,9 @@ class WorkoutVoiceForegroundService : Service() {
             level >= ComponentCallbacks2.TRIM_MEMORY_MODERATE
         ) {
             if (!sessionRequested && !engine.isActive) {
-                stopCaptureAndSelf()
+                stopCaptureAndSelf(origin = "trim_memory")
+            } else if (level >= ComponentCallbacks2.TRIM_MEMORY_MODERATE) {
+                engine.releaseCachedRecognizers()
             }
         }
     }
@@ -182,8 +189,8 @@ class WorkoutVoiceForegroundService : Service() {
                 startAsForeground()
                 acquireWakeLock()
             }
-            ACTION_STOP -> stopCaptureAndSelf()
-            else -> stopCaptureAndSelf()
+            ACTION_STOP -> stopCaptureAndSelf(origin = "self_destroy")
+            else -> stopCaptureAndSelf(origin = "self_destroy")
         }
         return START_NOT_STICKY
     }
@@ -272,10 +279,18 @@ class WorkoutVoiceForegroundService : Service() {
         )
         stopCaptureAndSelf("voice_callback_died")
     }
-    private fun stopCaptureAndSelf(reason: String = "voice_process_stopped") {
+    private fun stopCaptureAndSelf(
+        reason: String = "voice_process_stopped",
+        origin: String = "self_destroy",
+    ) {
         if (stopping) return
         stopping = true
         sessionRequested = false
+        WorkoutVoiceDiagnosticLogger.event(
+            "voice_stop_requested",
+            mapOf("origin" to origin, "reason" to reason) +
+                WorkoutVoiceDiagnosticLogger.runtimeStateFields(this),
+        )
         serviceScope.launch {
             engine.stopAndAwait(1_500L)
             WorkoutVoiceDiagnosticLogger.close(reason)
@@ -356,6 +371,11 @@ class WorkoutVoiceForegroundService : Service() {
     }
 
     override fun onDestroy() {
+        WorkoutVoiceDiagnosticLogger.event(
+            "voice_stop_requested",
+            mapOf("origin" to "self_destroy", "reason" to "on_destroy") +
+                WorkoutVoiceDiagnosticLogger.runtimeStateFields(this),
+        )
         engine.stop()
         pendingPrompts.values.forEach(PromptSpeakRequest::complete)
         pendingPrompts.clear()

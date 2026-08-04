@@ -100,6 +100,11 @@ class WorkoutRestTimerOrchestrator(
         }
         ports.persistOngoingState()
         if (voiceController.isEnabled()) {
+            val pendingFeedback = getState().voicePendingFeedbackExerciseIds
+            if (pendingFeedback.isNotEmpty()) {
+                updateState { it.copy(voicePendingFeedbackExerciseIds = emptySet()) }
+                voiceController.onVoicePendingFeedbackPrompt(pendingFeedback)
+            }
             val pending = getState().pendingRestSuggestion
             val adaptiveDelta = pending?.let { kotlin.math.abs(it.adaptiveSeconds - it.plannedSeconds) } ?: 0
             when {

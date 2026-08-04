@@ -16,4 +16,6 @@ internal class VoskUtteranceAccumulator {
     fun consume(): String = fragments.joinToString(" ").also { fragments.clear() }
 
     fun clear() = fragments.clear()
+
+    fun reset() = clear()
 }

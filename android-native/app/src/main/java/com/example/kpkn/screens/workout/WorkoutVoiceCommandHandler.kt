@@ -16,6 +16,7 @@ import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.voice.VoiceState
 import com.example.kpkn.services.workout.VoiceSessionCommand
+import com.example.kpkn.services.workout.VoiceConfirmationTarget
 import com.example.kpkn.services.workout.VoicePipelineStage
 import com.example.kpkn.services.workout.VoiceSessionState
 import com.example.kpkn.services.workout.WorkoutVoiceController
@@ -721,7 +722,13 @@ class WorkoutVoiceCommandHandler(
         }
         val state = getState()
         val allExercises = ports.visibleExercises(state)
-        val exercise = allExercises.getOrNull(state.postExerciseTargetIdx) ?: return
+        val exercise = if (state.postExerciseTargetIdx >= 0) {
+            allExercises.getOrNull(state.postExerciseTargetIdx)
+        } else {
+            voiceController.pendingFeedbackExerciseId()?.let { pendingId ->
+                allExercises.firstOrNull { it.id == pendingId }
+            }
+        } ?: return
 
         val target = state.postExerciseFeedbackTarget
         val targetExercise = if (target is PostExerciseFeedbackTarget.SupersetGroup) {
@@ -771,7 +778,16 @@ class WorkoutVoiceCommandHandler(
             } else {
                 ports.savePostExerciseFeedback(currentFeedback)
             }
+            WorkoutVoiceDiagnosticLogger.event(
+                "feedback_registered",
+                mapOf(
+                    "exerciseId" to currentFeedback.exerciseId,
+                    "technicalQuality" to currentFeedback.technicalQuality,
+                    "discomfortIds" to currentFeedback.discomfortIds.joinToString(","),
+                ),
+            )
             voiceController.speakFeedbackSaved()
+            voiceController.completeVoiceFeedbackPrompt()
             return
         }
 
@@ -901,7 +917,12 @@ class WorkoutVoiceCommandHandler(
             ),
         )
         val state = getState()
-        val exercise = ports.visibleExercises(state).getOrNull(state.currentExerciseIdx) ?: return
+        val confirmationTarget = voiceController.confirmationTarget()
+        val exercise = if (confirmationTarget != null) {
+            ports.visibleExercises(state).firstOrNull { it.id == confirmationTarget.exerciseId }
+        } else {
+            ports.visibleExercises(state).getOrNull(state.currentExerciseIdx)
+        } ?: return
         val acceptedInterpretation = if (exercise.trackRom) {
             interpretation
         } else {
@@ -910,8 +931,12 @@ class WorkoutVoiceCommandHandler(
                 fields = interpretation.fields - WorkoutVoiceField.ROM,
             )
         }
-        val setIdx = state.currentSetIdx
-        val side = if (exercise.isEffectivelyUnilateral()) acceptedInterpretation.side else null
+        val setIdx = confirmationTarget?.setIndex ?: state.currentSetIdx
+        val side = if (exercise.isEffectivelyUnilateral()) {
+            confirmationTarget?.side ?: acceptedInterpretation.side
+        } else {
+            null
+        }
         val unitMode = ports.inferUnitMode(exercise, setIdx)
         val programmedLoadMode = ports.effectiveLoadModeForExercise(exercise, setIdx)
         val loadMode = acceptedInterpretation.loadModeOverride ?: programmedLoadMode

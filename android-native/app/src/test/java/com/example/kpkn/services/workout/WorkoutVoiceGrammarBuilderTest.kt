@@ -93,6 +93,35 @@ class WorkoutVoiceGrammarBuilderTest {
     }
 
     @Test
+    fun listening_grammar_includes_yesno_only_with_pending_clarification() {
+        val withoutClarification = WorkoutVoiceGrammarBuilder.build(
+            stage = VoicePipelineStage.LISTENING,
+            context = null,
+        )
+        val withClarification = WorkoutVoiceGrammarBuilder.build(
+            stage = VoicePipelineStage.LISTENING,
+            context = null,
+            pendingClarification = true,
+        )
+
+        assertTrue(!withoutClarification.contains("\"sí\""))
+        assertTrue(!withoutClarification.contains("\"no\""))
+        assertTrue(withClarification.contains("\"sí\""))
+        assertTrue(withClarification.contains("\"no\""))
+    }
+
+    @Test
+    fun defaultNumericGrammarIncludesConjunctionY() {
+        assertTrue(WorkoutVoiceCommandParser.defaultNumericGrammarTokens().contains("y"))
+
+        val grammar = WorkoutVoiceGrammarBuilder.build(
+            stage = VoicePipelineStage.LISTENING,
+            context = null,
+        )
+        assertTrue(grammar.contains("\"y\""))
+    }
+
+    @Test
     fun generatedCommandAliasesRemainParseable() {
         assertParsesAs(
             rawGrammarPhrase = "apagar micrófono",
