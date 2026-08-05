@@ -695,9 +695,6 @@ fun WorkoutScreen(
             isUnilateral = isUnilateralDock,
             voiceSessionEnabled = uiState.voiceSessionEnabled,
             voiceSessionState = uiState.voiceSessionState,
-            voicePushToTalk = settings.voiceInputMode == com.example.kpkn.data.models.VoiceInputMode.PUSH_TO_TALK,
-            onPushToTalkStart = { viewModel.beginVoicePushToTalk() },
-            onPushToTalkEnd = { viewModel.endVoicePushToTalk() },
             onToggleVoice = {
                 if (uiState.voiceSessionEnabled) {
                     viewModel.toggleVoiceSession()

@@ -25,6 +25,21 @@ class WorkoutVoiceMishearingCorrectionsTest {
     }
 
     @Test
+    fun implausible_rir_numbers_are_corrected_to_dos() {
+        assertEquals("rir dos", WorkoutVoiceMishearingCorrections.correct("rir doce"))
+        assertEquals("rir dos", WorkoutVoiceMishearingCorrections.correct("rir ocho"))
+        assertEquals("rir dos", WorkoutVoiceMishearingCorrections.correct("rir diez"))
+        assertEquals("rir dos", WorkoutVoiceMishearingCorrections.correct("rir reservas doce"))
+    }
+
+    @Test
+    fun plausible_rpe_is_never_mapped_to_dos() {
+        // RPE 8 y 10 son valores válidos: no se tocan.
+        assertEquals("rpe ocho", WorkoutVoiceMishearingCorrections.correct("rpe ocho"))
+        assertEquals("rpe diez", WorkoutVoiceMishearingCorrections.correct("rpe diez"))
+    }
+
+    @Test
     fun valid_short_tokens_are_not_touched() {
         assertEquals("rir dos", WorkoutVoiceMishearingCorrections.correct("rir dos"))
         assertEquals("treinta kilos", WorkoutVoiceMishearingCorrections.correct("treinta kilos"))

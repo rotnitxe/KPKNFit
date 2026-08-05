@@ -32,7 +32,6 @@ data class VoiceCommandContext(
     val isUnilateralSidePending: Boolean = false,
     val completedSidesCount: Int = 0,
     val pendingUnilateralSide: String? = null,
-    val allowedCommands: Set<String> = emptySet(),
     val exerciseAliases: Set<String> = emptySet(),
     /** Textos de frases de intensidad personalizadas (se inyectan a la gramática). */
     val customIntensityPhrases: List<String> = emptyList(),

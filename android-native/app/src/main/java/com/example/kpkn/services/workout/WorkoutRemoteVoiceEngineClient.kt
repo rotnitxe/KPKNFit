@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
+import android.os.SystemClock
 import com.example.kpkn.data.models.VoiceCaptureMode
 import com.example.kpkn.data.models.VoiceNoiseProfile
 import java.util.concurrent.atomic.AtomicLong
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -31,12 +33,21 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
     @Volatile private var activeRequested = false
     @Volatile private var binding = false
     @Volatile private var failedTerminal = false
+    /** True mientras se fuerza el reinicio por cuelgue; el onStopped se trata como muerte. */
+    @Volatile private var forceRestartInProgress = false
     private var generation = 0L
     private var holdMicRouteAcrossPause = true
     private var currentStage = VoicePipelineStage.LISTENING
     private var currentGrammar = WorkoutVoiceGrammarBuilder.build(currentStage, null)
     private var noiseProfile = VoiceNoiseProfile.GYM
     private var captureMode = VoiceCaptureMode.HANDS_FREE
+    /** Fase 4.4: VOICE_COMMUNICATION (AEC) en el mic interno; se re-aplica tras cada start. */
+    @Volatile private var musicAecEnabled = false
+
+    /** Último callback del proceso :voice (cualquier tipo). Alimenta el watchdog anti-cuelgue. */
+    @Volatile private var lastRemoteActivityAtMs = SystemClock.elapsedRealtime()
+    /** Marca temporal fijada al disparar una recuperación; sirve para detectar la reconexión. */
+    @Volatile private var recoveryTriggeredAtMs = 0L
 
     private val _partialResults = MutableSharedFlow<String>(extraBufferCapacity = 4)
     override val partialResults: Flow<String> = _partialResults
@@ -54,6 +65,8 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
     override val captureState: StateFlow<VoiceCaptureState> = _captureState.asStateFlow()
     private val _rmsLevel = MutableStateFlow(0f)
     override val rmsLevel: StateFlow<Float> = _rmsLevel.asStateFlow()
+
+    override val heartbeat: Flow<Long> = emptyFlow()
     private val _usingOnDevice = MutableStateFlow(true)
     override val usingOnDeviceRecognizer: StateFlow<Boolean> = _usingOnDevice.asStateFlow()
     private val _route = MutableStateFlow<String?>(null)
@@ -66,11 +79,18 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
 
     private val callback = object : IWorkoutVoiceEngineCallback.Stub() {
         private fun valid(callbackGeneration: Long): Boolean = callbackGeneration == generation && activeRequested
+        private inline fun touchRemoteActivity() {
+            lastRemoteActivityAtMs = SystemClock.elapsedRealtime()
+        }
         override fun onPartial(callbackGeneration: Long, text: String?) {
-            if (valid(callbackGeneration) && text != null) _partialResults.tryEmit(text)
+            if (valid(callbackGeneration) && text != null) {
+                touchRemoteActivity()
+                _partialResults.tryEmit(text)
+            }
         }
         override fun onFinal(callbackGeneration: Long, hypothesesJson: String?) {
             if (!valid(callbackGeneration) || hypothesesJson == null) return
+            touchRemoteActivity()
             val parsed = runCatching {
                 val array = JSONArray(hypothesesJson)
                 buildList {
@@ -92,23 +112,67 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
         }
         override fun onError(callbackGeneration: Long, code: String?, message: String?) {
             if (!valid(callbackGeneration)) return
+            touchRemoteActivity()
             val text = message ?: code ?: "Error del motor de voz"
             _errors.tryEmit(text)
             _failures.tryEmit(classifyVoiceFailure(text))
         }
         override fun onStatus(callbackGeneration: Long, message: String?) {
-            if (valid(callbackGeneration) && message != null) _statusMessages.tryEmit(message)
+            if (valid(callbackGeneration) && message != null) {
+                touchRemoteActivity()
+                _statusMessages.tryEmit(message)
+            }
         }
         override fun onCaptureState(callbackGeneration: Long, state: Int) {
-            if (valid(callbackGeneration)) _captureState.value = VoiceCaptureState.entries.getOrElse(state) { VoiceCaptureState.ERROR_RECOVERY }
+            if (valid(callbackGeneration)) {
+                touchRemoteActivity()
+                _captureState.value = VoiceCaptureState.entries.getOrElse(state) { VoiceCaptureState.ERROR_RECOVERY }
+            }
         }
-        override fun onRms(callbackGeneration: Long, rms: Float) { if (valid(callbackGeneration)) _rmsLevel.value = rms }
-        override fun onOnDevice(callbackGeneration: Long, onDevice: Boolean) { if (valid(callbackGeneration)) _usingOnDevice.value = onDevice }
-        override fun onRoute(callbackGeneration: Long, route: String?) { if (valid(callbackGeneration)) _route.value = route }
-        override fun onNativeFallback(callbackGeneration: Long, active: Boolean) { if (valid(callbackGeneration)) _usingFallback.value = active }
-        override fun onFallbackPaused(callbackGeneration: Long, paused: Boolean) { if (valid(callbackGeneration)) _fallbackPaused.value = paused }
+        override fun onRms(callbackGeneration: Long, rms: Float) {
+            if (valid(callbackGeneration)) {
+                touchRemoteActivity()
+                _rmsLevel.value = rms
+            }
+        }
+        override fun onHeartbeat(callbackGeneration: Long) {
+            if (valid(callbackGeneration)) {
+                touchRemoteActivity()
+            }
+        }
+        override fun onOnDevice(callbackGeneration: Long, onDevice: Boolean) {
+            if (valid(callbackGeneration)) {
+                touchRemoteActivity()
+                _usingOnDevice.value = onDevice
+            }
+        }
+        override fun onRoute(callbackGeneration: Long, route: String?) {
+            if (valid(callbackGeneration)) {
+                touchRemoteActivity()
+                _route.value = route
+            }
+        }
+        override fun onNativeFallback(callbackGeneration: Long, active: Boolean) {
+            if (valid(callbackGeneration)) {
+                touchRemoteActivity()
+                _usingFallback.value = active
+            }
+        }
+        override fun onFallbackPaused(callbackGeneration: Long, paused: Boolean) {
+            if (valid(callbackGeneration)) {
+                touchRemoteActivity()
+                _fallbackPaused.value = paused
+            }
+        }
         override fun onStopped(callbackGeneration: Long, userRequested: Boolean) {
             if (callbackGeneration != generation) return
+            if (forceRestartInProgress) {
+                // Reinicio forzado por cuelgue: el stop limpio se interpreta como muerte
+                // para que el supervisor levante un proceso nuevo.
+                forceRestartInProgress = false
+                handleBinderDeath()
+                return
+            }
             activeRequested = false
             publishStopped()
             if (userRequested) WorkoutVoiceRuntime.notifyRemoteStop()
@@ -183,6 +247,13 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
             .onFailure { handleBinderDeath() }
     }
 
+    override fun updateMusicAec(enabled: Boolean) {
+        musicAecEnabled = enabled
+        if (!activeRequested || failedTerminal) return
+        runCatching { remote?.updateMusicAec(generation, enabled) }
+            .onFailure { handleBinderDeath() }
+    }
+
     override fun pause() {
         if (!activeRequested || failedTerminal) return
         clientScope.launch(Dispatchers.IO) {
@@ -227,6 +298,62 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
         return stopped
     }
 
+    /**
+     * Fénix: re-arma el motor tras una muerte/cuelgue sin cambiar la intención
+     * del usuario (`activeRequested` se mantiene). Al reconectar, [onServiceConnected]
+     * re-envía [sendStart] con la gramática/stage/modo que ya conservamos.
+     *
+     * No se incrementa la generación: `start()` solo lo hace para sesiones nuevas.
+     * Mantener la generación estable entre intentos evita la deriva en la que el
+     * intento 2+ envía `start(G2)` a un proceso que aún registra `clientGeneration=G1`
+     * (todos los comandos ignorados → give-up espurio, fix F2).
+     */
+    override fun recover() {
+        failedTerminal = false
+        activeRequested = true
+        binding = false
+        _captureState.value = VoiceCaptureState.STARTING
+        if (remote == null) {
+            ensureBound()
+        } else {
+            sendStart()
+        }
+    }
+
+    /** Fija la referencia temporal a partir de la cual una reconexión se considera éxito. */
+    override fun markRecoveryTriggered() {
+        recoveryTriggeredAtMs = SystemClock.elapsedRealtime()
+    }
+
+    override fun lastRemoteActivityAtMs(): Long = lastRemoteActivityAtMs
+
+    override fun lastRecoveryTriggeredAtMs(): Long = recoveryTriggeredAtMs
+
+    /**
+     * Cuelgue a nivel de proceso: el binder sigue vivo pero el actor no decodifica.
+     * Mata el proceso de forma determinista (forceKillSelf → killProcess) para que
+     * el binder death dispare FAILED → el supervisor levanta un proceso limpio.
+     * Sin carreras con stopSelf ni ventanas de zombie (fix H2).
+     */
+    override fun forceRestartForHang() {
+        if (!activeRequested || failedTerminal) return
+        forceRestartInProgress = true
+        val liveRemote = remote
+        if (liveRemote != null) {
+            // killProcess mata el proceso en el acto: la transacción binder termina en
+            // DeadObjectException (esperado). NO hacer fallback a FGS.stop en ese caso:
+            // sería contradectair el propósito y recrear un proceso transitorio (fix F1).
+            // El kill se lanza en IO para no bloquear el hilo main (fix F4).
+            clientScope.launch(Dispatchers.IO) {
+                runCatching { liveRemote.forceKillSelf() }
+            }
+        } else {
+            WorkoutVoiceForegroundService.stop(appContext)
+        }
+    }
+
+    val isForceRestarting: Boolean get() = forceRestartInProgress
+
     override fun requestNativeFallbackForUnresolved(transcript: String): Boolean =
         if (!activeRequested || failedTerminal) false
         else runCatching { remote?.requestNativeFallback(generation, transcript) == true }
@@ -236,9 +363,27 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
     private fun ensureBound() {
         if (binding || remote != null) return
         binding = true
+        // Garantizar el primer plano ANTES del bind: un proceso :voice sin FGS es
+        // candidato inmediato a LMK (orgánico). Si el FGS no puede arrancar desde
+        // background, no bindear y dejar que el fénix reintente con backoff.
+        val foregroundAccepted = runCatching { WorkoutVoiceForegroundService.start(appContext) }.isSuccess
+        if (!foregroundAccepted) {
+            binding = false
+            WorkoutVoiceDiagnosticLogger.event(
+                "voice_fgs_start_failed",
+                mapOf("generation" to generation, "origin" to "ensure_bound"),
+            )
+            // FGS no puede arrancar (p. ej. background): ir a FAILED para que el fénix
+            // reintente con backoff en vez de quedar atascado en RECONNECTING (fix M2).
+            handleBinderDeath()
+            return
+        }
         val intent = Intent(appContext, WorkoutVoiceForegroundService::class.java)
         val accepted = runCatching { appContext.bindService(intent, connection, Context.BIND_AUTO_CREATE) }.getOrDefault(false)
-        if (!accepted) handleBinderDeath()
+        if (!accepted) {
+            binding = false
+            handleBinderDeath()
+        }
     }
 
     private fun sendStart() {
@@ -252,21 +397,23 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
                 captureMode.ordinal,
             ) ?: error("Binder de voz no disponible")
         }.onFailure { handleBinderDeath() }
+        // Re-aplicar el flag AEC SIEMPRE (true o false) para corregir un valor stale
+        // del proceso anterior (fix M4).
+        runCatching { remote?.updateMusicAec(generation, musicAecEnabled) }
+            .onFailure { handleBinderDeath() }
     }
 
     private fun handleBinderDeath() {
-        if (failedTerminal) return
-        failedTerminal = true
-        activeRequested = false
+        if (forceRestartInProgress) forceRestartInProgress = false
+        // El usuario apagó la voz o ya se declaró terminal: no hay nada que recuperar.
+        if (!activeRequested || failedTerminal) return
         runCatching { appContext.unbindService(connection) }
         remote = null
         binding = false
-        WorkoutVoiceForegroundService.stop(appContext)
         _captureState.value = VoiceCaptureState.FAILED
         _rmsLevel.value = 0f
         val failureMessage = "La voz se detuvo; tu entrenamiento sigue guardado"
-        _errors.tryEmit(failureMessage)
-        _failures.tryEmit(WorkoutVoiceFailure(WorkoutVoiceFailureCode.IPC_DEATH, failureMessage, terminal = true))
+        _failures.tryEmit(WorkoutVoiceFailure(WorkoutVoiceFailureCode.IPC_DEATH, failureMessage, terminal = false))
         WorkoutVoiceDiagnosticLogger.event(
             "voice_ipc_died",
             mapOf(
@@ -274,6 +421,8 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
                 "origin" to "client_bind_death",
             ) + WorkoutVoiceDiagnosticLogger.runtimeStateFields(appContext),
         )
+        // El supervisor (controller) observa FAILED y arranca el fénix. No se detiene
+        // el FGS aquí: el proceso ya está muerto y la recuperación lo recrea desde cero.
     }
 
     private fun unbind() {

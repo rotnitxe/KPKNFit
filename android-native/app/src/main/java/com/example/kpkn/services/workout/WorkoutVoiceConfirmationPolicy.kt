@@ -14,7 +14,7 @@ enum class ConfirmationDecision {
 
 /**
  * Unified confirmation policy for new sets and intensity-only completions.
- * Replaces ad-hoc [WorkoutVoiceAutoConfirmGate.shouldAutoConfirm] boolean checks.
+ * Replaces the removed ad-hoc auto-confirm boolean gate.
  */
 object WorkoutVoiceConfirmationPolicy {
 

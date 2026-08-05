@@ -1,137 +1,104 @@
-# Informe Voz Sesión — Implementación Final
+# Informe Voz Sesión — Estado actual del sistema de voz en vivo
+
+> Documento vivo de la implementación actual. Reemplaza el informe anterior basado
+> en `SpeechRecognizer` nativo, que quedó obsoleto tras la migración a Vosk.
 
 ## Arquitectura
 
-La sesión de voz usa **SpeechRecognizer nativo de Android** en ciclos continuos. Sin Picovoice, sin dependencias externas, sin API keys.
+La voz continua corre sobre **Vosk (modelo `vosk-model-small-es-0.42`, ~57,5 MB de
+assets) en un proceso separado `:voice`**, aislado del proceso principal mediante
+AIDL. El proceso principal nunca carga `libvosk` ni abre `AudioRecord`.
+
+- **Motor**: `WorkoutContinuousVoiceEngine` (en `:voice`): un único actor posee
+  `AudioRecord` 16 kHz + `Recognizer` Vosk con **gramáticas restringidas por stage**
+  (las frases que el recognizer puede emitir), caché de recognizer = 1, recuperación
+  con backoff (300/1 s/2 s → slow-probe 15 s), fallback nativo **one-shot on-device**.
+- **IPC**: `WorkoutVoiceForegroundService` (tipo `microphone`, notificación
+  silenciosa) + `WorkoutRemoteVoiceEngineClient` con generaciones monotónicas,
+  `DeathRecipient` y heartbeat.
+- **Supervisión**: `WorkoutVoiceSessionGate` (reglas puras de stage), watchdog de
+  captura, y el **"fénix"** de auto-recuperación (`VoiceSessionRecoveryPolicy`).
+
+### Modos de captura (producto)
+
+| Modo | Micrófono | Música del usuario |
+|------|-----------|--------------------|
+| **Manos Libres** | Audífonos Bluetooth (ruta de comunicación, SCO) | Degrada como llamada |
+| **Música** | Micrófono del teléfono (aunque esté bloqueado) | Alta calidad intacta (A2DP) |
+
+No existe modo "pulsar para hablar": la voz está **siempre escuchando** mientras la
+sesión está activa, y **el modelo nunca se descarga** durante la sesión.
 
 ### Flujo
 
 ```
-DISABLED ──[FAB]──▶ LISTENING ──[detecta frase]──▶ PROCESSING ──[parse NLP]──▶ TTS_SPEAKING
-                       ▲                                │                        │
-                       │                          [RegisterSet]           [TTS dice resumen]
-                       │                                │                        │
-                       │                                ▼                        ▼
-                       │                         CONFIRM_WAIT ◀─────────────────┘
-                       │                            │         │
-                       │                     [confirmar]  [5s timeout]
-                       │                            │         │
-                       │                            ▼         ▼
-                       └──────────────────── TTS_SPEAKING ────┘
-                                               (serie registrada)
+DISABLED ──[activar]──▶ LISTENING ──[final ASR]──▶ PROCESSING ──[comando]──▶ TTS_SPEAKING
+                          ▲                            │                        │
+                          │                     [RegisterSet]            [TTS confirma]
+                          │                            │                        │
+                          │                            ▼                        ▼
+                          │                      CONFIRM_WAIT ◀─────────────────┘
+                          │                          │    │
+                          │                  [sí/no]  │  [12s timeout → repregunta → cancela]
+                          │                          │    │
+                          │                          ▼    ▼
+                          └─────────────── LISTENING (serie registrada)
 ```
 
-### Micrófono
+Stages: `DISABLED, LISTENING, PROCESSING, CONFIRM_WAIT, TTS_SPEAKING, MIC_BUSY,
+RECONNECTING, RECOVERING, ERROR_RECOVERY, FAILED`.
 
-Un solo capturador a la vez:
-- **LISTENING**: `WorkoutContinuousVoiceEngine` tiene el micrófono
-- **PROCESSING / TTS_SPEAKING / CONFIRM_WAIT**: `SpeechRecognizer` pausado, ducking activo
-- **CONFIRM_WAIT**: se reanuda `SpeechRecognizer` para escuchar confirmar/cancelar
-- Al apagar voz / destruir ViewModel: micrófono liberado
+## El "fénix" (auto-recuperación)
 
-### Ducking
+Si el proceso `:voice` muere (LMK) o **se cuelga** (sin callbacks durante 12 s en
+`LISTENING`):
 
-- Se activa `AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK` con `USAGE_VOICE_COMMUNICATION` al entrar a PROCESSING
-- Se libera al volver a LISTENING
-- TTS usa `USAGE_ASSISTANT` que hace ducking automático adicional
+1. `WorkoutRemoteVoiceEngineClient.handleBinderDeath()` marca `FAILED` (no-terminal):
+   la sesión **sigue solicitada** por el usuario.
+2. `WorkoutVoiceController.startPhoenixRecovery()` entra en stage `RECOVERING`
+   (chip "Reconectando voz...", **sin avisos hablados** en éxito).
+3. Reintentos con backoff 0/1/2/5/10/30 s (máx 6 intentos). Cada intento:
+   `markRecoveryTriggered()` → `recover()` (foreground garantizado + rebind +
+   `sendStart()` con la gramática/stage/modo que el cliente conserva).
+4. Éxito → se re-pregunta **una vez** si se interrumpió una confirmación o
+   clarificación: *"Perdón, se cortó un segundo. ¿Me repetías?"*. **Nunca
+   auto-confirma.** Si se interrumpió en `CONFIRM_WAIT`, se restaura `CONFIRM_WAIT`
+   (navegación, reemplazo, tag, fin o persistencia de serie extra).
+5. Give-up (agotados los intentos) → mensaje "La voz no pudo recuperarse sola",
+   el usuario reconecta tocando el micrófono.
 
----
+## Comandos soportados (resumen)
 
-## Archivos
+Registrar/editar series (peso×reps, decimales de gimnasio, RPE/RIR/%RM, al fallo,
+dropset, rest-pause, ROM, lado, "solo la barra", mancuernas, asistidas, tags),
+confirmación sí/no, navegación (siguiente/anterior/saltar/ir a), descanso (estado,
+omitir, adaptativo, ajustar tiempo), serie extra (con persistencia), carga sugerida,
+reemplazo de ejercicio, superscripts, consultas ("cuánto drenaje", "qué serie voy",
+"qué lado falta"), feedback de calidad/molestias, reporte de equipo y apagado.
 
-### Creados (1)
+## Calidad y robustez (2026-08)
 
-| Archivo | Propósito |
-|---------|-----------|
-| `services/workout/WorkoutContinuousVoiceEngine.kt` | Ciclos continuos de SpeechRecognizer con es-CL, partial results, prefer offline, auto-restart |
-
-### Modificados (4)
-
-| Archivo | Cambios |
-|---------|---------|
-| `services/workout/WorkoutVoiceSessionState.kt` | `VoicePipelineStage`: eliminado `WAKE_WORD` y `COMMAND`, agregado `LISTENING`. Eliminado `wakeWordEngineActive`, `wakeWordEngineType`, `ttsMessage` |
-| `services/workout/WorkoutVoiceController.kt` | Reescrito completamente. Usa `WorkoutContinuousVoiceEngine`. Sin wake word. Flujo: LISTENING→PROCESSING→TTS→CONFIRM_WAIT→LISTENING. Confirmación con 5s timeout + escucha de voz |
-| `screens/workout/WorkoutVoiceUi.kt` | Actualizado para nuevos stages. FAB verde cuando LISTENING, texto "Escuchando comandos..." |
-| `screens/workout/WorkoutViewModel.kt` | Eliminados callbacks `onWakeWordDetected` y `onListeningStarted`. Agregado `onError` callback |
-
-### Eliminados (3)
-
-| Archivo | Razón |
-|---------|-------|
-| `PorcupineWakeWordEngine.kt` | Dependía de Picovoice |
-| `SpeechWakeWordEngine.kt` | Era fallback de Porcupine, reemplazado por engine continuo |
-| `WorkoutWakeWordEngine.kt` | Interfaz + factory ya no necesaria |
-
----
-
-## Comandos soportados
-
-| Categoría | Ejemplos | Acción |
-|-----------|----------|--------|
-| Registrar serie | "ochenta kilos por ocho", "80 por 8 RPE 7" | Parsea → TTS confirma → espera confirmación |
-| Confirmar | "sí", "confirmar", "dale" | Registra serie, auto-avanza |
-| Cancelar | "no", "cancelar", "corregir" | Descarta, vuelve a escuchar |
-| Saltar | "saltar", "siguiente" | Omite ejercicio |
-| Anterior | "anterior", "volver" | Retrocede ejercicio |
-| Peso sugerido | "cuánto peso", "carga" | TTS anuncia peso |
-| Descanso | "cuánto falta", "timer" | TTS anuncia tiempo |
-| Qué ejercicio | "qué toca" | TTS anuncia ejercicio actual |
-| Apagar | "apagar voz", "silencio" | Desactiva voz, libera micrófono |
-
----
-
-## Auto-confirmación
-
-- **Eliminado**: el timeout en CONFIRM_WAIT **cancela** (no confirma) para evitar series fantasma.
-- Timeout unificado: **8s** (`WorkoutVoiceSessionGate.CONFIRM_WAIT_TIMEOUT_MS`) para sí/no y para persistencia AddSet.
-- Variable `confirmedOrCancelled` previene doble registro entre timeout y confirmación manual.
-- Serie extra por voz: default al timeout → **solo esta sesión**. El diálogo táctil de persistencia se oculta mientras `pendingAddSetPersistence` está activo.
-- Al activar voz: TTS “Voz activada. Puedes dictar series y comandos.” (también si TTS termina de inicializar después del enable).
-
----
+- Confianza real: el engine lee el **word-confidence** del JSON de Vosk
+  (`confidenceKnown=true`) → el gateo de auto-confirmación ya no opera a ciegas.
+- Correcciones de mishearing por pares/frases; números imposibles de RIR ("doce",
+  "ocho") se corrigen a "dos" tras "rir".
+- Aviso único por sesión si se captura voz con nivel bajo.
+- Anti-eco: pause del decoder antes de TTS, guard post-TTS 600 ms, sin promoción de
+  parciales ±1 s tras TTS.
 
 ## Dependencias
 
-- **Cero dependencias externas** para voz. Solo Android SDK:
-  - `android.speech.SpeechRecognizer`
-  - `android.speech.tts.TextToSpeech`
-  - `android.media.AudioManager`
-- **Sin API keys**, sin tokens, sin consolas externas
-- **Permisos**: `RECORD_AUDIO`, `FOREGROUND_SERVICE_MICROPHONE` (hands-free en background vía `WorkoutVoiceForegroundService`)
+- `com.alphacephei:vosk-android` (reconocimiento offline local) + `jna`.
+- SDK Android: `AudioRecord`, `TextToSpeech`, `AudioManager`, AIDL.
+- Sin API keys ni servicios en la nube para la sesión en vivo.
+- Permisos: `RECORD_AUDIO`, `FOREGROUND_SERVICE_MICROPHONE`, e implícitos de BT.
 
----
+## Limitaciones conocidas
 
-## UI
-
-- MiniFAB mic (48dp) + FAB guardar en `WorkoutCommandDock` (no FAB flotante separado).
-- Chip de estado visible mientras `voiceSessionEnabled`.
-
----
-
-## Comandos adicionales
-
-| Categoría | Ejemplos | Acción |
-|-----------|----------|--------|
-| Serie extra | "añade una serie", "serie extra" | Añade set live → pregunta sesión/permanente |
-| Persistencia | "solo esta sesión", "para siempre" | `SESSION_ONLY` o `PERMANENT` |
-
----
-
-## Resultado compilación
-
-```
-BUILD SUCCESSFUL in 34s
-8 actionable tasks: 2 executed, 6 up-to-date
-```
-
-Cero errores. Solo warnings pre-existentes (deprecaciones de `Locale`).
-
----
-
-## Limitaciones
-
-1. **Ruido de gimnasio**: SpeechRecognizer en es-CL puede fallar con música alta + pesas. Se mitigó con `EXTRA_PREFER_OFFLINE` y reintentos automáticos.
-2. **Latencia**: Ciclos de reconocimiento toman 1-3s. El usuario debe hablar claramente y esperar.
-3. **Batería**: SpeechRecognizer continuo consume más que hotword dedicado. Aceptable para sesiones de 60-90 min.
-4. **Sin wake word**: Para activar/desactivar se requiere tocar el FAB. No hay activación por voz.
-5. **Offline**: `EXTRA_PREFER_OFFLINE` es preferencia, no garantía. Algunos dispositivos ignoran y usan red.
+1. Ruido muy alto de gimnasio degrada el ASR (se mitiga con gramáticas restringidas
+   y fallback one-shot on-device).
+2. Memoria del proceso `:voice`: el modelo queda cargado toda la sesión (decisión de
+   producto: disponibilidad > ahorro). El primer plano del FGS lo protege del LMK.
+3. Batería: AudioRecord + decodificación continua es lo costoso esperado en sesiones
+   largas (90+ min con una sola carga).
+4. Sin wake word: se activa tocando el FAB (decisión de producto).

@@ -90,7 +90,7 @@ class WorkoutVoiceHandsFreeTest {
             weightKg = 80.0,
             fields = setOf(WorkoutVoiceField.WEIGHT),
         )
-        assertFalse(WorkoutVoiceAutoConfirmGate.shouldAutoConfirm(incomplete, 0.9f))
+        assertFalse(WorkoutVoiceConfirmationPolicy.shouldAutoConfirm(incomplete, 0.9f))
 
         val complete = WorkoutVoiceInterpretation(
             transcript = "ochenta por ocho",
@@ -98,9 +98,9 @@ class WorkoutVoiceHandsFreeTest {
             metricValue = 8,
             fields = setOf(WorkoutVoiceField.WEIGHT, WorkoutVoiceField.VALUE),
         )
-        assertTrue(WorkoutVoiceAutoConfirmGate.shouldAutoConfirm(complete, 0.9f))
-        assertFalse(WorkoutVoiceAutoConfirmGate.shouldAutoConfirm(complete, 0.2f))
-        assertTrue(WorkoutVoiceAutoConfirmGate.shouldAutoConfirm(complete, 0f))
+        assertTrue(WorkoutVoiceConfirmationPolicy.shouldAutoConfirm(complete, 0.9f))
+        assertFalse(WorkoutVoiceConfirmationPolicy.shouldAutoConfirm(complete, 0.2f))
+        assertTrue(WorkoutVoiceConfirmationPolicy.shouldAutoConfirm(complete, 0f))
     }
 
     @Test
@@ -219,13 +219,13 @@ class WorkoutVoiceHandsFreeTest {
     }
 
     @Test
-    fun sessionGateArmedIsActiveButDoesNotProcessCommands() {
+    fun sessionGateRecoveringIsActiveButDoesNotProcessCommands() {
         assertEquals(
             WorkoutVoiceSessionGate.EnableAction.NOOP_ALREADY_ACTIVE,
-            WorkoutVoiceSessionGate.enableAction(VoicePipelineStage.ARMED),
+            WorkoutVoiceSessionGate.enableAction(VoicePipelineStage.RECOVERING),
         )
-        assertFalse(WorkoutVoiceSessionGate.shouldProcessCommand(VoicePipelineStage.ARMED))
-        assertFalse(WorkoutVoiceSessionGate.shouldAcceptFinalResult(VoicePipelineStage.ARMED))
+        assertFalse(WorkoutVoiceSessionGate.shouldProcessCommand(VoicePipelineStage.RECOVERING))
+        assertFalse(WorkoutVoiceSessionGate.shouldAcceptFinalResult(VoicePipelineStage.RECOVERING))
     }
 
     @Test

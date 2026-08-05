@@ -5,8 +5,6 @@ import com.example.kpkn.screens.workout.WorkoutVoiceInterpretation
 
 enum class VoicePipelineStage {
     DISABLED,
-    /** Session on (PTT): muted/ready but not listening until press. */
-    ARMED,
     LISTENING,
     PROCESSING,
     CONFIRM_WAIT,
@@ -15,6 +13,8 @@ enum class VoicePipelineStage {
     MIC_BUSY,
     /** Reabriendo AudioRecord tras ocupación. */
     RECONNECTING,
+    /** El fénix está reintentando la reconexión del proceso de voz. */
+    RECOVERING,
     ERROR_RECOVERY,
     FAILED,
 }

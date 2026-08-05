@@ -28,4 +28,30 @@ class WorkoutVoiceAudioSourcePolicyTest {
             WorkoutVoiceAudioSourcePolicy.select(sdkInt = 23, externalCommunicationRouteActive = false),
         )
     }
+
+    @Test
+    fun phoneMic_withMusicAec_usesCommunicationSource() {
+        // Fase 4.4: AEC opt-in en el mic interno se traduce a VOICE_COMMUNICATION.
+        assertEquals(
+            MediaRecorder.AudioSource.VOICE_COMMUNICATION,
+            WorkoutVoiceAudioSourcePolicy.select(
+                sdkInt = 34,
+                externalCommunicationRouteActive = false,
+                musicAecEnabled = true,
+            ),
+        )
+    }
+
+    @Test
+    fun off_is_identical_to_previous_behavior() {
+        // Default OFF: comportamiento histórico (sin cambio de comportamiento).
+        assertEquals(
+            WorkoutVoiceAudioSourcePolicy.select(34, externalCommunicationRouteActive = false, musicAecEnabled = false),
+            WorkoutVoiceAudioSourcePolicy.select(34, externalCommunicationRouteActive = false),
+        )
+        assertEquals(
+            WorkoutVoiceAudioSourcePolicy.select(23, externalCommunicationRouteActive = false, musicAecEnabled = false),
+            WorkoutVoiceAudioSourcePolicy.select(23, externalCommunicationRouteActive = false),
+        )
+    }
 }

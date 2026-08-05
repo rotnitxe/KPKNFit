@@ -55,11 +55,3 @@ data class VoiceUndoPayload(
         }
     }
 }
-
-/** @deprecated Prefer [WorkoutVoiceConfirmationPolicy]. Kept for existing imports/tests. */
-object WorkoutVoiceAutoConfirmGate {
-    fun shouldAutoConfirm(
-        interpretation: com.example.kpkn.screens.workout.WorkoutVoiceInterpretation,
-        asrConfidence: Float,
-    ): Boolean = WorkoutVoiceConfirmationPolicy.shouldAutoConfirm(interpretation, asrConfidence)
-}

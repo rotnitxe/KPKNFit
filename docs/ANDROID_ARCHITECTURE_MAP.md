@@ -280,12 +280,13 @@ The home dashboard centers around **three concentric recovery rings** representi
 
 ### 5.1 Continuous Voice Logging System (`services/workout/`)
 
-*   **`WorkoutContinuousVoiceEngine.kt`:** Uses Android's `SpeechRecognizer` API in a background loop during workouts, waiting for specific command patterns.
-*   **Command Parsing (`WorkoutVoiceCommandParser.kt` + `WorkoutVoiceController.kt`):** Parses voice triggers in Spanish such as:
-    *   "Registrar [peso] kilos por [repeticiones] repeticiones"
-    *   "Siguiente ejercicio"
-    *   "Iniciar descanso"
-    *   "Loguear plato de comida [descripcion]"
+*   **`WorkoutContinuousVoiceEngine.kt`:** Local Vosk engine running in the separate `:voice` process. A single actor owns `AudioRecord` (16 kHz) + a Vosk `Recognizer` with **restricted grammars per stage** (folded phrases the recognizer can emit), plus a native one-shot on-device fallback. Auto-recovery of capture with backoff.
+*   **IPC (`WorkoutVoiceForegroundService` + `WorkoutRemoteVoiceEngineClient`):** the `:voice` process is a foreground service (type `microphone`) accessed over AIDL; the client keeps monotonic generations, a `DeathRecipient` and a heartbeat.
+*   **Command Parsing (`WorkoutVoiceCommandParser.kt` + `WorkoutVoiceController.kt`):** Parses Spanish voice triggers in a live session, e.g.:
+    *   "ochenta kilos por ocho RPE 7", "me quedaron dos en reserva", "dándolo todo"
+    *   "siguiente ejercicio", "omitir descanso", "añade una serie"
+    *   "cuánto drenaje llevo", "qué serie voy", "qué lado falta"
+*   **Auto-recovery ("fénix", `WorkoutVoiceRecoveryPolicy` + controller):** if the `:voice` process dies or hangs, the session reconnects with backoff (0/1/2/5/10/30 s) and re-asks a pending confirmation once; the model is never unloaded during a session.
 *   **`WorkoutVoiceSessionState.kt` / `WorkoutVoicePermissionHelper.kt` / `PermissionGuideHelper.kt`:** Session state machine and permission UX.
 
 ### 5.2 Workout Rest Foreground Service (`services/workout/WorkoutRestForegroundService.kt`)

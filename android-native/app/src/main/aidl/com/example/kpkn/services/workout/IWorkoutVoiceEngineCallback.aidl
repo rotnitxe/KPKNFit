@@ -7,6 +7,7 @@ interface IWorkoutVoiceEngineCallback {
     void onStatus(long generation, String message);
     void onCaptureState(long generation, int state);
     void onRms(long generation, float rms);
+    void onHeartbeat(long generation);
     void onOnDevice(long generation, boolean onDevice);
     void onRoute(long generation, String route);
     void onNativeFallback(long generation, boolean active);

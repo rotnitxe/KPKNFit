@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -171,6 +172,14 @@ class WorkoutContinuousVoiceEngine internal constructor(
     private val _rmsLevel = MutableStateFlow(0f)
     override val rmsLevel: StateFlow<Float> = _rmsLevel.asStateFlow()
 
+    /** Heartbeat del actor (cada HEARTBEAT_INTERVAL_MS). Señal de vida real para el
+     *  watchdog anti-cuelgue: a diferencia del RMS, no depende de la voz ni confluye. */
+    private val _heartbeat = MutableSharedFlow<Long>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
+    override val heartbeat: Flow<Long> = _heartbeat.asSharedFlow()
+
     private val _usingOnDeviceRecognizer = MutableStateFlow(true)
     override val usingOnDeviceRecognizer: StateFlow<Boolean> = _usingOnDeviceRecognizer.asStateFlow()
     override val activeRouteLabel: StateFlow<String?> = micRouter.activeRouteLabel
@@ -264,6 +273,11 @@ class WorkoutContinuousVoiceEngine internal constructor(
 
     override fun updateCaptureMode(mode: com.example.kpkn.data.models.VoiceCaptureMode) {
         commands.trySend(EngineCommand.UpdateCaptureMode(generationCounter.get(), mode))
+    }
+
+    /** Fase 4.4: activa/desactiva VOICE_COMMUNICATION (AEC) en el mic interno. */
+    override fun updateMusicAec(enabled: Boolean) {
+        commands.trySend(EngineCommand.SetMusicAec(generationCounter.get(), enabled))
     }
 
     override fun pause() {
@@ -421,6 +435,8 @@ class WorkoutContinuousVoiceEngine internal constructor(
         var routeMismatchAttempts = 0
         var rapidFailures = 0
         var slowProbeMode = false
+        var musicAecEnabled = false
+        var lastHeartbeatAtMs = 0L
         var nextOpenAtMs = Long.MAX_VALUE
         var silencedDeadlineMs: Long? = null
         var currentRecordSilenced: Boolean? = null
@@ -555,7 +571,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
             }
             val bufferBytes = maxOf(minBuffer, PCM_FRAME_SHORTS * 2 * 4)
             val externalRoute = micRouter.hasExternalRouteRequested()
-            val audioSource = WorkoutVoiceAudioSourcePolicy.select(Build.VERSION.SDK_INT, externalRoute)
+            val audioSource = WorkoutVoiceAudioSourcePolicy.select(Build.VERSION.SDK_INT, externalRoute, musicAecEnabled)
             if (externalRoute) {
                 val routeAwaitStartedAt = clockMs()
                 val routeReady = micRouter.awaitCommunicationRoute(ROUTE_AWAIT_TIMEOUT_MS)
@@ -837,6 +853,23 @@ class WorkoutContinuousVoiceEngine internal constructor(
                     _captureState.value = VoiceCaptureState.RECONNECTING
                 }
 
+                is EngineCommand.SetMusicAec -> {
+                    if (command.generation != actorGeneration) return
+                    if (musicAecEnabled == command.enabled) return
+                    musicAecEnabled = command.enabled
+                    WorkoutVoiceDiagnosticLogger.event(
+                        "voice_music_aec_changed",
+                        mapOf("enabled" to command.enabled) +
+                            WorkoutVoiceDiagnosticLogger.runtimeStateFields(context),
+                    )
+                    // Reabrir AudioRecord para que tome la nueva fuente de audio.
+                    if (running && record != null) {
+                        releaseRecord()
+                        resetRecovery(clockMs(), immediate = true)
+                        _captureState.value = VoiceCaptureState.RECONNECTING
+                    }
+                }
+
                 is EngineCommand.Stop -> {
                     actorGeneration = command.generation
                     running = false
@@ -849,6 +882,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
                     micRouter.release()
                     closeAllRecognizers()
                     model = null
+                    musicAecEnabled = false
                     WorkoutVoskModelStore.close()
                     publishStoppedState()
                     command.acknowledgement?.complete(Unit)
@@ -1068,6 +1102,13 @@ class WorkoutContinuousVoiceEngine internal constructor(
                 }
 
                 val now = clockMs()
+                // Heartbeat: señal de vida independiente del habla. Aunque el RMS
+                // confluya (silencio constante) o el mic esté en pausa, esto cruza el
+                // binder cada pocos segundos y el watchdog usa esta señal, no el RMS.
+                if (now - lastHeartbeatAtMs >= HEARTBEAT_INTERVAL_MS) {
+                    lastHeartbeatAtMs = now
+                    _heartbeat.tryEmit(now)
+                }
                 val guardDeadline = postTtsGuardUntilMs
                 if (guardDeadline != null && now >= guardDeadline) {
                     postTtsGuardUntilMs = null
@@ -1406,6 +1447,11 @@ class WorkoutContinuousVoiceEngine internal constructor(
             val mode: com.example.kpkn.data.models.VoiceCaptureMode,
         ) : EngineCommand
 
+        data class SetMusicAec(
+            val generation: Long,
+            val enabled: Boolean,
+        ) : EngineCommand
+
         data class Stop(
             val generation: Long,
             val acknowledgement: CompletableDeferred<Unit>?,
@@ -1476,6 +1522,8 @@ class WorkoutContinuousVoiceEngine internal constructor(
         internal const val SAMPLE_RATE = 16_000
         private const val PCM_FRAME_SHORTS = 1_600
         private const val ACTOR_POLL_DELAY_MS = 20L
+        /** Cada cuánto el actor emite un heartbeat hacia el proceso principal. */
+        private const val HEARTBEAT_INTERVAL_MS = 2_000L
         // Memoria del proceso :voice: las gramáticas cambian por stage y un caché de 2
         // duplica el FST del modelo en RAM; con 1 basta (principal en uso + reutilización).
         private const val RECOGNIZER_CACHE_SIZE = 1

@@ -76,7 +76,7 @@ if (remainingSeconds == 60 && !announcedOneMinuteForRest && allows(VoiceAnnounce
 1. Eliminar ese bloque `== 60` completo (conservar el de `== 10`).
 2. Eliminar la var `announcedOneMinuteForRest` (≈L97) y sus resets (≈L322-324, ≈L336-337, ≈L349-350).
 3. En `WorkoutTtsManager.kt` eliminar `speakOneMinuteLeft()` (≈L191-193) y su string si quedó huérfano.
-4. Actualizar el comentario de `VoiceAnnouncementKind.COMPLETE` en `WorkoutVoiceAutoConfirmGate.kt` (≈L7-14) para que ya no mencione el aviso del minuto.
+4. Actualizar el comentario de `VoiceAnnouncementKind.COMPLETE` en `WorkoutVoiceTypes.kt` (≈L7-14) para que ya no mencione el aviso del minuto.
 
 **Test**: en el test de reglas de descanso o uno nuevo JVM puro: con el tick en 60 no se invoca TTS; con tick en 10 sí. (Si el tick no es testeable puro, cubrir con test de la rama extraída a función pura.)
 
@@ -392,7 +392,7 @@ Los TTS son funciones nuevas en `WorkoutTtsManager` (`speakAskPlannedReps(n)`, `
 ### 5.3 Resolución (en `processCommand`, `when (pendingClarification)` ≈L1110-1175)
 
 - `MissingSlot`: parsear el transcript entrante como número (`parseVoiceInteger` sobre tokens; si trae más texto, extraer el primer número válido; si trae keyword de peso/reps usarlo para el slot correcto). Merge en `baseInterpretation` (`weightKg` o `metricValue`/`metricDecimalValue`) → `handleRegisterSet` de nuevo. Si no hay número: re-preguntar UNA vez; si falla otra vez → cancelar clarificación con `"No te entendí. Dime la serie completa cuando quieras."` y `resumeListening()`.
-- `ConfirmPlannedValue` / `ConfirmSuggestedLoad`: "sí"/"no" (keywords `CONFIRM`/`CANCEL` ya operan en LISTENING). Sí → merge del valor planificado/sugerido (y reps planificadas si aplica en `ConfirmSuggestedLoad`) → `handleRegisterSet`. No → degradar a `MissingSlot` del mismo slot.
+- `ConfirmPlannedValue` / `ConfirmSuggestedLoad`: "sí"/"no". **Corrección 2026-08**: las keywords `CONFIRM`/`CANCEL` operan en LISTENING **solo si hay una clarificación pendiente** — el flag `pendingClarification` inyecta sí/no a la gramática de LISTENING (`WorkoutVoiceCommandParser.grammarTokensForStage` + `WorkoutVoiceGrammarBuilder`), cableado de punta a punta en `commit f268bb0b`. Sin ese flag, el vocabulario de confirmación vive únicamente en la gramática de `CONFIRM_WAIT`. Sí → merge del valor planificado/sugerido (y reps planificadas si aplica en `ConfirmSuggestedLoad`) → `handleRegisterSet`. No → degradar a `MissingSlot` del mismo slot.
 
 ### 5.4 Escalado tras no entender (engancha `secondUnresolved` existente)
 
@@ -500,7 +500,7 @@ Parser: cada keyword → su comando (incl. aliases); handler: respuestas con est
 
 ### 8.3 Editar lado de la última serie
 
-- `VoiceSetEditPatch` (`WorkoutVoiceAutoConfirmGate.kt` ≈L26-35): añadir `val side: String? = null`.
+- `VoiceSetEditPatch` (`WorkoutVoiceTypes.kt` ≈L26-35): añadir `val side: String? = null`.
 - `parseEditLastSet` (`WorkoutVoiceCommandParser.kt` ≈L363-447): patrones `"fue con el lado (izquierdo|derecho)"`, `"lado (izquierdo|derecho)"` tras trigger de edición.
 - Aplicar en el handler donde se aplican los patches de edición (recalcular clave `workoutSetKey` con el lado nuevo al guardar).
 

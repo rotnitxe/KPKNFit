@@ -26,6 +26,11 @@ internal object WorkoutVoiceMishearingCorrections {
         "rir kilos" to "rir dos",
         "rpe kilos" to "rpe dos",
         "ritmo doce" to "rir dos",
+        // RIR no puede superar ~5: "doce/ocho/diez" tras "rir" son mishearings de "dos".
+        "rir doce" to "rir dos",
+        "rir ocho" to "rir dos",
+        "rir diez" to "rir dos",
+        "rir reservas doce" to "rir dos",
     )
 
     private val DOMAIN_LEXICON = setOf(

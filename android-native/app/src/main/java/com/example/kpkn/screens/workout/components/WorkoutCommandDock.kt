@@ -4,7 +4,6 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -25,7 +24,6 @@ import dev.chrisbanes.haze.HazeState
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.services.workout.VoicePipelineStage
 import com.example.kpkn.services.workout.VoiceSessionState
-import kotlinx.coroutines.delay
 
 @Suppress("UNUSED_PARAMETER")
 @Composable
@@ -44,12 +42,8 @@ fun WorkoutCommandDock(
     sessionAccentColor: Color = MaterialTheme.colorScheme.primary,
     hazeState: HazeState? = null,
     isUpdateMode: Boolean = false,
-    voicePushToTalk: Boolean = false,
-    onPushToTalkStart: () -> Unit = {},
-    onPushToTalkEnd: () -> Unit = {},
 ) {
     val isListening = voiceSessionState.stage == VoicePipelineStage.LISTENING
-    val isArmed = voiceSessionState.stage == VoicePipelineStage.ARMED
     val isProcessing = voiceSessionState.stage == VoicePipelineStage.PROCESSING ||
             voiceSessionState.stage == VoicePipelineStage.CONFIRM_WAIT ||
             voiceSessionState.stage == VoicePipelineStage.TTS_SPEAKING
@@ -66,28 +60,27 @@ fun WorkoutCommandDock(
 
     val voiceIndicatorColor = when {
         isListening -> Color(0xFF4CAF50)
-        isArmed -> Color(0xFF81C784)
         isProcessing -> MaterialTheme.colorScheme.tertiary
         voiceSessionState.stage == VoicePipelineStage.MIC_BUSY -> Color(0xFFFF9800)
-        voiceSessionState.stage == VoicePipelineStage.RECONNECTING -> Color(0xFFFFB74D)
+        voiceSessionState.stage == VoicePipelineStage.RECONNECTING ||
+            voiceSessionState.stage == VoicePipelineStage.RECOVERING -> Color(0xFFFFB74D)
         voiceSessionState.stage == VoicePipelineStage.ERROR_RECOVERY -> Color(0xFFFF9800)
         voiceSessionEnabled -> MaterialTheme.colorScheme.secondary
         else -> Color.White.copy(alpha = 0.38f)
     }
 
     val voiceIndicatorText = when {
-        voiceSessionState.stage == VoicePipelineStage.ARMED ->
-            "Listo · mantén el mic para hablar"
         // Fallback/pausas antes que LISTENING: el stage suele seguir en LISTENING.
         voiceSessionState.usingNativeFallback -> "Fallback local en curso..."
         voiceSessionState.fallbackPaused -> "Fallback pausado por límite"
         voiceSessionState.stage == VoicePipelineStage.MIC_BUSY ->
             "Micrófono ocupado (llamada u otra app)"
+        voiceSessionState.stage == VoicePipelineStage.RECOVERING ->
+            "Reconectando voz..."
         voiceSessionState.stage == VoicePipelineStage.RECONNECTING ->
             "Reconectando micrófono..."
         voiceSessionState.stage == VoicePipelineStage.LISTENING -> {
             if (voiceSessionState.partialText.isNotBlank()) "Escuchando: \"${voiceSessionState.partialText}\""
-            else if (voicePushToTalk) "Escuchando (suelta al terminar)..."
             else "Escuchando comandos de voz..."
         }
         voiceSessionState.stage == VoicePipelineStage.PROCESSING -> "Procesando..."
@@ -109,23 +102,6 @@ fun WorkoutCommandDock(
 
     val showVoiceChip = voiceSessionEnabled && voiceIndicatorText.isNotBlank()
     val micInteractionSource = remember { MutableInteractionSource() }
-    val micPressed by micInteractionSource.collectIsPressedAsState()
-    var suppressMicClickAfterHold by remember { mutableStateOf(false) }
-
-    // Push-to-talk: hold starts ASR after 160ms; release ends it.
-    // Quick tap (no hold) uses onClick to toggle the session off.
-    LaunchedEffect(micPressed, voicePushToTalk, voiceSessionEnabled) {
-        if (!voicePushToTalk || !voiceSessionEnabled) return@LaunchedEffect
-        if (micPressed) {
-            delay(160)
-            if (micPressed) {
-                suppressMicClickAfterHold = true
-                onPushToTalkStart()
-            }
-        } else {
-            onPushToTalkEnd()
-        }
-    }
 
     val primaryButtonText = remember(exercise, setIndex, activeSide, isUnilateral) {
         if (exercise == null) "Completar Serie"
@@ -270,10 +246,6 @@ fun WorkoutCommandDock(
                 }
                 SmallFloatingActionButton(
                     onClick = {
-                        if (voicePushToTalk && voiceSessionEnabled && suppressMicClickAfterHold) {
-                            suppressMicClickAfterHold = false
-                            return@SmallFloatingActionButton
-                        }
                         onToggleVoice()
                     },
                     modifier = Modifier
@@ -289,7 +261,6 @@ fun WorkoutCommandDock(
                     shape = CircleShape,
                     containerColor = when {
                         voiceSessionEnabled && isListening -> Color(0xFF4CAF50)
-                        voiceSessionEnabled && isArmed -> Color(0xFF81C784)
                         voiceSessionEnabled -> voiceIndicatorColor.copy(alpha = 0.95f)
                         else -> MaterialTheme.colorScheme.surface.copy(alpha = 0.94f)
                     },
@@ -304,7 +275,6 @@ fun WorkoutCommandDock(
                         imageVector = if (voiceSessionEnabled) Icons.Default.Mic else Icons.Default.MicOff,
                         contentDescription = when {
                             !voiceSessionEnabled -> "Activar control por voz"
-                            voicePushToTalk -> "Mantén para hablar. Toque corto para apagar."
                             else -> "Desactivar control por voz"
                         },
                         modifier = Modifier.size(24.dp),

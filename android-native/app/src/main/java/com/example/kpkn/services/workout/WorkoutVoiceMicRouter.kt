@@ -27,12 +27,6 @@ class WorkoutVoiceMicRouter(
 ) {
     enum class RouteMode {
         CONTINUOUS_VOICE_FIRST,
-        /**
-         * Kept for binary/source compatibility with the previous internal
-         * caller. It now follows the same voice-first policy.
-         */
-        @Deprecated("Continuous voice capture is headset-first.")
-        CONTINUOUS_MUSIC_FIRST,
         FALLBACK_ALLOW_HEADSET,
     }
 
@@ -238,9 +232,8 @@ class WorkoutVoiceMicRouter(
             return
         }
         val preferred = when (mode) {
-            RouteMode.CONTINUOUS_VOICE_FIRST,
-            RouteMode.CONTINUOUS_MUSIC_FIRST,
-            -> pickVoiceInput(inputDevices(am))
+            RouteMode.CONTINUOUS_VOICE_FIRST ->
+                pickVoiceInput(inputDevices(am))
             RouteMode.FALLBACK_ALLOW_HEADSET -> pickFallbackInput(inputDevices(am))
         }
         _activeRouteLabel.value = preferred?.let(::labelFor) ?: communicationLabelOrPhone()

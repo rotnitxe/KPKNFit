@@ -48,7 +48,6 @@ import com.example.kpkn.data.exercises.catalogSearchExerciseId
 import com.example.kpkn.data.exercises.resolveExerciseId
 import com.example.kpkn.data.models.IntensityMetric
 import com.example.kpkn.data.models.VoiceCaptureMode
-import com.example.kpkn.data.models.VoiceInputMode
 import com.example.kpkn.data.models.VoiceNoiseProfile
 import com.example.kpkn.data.models.VoiceVerbosity
 import com.example.kpkn.data.models.VolumeSystem
@@ -256,18 +255,6 @@ fun SettingsTrainingScreen(
                         },
                     )
                     SettingsSegmentedButtonItem(
-                        title = "Modo de micrófono",
-                        options = VoiceInputMode.entries,
-                        selected = settings.voiceInputMode,
-                        onSelect = { value -> viewModel.update { it.copy(voiceInputMode = value) } },
-                        optionLabel = {
-                            when (it) {
-                                VoiceInputMode.CONTINUOUS -> "Continuo"
-                                VoiceInputMode.PUSH_TO_TALK -> "Mantener"
-                            }
-                        },
-                    )
-                    SettingsSegmentedButtonItem(
                         title = "Modo de captura de voz",
                         options = VoiceCaptureMode.entries,
                         selected = settings.voiceCaptureMode,
@@ -294,6 +281,12 @@ fun SettingsTrainingScreen(
                         description = "Anuncia la carga recomendada al empezar cada serie; di \"sugerencia aplicada\" para usarla.",
                         checked = settings.voiceAutoSuggestLoads,
                         onCheckedChange = { value -> viewModel.update { it.copy(voiceAutoSuggestLoads = value) } },
+                    )
+                    SettingsSwitchItem(
+                        title = "Cancelar eco en Modo Música (experimental)",
+                        description = "Usa cancelación de eco en el mic del teléfono. Puede degradar la música; validado en campo.",
+                        checked = settings.voiceMusicAec,
+                        onCheckedChange = { value -> viewModel.update { it.copy(voiceMusicAec = value) } },
                     )
                     SettingsSliderItem(
                         title = "Velocidad de voz TTS",

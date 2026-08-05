@@ -59,7 +59,7 @@ Pure Kotlin business logic with zero Android dependencies — the most heavily t
 
 ### 4. Services & Hardware (`services/`)
 
-*   **`services/workout/`:** `WorkoutRestForegroundService` (keeps timer/rest alive in background), `WorkoutContinuousVoiceEngine` + `WorkoutVoiceCommandParser`/`WorkoutVoiceController` (hands-free logging, Spanish commands), `WorkoutTtsManager` (audio cues), `WorkoutRestAlertManager`, `WorkoutReminderManager` + `WorkoutReminderBootReceiver` (alarm re-registration after reboot), `LoopNotificationManager`, `SystemAudioHelper` (audio-focus ducking), permission helpers.
+*   **`services/workout/`:** `WorkoutRestForegroundService` (keeps timer/rest alive in background), the continuous voice system — `WorkoutContinuousVoiceEngine` (Vosk, restricted grammars) + `WorkoutVoiceController`/`WorkoutVoiceCommandParser` (Spanish commands, live session), `WorkoutTtsManager` (audio cues), `WorkoutVoiceForegroundService` (foreground owner of Vosk in the separate `:voice` process over AIDL), auto-recovery ("fénix", `WorkoutVoiceRecoveryPolicy`), `WorkoutRestAlertManager`, `WorkoutReminderManager` + `WorkoutReminderBootReceiver` (alarm re-registration after reboot), `LoopNotificationManager`, `SystemAudioHelper` (audio-focus ducking), permission helpers.
 *   **`services/nutrition/`:** `NutritionNotificationManager` (meal reminders via `AlarmManager`).
 *   **`services/competition/`:** `CompetitionReminderManager`.
 *   **App Widget (`widgets/`):** `NutritionQuickActionWidget` — Glance-based home-screen macro rings.

@@ -55,6 +55,10 @@ class WorkoutVoiceController(
     private var scope: CoroutineScope? = null
     private var confirmationJob: Job? = null
     private var idleMonitorJob: Job? = null
+    /** Fénix: job de la secuencia de reintentos de reconexión. */
+    private var recoveryJob: Job? = null
+    /** Watchdog anti-cuelgue a nivel de proceso (stage LISTENING sin actividad remota). */
+    private var stallWatchdogJob: Job? = null
     private var voskAggregationJob: Job? = null
     /** Commits a stable partial when Vosk never emits an endpoint/final result. */
     private var partialFallbackJob: Job? = null
@@ -83,6 +87,10 @@ class WorkoutVoiceController(
     private var lastHypothesisConfidenceKnown: Boolean = true
     private var lastFinalTranscript: String? = null
     private var lastFinalAtMs: Long = 0L
+    /** Pico de nivel de señal (RMS) de la frase actual; alimenta el aviso de "te escucho bajito". */
+    private var utteranceRmsPeakDb = Float.NEGATIVE_INFINITY
+    /** Aviso de señal baja: una sola vez por sesión para no molestar. */
+    private var lowSignalWarned = false
     /** Momento en que terminó la última utterance TTS; suprime fallbacks de parciales recién después. */
     private var lastTtsCompletedAtMs: Long = 0L
     private var pendingConfirmationId: String? = null
@@ -104,8 +112,16 @@ class WorkoutVoiceController(
     /** User wants continuous voice on; survives async TTS init without clobbering LISTENING. */
     private var sessionWanted = false
     private var announcedVoiceOn = false
-    /** True while the dock mic is held in push-to-talk mode. */
-    private var pushToTalkHeld = false
+    /** True mientras el fénix está reintentando la reconexión del motor de voz. */
+    private var recovering = false
+    /** Motivo del último disparo de recuperación (para diagnóstico y mensajes al usuario). */
+    private var recoveryOrigin: String = "unknown"
+    private val recoveryPolicy = WorkoutVoiceRecoveryPolicy()
+    /** Pregunta de conversación pendiente que debe re-armarse tras recuperar la voz. */
+    private var recoveryPendingAsk: Boolean = false
+    /** La voz murió con stage CONFIRM_WAIT: la restauración debe volver a CONFIRM_WAIT
+     *  (las confirmaciones estructurales solo se resuelven ahí vía doConfirm). */
+    private var recoveryWasConfirmWait: Boolean = false
     private var activeSpeechPriority: WorkoutSpeechPriority? = null
     private var voiceSetPersistenceInFlight = false
     private var pendingRestAnnouncement: PendingRestAnnouncement? = null
@@ -134,8 +150,9 @@ class WorkoutVoiceController(
     var structuralPersistenceOptionsProvider: (() -> Set<ReplacementPersistenceScopeV2>)? = null
     var structuralPersistencePromptProvider: (() -> String)? = null
     var structuralPersistenceSuccessProvider: (() -> String)? = null
-    var inputModeProvider: (() -> com.example.kpkn.data.models.VoiceInputMode)? = null
     var captureModeProvider: (() -> com.example.kpkn.data.models.VoiceCaptureMode)? = null
+    /** Fase 4.4: VOICE_COMMUNICATION (AEC) en el mic interno (experimento opt-in). */
+    var musicAecProvider: (() -> Boolean)? = null
     var customPhrasesProvider: (() -> List<com.example.kpkn.data.models.CustomIntensityPhrase>)? = null
     var autoSuggestLoadsProvider: (() -> Boolean)? = null
     /** Ejercicios de la sesión visible: lista de (id, nombre). */
@@ -265,16 +282,11 @@ class WorkoutVoiceController(
         fallbackTriggerPolicy.recordResolved()
         sessionWanted = true
         announcedVoiceOn = false
-        pushToTalkHeld = false
         when (WorkoutVoiceSessionGate.enableAction(_state.value.stage)) {
             WorkoutVoiceSessionGate.EnableAction.NOOP_ALREADY_ACTIVE -> return
             WorkoutVoiceSessionGate.EnableAction.START_LISTENING -> {
-                if (isPushToTalkMode()) {
-                    armPushToTalkSession()
-                } else {
-                    startListening()
-                    updateStage(VoicePipelineStage.RECONNECTING)
-                }
+                startListening()
+                updateStage(VoicePipelineStage.RECONNECTING)
                 _state.update { it.copy(consecutiveErrors = 0, errorMessage = null) }
                 announceVoiceOnIfReady()
             }
@@ -286,7 +298,7 @@ class WorkoutVoiceController(
         val shouldAnnounce = sessionWanted && ttsManager.isInitialized
         sessionWanted = false
         announcedVoiceOn = false
-        pushToTalkHeld = false
+        abortPhoenix("disabled")
         speechBus.clear()
         activeSpeechPriority = null
         cancelAllJobs()
@@ -307,55 +319,16 @@ class WorkoutVoiceController(
         resetState()
     }
 
-    /** Hold-to-talk: start ASR while session is armed. */
-    fun beginPushToTalk() {
-        if (!sessionWanted || !isPushToTalkMode()) return
-        pushToTalkHeld = true
-        val stage = _state.value.stage
-        if (stage == VoicePipelineStage.TTS_SPEAKING ||
-            stage == VoicePipelineStage.CONFIRM_WAIT ||
-            stage == VoicePipelineStage.PROCESSING
-        ) {
-            return
-        }
-        resumeListening()
-    }
-
-    /** Hold-to-talk: pause ASR unless mid-command / mid-TTS. */
-    fun endPushToTalk() {
-        if (!isPushToTalkMode()) return
-        pushToTalkHeld = false
-        if (!sessionWanted) return
-        val stage = _state.value.stage
-        if (stage == VoicePipelineStage.CONFIRM_WAIT ||
-            stage == VoicePipelineStage.PROCESSING ||
-            stage == VoicePipelineStage.TTS_SPEAKING
-        ) {
-            return
-        }
-        continuousEngine.pause()
-        updateStage(VoicePipelineStage.ARMED)
-    }
-
-    private fun isPushToTalkMode(): Boolean =
-        inputModeProvider?.invoke() == com.example.kpkn.data.models.VoiceInputMode.PUSH_TO_TALK
-
     /** Cambio de modo de captura en caliente (switch del header / tarjeta). */
     fun setCaptureMode(mode: com.example.kpkn.data.models.VoiceCaptureMode) {
+        if (recovering) return
         continuousEngine.updateCaptureMode(mode)
     }
 
-    private fun armPushToTalkSession() {
-        val s = scope ?: return
-        // Mute system beeps via start, then pause ASR until the user holds the mic.
-        // Release headset communication route while idle so music can stay on A2DP.
-        continuousEngine.start(
-            s,
-            holdMicRouteAcrossPause = false,
-            captureMode = captureModeProvider?.invoke() ?: com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE,
-        )
-        continuousEngine.pause()
-        updateStage(VoicePipelineStage.ARMED)
+    /** Fase 4.4: actualización en caliente del flag AEC (Modo Música). */
+    fun setMusicAec(enabled: Boolean) {
+        if (recovering) return
+        continuousEngine.updateMusicAec(enabled)
     }
 
     private fun announceVoiceOnIfReady() {
@@ -886,6 +859,8 @@ class WorkoutVoiceController(
         lastInstantPartialKey = null
         lastHypothesisConfidence = 0f
         lastHypothesisConfidenceKnown = true
+        utteranceRmsPeakDb = Float.NEGATIVE_INFINITY
+        lowSignalWarned = false
         confirmedOrCancelled = false
         confirmationReprompted = false
         confirmationToken++
@@ -927,6 +902,11 @@ class WorkoutVoiceController(
         rmsCollectJob = scope.launch {
             continuousEngine.rmsLevel.collect { rms ->
                 _state.update { it.copy(rmsLevel = rms) }
+                // El RMS real siempre es <= 0 (dB); 0f es solo el placeholder "sin datos".
+                // Excluir exactamente 0f deja pasar los frames reales (fix H3).
+                if (rms != 0f && rms > utteranceRmsPeakDb) {
+                    utteranceRmsPeakDb = rms
+                }
             }
         }
 
@@ -993,9 +973,9 @@ class WorkoutVoiceController(
             continuousEngine.captureState.collect { capture ->
                 if (!sessionWanted) return@collect
                 if (capture == VoiceCaptureState.FAILED) {
-                    sessionWanted = false
-                    continuousEngine.stop()
-                    WorkoutVoiceForegroundService.stop(context)
+                    // Muerte del proceso de voz: el fénix intenta reconectarlo solo.
+                    startPhoenixRecovery("capture_failed")
+                    return@collect
                 }
                 WorkoutVoiceSessionGate.stageAfterCaptureEvent(
                     current = _state.value.stage,
@@ -1014,16 +994,18 @@ class WorkoutVoiceController(
                 }
                 val terminal = continuousEngine.captureState.value == VoiceCaptureState.FAILED
                 if (!sessionWanted && !terminal) return@collect
-                if (terminal) sessionWanted = false
+                if (terminal) {
+                    startPhoenixRecovery("engine_error_terminal")
+                    return@collect
+                }
                 val errors = _state.value.consecutiveErrors + 1
-                val nextStage = if (terminal) VoicePipelineStage.FAILED else VoicePipelineStage.ERROR_RECOVERY
                 _state.update {
                     it.copy(
                         errorMessage = error,
                         consecutiveErrors = errors,
                     )
                 }
-                updateStage(nextStage)
+                updateStage(VoicePipelineStage.ERROR_RECOVERY)
                 onError?.invoke(error)
                 if (errors <= WorkoutVoiceSessionGate.MAX_CONSECUTIVE_ENGINE_ERRORS) {
                     delay(WorkoutVoiceSessionGate.engineErrorBackoffMs(errors))
@@ -1036,49 +1018,299 @@ class WorkoutVoiceController(
 
         continuousEngine.start(
             scope = scope,
-            holdMicRouteAcrossPause = !isPushToTalkMode(),
+            holdMicRouteAcrossPause = true,
             captureMode = captureModeProvider?.invoke() ?: com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE,
         )
+        continuousEngine.updateMusicAec(musicAecProvider?.invoke() == true)
 
-        idleMonitorJob?.cancel()
-        if (!isPushToTalkMode()) {
-            idleMonitorJob = null
+        startStallWatchdog()
+    }
+
+    /**
+     * Watchdog anti-cuelgue: si el proceso :voice no emite NINGÚN heartbeat (señal de
+     * vida independiente del RMS) desde hace [STALL_DETECT_MS], asumimos el actor
+     * congelado y lo reiniciamos. No depende de la voz: en silencio el heartbeat
+     * sigue fluyendo, así que no hay falsos positivos (fix H1).
+     *
+     * Excluye fallback nativo y reporte de equipo (no emiten callbacks por diseño)
+     * y lleva un circuit-breaker: si dispara 3+ veces en [STALL_WATCHDOG_WINDOW_MS],
+     * se abre y deja de martillar hasta el próximo enable.
+     */
+    private fun startStallWatchdog() {
+        val lifecycleScope = scope ?: return
+        stallWatchdogJob?.cancel()
+        stallWatchdogJob = lifecycleScope.launch {
+            var windowStartMs = SystemClock.elapsedRealtime()
+            var restartsInWindow = 0
+            while (isActive) {
+                delay(STALL_CHECK_INTERVAL_MS)
+                if (!sessionWanted || recovering) continue
+                if (_state.value.stage != VoicePipelineStage.LISTENING) continue
+                if (continuousEngine.captureState.value == VoiceCaptureState.FAILED) continue
+                // Fallback nativo / reporte: sin callbacks por diseño hasta 15 s.
+                if (_state.value.usingNativeFallback) continue
+                if (reportPhase != ReportPhase.IDLE) continue
+                if (continuousEngine.lastRemoteActivityAtMs() <= 0L) continue
+                val nowMs = SystemClock.elapsedRealtime()
+                if (nowMs - windowStartMs >= STALL_WATCHDOG_WINDOW_MS) {
+                    windowStartMs = nowMs
+                    restartsInWindow = 0
+                }
+                val idleMs = nowMs - continuousEngine.lastRemoteActivityAtMs()
+                if (idleMs < STALL_DETECT_MS) continue
+                if (restartsInWindow >= STALL_WATCHDOG_MAX_RESTARTS) {
+                    WorkoutVoiceDiagnosticLogger.event(
+                        "voice_stall_watchdog_circuit_open",
+                        mapOf("restartsInWindow" to restartsInWindow),
+                    )
+                    break
+                }
+                restartsInWindow++
+                WorkoutVoiceDiagnosticLogger.event(
+                    "voice_stall_detected",
+                    mapOf(
+                        "idleMs" to idleMs,
+                        "restartsInWindow" to restartsInWindow,
+                        "capture" to continuousEngine.captureState.value.name,
+                        "route" to _state.value.activeRouteLabel,
+                    ),
+                )
+                continuousEngine.forceRestartForHang()
+            }
+        }
+    }
+
+    /** Dispara la secuencia fénix; dedupe si ya está recuperando. */
+    private fun startPhoenixRecovery(origin: String) {
+        if (!sessionWanted) return
+        if (recovering) {
             return
         }
-        idleMonitorJob = scope.launch {
-            while (isActive) {
-                delay(WorkoutVoiceSessionGate.IDLE_CHECK_INTERVAL_MS)
-                if (!sessionWanted) break
-                val stage = _state.value.stage
-                if (stage != VoicePipelineStage.LISTENING && stage != VoicePipelineStage.RECONNECTING) continue
-                val idleMs = SystemClock.elapsedRealtime() - lastVoiceActivityAtMs
-                when {
-                    idleMs >= WorkoutVoiceSessionGate.IDLE_UNLOAD_MS -> {
-                        WorkoutVoiceDiagnosticLogger.event("voice_idle_unload", mapOf("idleMs" to idleMs))
-                        sessionWanted = false
-                        continuousEngine.stop()
-                        _state.update {
-                            it.copy(errorMessage = "Voz en reposo por inactividad. Tocá el micrófono para reanudar.")
-                        }
-                        updateStage(VoicePipelineStage.DISABLED)
-                        WorkoutVoiceForegroundService.stop(context)
-                        break
+        recovering = true
+        recoveryOrigin = origin
+        recoveryPolicy.onLost()
+        // Conservar el estado conversacional para re-preguntar UNA vez al recuperar.
+        recoveryPendingAsk = _state.value.stage == VoicePipelineStage.CONFIRM_WAIT ||
+            _state.value.pendingAction != null
+        // Distinguir el stage al morir: si era CONFIRM_WAIT, restauramos CONFIRM_WAIT
+        // (confirmaciones estructurales/AddSet se resuelven solo ahí); si no, LISTENING
+        // (clarificaciones guiadas).
+        recoveryWasConfirmWait = _state.value.stage == VoicePipelineStage.CONFIRM_WAIT
+        confirmationJob?.cancel()
+        partialFallbackJob?.cancel()
+        WorkoutVoiceDiagnosticLogger.event(
+            "voice_recovery_started",
+            mapOf(
+                "origin" to origin,
+                "stage" to _state.value.stage.name,
+                "pendingAction" to (_state.value.pendingAction?.javaClass?.simpleName ?: ""),
+            ),
+        )
+        updateStage(VoicePipelineStage.RECOVERING)
+        runPhoenixLoop()
+    }
+
+    private fun runPhoenixLoop() {
+        recoveryJob?.cancel()
+        recoveryJob = scope?.launch {
+            var decision: WorkoutVoiceRecoveryPolicy.Decision = WorkoutVoiceRecoveryPolicy.Decision.Retry(
+                attempt = recoveryPolicy.currentAttempt().coerceAtLeast(1),
+                backoffMs = recoveryPolicy.backoffMs.first(),
+            )
+            while (isActive && recovering && sessionWanted) {
+                when (decision) {
+                    is WorkoutVoiceRecoveryPolicy.Decision.Retry -> {
+                        if (decision.backoffMs > 0) delay(decision.backoffMs)
+                        if (!recovering || !sessionWanted) break
+                        runPhoenixAttempt(decision.attempt)
+                        decision = recoveryPolicy.onAttemptFailed()
                     }
-                    idleMs >= WorkoutVoiceSessionGate.IDLE_SLEEP_MS -> {
-                        WorkoutVoiceDiagnosticLogger.event("voice_idle_sleep", mapOf("idleMs" to idleMs))
-                        val paused = continuousEngine.pauseAndAwait(releaseMic = true)
-                        if (paused) {
-                            sessionWanted = false
-                            _state.update {
-                                it.copy(errorMessage = "Voz en pausa por inactividad. Tocá el micrófono para reanudar.")
-                            }
-                            updateStage(VoicePipelineStage.DISABLED)
-                        }
+                    WorkoutVoiceRecoveryPolicy.Decision.GiveUp -> {
+                        onPhoenixGiveUp(recoveryPolicy.currentAttempt())
                         break
                     }
                 }
             }
         }
+    }
+
+    private suspend fun runPhoenixAttempt(attempt: Int) {
+        WorkoutVoiceDiagnosticLogger.event(
+            "voice_recovery_attempt",
+            mapOf("attempt" to attempt, "origin" to recoveryOrigin),
+        )
+        continuousEngine.markRecoveryTriggered()
+        val triggeredAt = continuousEngine.lastRecoveryTriggeredAtMs()
+        val recovered = runCatching {
+            continuousEngine.recover()
+            val connected = awaitPhoenixReconnect(PHOENIX_ATTEMPT_TIMEOUT_MS, triggeredAt)
+            if (!connected) {
+                WorkoutVoiceDiagnosticLogger.event(
+                    "voice_recovery_failed_attempt",
+                    mapOf("attempt" to attempt, "origin" to recoveryOrigin),
+                )
+            }
+            connected
+        }.getOrDefault(false)
+        if (recovered) {
+            onPhoenixRecovered(attempt)
+        }
+    }
+
+    /** Espera señales reales del proceso reconectado (callback recibido + telemetría viva). */
+    private suspend fun awaitPhoenixReconnect(timeoutMs: Long, triggeredAt: Long): Boolean {
+        val deadline = SystemClock.elapsedRealtime() + timeoutMs
+        while (SystemClock.elapsedRealtime() < deadline) {
+            if (!recovering || !sessionWanted) return false
+            val remoteAlive = continuousEngine.lastRemoteActivityAtMs() > triggeredAt && triggeredAt > 0L
+            val capture = continuousEngine.captureState.value
+            if (remoteAlive && capture != VoiceCaptureState.FAILED && capture != VoiceCaptureState.IDLE) {
+                // El primer callback real del proceso nuevo se envía con la snapshot
+                // (IDLE/STARTING); al insistir esperamos la transición a STARTING/LISTENING.
+                if (capture == VoiceCaptureState.STARTING ||
+                    capture == VoiceCaptureState.LISTENING ||
+                    capture == VoiceCaptureState.RECONNECTING ||
+                    capture == VoiceCaptureState.MIC_BUSY ||
+                    capture == VoiceCaptureState.ERROR_RECOVERY
+                ) {
+                    return true
+                }
+            }
+            delay(PHOENIX_POLL_MS)
+        }
+        return false
+    }
+
+    private fun onPhoenixRecovered(attempt: Int) {
+        recovering = false
+        recoveryJob = null
+        recoveryOrigin = "unknown"
+        recoveryPolicy.onRecovered()
+        WorkoutVoiceDiagnosticLogger.event(
+            "voice_recovery_success",
+            mapOf("attempt" to attempt, "pendingAsk" to recoveryPendingAsk),
+        )
+        lastFinalTranscript = null
+        lastFinalAtMs = 0L
+        resumeConversationAfterRecovery()
+        // Sin pregunta pendiente que restaurar: volvemos a escuchar directamente.
+        if (_state.value.stage == VoicePipelineStage.RECOVERING) {
+            resumeListening()
+        }
+    }
+
+    /**
+     * Fase 2.2 / D3: si murió a mitad de una confirmación o clarificación, se
+     * re-pregunta UNA vez ("Perdón, se cortó un segundo. ¿Me repetías?"); NUNCA se
+     * auto-confirma. El borrador / pregunta pendiente se conserva y re-armará su
+     * timeout con token nuevo.
+     *
+     * - Muerte en CONFIRM_WAIT (serie por confirmar, navegación, reemplazo, tag,
+     *   fin de sesión o persistencia de serie extra) → se restaura CONFIRM_WAIT y
+     *   su timeout correcto. El "sí" lo resuelve doConfirm/handleConfirmInput.
+     * - Muerte en LISTENING (clarificación guiada: MissingSlot/ConfirmPlannedValue/
+     *   ConfirmSuggestedLoad) → se restaura LISTENING con el pendingAction intacto.
+     */
+    private fun resumeConversationAfterRecovery() {
+        if (!sessionWanted) return
+        if (!recoveryPendingAsk) return
+        recoveryPendingAsk = false
+        val wasConfirmWait = recoveryWasConfirmWait
+        recoveryWasConfirmWait = false
+        val interpretation = _state.value.lastInterpretation
+        val activeScope = scope
+        if (activeScope == null) {
+            resumeListening()
+            return
+        }
+        // Restaurar el estado conversacional ANTES de hablar: así la confirmación
+        // nunca se pierde aunque el speechBus esté ocupado y el TTS de cortesía no
+        // llegue a sonar (fix M3).
+        if (wasConfirmWait) {
+            updateStage(VoicePipelineStage.CONFIRM_WAIT)
+            pushGrammar(VoicePipelineStage.CONFIRM_WAIT)
+            when {
+                _state.value.pendingAddSetPersistence -> {
+                    startAddSetPersistenceTimeout()
+                }
+                interpretation != null -> {
+                    confirmedOrCancelled = false
+                    confirmationReprompted = false
+                    startConfirmationTimeout(interpretation, ++confirmationToken)
+                }
+                else -> {
+                    // Confirmación estructural (navegación/reemplazo/tag/fin): CONFIRM_WAIT
+                    // queda armado; handleConfirmInput + doConfirm resuelven con el "sí".
+                    _state.update { it.copy(errorMessage = null) }
+                }
+            }
+        } else {
+            _state.update { it.copy(errorMessage = null) }
+        }
+        // Cortesía audible (best-effort): el motor recién reconectó, pausar para no
+        // auto-escucharse; si el bus está ocupado, el estado ya quedó restaurado.
+        continuousEngine.pause()
+        val acquired = speechBus.tryAcquire(WorkoutSpeechPriority.HIGH) {
+            ttsManager.stop()
+            activeSpeechPriority?.let { speechBus.release(it) }
+        }
+        if (!acquired) {
+            startEngineForCurrentInputMode(activeScope)
+            return
+        }
+        activeSpeechPriority = WorkoutSpeechPriority.HIGH
+        runSpeakingOrSkip(
+            priority = WorkoutSpeechPriority.HIGH,
+            alreadyAcquired = true,
+            onComplete = {
+                releaseDucking()
+                startEngineForCurrentInputMode(activeScope)
+            },
+            speak = {
+                ttsManager.speakError("Perdón, se cortó un segundo. ¿Me repetías?")
+            },
+        )
+    }
+
+    private fun onPhoenixGiveUp(attempt: Int) {
+        recovering = false
+        recoveryJob = null
+        stallWatchdogJob?.cancel()
+        stallWatchdogJob = null
+        recoveryPendingAsk = false
+        recoveryWasConfirmWait = false
+        WorkoutVoiceDiagnosticLogger.event(
+            "voice_recovery_gave_up",
+            mapOf("attempts" to attempt, "origin" to recoveryOrigin),
+        )
+        recoveryOrigin = "unknown"
+        recoveryPolicy.onAborted()
+        sessionWanted = false
+        runCatching { continuousEngine.stop() }
+        updateStage(VoicePipelineStage.FAILED)
+        val message = "La voz no pudo recuperarse sola. Toca el micrófono para reintentar."
+        _state.update { it.copy(errorMessage = message) }
+        WorkoutVoiceForegroundService.stop(context)
+        onError?.invoke(message)
+    }
+
+    /** Cancela una recuperación en curso (apagado del usuario / shutdown). */
+    private fun abortPhoenix(reason: String) {
+        recoveryJob?.cancel()
+        recoveryJob = null
+        stallWatchdogJob?.cancel()
+        stallWatchdogJob = null
+        if (recovering) {
+            WorkoutVoiceDiagnosticLogger.event(
+                "voice_recovery_aborted",
+                mapOf("reason" to reason, "attempt" to recoveryPolicy.currentAttempt()),
+            )
+        }
+        recovering = false
+        recoveryPendingAsk = false
+        recoveryWasConfirmWait = false
+        recoveryOrigin = "unknown"
+        recoveryPolicy.onAborted()
     }
 
     private fun handleFinalHypotheses(hypotheses: List<VoiceHypothesis>) {
@@ -1208,6 +1440,7 @@ class WorkoutVoiceController(
             earlyStage != VoicePipelineStage.TTS_SPEAKING &&
             earlyStage != VoicePipelineStage.MIC_BUSY &&
             earlyStage != VoicePipelineStage.FAILED &&
+            earlyStage != VoicePipelineStage.RECOVERING &&
             isReportCommand(earlySanitized)
         ) {
             WorkoutVoiceDiagnosticLogger.event(
@@ -1297,6 +1530,30 @@ class WorkoutVoiceController(
         if (cleaned.isEmpty()) return true
         val tokens = cleaned.split(' ')
         return tokens.size == 1 && tokens[0].length <= 1
+    }
+
+    /**
+     * Fase 4.2: aviso único por sesión si capturamos voz real con nivel bajo
+     * (pico RMS de la frase por debajo del umbral). Devuelve true si dispachó el
+     * aviso (y el llamador debe retornar). No se dispara en silencio.
+     */
+    private fun considerLowSignalAlert(): Boolean {
+        if (lowSignalWarned) return false
+        val peak = utteranceRmsPeakDb
+        utteranceRmsPeakDb = Float.NEGATIVE_INFINITY
+        if (!peak.isFinite() || peak >= LOW_SIGNAL_UTTERANCE_DB) return false
+        lowSignalWarned = true
+        WorkoutVoiceDiagnosticLogger.event("voice_low_signal_alert", mapOf("peakDb" to peak))
+        runSpeakingOrSkip(
+            priority = WorkoutSpeechPriority.NORMAL,
+            onComplete = { resumeListening() },
+            speak = {
+                ttsManager.speakError(
+                    "Te escuché muy bajito. Acercá el teléfono o revisá tus audífonos.",
+                )
+            },
+        )
+        return true
     }
 
     private fun processCommand(transcript: String, exerciseInfo: ExerciseInfo?) {
@@ -1749,10 +2006,12 @@ class WorkoutVoiceController(
             mapOf(
                 "commandType" to command.javaClass.simpleName,
                 "command" to command.toString(),
+                "transcript" to transcript,
                 "exerciseId" to exerciseInfo?.exercise?.id,
                 "setIndex" to exerciseInfo?.setIndex,
                 "unitMode" to exerciseInfo?.unitMode?.name,
                 "loadMode" to exerciseInfo?.loadMode?.name,
+                "isUnilateral" to isUnilateral,
                 "trackRom" to exerciseInfo?.trackRom,
             ) + WorkoutVoiceDiagnosticLogger.runtimeStateFields(context),
         )
@@ -1895,6 +2154,9 @@ class WorkoutVoiceController(
             }
             is VoiceSessionCommand.Unknown -> {
                 releaseDucking()
+                // Señal baja = causa típica de mishearings; avisar UNA vez por sesión.
+                // Vive en el camino Unknown para no interferir con CONFIRM_WAIT/processCommand.
+                if (considerLowSignalAlert()) return
                 // Con confianza por palabra disponible: re-preguntar una vez en vez
                 // de quedarnos en silencio cuando el ASR reconoció algo poco claro.
                 if (lastHypothesisConfidenceKnown &&
@@ -2543,7 +2805,6 @@ class WorkoutVoiceController(
         confirmationJob?.cancel()
         val restoreStage = when (snapshot.stage) {
             VoicePipelineStage.CONFIRM_WAIT -> VoicePipelineStage.CONFIRM_WAIT
-            VoicePipelineStage.ARMED -> VoicePipelineStage.ARMED
             else -> VoicePipelineStage.LISTENING
         }
         _state.value = snapshot.copy(
@@ -2581,11 +2842,6 @@ class WorkoutVoiceController(
                     ttsManager.speakError("Retomando la confirmación pendiente. Di sí o no.")
                 },
             )
-
-            VoicePipelineStage.ARMED -> {
-                continuousEngine.pause()
-                updateStage(VoicePipelineStage.ARMED)
-            }
 
             else -> resumeListening()
         }
@@ -2969,17 +3225,13 @@ class WorkoutVoiceController(
 
     private fun resumeListening() {
         if (!sessionWanted) return
+        if (recovering) return
         lastVoiceActivityAtMs = SystemClock.elapsedRealtime()
         lastInstantPartialKey = null
         lastHypothesisConfidence = 0f
         lastHypothesisConfidenceKnown = true
+        utteranceRmsPeakDb = Float.NEGATIVE_INFINITY
         WorkoutVoiceDiagnosticLogger.event("voice_phase", mapOf("phase" to "RESUME", "state" to "REQUESTED"))
-
-        if (isPushToTalkMode() && !pushToTalkHeld) {
-            continuousEngine.pause()
-            updateStage(VoicePipelineStage.ARMED)
-            return
-        }
 
         _state.update {
             it.copy(
@@ -2996,7 +3248,7 @@ class WorkoutVoiceController(
         if (!continuousEngine.isActive) {
             continuousEngine.start(
                 scope = scope ?: return,
-                holdMicRouteAcrossPause = !isPushToTalkMode(),
+                holdMicRouteAcrossPause = true,
                 captureMode = captureModeProvider?.invoke() ?: com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE,
             )
         } else {
@@ -3065,7 +3317,7 @@ class WorkoutVoiceController(
         if (!continuousEngine.isActive) {
             continuousEngine.start(
                 scope = activeScope,
-                holdMicRouteAcrossPause = !isPushToTalkMode(),
+                holdMicRouteAcrossPause = true,
                 captureMode = captureModeProvider?.invoke() ?: com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE,
             )
         } else {
@@ -3092,6 +3344,10 @@ class WorkoutVoiceController(
         engineCollectJob = null
         idleMonitorJob?.cancel()
         idleMonitorJob = null
+        recoveryJob?.cancel()
+        recoveryJob = null
+        stallWatchdogJob?.cancel()
+        stallWatchdogJob = null
         partialCollectJob?.cancel()
         partialCollectJob = null
         errorCollectJob?.cancel()
@@ -3186,6 +3442,7 @@ class WorkoutVoiceController(
     }
 
     fun shutdown() {
+        abortPhoenix("shutdown")
         sessionWanted = false
         announcedVoiceOn = false
         cancelAllJobs()
@@ -3305,6 +3562,18 @@ class WorkoutVoiceController(
         const val MAX_REPORT_TTS_LENGTH = 240
         const val MAX_REPORT_ERROR_LENGTH = 120
         const val REPORT_CAPTURE_TIMEOUT_MS = 15_000L
+        /** Fénix: cadencia del watchdog anti-cuelgue. */
+        const val STALL_CHECK_INTERVAL_MS = 3_000L
+        /** Sin heartbeats del actor este tiempo con stage LISTENING → fuerza reinicio. */
+        const val STALL_DETECT_MS = 12_000L
+        /** Ventana y tope del circuit-breaker del watchdog (defensa anti-loop). */
+        const val STALL_WATCHDOG_WINDOW_MS = 5 * 60_000L
+        const val STALL_WATCHDOG_MAX_RESTARTS = 3
+        /** Tiempo máximo a esperar la reconexión del proceso por intento. */
+        const val PHOENIX_ATTEMPT_TIMEOUT_MS = 8_000L
+        const val PHOENIX_POLL_MS = 200L
+        /** Bajo este pico RMS de una frase se avisa "te escucho bajito" (una vez/sesión). */
+        const val LOW_SIGNAL_UTTERANCE_DB = -22f
     }
 }
 

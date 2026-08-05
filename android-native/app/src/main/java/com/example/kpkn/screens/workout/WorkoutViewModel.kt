@@ -615,8 +615,8 @@ class WorkoutViewModel(
         voiceController.structuralPersistenceSuccessProvider = { voiceStructuralPersistenceSuccess(replacementScopeOptions()) }
         voiceController.verbosityProvider = { repository.settings.value.voiceVerbosity }
         voiceController.noiseProfileProvider = { repository.settings.value.voiceNoiseProfile }
-        voiceController.inputModeProvider = { repository.settings.value.voiceInputMode }
         voiceController.captureModeProvider = { repository.settings.value.voiceCaptureMode }
+        voiceController.musicAecProvider = { repository.settings.value.voiceMusicAec }
         voiceController.customPhrasesProvider = { repository.settings.value.voiceCustomIntensityPhrases }
         voiceController.autoSuggestLoadsProvider = { repository.settings.value.voiceAutoSuggestLoads }
         voiceController.sessionExercisesProvider = {
@@ -714,6 +714,16 @@ class WorkoutViewModel(
                     voiceController.onRestCountdownTick(remainingSeconds = remaining)
                 }
             }
+        }
+        // Fase 4.4: aplicar el flag AEC en caliente al cambiar el setting (solo si la
+        // voz está activa; en arranque startListening ya lo aplica vía provider).
+        viewModelScope.launch {
+            repository.settings
+                .map { it.voiceMusicAec }
+                .distinctUntilChanged()
+                .collect { aec ->
+                    if (voiceController.isEnabled()) voiceController.setMusicAec(aec)
+                }
         }
         viewModelScope.launch {
             if (!repository.isReady.value) {
@@ -1353,10 +1363,6 @@ class WorkoutViewModel(
             }
         }
     }
-
-    fun beginVoicePushToTalk() = voiceController.beginPushToTalk()
-
-    fun endVoicePushToTalk() = voiceController.endPushToTalk()
 
     /** Stops continuous listening when the activity goes to background; does not auto-resume. */
     fun onVoiceHostPaused() = voiceCommandHandler.onVoiceHostPaused()

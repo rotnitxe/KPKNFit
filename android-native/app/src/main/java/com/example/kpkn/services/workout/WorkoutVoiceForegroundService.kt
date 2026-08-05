@@ -105,6 +105,11 @@ class WorkoutVoiceForegroundService : Service() {
             )
         }
 
+        override fun updateMusicAec(generation: Long, aecEnabled: Boolean) {
+            if (generation != clientGeneration) return
+            engine.updateMusicAec(aecEnabled)
+        }
+
         override fun pause(generation: Long, releaseMic: Boolean): Boolean {
             if (generation != clientGeneration) return false
             val acknowledged = runBlocking(Dispatchers.IO) {
@@ -145,6 +150,11 @@ class WorkoutVoiceForegroundService : Service() {
 
         override fun completePrompt(generation: Long, requestId: Long) {
             if (generation == clientGeneration) pendingPrompts.remove(requestId)?.complete()
+        }
+
+        /** Cuelgue detectado: muerte determinista del proceso para reiniciar limpio. */
+        override fun forceKillSelf() {
+            android.os.Process.killProcess(android.os.Process.myPid())
         }
     }
 
@@ -231,6 +241,7 @@ class WorkoutVoiceForegroundService : Service() {
             }
         }
         serviceScope.launch { engine.rmsLevel.collect { send { onRms(clientGeneration, it) } } }
+        serviceScope.launch { engine.heartbeat.collect { send { onHeartbeat(clientGeneration) } } }
         serviceScope.launch { engine.usingOnDeviceRecognizer.collect { send { onOnDevice(clientGeneration, it) } } }
         serviceScope.launch { engine.activeRouteLabel.collect { send { onRoute(clientGeneration, it) } } }
         serviceScope.launch { engine.usingNativeFallback.collect { send { onNativeFallback(clientGeneration, it) } } }
@@ -330,10 +341,29 @@ class WorkoutVoiceForegroundService : Service() {
             )
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
             .build()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            startForeground(NOTIF_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE)
-        } else {
-            startForeground(NOTIF_ID, notification)
+        val started = runCatching {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                startForeground(NOTIF_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE)
+            } else {
+                startForeground(NOTIF_ID, notification)
+            }
+            true
+        }.getOrElse { error ->
+            WorkoutVoiceDiagnosticLogger.event(
+                "voice_start_foreground_failed",
+                mapOf("exceptionType" to error.javaClass.name, "exceptionMessage" to error.message),
+            )
+            false
+        }
+        if (!started) {
+            WorkoutVoiceDiagnosticLogger.event(
+                "voice_start_foreground_failed_killing",
+                mapOf("reason" to "no_foreground"),
+            )
+            // Sin primer plano no sirve el proceso y stopCaptureAndSelf enviaría
+            // onStopped(userRequested=true) apagando la voz sin fénix. Muerte
+            // determinista: el binder death dispara FAILED → el supervisor reintenta (fix F3).
+            android.os.Process.killProcess(android.os.Process.myPid())
         }
     }
 

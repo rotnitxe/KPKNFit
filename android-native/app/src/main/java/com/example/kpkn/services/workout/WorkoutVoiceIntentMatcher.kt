@@ -54,7 +54,6 @@ object WorkoutVoiceIntentMatcher {
                 -> parsed
                 else -> VoiceSessionCommand.Unknown(transcript)
             }
-            VoicePipelineStage.ARMED,
             VoicePipelineStage.LISTENING,
             VoicePipelineStage.ERROR_RECOVERY,
             VoicePipelineStage.PROCESSING -> {
@@ -92,6 +91,7 @@ object WorkoutVoiceIntentMatcher {
             }
             VoicePipelineStage.MIC_BUSY,
             VoicePipelineStage.RECONNECTING,
+            VoicePipelineStage.RECOVERING,
             VoicePipelineStage.FAILED,
             VoicePipelineStage.DISABLED -> VoiceSessionCommand.Unknown(transcript)
         }

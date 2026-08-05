@@ -24,8 +24,6 @@ data class Settings(
     val voiceNoiseProfile: VoiceNoiseProfile = VoiceNoiseProfile.GYM,
     /** TTS speech rate multiplier (0.9–1.1 typical). */
     val ttsSpeechRate: Float = 1.0f,
-    /** Continuous always-on mic vs hold-to-talk. */
-    val voiceInputMode: VoiceInputMode = VoiceInputMode.CONTINUOUS,
     /** Tutorial version for the current hybrid voice explanation. */
     val voiceTutorialVersionSeen: Int = 0,
     /** Modo de captura de voz: auriculares (manos libres) vs mic del teléfono (música intacta). */
@@ -36,6 +34,9 @@ data class Settings(
     val voiceArmForNextSession: Boolean = false,
     /** Cue por serie con la carga sugerida + comando "sugerencia aplicada" (opt-in). */
     val voiceAutoSuggestLoads: Boolean = false,
+    /** Experimento: en Modo Música usar VOICE_COMMUNICATION (con cancelador de eco)
+     *  en el mic del teléfono. Puede alterar el modo de audio; validar en físico. */
+    val voiceMusicAec: Boolean = false,
     /** Frases personalizadas del usuario → intensidad (se inyectan a la gramática). */
     val voiceCustomIntensityPhrases: List<CustomIntensityPhrase> = emptyList(),
 
@@ -121,7 +122,6 @@ enum class OneRMFormula { BRZYCKI, EPLEY, LANDER }
 enum class WorkoutLoggerMode { PRO, SIMPLE }
 enum class VoiceVerbosity { COMPLETE, ESSENTIAL, SILENT }
 enum class VoiceNoiseProfile { GYM, QUIET }
-enum class VoiceInputMode { CONTINUOUS, PUSH_TO_TALK }
 enum class VoiceCaptureMode { HANDS_FREE, MUSIC }
 enum class ApiProvider { GEMINI, GPT, DEEPSEEK }
 enum class AppTheme { DEFAULT, DARK, DEEP_BLACK, VOLT, LIGHT }

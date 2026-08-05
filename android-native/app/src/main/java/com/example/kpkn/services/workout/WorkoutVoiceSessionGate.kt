@@ -7,13 +7,13 @@ package com.example.kpkn.services.workout
 object WorkoutVoiceSessionGate {
 
     private val ACTIVE_STAGES = setOf(
-        VoicePipelineStage.ARMED,
         VoicePipelineStage.LISTENING,
         VoicePipelineStage.PROCESSING,
         VoicePipelineStage.CONFIRM_WAIT,
         VoicePipelineStage.TTS_SPEAKING,
         VoicePipelineStage.MIC_BUSY,
         VoicePipelineStage.RECONNECTING,
+        VoicePipelineStage.RECOVERING,
     )
 
     /** TTS failed — only surface ERROR_RECOVERY when the user wants the session on. */
@@ -26,7 +26,7 @@ object WorkoutVoiceSessionGate {
         if (current == VoicePipelineStage.ERROR_RECOVERY) return VoicePipelineStage.ERROR_RECOVERY
         // Do not interrupt CONFIRM_WAIT / TTS mid-utterance with a hard error stage;
         // still allow recovery when idle listening.
-        if (current == VoicePipelineStage.LISTENING || current == VoicePipelineStage.ARMED) {
+        if (current == VoicePipelineStage.LISTENING) {
             return VoicePipelineStage.ERROR_RECOVERY
         }
         return null
@@ -46,6 +46,8 @@ object WorkoutVoiceSessionGate {
     /**
      * Capture callbacks describe the microphone transport, not the active conversation.
      * A reconnect/start callback must never erase a pending confirmation or a TTS/persist step.
+     * RECOVERING (fénix) tampoco se pisa con eventos de captura: termina con una
+     * transición explícita desde el supervisor.
      */
     fun stageAfterCaptureEvent(
         current: VoicePipelineStage,
@@ -54,7 +56,8 @@ object WorkoutVoiceSessionGate {
         if (capture == VoiceCaptureState.FAILED) return VoicePipelineStage.FAILED
         if (current == VoicePipelineStage.CONFIRM_WAIT ||
             current == VoicePipelineStage.TTS_SPEAKING ||
-            current == VoicePipelineStage.PROCESSING
+            current == VoicePipelineStage.PROCESSING ||
+            current == VoicePipelineStage.RECOVERING
         ) {
             return null
         }
@@ -70,10 +73,10 @@ object WorkoutVoiceSessionGate {
 
     fun shouldAcceptFinalResult(stage: VoicePipelineStage): Boolean {
         return stage != VoicePipelineStage.DISABLED &&
-            stage != VoicePipelineStage.ARMED &&
             stage != VoicePipelineStage.TTS_SPEAKING &&
             stage != VoicePipelineStage.MIC_BUSY &&
-            stage != VoicePipelineStage.FAILED
+            stage != VoicePipelineStage.FAILED &&
+            stage != VoicePipelineStage.RECOVERING
     }
 
     fun shouldProcessCommand(stage: VoicePipelineStage): Boolean {
@@ -81,18 +84,8 @@ object WorkoutVoiceSessionGate {
     }
 
     const val MAX_CONSECUTIVE_ENGINE_ERRORS = 5
-    /** @deprecated Prefer [engineErrorBackoffMs] — kept for callers that expect a single delay. */
-    const val ENGINE_ERROR_RETRY_MS = 400L
     /** Time to wait for sí/no (or AddSet persistence) after TTS finishes asking. */
     const val CONFIRM_WAIT_TIMEOUT_MS = 12_000L
-
-    /** Sin voz detectada: pausar captura y liberar el micrófono (reanuda al tocar). */
-    const val IDLE_SLEEP_MS = 3 * 60_000L
-
-    /** Mucho más inactividad: descargar el modelo Vosk (recarga perezosa al reanudar). */
-    const val IDLE_UNLOAD_MS = 12 * 60_000L
-
-    const val IDLE_CHECK_INTERVAL_MS = 30_000L
 
     /** Exponential backoff: 400 → 800 → 1600 ms (capped) based on consecutive error count. */
     fun engineErrorBackoffMs(consecutiveErrors: Int): Long {

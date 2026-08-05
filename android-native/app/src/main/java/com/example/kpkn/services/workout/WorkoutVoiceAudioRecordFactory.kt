@@ -37,9 +37,15 @@ internal fun interface WorkoutVoiceAudioRecordFactory {
  * mic interno, VOICE_RECOGNITION evita procesamiento de llamada.
  */
 internal object WorkoutVoiceAudioSourcePolicy {
-    fun select(sdkInt: Int, externalCommunicationRouteActive: Boolean): Int =
+    /**
+     * [musicAecEnabled]: experimento Fase 4.4. En el mic del teléfono (sin BT) la
+     * vía de comunicación habilita el cancelador de eco (AEC) para no auto-escucharse
+     * el TTS, a costa del modo de audio. Default OFF hasta validación física.
+     */
+    fun select(sdkInt: Int, externalCommunicationRouteActive: Boolean, musicAecEnabled: Boolean = false): Int =
         when {
             externalCommunicationRouteActive -> MediaRecorder.AudioSource.VOICE_COMMUNICATION
+            musicAecEnabled && sdkInt >= Build.VERSION_CODES.N -> MediaRecorder.AudioSource.VOICE_COMMUNICATION
             sdkInt >= Build.VERSION_CODES.N -> MediaRecorder.AudioSource.VOICE_RECOGNITION
             else -> MediaRecorder.AudioSource.MIC
         }
