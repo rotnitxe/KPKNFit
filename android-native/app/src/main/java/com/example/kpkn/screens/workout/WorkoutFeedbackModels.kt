@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.DropSetData
 import com.example.kpkn.data.models.ExerciseMuscleInfo
@@ -225,7 +226,15 @@ fun mapWorkoutToPostSessionFeedback(
 ): PostSessionFeedback {
     val grouped = postExerciseFeedback.groupBy { feedback ->
         val exercise = log.completedExercises.find { it.exerciseId == feedback.exerciseId }
-        val dbInfo = exerciseDbById[exercise?.exerciseDbId ?: exercise?.exerciseId]
+        val dbInfo = exercise?.let {
+            resolveCatalogExerciseInfoInIndex(
+                index = exerciseDbById,
+                catalogConfigurationId = it.catalogConfigurationId,
+                exerciseDbId = it.exerciseDbId,
+                exerciseId = it.exerciseId,
+                exerciseName = it.exerciseName,
+            )
+        }
         val primary = (exercise?.effectiveMuscles?.takeIf { it.isNotEmpty() } ?: dbInfo?.involvedMuscles.orEmpty())
             .firstOrNull { it.role == MuscleRole.PRIMARY }
         if (primary != null) {

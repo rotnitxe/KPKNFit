@@ -204,6 +204,7 @@ import coil.compose.AsyncImage
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.exercises.catalogSearchRedirects
 import com.example.kpkn.data.exercises.catalogExerciseIndex
+import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.models.discomfortLabel
 import com.example.kpkn.data.sessions.SessionTemplate
@@ -276,11 +277,13 @@ internal fun computeSessionRoleWeightedSets(
     val result = mutableMapOf<String, Double>()
     val exercises = session.allExercises()
     exercises.forEach { exercise ->
-        val dbEntry = (exercise.catalogConfigurationId ?: exercise.exerciseDbId ?: exercise.exerciseId)
-            ?.trim()
-            ?.lowercase()
-            ?.let(exerciseIndex::get)
-            ?: return@forEach
+        val dbEntry = resolveCatalogExerciseInfoInIndex(
+            index = exerciseIndex,
+            catalogConfigurationId = exercise.catalogConfigurationId,
+            exerciseDbId = exercise.exerciseDbId,
+            exerciseId = exercise.exerciseId,
+            exerciseName = exercise.name,
+        ) ?: return@forEach
         val effectiveSetCount = exercise.sets.count { !it.isIneffective }.coerceAtLeast(1)
         dbEntry.involvedMuscles.forEach { involvement ->
             val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(involvement.muscle, involvement.emphasis)
@@ -493,11 +496,12 @@ internal fun buildMuscleVolumeRows(session: Session): List<MuscleVolumeRow> {
         .sortedByDescending { it.directSets }
 }
 
-private val catalogIndexForVolume: Map<String, com.example.kpkn.data.models.ExerciseMuscleInfo> by lazy {
-    // Full index (definition + configuration + custom ids) so v2-picked exercises
-    // resolve their involved muscles and actually contribute volume.
-    catalogExerciseIndex()
-}
+private val catalogIndexForVolume: Map<String, com.example.kpkn.data.models.ExerciseMuscleInfo>
+    get() {
+        // Full index (definition + configuration + custom ids) so v2-picked exercises
+        // resolve their involved muscles and actually contribute volume.
+        return catalogExerciseIndex()
+    }
 
 internal fun buildDisplayContributions(
     involvedMuscles: List<com.example.kpkn.data.models.InvolvedMuscle>,
@@ -704,8 +708,8 @@ internal fun SessionSubMuscleBreakdownList(
     countIndirect: Boolean,
     adjustByIntensity: Boolean,
 ) {
-    val exerciseIndex = remember { catalogExerciseIndex() }
-    val breakdown = remember(muscleName, session, countIndirect, adjustByIntensity) {
+    val exerciseIndex = catalogExerciseIndex()
+    val breakdown = remember(muscleName, session, countIndirect, adjustByIntensity, exerciseIndex) {
         calculateSubMuscleBreakdown(muscleName, session, exerciseIndex, countIndirect, adjustByIntensity)
     }
 

@@ -41,7 +41,7 @@ object WorkoutVoiceCommandParser {
     private val SUGGEST_WEIGHT_KEYWORDS = setOf(
         "cuanto peso", "cuánto peso", "carga sugerida", "que peso",
         "qué peso", "cuanto pongo", "cuánto pongo", "peso sugerido",
-        "cuanto levanto", "cuánto levanto", "sugerido",
+        "cuanto levanto", "cuánto levanto", "sugerido", "sugerida",
     )
 
     private val REST_STATUS_KEYWORDS = setOf(
@@ -98,6 +98,7 @@ object WorkoutVoiceCommandParser {
         "saltar descanso", "saltar timer", "omitir descanso", "omitir timer",
         "ya estoy", "continuar", "listo",
         "salta el descanso", "saltar el descanso", "termina el descanso", "ya",
+        "sigue", "seguir", "para", "para el timer", "para el descanso",
     ) + WorkoutVoiceGrammarLexicon.skipRestAliases
 
     private val USE_ADAPTIVE_REST_KEYWORDS = setOf(
@@ -108,7 +109,7 @@ object WorkoutVoiceCommandParser {
 
     private val APPLY_SUGGESTED_LOAD_KEYWORDS = setOf(
         "sugerencia aplicada", "aplica la sugerencia", "aplicar sugerencia",
-        "usa la sugerencia", "la sugerida",
+        "usa la sugerencia", "la sugerida", "el sugerido",
     )
 
     private val MOVE_UP_KEYWORDS = setOf(
@@ -246,7 +247,7 @@ object WorkoutVoiceCommandParser {
 
     fun defaultNumericGrammarTokens(): Set<String> = buildSet {
         addAll(VOICE_INTEGER_WORDS.keys)
-        addAll(setOf("punto", "coma", "y", "medio", "media", "cuarto", "cuartos", "kilo", "kilos", "peso", "carga"))
+        addAll(setOf("punto", "coma", "como", "y", "medio", "media", "cuarto", "cuartos", "kilo", "kilos", "peso", "carga"))
         addAll(setOf("repeticion", "repetición", "repeticiones", "segundo", "segundos"))
         addAll(setOf(
             "minuto", "minutos", "esfuerzo", "intensidad", "reservas", "reserva", "ritmo", "porcentaje", "por",
@@ -297,7 +298,12 @@ object WorkoutVoiceCommandParser {
         trackRom: Boolean = false,
         tagNames: Set<String> = emptySet(),
     ): VoiceSessionCommand {
-        val lower = normalizeText(transcript)
+        // Los mishearings también afectan a los keywords de comandos ("metro corporal",
+        // "reir", "la varra"); corregir antes de clasificar evita Unknowns evitables.
+        // Solo correcciones deterministas (sin Levenshtein) para no tocar vocabulario
+        // propio de comandos ("falta", "lado").
+        val correctedTranscript = WorkoutVoiceMishearingCorrections.correctDeterministic(normalizeText(transcript))
+        val lower = correctedTranscript
 
         if (pendingAddSetPersistence) {
             return parseAddSetPersistence(lower)
@@ -486,7 +492,10 @@ object WorkoutVoiceCommandParser {
 
     fun parseEditLastSet(normalized: String): VoiceSessionCommand.EditLastSet? {
         val lower = normalizeText(normalized)
-        val triggered = EDIT_LAST_SET_TRIGGERS.any { lower.contains(normalizeText(it)) }
+        val wordAlts = VOICE_INTEGER_WORDS.keys.joinToString("|")
+        val numOrWord = """(\d+(?:[.,]\d+)?|$wordAlts)"""
+        val rangeTrigger = Regex("""\bde\s+$numOrWord\s+a\s+$numOrWord(?:\s*(?:kilos?|kg))?""").containsMatchIn(lower)
+        val triggered = rangeTrigger || EDIT_LAST_SET_TRIGGERS.any { lower.contains(normalizeText(it)) }
         if (!triggered) return null
 
         var weightKg: Double? = null
@@ -495,9 +504,14 @@ object WorkoutVoiceCommandParser {
         var intensityValue: Double? = null
         var intensityKind: com.example.kpkn.screens.workout.WorkoutVoiceIntensityKind? = null
 
-        val wordAlts = VOICE_INTEGER_WORDS.keys.joinToString("|")
-        val numOrWord = """(\d+(?:[.,]\d+)?|$wordAlts)"""
-
+        // "de 101.3 a 123.8 kilos" / "de noventa a cien kilos": edición absoluta al valor de destino.
+        val rangeEdit = Regex(
+            """\bde\s+$numOrWord\s+a\s+$numOrWord(?:\s*(?:kilos?|kg))?""",
+        ).find(lower)
+        if (rangeEdit != null) {
+            weightKg = parseSpokenInteger(rangeEdit.groupValues[2])?.toDouble()
+                ?: rangeEdit.groupValues[2].replace(',', '.').toDoubleOrNull()
+        }
         val absoluteWeight = Regex(
             """(?:cambialo a|cambia a|cambialo|en realidad)\s+$numOrWord(?:\s*(?:kilos?|kg))?""",
         ).find(lower)

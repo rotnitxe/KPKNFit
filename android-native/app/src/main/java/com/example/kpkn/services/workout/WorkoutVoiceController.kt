@@ -1609,6 +1609,46 @@ class WorkoutVoiceController(
                     else -> null
                 }
             }
+            is VoicePendingAction.ReaskIntensity -> {
+                val base = pendingClarification.baseInterpretation
+                val value = extractFirstVoiceNumber(transcript)
+                if (value == null || value > MAX_PLAUSIBLE_RIR) {
+                    clarificationMisses++
+                    if (clarificationMisses >= MAX_CLARIFICATION_MISSES) {
+                        clarificationMisses = 0
+                        _state.update { it.copy(pendingAction = null) }
+                        WorkoutVoiceDiagnosticLogger.event(
+                            "guided_clarification_resolved",
+                            mapOf("kind" to "ReaskIntensity", "result" to "cancelled"),
+                        )
+                        voskAccumulator.reset()
+                        runSpeakingOrSkip(
+                            onComplete = { resumeListening() },
+                            speak = { ttsManager.speakError("No te entendí. Dime la serie completa cuando quieras.") },
+                        )
+                    } else {
+                        runSpeakingOrSkip(
+                            onComplete = { resumeListening() },
+                            speak = { ttsManager.speakAskRirValue() },
+                        )
+                    }
+                    return
+                }
+                clarificationMisses = 0
+                WorkoutVoiceDiagnosticLogger.event(
+                    "guided_clarification_resolved",
+                    mapOf("kind" to "ReaskIntensity", "result" to "value"),
+                )
+                VoiceSessionCommand.RegisterSet(
+                    base.copy(
+                        transcript = transcript,
+                        intensityValue = value,
+                        intensityKind = WorkoutVoiceIntensityKind.RIR,
+                        ambiguousIntensityValue = null,
+                        fields = base.fields + WorkoutVoiceField.INTENSITY,
+                    ),
+                )
+            }
             is VoicePendingAction.LoadMode -> {
                 val base = pendingClarification.baseInterpretation
                 when {
@@ -2154,6 +2194,15 @@ class WorkoutVoiceController(
             }
             is VoiceSessionCommand.Unknown -> {
                 releaseDucking()
+                WorkoutVoiceDiagnosticLogger.event(
+                    "unknown_command_logged",
+                    mapOf(
+                        "transcript" to command.raw,
+                        "normalized" to command.raw.trim().lowercase().take(MAX_DIAGNOSTIC_TRANSCRIPT_LENGTH),
+                        "confidence" to lastHypothesisConfidence,
+                        "confidenceKnown" to lastHypothesisConfidenceKnown,
+                    ),
+                )
                 // Señal baja = causa típica de mishearings; avisar UNA vez por sesión.
                 // Vive en el camino Unknown para no interferir con CONFIRM_WAIT/processCommand.
                 if (considerLowSignalAlert()) return
@@ -2296,10 +2345,12 @@ class WorkoutVoiceController(
     ) {
         confirmedOrCancelled = false
 
+        // Capturar el peso de la serie anterior ANTES de que lastInterpretation se actualice.
+        val previousWeight = _state.value.lastInterpretation?.weightKg
         val pendingAction = _state.value.pendingAction
         val mergedInterpretation = pendingAction?.baseInterpretation?.let { base ->
             base.copy(
-                transcript = listOf(base.transcript, interpretation.transcript).joinToString(" "),
+                transcript = mergeTranscripts(base.transcript, interpretation.transcript),
                 intensityValue = interpretation.intensityValue ?: base.intensityValue,
                 intensityKind = interpretation.intensityKind ?: base.intensityKind,
                 loadModeOverride = interpretation.loadModeOverride ?: base.loadModeOverride,
@@ -2383,6 +2434,27 @@ class WorkoutVoiceController(
                         "¿Ese ${finalInterpretation.ambiguousIntensityValue.toInt()} es RPE o RIR?",
                     )
                 },
+            )
+            return
+        }
+        val impossibleRir = finalInterpretation.intensityKind == WorkoutVoiceIntensityKind.RIR &&
+            finalInterpretation.intensityValue != null &&
+            finalInterpretation.intensityValue > MAX_PLAUSIBLE_RIR
+        if (impossibleRir) {
+            WorkoutVoiceDiagnosticLogger.event(
+                "rir_impossible_clamped",
+                mapOf("value" to finalInterpretation.intensityValue),
+            )
+            _state.update {
+                it.copy(
+                    pendingAction = VoicePendingAction.ReaskIntensity(
+                        finalInterpretation.copy(intensityValue = null, intensityKind = null),
+                    ),
+                )
+            }
+            runSpeakingOrSkip(
+                onComplete = { resumeListening() },
+                speak = { ttsManager.speakAskRirValue() },
             )
             return
         }
@@ -2489,6 +2561,8 @@ class WorkoutVoiceController(
             draftHasWeightAndReps = draftHasWeightAndReps,
             requiresWeight = requiresWeight,
             confidenceKnown = lastHypothesisConfidenceKnown,
+            suggestedWeight = exerciseInfo?.suggestedWeight,
+            lastWeight = previousWeight,
         )
         if (decision == ConfirmationDecision.AUTO) {
             val side = finalInterpretation.side ?: exerciseInfo?.pendingUnilateralSide
@@ -2874,10 +2948,36 @@ class WorkoutVoiceController(
 
         when (confirmCommand) {
             is VoiceSessionCommand.Confirm -> doConfirm()
-            is VoiceSessionCommand.Cancel -> doCancel()
-            else -> {
-                val info = exerciseInfoProvider?.invoke()
-                val reparsed = WorkoutVoiceCommandParser.parseCommand(
+            is VoiceSessionCommand.Cancel -> {
+                // "no, era X" / "no, setenta y siete" → corrección dirigida, no cancelación.
+                val hasDirectedValue =
+                    extractFirstVoiceDecimalNumber(text) != null || extractFirstVoiceNumber(text) != null
+                if (hasDirectedValue) {
+                    handleConfirmCorrection(text)
+                } else {
+                    doCancel()
+                }
+            }
+            else -> handleConfirmCorrection(text)
+        }
+    }
+
+    /** Une dos transcripts evitando duplicar tokens que ya aparecen en el primero. */
+    private fun mergeTranscripts(base: String, addition: String): String {
+        val baseTokens = base.split(' ').filter { it.isNotBlank() }
+        val addTokens = addition.split(' ').filter { it.isNotBlank() }
+        if (baseTokens.isEmpty()) return addition.trim()
+        if (addTokens.isEmpty()) return base.trim()
+        val result = baseTokens.toMutableList()
+        for (token in addTokens) {
+            if (token !in result) result += token
+        }
+        return result.joinToString(" ")
+    }
+
+    private fun handleConfirmCorrection(text: String) {
+        val info = exerciseInfoProvider?.invoke()
+        val reparsed = WorkoutVoiceCommandParser.parseCommand(
                     transcript = text,
                     isTimeMode = info?.isTimeMode == true,
                     isUnilateral = info?.isUnilateral == true,
@@ -2953,8 +3053,6 @@ class WorkoutVoiceController(
                         )
                     }
                 }
-            }
-        }
     }
 
     private fun handleAddSetPersistenceInput(text: String) {
@@ -3556,6 +3654,8 @@ class WorkoutVoiceController(
         const val PARTIAL_FALLBACK_POST_TTS_WINDOW_MS = 1_000L
         /** Intentos fallidos de respuesta a una clarificación guiada antes de cancelar. */
         const val MAX_CLARIFICATION_MISSES = 2
+        /** Un RIR mayor a esto es imposible (reserva en repeticiones ≤ 5): se re-pregunta. */
+        const val MAX_PLAUSIBLE_RIR = 5.0
         const val REPORT_COMMAND = "reportar equipo"
         const val MAX_REPORT_RETRIES = 2
         const val MAX_REPORT_COMMENT_LENGTH = 8_000

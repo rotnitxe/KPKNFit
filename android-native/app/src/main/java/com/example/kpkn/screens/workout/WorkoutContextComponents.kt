@@ -28,11 +28,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
-import com.example.kpkn.data.exercises.catalogExerciseIndex
+import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
-import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.screens.wikilab.wikilabMuscleColor
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -2010,29 +2008,21 @@ internal fun normalizeWorkoutMuscleKey(value: String): String =
         .replace("ü", "u")
 
 internal fun workoutCatalogInfo(exercise: Exercise): ExerciseMuscleInfo? {
-    if (exercise.catalogRevision != null) {
-        return exercise.catalogConfigurationId
-            ?.lowercase(Locale.ROOT)
-            ?.let(catalogExerciseIndex()::get)
-    }
-    val canonicalId = exercise.catalogConfigurationId
-        ?: exercise.resolvedCanonicalExerciseId()
-        ?: exercise.exerciseDbId
-        ?: exercise.exerciseId
-    return canonicalId?.trim()?.lowercase(Locale.ROOT)?.let(catalogExerciseIndex()::get)
+    return resolveCatalogExerciseInfo(
+        catalogConfigurationId = exercise.catalogConfigurationId,
+        exerciseDbId = exercise.exerciseDbId,
+        exerciseId = exercise.exerciseId,
+        exerciseName = exercise.name,
+    )
 }
 
 internal fun workoutCatalogInfo(exercise: CompletedExercise): ExerciseMuscleInfo? {
-    if (exercise.catalogRevision != null) {
-        return exercise.catalogConfigurationId
-            ?.lowercase(Locale.ROOT)
-            ?.let(catalogExerciseIndex()::get)
-    }
-    val canonicalId = exercise.catalogConfigurationId
-        ?: exercise.resolvedCanonicalExerciseId()
-        ?: exercise.exerciseDbId
-        ?: exercise.exerciseId
-    return canonicalId?.trim()?.lowercase(Locale.ROOT)?.let(catalogExerciseIndex()::get)
+    return resolveCatalogExerciseInfo(
+        catalogConfigurationId = exercise.catalogConfigurationId,
+        exerciseDbId = exercise.exerciseDbId,
+        exerciseId = exercise.exerciseId,
+        exerciseName = exercise.exerciseName,
+    )
 }
 
 internal fun displayWorkoutMuscleGroup(group: String?): String? = when (group) {

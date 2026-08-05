@@ -1,7 +1,6 @@
 package com.example.kpkn.domain.energy
 
-import com.example.kpkn.data.exercises.catalogExerciseIndex
-import com.example.kpkn.data.exercises.catalogSearchRedirects
+import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
@@ -31,17 +30,12 @@ object TrainingEnergyEngine {
         exerciseDbId: String?,
         exerciseId: String?,
         exerciseName: String,
-    ): ExerciseMuscleInfo? {
-        // A persisted v2 configuration is authoritative. Do not silently
-        // reinterpret it by alias or visible name when the runtime asset lacks it.
-        if (!catalogConfigurationId.isNullOrBlank()) {
-            return catalogExerciseIndex()[catalogConfigurationId.lowercase()]
-        }
-        val resolvedId = (exerciseDbId ?: exerciseId)?.lowercase()?.let { rawId ->
-            catalogSearchRedirects()[rawId] ?: rawId
-        }
-        return resolvedId?.let { catalogExerciseIndex()[it] }
-    }
+    ): ExerciseMuscleInfo? = resolveCatalogExerciseInfo(
+        catalogConfigurationId = catalogConfigurationId,
+        exerciseDbId = exerciseDbId,
+        exerciseId = exerciseId,
+        exerciseName = exerciseName,
+    )
     /**
      * Bodyweight contribution to effective load from catalog fields
      * (equipment / pattern / force / bodyPart) — not exercise-name substrings.

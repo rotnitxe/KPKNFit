@@ -1514,9 +1514,9 @@ private fun SubMuscleBreakdownList(
     indirectMode: Int = 0,
     adjustByIntensity: Boolean,
 ) {
-    val exerciseIndex = remember { catalogExerciseIndex() }
+    val exerciseIndex = catalogExerciseIndex()
     val divisor = if (averageByWeek) weeks.size.coerceAtLeast(1).toDouble() else 1.0
-    val subMuscleBreakdown = remember(muscleName, weeks, averageByWeek, indirectMode, adjustByIntensity) {
+    val subMuscleBreakdown = remember(muscleName, weeks, averageByWeek, indirectMode, adjustByIntensity, exerciseIndex) {
         calculateSubMuscleBreakdown(muscleName, weeks.flatMap { it.sessions }, exerciseIndex, divisor, indirectMode, adjustByIntensity)
     }
     if (subMuscleBreakdown.isEmpty()) return

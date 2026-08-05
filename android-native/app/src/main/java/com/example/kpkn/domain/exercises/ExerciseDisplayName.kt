@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.exercises
 
+import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
 import com.example.kpkn.data.models.AspectOption
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.Exercise
@@ -90,9 +91,10 @@ fun completedExerciseDisplayName(
 internal fun resolveCatalogInfoForDisplay(
     exercise: Exercise,
     catalogLookup: Map<String, ExerciseMuscleInfo>,
-): ExerciseMuscleInfo? {
-    val id = (exercise.catalogConfigurationId ?: exercise.exerciseDbId ?: exercise.exerciseId)
-        ?.trim()
-        ?.lowercase()
-    return id?.let(catalogLookup::get)
-}
+): ExerciseMuscleInfo? = resolveCatalogExerciseInfoInIndex(
+    index = catalogLookup,
+    catalogConfigurationId = exercise.catalogConfigurationId,
+    exerciseDbId = exercise.exerciseDbId,
+    exerciseId = exercise.exerciseId,
+    exerciseName = exercise.name,
+)

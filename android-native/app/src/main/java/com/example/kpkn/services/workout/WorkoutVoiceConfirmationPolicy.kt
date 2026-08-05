@@ -25,6 +25,8 @@ object WorkoutVoiceConfirmationPolicy {
         requiresWeight: Boolean = true,
         isEditPatch: Boolean = false,
         confidenceKnown: Boolean = true,
+        suggestedWeight: Double? = null,
+        lastWeight: Double? = null,
     ): ConfirmationDecision {
         val hasWeight = WorkoutVoiceField.WEIGHT in interpretation.fields &&
             interpretation.weightKg != null && interpretation.weightKg > 0.0
@@ -55,12 +57,28 @@ object WorkoutVoiceConfirmationPolicy {
             return ConfirmationDecision.REJECT
         }
 
-        return if (confidenceOk(asrConfidence, confidenceKnown)) {
-            ConfirmationDecision.AUTO
-        } else {
-            ConfirmationDecision.ASK
+        if (!confidenceOk(asrConfidence, confidenceKnown)) {
+            return ConfirmationDecision.ASK
         }
+
+        // Fase 3.1: un peso que se desvía mucho del contexto (sugerido/último) es
+        // sospechoso de mishearing → forzar confirmación en vez de auto-registrar.
+        if (hasWeight && weightOutOfContext(interpretation.weightKg, suggestedWeight, lastWeight)) {
+            return ConfirmationDecision.ASK
+        }
+
+        return ConfirmationDecision.AUTO
     }
+
+    private fun weightOutOfContext(weight: Double, suggestedWeight: Double?, lastWeight: Double?): Boolean {
+        val reference = suggestedWeight ?: lastWeight ?: return false
+        if (reference <= 0.0) return false
+        val ratio = weight / reference
+        return ratio > WEIGHT_CONTEXT_UP_RATIO || ratio < WEIGHT_CONTEXT_DOWN_RATIO
+    }
+
+    private const val WEIGHT_CONTEXT_UP_RATIO = 2.5
+    private const val WEIGHT_CONTEXT_DOWN_RATIO = 0.4
 
     /** Back-compat helper used by existing call sites. */
     fun shouldAutoConfirm(

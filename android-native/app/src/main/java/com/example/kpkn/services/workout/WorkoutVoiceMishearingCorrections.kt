@@ -63,6 +63,40 @@ internal object WorkoutVoiceMishearingCorrections {
 
     fun correct(normalizedText: String): String {
         if (normalizedText.isBlank()) return normalizedText
+        var result = correctedDeterministically(normalizedText)
+        if (result != normalizedText) {
+            // Dejar que el token map adicional corra sobre el texto ya corregido.
+            result = deterministicTokenPass(result)
+        }
+        var changed = false
+        val corrected = result.split(' ').map { token ->
+            if (token.length < 4 || token.any(Char::isDigit) || token in STOPWORDS) {
+                token
+            } else {
+                val closest = closestLexiconWord(token)
+                if (closest != null && closest != token) {
+                    changed = true
+                    closest
+                } else {
+                    token
+                }
+            }
+        }
+        return if (changed) corrected.joinToString(" ") else result
+    }
+
+    /**
+     * Solo correcciones deterministas (pares, frases y mapeos directos), sin
+     * Levenshtein. Seguro para el clasificador de comandos, donde palabras de
+     * vocabulario propio ("falta", "lado") no deben "corregirse" al léxico de series.
+     */
+    fun correctDeterministic(normalizedText: String): String {
+        if (normalizedText.isBlank()) return normalizedText
+        val result = correctedDeterministically(normalizedText)
+        return deterministicTokenPass(result)
+    }
+
+    private fun correctedDeterministically(normalizedText: String): String {
         var result = normalizedText
         for ((from, to) in PAIR_CORRECTIONS) {
             if (result.contains(from)) {
@@ -74,21 +108,21 @@ internal object WorkoutVoiceMishearingCorrections {
                 result = result.replace(from, to)
             }
         }
+        return result
+    }
+
+    private fun deterministicTokenPass(text: String): String {
         var changed = false
-        val corrected = result.split(' ').map { token ->
+        val corrected = text.split(' ').map { token ->
             val directCorrection = TOKEN_CORRECTIONS[token]
             if (directCorrection != null) {
                 changed = true
                 directCorrection
-            } else if (token.length < 4 || token.any(Char::isDigit) || token in STOPWORDS) {
-                token
             } else {
-                val fixed = closestLexiconWord(token) ?: token
-                if (fixed != token) changed = true
-                fixed
+                token
             }
         }
-        return if (changed) corrected.joinToString(" ") else result
+        return if (changed) corrected.joinToString(" ") else text
     }
 
     private fun closestLexiconWord(token: String): String? {

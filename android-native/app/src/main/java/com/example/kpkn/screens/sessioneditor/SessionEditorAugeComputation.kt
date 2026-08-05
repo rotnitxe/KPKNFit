@@ -2,6 +2,7 @@ package com.example.kpkn.screens.sessioneditor
 
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.exercises.catalogSearchRedirects
+import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.AugeClassifiers
 import com.example.kpkn.domain.auge.AugeFatigueEngine
@@ -582,10 +583,13 @@ internal fun exerciseSuggestionForInsight(
 internal fun resolveExerciseInfo(
     exercise: Exercise,
     exerciseIndex: Map<String, ExerciseMuscleInfo>,
-): ExerciseMuscleInfo? {
-    val byId = exercise.catalogConfigurationId ?: exercise.exerciseDbId ?: exercise.exerciseId
-    return byId?.trim()?.lowercase()?.let(exerciseIndex::get)
-}
+): ExerciseMuscleInfo? = resolveCatalogExerciseInfoInIndex(
+    index = exerciseIndex,
+    catalogConfigurationId = exercise.catalogConfigurationId,
+    exerciseDbId = exercise.exerciseDbId,
+    exerciseId = exercise.exerciseId,
+    exerciseName = exercise.name,
+)
 
 internal fun resolvePrimaryMuscle(info: ExerciseMuscleInfo): String? {
     val primary = info.involvedMuscles.firstOrNull { it.role == MuscleRole.PRIMARY }

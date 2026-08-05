@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.auge
 
+import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.AugeUtils.parseIsoMs
 import kotlin.math.exp
@@ -197,7 +198,13 @@ object InterferenceEngine {
         val drains = mutableMapOf<String, Double>()
 
         log.completedExercises.forEach { ce ->
-            val info = resolveExercise(ce.catalogConfigurationId ?: ce.exerciseDbId ?: ce.exerciseId, exerciseDb) ?: return@forEach
+            val info = resolveExercise(
+                catalogConfigurationId = ce.catalogConfigurationId,
+                exerciseDbId = ce.exerciseDbId,
+                exerciseId = ce.exerciseId,
+                exerciseName = ce.exerciseName,
+                exerciseDb = exerciseDb,
+            ) ?: return@forEach
             val accumulated = mutableMapOf<String, Int>()
 
             ce.sets.forEach { set ->
@@ -238,7 +245,13 @@ object InterferenceEngine {
     ): Map<String, Double> {
         val usages = mutableMapOf<String, Double>()
         log.completedExercises.forEach { ce ->
-            val info = resolveExercise(ce.catalogConfigurationId ?: ce.exerciseDbId ?: ce.exerciseId, exerciseDb) ?: return@forEach
+            val info = resolveExercise(
+                catalogConfigurationId = ce.catalogConfigurationId,
+                exerciseDbId = ce.exerciseDbId,
+                exerciseId = ce.exerciseId,
+                exerciseName = ce.exerciseName,
+                exerciseDb = exerciseDb,
+            ) ?: return@forEach
             val involvedMuscles = ce.effectiveMuscles?.takeIf { it.isNotEmpty() }
                 ?: info.involvedMuscles
             involvedMuscles.forEach { im ->
@@ -266,7 +279,13 @@ object InterferenceEngine {
         val allExercises = session.exercises + session.parts.flatMap { it.exercises }
 
         allExercises.forEach { ex ->
-            val info = resolveExercise(ex.catalogConfigurationId ?: ex.exerciseDbId ?: ex.exerciseId, exerciseDb) ?: return@forEach
+            val info = resolveExercise(
+                catalogConfigurationId = ex.catalogConfigurationId,
+                exerciseDbId = ex.exerciseDbId,
+                exerciseId = ex.exerciseId,
+                exerciseName = ex.name,
+                exerciseDb = exerciseDb,
+            ) ?: return@forEach
             val metrics = AugeFatigueEngine.getDynamicAugeMetrics(info.name, info.equipment, info) ?: AugeMetrics()
             // Estimar drenaje basado en EFC normalizado (sin sets reales)
             val estimatedDrain = (metrics.efc / 5.0) * 0.4   // 40% max drain estimado por ejercicio
@@ -298,7 +317,13 @@ object InterferenceEngine {
         val allExercises = session.exercises + session.parts.flatMap { it.exercises }
 
         allExercises.forEach { ex ->
-            val info = resolveExercise(ex.catalogConfigurationId ?: ex.exerciseDbId ?: ex.exerciseId, exerciseDb) ?: return@forEach
+            val info = resolveExercise(
+                catalogConfigurationId = ex.catalogConfigurationId,
+                exerciseDbId = ex.exerciseDbId,
+                exerciseId = ex.exerciseId,
+                exerciseName = ex.name,
+                exerciseDb = exerciseDb,
+            ) ?: return@forEach
             val involvedMuscles = if (!ex.effectiveMuscles.isNullOrEmpty()) {
                 ex.effectiveMuscles!!
             } else {
@@ -409,11 +434,16 @@ object InterferenceEngine {
     // ─── Helpers ─────────────────────────────────────────────────────────────
 
     private fun resolveExercise(
-        catalogId: String?,
+        catalogConfigurationId: String?,
+        exerciseDbId: String?,
+        exerciseId: String?,
+        exerciseName: String?,
         exerciseDb: Map<String, ExerciseMuscleInfo>,
-    ): ExerciseMuscleInfo? = catalogId
-        ?.trim()
-        ?.lowercase()
-        ?.takeIf(String::isNotBlank)
-        ?.let(exerciseDb::get)
+    ): ExerciseMuscleInfo? = resolveCatalogExerciseInfoInIndex(
+        index = exerciseDb,
+        catalogConfigurationId = catalogConfigurationId,
+        exerciseDbId = exerciseDbId,
+        exerciseId = exerciseId,
+        exerciseName = exerciseName,
+    )
 }

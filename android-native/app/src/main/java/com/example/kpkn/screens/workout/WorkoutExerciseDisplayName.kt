@@ -5,12 +5,8 @@ import com.example.kpkn.data.exercises.buildExerciseCatalogLookup
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.domain.exercises.exerciseDisplayName
 
-private val workoutExerciseCatalogLookup by lazy {
-    buildExerciseCatalogLookup(exerciseCatalogSnapshot())
-}
-
 internal fun displayWorkoutExerciseName(exercise: Exercise): String =
-    exerciseDisplayName(exercise, workoutExerciseCatalogLookup)
+    exerciseDisplayName(exercise, buildExerciseCatalogLookup(exerciseCatalogSnapshot()))
 
 /** Traduce cada chip conocido a una frase hablada natural ("con mancuernas",
  *  "en polea alta", "con agarre supino"...). Los desconocidos se mantienen. */

@@ -119,13 +119,14 @@ class SessionEditorViewModel(
     /** Combined (system + user) template list, updated reactively. */
     val allTemplates: StateFlow<List<SessionTemplate>> = templateRepository.allTemplates
         .stateIn(viewModelScope, SharingStarted.Lazily, templateRepository.allTemplates.value)
-    internal val exerciseIndex = run {
-        val base = exerciseCatalogSnapshot().associateBy { it.id.lowercase() }
-        val aliasEntries = catalogSearchRedirects().mapNotNull { (alias, canonical) ->
-            base[canonical]?.let { alias.lowercase() to it }
-        }.toMap()
-        base + aliasEntries
-    }
+    internal val exerciseIndex: Map<String, ExerciseMuscleInfo>
+        get() {
+            val base = exerciseCatalogSnapshot().associateBy { it.id.lowercase() }
+            val aliasEntries = catalogSearchRedirects().mapNotNull { (alias, canonical) ->
+                base[canonical]?.let { alias.lowercase() to it }
+            }.toMap()
+            return base + aliasEntries
+        }
     private var augeJob: Job? = null
     private var autoSaveJob: Job? = null
     private var loadSessionJob: Job? = null

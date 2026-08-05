@@ -81,7 +81,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.kpkn.data.exercises.catalogExerciseIndex
+import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.DISCOMFORT_CATALOG_BY_ID
@@ -105,11 +105,12 @@ internal fun computeSessionMuscleRoleWeightedSets(
 ): Map<String, Double> {
     val result = mutableMapOf<String, Double>()
     completedExercises.forEach { ex ->
-        val rawId = (ex.catalogConfigurationId ?: ex.exerciseDbId ?: ex.exerciseId)
-            ?.trim()
-            ?.lowercase()
-        val dbInfo = rawId?.let(catalogExerciseIndex()::get)
-            ?: return@forEach
+        val dbInfo = resolveCatalogExerciseInfo(
+            catalogConfigurationId = ex.catalogConfigurationId,
+            exerciseDbId = ex.exerciseDbId,
+            exerciseId = ex.exerciseId,
+            exerciseName = ex.exerciseName,
+        ) ?: return@forEach
 
         val effectiveSetCount = ex.sets.count { set ->
             !set.isWarmup && AugeFatigueEngine.isSetEffective(set)

@@ -3,6 +3,7 @@ package com.example.kpkn.domain.exercises
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.InvolvedMuscle
+import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
 import com.example.kpkn.domain.auge.SessionMuscleFilter
 
 object ExerciseMuscleResolver {
@@ -49,28 +50,13 @@ object ExerciseMuscleResolver {
     internal fun resolveCatalogInfo(
         exercise: Exercise,
         exerciseIndex: Map<String, ExerciseMuscleInfo>,
-    ): ExerciseMuscleInfo? {
-        // Try every identity the exercise carries, in order of specificity,
-        // until one resolves. Volume counters are indexed by definition id
-        // (snapshot) while AUGE/history lookups also index configuration ids;
-        // a configuration miss must fall through to the exercise/db/instance
-        // id instead of silently returning null (which drops the sets in
-        // volume accounting).
-        val candidates = listOfNotNull(
-            exercise.catalogConfigurationId,
-            exercise.exerciseDbId,
-            exercise.exerciseId,
-        ).map { it.trim().lowercase() }.distinct()
-        candidates.forEach { id ->
-            exerciseIndex[id]?.let { return it }
-        }
-        // Last resort: restore the name-equality fallback that was in place
-        // before the v2 reconstruction, so legacy exercises (which carry
-        // neither configuration nor catalog ids) still resolve.
-        return exerciseIndex.values.firstOrNull {
-            it.name.equals(exercise.name, ignoreCase = true)
-        }
-    }
+    ): ExerciseMuscleInfo? = resolveCatalogExerciseInfoInIndex(
+        index = exerciseIndex,
+        catalogConfigurationId = exercise.catalogConfigurationId,
+        exerciseDbId = exercise.exerciseDbId,
+        exerciseId = exercise.exerciseId,
+        exerciseName = exercise.name,
+    )
 
     private fun selectedTechnicalMuscles(
         exercise: Exercise,

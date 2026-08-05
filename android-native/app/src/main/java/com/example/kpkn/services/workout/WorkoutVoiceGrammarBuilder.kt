@@ -120,7 +120,7 @@ object WorkoutVoiceGrammarBuilder {
     private val ROM_COMPONENTS = setOf("rom", "rango", "recorrido")
     private val INTENSITY_COMPONENTS = setOf("esfuerzo", "intensidad", "reservas", "ritmo", "porcentaje")
     private val NON_NUMERIC_COMPONENTS = METRIC_COMPONENTS + INTENSITY_COMPONENTS + setOf(
-        "punto", "coma", "medio", "media", "kilo", "peso", "carga", "repeticion", "repetición",
+        "punto", "coma", "como", "medio", "media", "kilo", "peso", "carga", "repeticion", "repetición",
         "segundo", "minuto", "metro", "kilometro", "milla", "unidad", "caloria", "calorías", "vuelta",
         "vueltas", "etiqueta", "rango", "recorrido", "izquierda", "izquierdo", "derecha", "derecho", "fallo", "falla", "por",
     )

@@ -42,7 +42,7 @@ fun SessionCard(
     var isExpanded by remember { mutableStateOf(false) }
 
     val exercises = session.allExercises()
-    val exerciseLookup = remember { buildExerciseCatalogLookup(exerciseCatalogSnapshot()) }
+    val exerciseLookup = buildExerciseCatalogLookup(exerciseCatalogSnapshot())
     val totalSets = exercises.sumOf { it.sets.size }
     val estimatedMinutes = totalSets * 3
 

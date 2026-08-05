@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.auge
 
+import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.AugeFatigueEngine.getEffectiveRPE
 import com.example.kpkn.domain.auge.AugeUtils.logDateMs
@@ -271,10 +272,13 @@ object AugeTtcEngine {
             val sessionDrain = ArticularBattery.entries.associateWith { 0.0 }.toMutableMap()
 
             for (ex in log.completedExercises) {
-                val info = (ex.catalogConfigurationId ?: ex.exerciseDbId ?: ex.exerciseId)
-                    ?.trim()
-                    ?.lowercase()
-                    ?.let(exerciseDb::get)
+                val info = resolveCatalogExerciseInfoInIndex(
+                    index = exerciseDb,
+                    catalogConfigurationId = ex.catalogConfigurationId,
+                    exerciseDbId = ex.exerciseDbId,
+                    exerciseId = ex.exerciseId,
+                    exerciseName = ex.exerciseName,
+                )
 
                 val weights = getArticularWeightsForExercise(
                     info = info,

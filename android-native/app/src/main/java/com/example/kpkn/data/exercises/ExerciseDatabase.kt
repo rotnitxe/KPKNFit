@@ -121,6 +121,50 @@ fun resolveExercise(rawId: String?): ExerciseMuscleInfo? =
     resolveExerciseId(rawId)?.let { exerciseDatabaseByIdCache[it] }
 
 /**
+ * Resolves a persisted exercise reference against the live catalog overlay.
+ * Custom exercises can be added after a screen/ViewModel was created, so this
+ * intentionally reads the current index instead of accepting a captured map.
+ */
+fun resolveCatalogExerciseInfo(
+    catalogConfigurationId: String?,
+    exerciseDbId: String?,
+    exerciseId: String?,
+    exerciseName: String?,
+): ExerciseMuscleInfo? = resolveCatalogExerciseInfoInIndex(
+    index = exerciseDatabaseByIdCache,
+    catalogConfigurationId = catalogConfigurationId,
+    exerciseDbId = exerciseDbId,
+    exerciseId = exerciseId,
+    exerciseName = exerciseName,
+)
+
+internal fun resolveCatalogExerciseInfoInIndex(
+    index: Map<String, ExerciseMuscleInfo>,
+    catalogConfigurationId: String?,
+    exerciseDbId: String?,
+    exerciseId: String?,
+    exerciseName: String?,
+): ExerciseMuscleInfo? {
+    listOfNotNull(catalogConfigurationId, exerciseDbId, exerciseId)
+        .map { it.trim().lowercase() }
+        .filter { it.isNotBlank() }
+        .distinct()
+        .forEach { id ->
+            val canonicalId = catalogSearchRedirects()[id] ?: id
+            index[canonicalId]?.let { return it }
+        }
+
+    val normalizedName = normalizeCatalogSearchText(exerciseName.orEmpty())
+    if (normalizedName.isBlank()) return null
+    return index.values.firstOrNull { info ->
+        normalizeCatalogSearchText(info.name) == normalizedName ||
+            info.alias.orEmpty()
+                .split(',')
+                .any { normalizeCatalogSearchText(it) == normalizedName }
+    }
+}
+
+/**
  * Resolves a voice/search phrase only through curated v2 definition
  * searchTerms.  It deliberately does not compare against the visible
  * canonical name and never consults the removed alias redirect table.

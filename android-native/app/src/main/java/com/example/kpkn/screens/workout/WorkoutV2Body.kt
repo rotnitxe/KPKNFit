@@ -25,6 +25,7 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.exercises.catalogExerciseIndex
+import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.exercises.exerciseDisplayParts
@@ -290,24 +291,12 @@ internal fun WorkoutV2Body(
 
             if (currentExercise != null && currentSet != null) {
                 if (!showingPostExerciseCard) {
-                    val currentExerciseInfo = remember(
-                        currentExercise.id,
-                        currentExercise.catalogRevision,
-                        currentExercise.catalogConfigurationId,
-                        currentExercise.exerciseDbId,
-                        currentExercise.exerciseId,
-                    ) {
-                        if (currentExercise.catalogRevision != null) {
-                            currentExercise.catalogConfigurationId
-                                ?.lowercase()
-                                ?.let(catalogExerciseIndex()::get)
-                        } else {
-                            (currentExercise.exerciseDbId ?: currentExercise.exerciseId)
-                                ?.trim()
-                                ?.lowercase()
-                                ?.let(catalogExerciseIndex()::get)
-                        }
-                    }
+                    val currentExerciseInfo = resolveCatalogExerciseInfo(
+                        catalogConfigurationId = currentExercise.catalogConfigurationId,
+                        exerciseDbId = currentExercise.exerciseDbId,
+                        exerciseId = currentExercise.exerciseId,
+                        exerciseName = currentExercise.name,
+                    )
                     val currentExerciseCompleted = remember(currentExercise, uiState.completedSets) {
                         CompletedExercise(
                             exerciseId = currentExercise.id,

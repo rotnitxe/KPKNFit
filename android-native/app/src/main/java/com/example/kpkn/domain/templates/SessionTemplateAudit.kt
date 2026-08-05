@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.templates
 
+import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.MuscleRole
@@ -183,26 +184,13 @@ object SessionTemplateAudit {
         } else {
             exerciseIndex
         }
-        if (exercise.catalogRevision != null) {
-            // Prefer the exact configuration, but fall through to the definition/instance
-            // ids when the index has no configuration-level entry (mirrors
-            // ExerciseMuscleResolver.resolveCatalogInfo).
-            exercise.catalogConfigurationId
-                ?.trim()
-                ?.lowercase()
-                ?.takeIf { it.isNotBlank() }
-                ?.let(index::get)
-                ?.let { return it }
-        }
-        val candidates = listOfNotNull(
-            exercise.exerciseDbId,
-            exercise.exerciseId,
-            exercise.canonicalExerciseId,
-        ).map { it.trim().lowercase() }.filter { it.isNotEmpty() }.distinct()
-        for (id in candidates) {
-            index[id]?.let { return it }
-        }
-        return null
+        return resolveCatalogExerciseInfoInIndex(
+            index = index,
+            catalogConfigurationId = exercise.catalogConfigurationId,
+            exerciseDbId = exercise.exerciseDbId,
+            exerciseId = exercise.exerciseId,
+            exerciseName = exercise.name,
+        )
     }
 
     private fun computeMetrics(

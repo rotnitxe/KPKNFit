@@ -75,6 +75,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.exercises.catalogv2.toLegacySelection
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.repository.CustomExerciseRepository
 import com.example.kpkn.domain.exercises.SmartCreateRequest
 import com.example.kpkn.domain.exercises.SmartExerciseCreator
@@ -465,27 +466,17 @@ private fun ColumnScope.CatalogReadyContent(
             }
             items(visibleCustomExercises, key = { "custom:" + it.id }) { custom ->
                 val selected = custom.id in selectedRows.value
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.07f)),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(custom.name, color = Color.White, fontWeight = FontWeight.Bold)
-                        Text("Ejercicio personalizado · selección manual", color = Color.White.copy(alpha = 0.68f), style = MaterialTheme.typography.labelSmall)
-                        if (editingExisting) {
-                            Button(onClick = { onSelect(custom) }, modifier = Modifier.fillMaxWidth()) { Text("Usar ejercicio") }
-                        } else {
-                            TextButton(
-                                onClick = {
-                                    val next = if (selected) selectedRows.value - custom.id else selectedRows.value + (custom.id to custom)
-                                    selectedRows.value = next
-                                    onSelectionChange(next.values.toList())
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                            ) { Text(if (selected) "Quitar" else "Elegir", color = Color.White) }
-                        }
-                    }
-                }
+                CustomExerciseCard(
+                    exercise = custom,
+                    selected = selected,
+                    editingExisting = editingExisting,
+                    onSelect = { onSelect(custom) },
+                    onToggle = {
+                        val next = if (selected) selectedRows.value - custom.id else selectedRows.value + (custom.id to custom)
+                        selectedRows.value = next
+                        onSelectionChange(next.values.toList())
+                    },
+                )
             }
         }
 
@@ -1046,6 +1037,106 @@ private fun MuscleInvolvementSection(exercise: ExerciseMuscleInfo) {
     }
 }
 
+/**
+ * Tarjeta de un ejercicio personalizado (creado por el usuario) renderizada con
+ * el mismo lenguaje visual que las tarjetas del catálogo: músculos principales,
+ * chips de aspectos técnicos y el involucramiento muscular derivado por
+ * similitud. El toque en la tarjeta agrega el ejercicio, igual que el catálogo.
+ */
+@Composable
+private fun CustomExerciseCard(
+    exercise: ExerciseMuscleInfo,
+    selected: Boolean,
+    editingExisting: Boolean,
+    onSelect: () -> Unit,
+    onToggle: () -> Unit,
+) {
+    val primaryMuscles = remember(exercise) {
+        exercise.involvedMuscles
+            .filter { it.role == MuscleRole.PRIMARY }
+            .map { it.muscle }
+            .distinct()
+            .take(3)
+    }
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = if (selected) Color(0xFF153A2E) else Color.White.copy(alpha = 0.08f),
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { if (editingExisting) onSelect() else onToggle() },
+    ) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    exercise.name,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+                if (selected) {
+                    Spacer(Modifier.width(6.dp))
+                    Icon(
+                        Icons.Default.Check,
+                        contentDescription = "Seleccionado",
+                        tint = Color(0xFF4ADE80),
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
+                if (primaryMuscles.isNotEmpty()) {
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        primaryMuscles.joinToString(" · ") { exerciseCatalogMuscleLabel(it) },
+                        color = Color.White.copy(alpha = 0.55f),
+                        style = MaterialTheme.typography.labelSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+
+            if (exercise.catalogVariantChips.isNotEmpty()) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    exercise.catalogVariantChips.forEach { value ->
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(999.dp))
+                                .background(Color.White.copy(alpha = 0.10f))
+                                .padding(horizontal = 8.dp, vertical = 3.dp),
+                        ) {
+                            Text(
+                                value,
+                                color = Color.White.copy(alpha = 0.82f),
+                                style = MaterialTheme.typography.labelSmall,
+                            )
+                        }
+                    }
+                }
+            }
+
+            exercise.description?.takeIf { it.isNotBlank() }?.let { desc ->
+                Text(
+                    desc,
+                    color = Color.White.copy(alpha = 0.62f),
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+
+            if (exercise.involvedMuscles.isNotEmpty()) {
+                MuscleInvolvementSection(exercise)
+            }
+        }
+    }
+}
+
 @Composable
 private fun EmphasisChip(label: String) {
     Box(
@@ -1355,6 +1446,67 @@ private fun SmartCreateSuggestion(
                 label = SmartExerciseCreator::lateralidadLabel,
                 onSelect = { lateralidadId = it },
             )
+
+            // Previsualización en vivo: el mismo motor que persiste el ejercicio
+            // deriva los chips técnicos y el involucramiento muscular por
+            // similitud con el catálogo. Se actualiza al cambiar nombre o chips.
+            val previewImplemento = implementoId
+            val preview = remember(name, previewImplemento, estacionId, lateralidadId) {
+                if (name.isNotBlank() && previewImplemento != null) {
+                    runCatching {
+                        SmartExerciseCreator.create(
+                            SmartCreateRequest(
+                                name = name,
+                                implementoId = previewImplemento,
+                                estacionId = estacionId,
+                                lateralidadId = lateralidadId,
+                            ),
+                            exerciseCatalogSnapshot(),
+                        )
+                    }.getOrNull()
+                } else null
+            }
+            if (preview != null) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color.White.copy(alpha = 0.05f))
+                        .padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        "Derivado automáticamente por similitud",
+                        color = Color.White.copy(alpha = 0.74f),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    if (preview.catalogVariantChips.isNotEmpty()) {
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            preview.catalogVariantChips.forEach { value ->
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(999.dp))
+                                        .background(Color.White.copy(alpha = 0.10f))
+                                        .padding(horizontal = 8.dp, vertical = 3.dp),
+                                ) {
+                                    Text(
+                                        value,
+                                        color = Color.White.copy(alpha = 0.82f),
+                                        style = MaterialTheme.typography.labelSmall,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    if (preview.involvedMuscles.isNotEmpty()) {
+                        MuscleInvolvementSection(preview)
+                    }
+                }
+            }
 
             val canCreate = name.isNotBlank() && implementoId != null && !creating
             Button(

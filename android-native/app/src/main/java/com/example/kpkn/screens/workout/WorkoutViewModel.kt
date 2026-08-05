@@ -82,14 +82,15 @@ class WorkoutViewModel(
     private val repository = ProgramRepository.getInstance()
     private var deferredOnComplete: (() -> Unit)? = null
     private var pendingVoiceDiagnosticOnComplete: (() -> Unit)? = null
-    /** Includes every explicit v2 configuration; aliases are not added after cutover. */
-    private val exerciseIndex by lazy {
-        val base = catalogExerciseIndex()
-        val aliases = com.example.kpkn.data.exercises.catalogSearchRedirects().mapNotNull { (alias, canonical) ->
-            base[canonical.lowercase()]?.let { alias.lowercase() to it }
-        }.toMap()
-        base + aliases
-    }
+    /** Includes the current catalog/custom overlay; aliases are not added after cutover. */
+    private val exerciseIndex: Map<String, ExerciseMuscleInfo>
+        get() {
+            val base = catalogExerciseIndex()
+            val aliases = com.example.kpkn.data.exercises.catalogSearchRedirects().mapNotNull { (alias, canonical) ->
+                base[canonical.lowercase()]?.let { alias.lowercase() to it }
+            }.toMap()
+            return base + aliases
+        }
     private val voiceRecognizer = WorkoutVoiceRecognizer(appContext.applicationContext)
     private val sessionTtsManager = WorkoutTtsManager(appContext.applicationContext)
     private val voiceController = WorkoutVoiceController(
@@ -243,7 +244,7 @@ class WorkoutViewModel(
         repository = repository,
         programId = programId,
         sessionId = sessionId,
-        exerciseIndex = exerciseIndex,
+        exerciseIndex = { exerciseIndex },
         performanceRangeStore = performanceRangeStore,
         restAlertManager = restAlertManager,
         restTimer = restTimer,
@@ -840,23 +841,21 @@ class WorkoutViewModel(
     }
 
     private fun catalogInfoForExercise(exercise: Exercise): ExerciseMuscleInfo? {
-        if (exercise.catalogRevision != null) {
-            return exercise.catalogConfigurationId?.lowercase()?.let(catalogExerciseIndex()::get)
-        }
-        val canonicalId = canonicalExerciseKey(exercise)
-        return catalogExerciseIndex()[canonicalId]
-            ?: exercise.exerciseDbId?.lowercase()?.let(catalogExerciseIndex()::get)
-            ?: exercise.exerciseId?.lowercase()?.let(catalogExerciseIndex()::get)
+        return com.example.kpkn.data.exercises.resolveCatalogExerciseInfo(
+            catalogConfigurationId = exercise.catalogConfigurationId,
+            exerciseDbId = exercise.exerciseDbId,
+            exerciseId = exercise.exerciseId,
+            exerciseName = exercise.name,
+        )
     }
 
     private fun catalogInfoForCompletedExercise(exercise: CompletedExercise): ExerciseMuscleInfo? {
-        if (exercise.catalogRevision != null) {
-            return exercise.catalogConfigurationId?.lowercase()?.let(catalogExerciseIndex()::get)
-        }
-        val canonicalId = exercise.resolvedCanonicalExerciseId()
-        return catalogExerciseIndex()[canonicalId]
-            ?: exercise.exerciseDbId?.lowercase()?.let(catalogExerciseIndex()::get)
-            ?: exercise.exerciseId?.lowercase()?.let(catalogExerciseIndex()::get)
+        return com.example.kpkn.data.exercises.resolveCatalogExerciseInfo(
+            catalogConfigurationId = exercise.catalogConfigurationId,
+            exerciseDbId = exercise.exerciseDbId,
+            exerciseId = exercise.exerciseId,
+            exerciseName = exercise.exerciseName,
+        )
     }
 
     fun dominantMuscleGroupFor(exercise: Exercise): String? {

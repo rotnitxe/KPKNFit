@@ -287,6 +287,71 @@ class WorkoutVoiceHandsFreeTest {
     }
 
     @Test
+    fun restAwareSigueAndParaMapToSkipRest() {
+        val sigue = WorkoutVoiceCommandParser.parseCommand(
+            transcript = "sigue",
+            isTimeMode = false,
+            isUnilateral = false,
+            hasPendingConfirmation = false,
+            isRestTimerActive = true,
+        )
+        val para = WorkoutVoiceCommandParser.parseCommand(
+            transcript = "para",
+            isTimeMode = false,
+            isUnilateral = false,
+            hasPendingConfirmation = false,
+            isRestTimerActive = true,
+        )
+        assertEquals(VoiceSessionCommand.SkipRest, sigue)
+        assertEquals(VoiceSessionCommand.SkipRest, para)
+    }
+
+    @Test
+    fun bareSuggestedSynonymsMapToSuggestWeight() {
+        for (word in listOf("sugerido", "sugerida")) {
+            val cmd = WorkoutVoiceCommandParser.parseCommand(
+                transcript = word,
+                isTimeMode = false,
+                isUnilateral = false,
+                hasPendingConfirmation = false,
+                isRestTimerActive = false,
+            )
+            assertEquals(word, VoiceSessionCommand.SuggestWeight, cmd)
+        }
+    }
+
+    @Test
+    fun rangeEditMapsToEditLastSetAbsoluteWeight() {
+        val cmd = WorkoutVoiceCommandParser.parseEditLastSet("de 101.3 a 123.8 kilos")
+        assertNotNull(cmd)
+        assertEquals(123.8, cmd?.patch?.weightKg ?: 0.0, 0.0)
+    }
+
+    @Test
+    fun confirmationPolicyAsksWhenWeightDeviatesFromContext() {
+        val outOfContext = WorkoutVoiceInterpretation(
+            transcript = "sesenta kilos",
+            weightKg = 60.0,
+            metricValue = 8,
+            fields = setOf(WorkoutVoiceField.WEIGHT, WorkoutVoiceField.VALUE),
+        )
+        val plausible = WorkoutVoiceInterpretation(
+            transcript = "80 por 8",
+            weightKg = 82.0,
+            metricValue = 8,
+            fields = setOf(WorkoutVoiceField.WEIGHT, WorkoutVoiceField.VALUE),
+        )
+        assertEquals(
+            ConfirmationDecision.ASK,
+            WorkoutVoiceConfirmationPolicy.decide(outOfContext, 0.9f, suggestedWeight = 20.0),
+        )
+        assertEquals(
+            ConfirmationDecision.AUTO,
+            WorkoutVoiceConfirmationPolicy.decide(plausible, 0.9f, suggestedWeight = 80.0),
+        )
+    }
+
+    @Test
     fun confirmationPolicyAcceptsBodyweightMetricAndFeedbackOnDraft() {
         val bodyweight = WorkoutVoiceInterpretation(
             transcript = "12 repeticiones",

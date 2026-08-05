@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.templates
 
+import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.IntensityMode
@@ -172,20 +173,13 @@ object SessionTemplateQualityRules {
     private fun resolveInfo(
         exercise: Exercise,
         index: Map<String, ExerciseMuscleInfo>,
-    ): ExerciseMuscleInfo? {
-        if (exercise.catalogRevision != null) {
-            return exercise.catalogConfigurationId?.trim()?.lowercase()?.takeIf { it.isNotBlank() }?.let(index::get)
-        }
-        val candidates = listOfNotNull(
-            exercise.exerciseDbId,
-            exercise.exerciseId,
-            exercise.canonicalExerciseId,
-        ).map { it.trim().lowercase() }.filter { it.isNotEmpty() }.distinct()
-        for (id in candidates) {
-            index[id]?.let { return it }
-        }
-        return null
-    }
+    ): ExerciseMuscleInfo? = resolveCatalogExerciseInfoInIndex(
+        index = index,
+        catalogConfigurationId = exercise.catalogConfigurationId,
+        exerciseDbId = exercise.exerciseDbId,
+        exerciseId = exercise.exerciseId,
+        exerciseName = exercise.name,
+    )
 
     private fun canonicalMuscle(raw: String, emphasis: String? = null): String =
         VolumeCalculator.normalizeCanonicalMuscleGroup(raw, emphasis).ifBlank { raw }

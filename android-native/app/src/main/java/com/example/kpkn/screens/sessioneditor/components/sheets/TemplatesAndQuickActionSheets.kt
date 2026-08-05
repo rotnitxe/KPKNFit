@@ -143,7 +143,7 @@ internal fun TemplatesSheet(
                     templates = templates,
                     searchQuery = searchQuery,
                     onSelectTemplate = onSelectTemplate,
-                    exerciseIndex = remember { exerciseCatalogSnapshot().associateBy { it.id.lowercase() } },
+                    exerciseIndex = exerciseCatalogSnapshot().associateBy { it.id.lowercase() },
                     glassDark = true,
                     modifier = Modifier.fillMaxWidth(),
                 )

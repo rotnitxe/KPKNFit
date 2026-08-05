@@ -39,7 +39,8 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
     private val augeRepo = AugeRepository.getInstance(application)
     private val programRepo = ProgramRepository.getInstance()
     private val nutritionRepo = NutritionRepository.getInstance()
-    private val exerciseDb = catalogExerciseIndex()
+    private val exerciseDb: Map<String, ExerciseMuscleInfo>
+        get() = catalogExerciseIndex()
 
     private var recoveryTimerJob: Job? = null
     private var pendingRevealJob: Job? = null

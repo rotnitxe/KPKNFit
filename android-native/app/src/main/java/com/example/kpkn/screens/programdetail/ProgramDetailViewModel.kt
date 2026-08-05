@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.exercises.catalogSearchRedirects
+import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Exercise
@@ -1376,8 +1377,12 @@ class ProgramDetailViewModel(
     }
 
     private fun resolveCanonicalMuscles(exercise: Exercise): Set<String> {
-        val exerciseDbId = exercise.exerciseDbId?.lowercase() ?: return emptySet()
-        val info = catalogExerciseIndex()[exerciseDbId] ?: return emptySet()
+        val info = resolveCatalogExerciseInfo(
+            catalogConfigurationId = exercise.catalogConfigurationId,
+            exerciseDbId = exercise.exerciseDbId,
+            exerciseId = exercise.exerciseId,
+            exerciseName = exercise.name,
+        ) ?: return emptySet()
 
         return info.involvedMuscles
             .filter { resolveMuscleVolumeContribution(it) > 0.0 }

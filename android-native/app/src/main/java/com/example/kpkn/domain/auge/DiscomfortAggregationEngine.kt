@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.auge
 
+import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
 import com.example.kpkn.data.models.ArticularBattery
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.DISCOMFORT_CATALOG_BY_ID
@@ -27,8 +28,13 @@ object DiscomfortAggregationEngine {
             val workingSets = exercise.sets.count { !it.isWarmup && !it.skipped }
             if (workingSets == 0) continue
 
-            val dbId = exercise.catalogConfigurationId ?: exercise.exerciseDbId ?: exercise.exerciseId
-            val dbInfo = dbId?.trim()?.lowercase()?.let(exerciseDb::get)
+            val dbInfo = resolveCatalogExerciseInfoInIndex(
+                index = exerciseDb,
+                catalogConfigurationId = exercise.catalogConfigurationId,
+                exerciseDbId = exercise.exerciseDbId,
+                exerciseId = exercise.exerciseId,
+                exerciseName = exercise.exerciseName,
+            )
             if (dbInfo == null) continue
 
             val involvedMuscles = exercise.effectiveMuscles?.takeIf { it.isNotEmpty() }

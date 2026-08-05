@@ -265,6 +265,10 @@ class WorkoutTtsManager(context: Context) {
         speak("¿Cuántas repeticiones hiciste?", queueFlush = true)
     }
 
+    fun speakAskRirValue() {
+        speak("Dime solo el número de repeticiones en reserva.", queueFlush = true)
+    }
+
     fun speakAskWeight() {
         speak("¿Qué carga usaste?", queueFlush = true)
     }

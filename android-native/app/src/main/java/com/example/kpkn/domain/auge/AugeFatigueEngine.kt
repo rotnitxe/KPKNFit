@@ -1,7 +1,7 @@
 package com.example.kpkn.domain.auge
 
 import com.example.kpkn.data.models.*
-import com.example.kpkn.data.exercises.catalogSearchRedirects
+import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
 import com.example.kpkn.domain.auge.AugeUtils.physiologicalFloor
 import kotlin.math.exp
 import kotlin.math.ln
@@ -527,14 +527,17 @@ object AugeFatigueEngine {
         val acc = AggregateDrainAcc()
 
         completedExercises.forEach { ex ->
-            val lookupId = (ex.catalogConfigurationId ?: ex.exerciseDbId ?: ex.exerciseId)?.lowercase()
-            val resolvedId = lookupId?.let { raw ->
-                com.example.kpkn.data.exercises.catalogSearchRedirects()[raw] ?: raw
-            }
-            val dbInfo = resolvedId?.let { exerciseDb[it] }
-            val resolvedIdStr = resolvedId ?: dbInfo?.let { info ->
-                exerciseDb.entries.find { it.value === info }?.key
-            } ?: lookupId ?: "n/a"
+            val dbInfo = resolveCatalogExerciseInfoInIndex(
+                index = exerciseDb,
+                catalogConfigurationId = ex.catalogConfigurationId,
+                exerciseDbId = ex.exerciseDbId,
+                exerciseId = ex.exerciseId,
+                exerciseName = ex.exerciseName,
+            )
+            val resolvedIdStr = ex.catalogConfigurationId
+                ?: ex.exerciseDbId
+                ?: ex.exerciseId
+                ?: ex.exerciseName
             val metrics = getDynamicAugeMetrics(ex.exerciseName, dbInfo?.equipment, dbInfo)
                 ?: run {
                     android.util.Log.d(
@@ -676,10 +679,13 @@ object AugeFatigueEngine {
         val exercises = session.exercises + session.parts.flatMap { it.exercises }
 
         exercises.forEach { ex ->
-            val resolvedId = (ex.catalogConfigurationId ?: ex.exerciseDbId ?: ex.exerciseId)?.lowercase()?.let { rawId ->
-                catalogSearchRedirects()[rawId] ?: rawId
-            }
-            val dbInfo = resolvedId?.let { exerciseDb[it] }
+            val dbInfo = resolveCatalogExerciseInfoInIndex(
+                index = exerciseDb,
+                catalogConfigurationId = ex.catalogConfigurationId,
+                exerciseDbId = ex.exerciseDbId,
+                exerciseId = ex.exerciseId,
+                exerciseName = ex.name,
+            )
             val metrics = getDynamicAugeMetrics(ex.name, dbInfo?.equipment, dbInfo)
                 ?: run {
                     android.util.Log.d(

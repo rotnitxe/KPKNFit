@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.sessionassistant
 
+import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
 import com.example.kpkn.data.models.CalorieGoalObjective
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
@@ -1037,10 +1038,13 @@ object SessionAssistantEngine {
     internal fun resolveExerciseInfo(
         exercise: Exercise,
         exerciseIndex: Map<String, ExerciseMuscleInfo>,
-    ): ExerciseMuscleInfo? {
-        val byId = exercise.catalogConfigurationId ?: exercise.exerciseDbId ?: exercise.exerciseId
-        return byId?.trim()?.lowercase()?.let(exerciseIndex::get)
-    }
+    ): ExerciseMuscleInfo? = resolveCatalogExerciseInfoInIndex(
+        index = exerciseIndex,
+        catalogConfigurationId = exercise.catalogConfigurationId,
+        exerciseDbId = exercise.exerciseDbId,
+        exerciseId = exercise.exerciseId,
+        exerciseName = exercise.name,
+    )
 
     internal fun defaultSessionVolumeLimit(settings: Settings): Int {
         val base = when (settings.calorieGoalObjective) {
@@ -1130,8 +1134,13 @@ object SessionAssistantEngine {
         exerciseIndex: Map<String, com.example.kpkn.data.models.ExerciseMuscleInfo>,
     ): Boolean {
         for (ex in session.allExercises()) {
-            val dbId = ex.catalogConfigurationId ?: ex.exerciseDbId ?: ex.exerciseId ?: continue
-            val info = exerciseIndex[dbId] ?: continue
+            val info = resolveCatalogExerciseInfoInIndex(
+                index = exerciseIndex,
+                catalogConfigurationId = ex.catalogConfigurationId,
+                exerciseDbId = ex.exerciseDbId,
+                exerciseId = ex.exerciseId,
+                exerciseName = ex.name,
+            ) ?: continue
             for (muscle in info.involvedMuscles) {
                 if (muscle.role == com.example.kpkn.data.models.MuscleRole.PRIMARY) {
                     val mId = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)

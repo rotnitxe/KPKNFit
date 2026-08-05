@@ -31,16 +31,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.kpkn.data.exercises.resolveExercise
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.MuscleRecoveryStatus
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.TodaySessionItem
 import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.data.repository.CustomExerciseRepository
 import com.example.kpkn.domain.auge.SessionMuscleFilter
 import com.example.kpkn.domain.auge.getAugeMuscleDisplayId
-import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.screens.sessioneditor.components.SessionBackgroundLayer
 import com.example.kpkn.ui.components.SectionHeader
 
@@ -137,8 +138,9 @@ private fun SessionCard(
     modifier: Modifier = Modifier,
 ) {
     val isToday = item.isToday
+    val customExercises by CustomExerciseRepository.customExercises.collectAsStateWithLifecycle()
 
-    val sessionMuscles = remember(item.session) {
+    val sessionMuscles = remember(item.session, customExercises) {
         getSessionInvolvedMuscles(item.session)
     }
 
@@ -389,9 +391,12 @@ private fun getSessionInvolvedMuscles(session: Session): List<String> {
     val muscles = linkedSetOf<String>()
 
     fun collectMuscles(exercise: Exercise) {
-        val info = resolveExercise(exercise.resolvedCanonicalExerciseId())
-            ?: resolveExercise(exercise.exerciseDbId ?: exercise.exerciseId)
-            ?: return
+        val info = resolveCatalogExerciseInfo(
+            catalogConfigurationId = exercise.catalogConfigurationId,
+            exerciseDbId = exercise.exerciseDbId,
+            exerciseId = exercise.exerciseId,
+            exerciseName = exercise.name,
+        ) ?: return
 
         SessionMuscleFilter.relevantMusclesFor(info)
             .asSequence()

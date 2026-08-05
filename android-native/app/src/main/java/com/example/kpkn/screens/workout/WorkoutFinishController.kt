@@ -2,6 +2,7 @@ package com.example.kpkn.screens.workout
 
 import android.content.Context
 import com.example.kpkn.data.exercises.catalogExerciseIndex
+import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
@@ -44,7 +45,7 @@ class WorkoutFinishController(
     private val repository: ProgramRepository,
     private val programId: String,
     private val sessionId: String,
-    private val exerciseIndex: Map<String, ExerciseMuscleInfo>,
+    private val exerciseIndex: () -> Map<String, ExerciseMuscleInfo>,
     private val performanceRangeStore: PerformanceRangeStore,
     private val restAlertManager: WorkoutRestAlertManager,
     private val restTimer: RestTimerController,
@@ -72,12 +73,16 @@ class WorkoutFinishController(
         val durationMinutes = (durationMs / 60000).toInt().coerceAtLeast(1)
         val activeSession = sessionForActiveMode(session, state.activeMode)
         val allExercises = activeSession.allExercises()
+        val currentExerciseIndex = exerciseIndex()
 
         val completedExercises = allExercises.map { exercise ->
-            val catalogInfo = (exercise.catalogConfigurationId ?: canonicalExerciseKey(exercise))
-                .trim()
-                .lowercase()
-                .let(exerciseIndex::get)
+            val catalogInfo = resolveCatalogExerciseInfoInIndex(
+                index = currentExerciseIndex,
+                catalogConfigurationId = exercise.catalogConfigurationId,
+                exerciseDbId = exercise.exerciseDbId,
+                exerciseId = exercise.exerciseId,
+                exerciseName = exercise.name,
+            )
             val displayName = com.example.kpkn.domain.exercises.exerciseDisplayParts(exercise, catalogInfo).text
             val sets = exercise.sets.indices.flatMap { setIdx ->
                 val bilateral = state.completedSets["${exercise.id}_$setIdx"]
@@ -123,10 +128,13 @@ class WorkoutFinishController(
                 state.completedSets.keys.none { key -> key.startsWith("${exercise.id}_") }
         }
         val omittedExercises = skippedWithNoSets.map { exercise ->
-            val catalogInfo = (exercise.catalogConfigurationId ?: canonicalExerciseKey(exercise))
-                .trim()
-                .lowercase()
-                .let(exerciseIndex::get)
+            val catalogInfo = resolveCatalogExerciseInfoInIndex(
+                index = currentExerciseIndex,
+                catalogConfigurationId = exercise.catalogConfigurationId,
+                exerciseDbId = exercise.exerciseDbId,
+                exerciseId = exercise.exerciseId,
+                exerciseName = exercise.name,
+            )
             val displayName = com.example.kpkn.domain.exercises.exerciseDisplayParts(exercise, catalogInfo).text
             OmittedExercise(
                 exerciseId = exercise.id,
@@ -370,7 +378,7 @@ class WorkoutFinishController(
             weekId = state.weekId,
             plannedSession = plannedSession,
             completedSets = completedSets,
-            exerciseIndex = exerciseIndex,
+            exerciseIndex = exerciseIndex(),
             repository = repository,
         )
     }
@@ -409,8 +417,13 @@ internal fun computeWorkoutVolumeDelta(
 
     val plannedPerMuscle = mutableMapOf<String, Double>()
     for (ex in plannedSession.allExercises()) {
-        val dbId = ex.catalogConfigurationId ?: ex.exerciseDbId ?: ex.exerciseId ?: continue
-        val info = exerciseIndex[dbId] ?: continue
+        resolveCatalogExerciseInfoInIndex(
+            index = exerciseIndex,
+            catalogConfigurationId = ex.catalogConfigurationId,
+            exerciseDbId = ex.exerciseDbId,
+            exerciseId = ex.exerciseId,
+            exerciseName = ex.name,
+        ) ?: continue
         for (muscle in ExerciseMuscleResolver.effectiveMusclesForVolume(ex, exerciseIndex)) {
             if (muscle.role != MuscleRole.PRIMARY) continue
             val muscleId = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
@@ -428,8 +441,13 @@ internal fun computeWorkoutVolumeDelta(
     for (ex in plannedSession.allExercises()) {
         val sets = completedByExercise[ex.id] ?: 0
         if (sets == 0) continue
-        val dbId = ex.catalogConfigurationId ?: ex.exerciseDbId ?: ex.exerciseId ?: continue
-        val info = exerciseIndex[dbId] ?: continue
+        resolveCatalogExerciseInfoInIndex(
+            index = exerciseIndex,
+            catalogConfigurationId = ex.catalogConfigurationId,
+            exerciseDbId = ex.exerciseDbId,
+            exerciseId = ex.exerciseId,
+            exerciseName = ex.name,
+        ) ?: continue
         for (muscle in ExerciseMuscleResolver.effectiveMusclesForVolume(ex, exerciseIndex)) {
             if (muscle.role != MuscleRole.PRIMARY) continue
             val muscleId = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)

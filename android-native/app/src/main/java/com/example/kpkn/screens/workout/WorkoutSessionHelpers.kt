@@ -1,6 +1,6 @@
 package com.example.kpkn.screens.workout
 
-import com.example.kpkn.data.exercises.catalogExerciseIndex
+import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.HomologatedPerformanceResult
 import com.example.kpkn.data.models.Session
@@ -35,7 +35,12 @@ internal fun isUpperOnlyWorkoutSession(
     var fullCount = 0
 
     exercises.forEach { ex ->
-        when (catalogExerciseIndex()[ex.catalogConfigurationId ?: ex.exerciseDbId ?: ex.exerciseId]?.bodyPart?.lowercase(Locale.ROOT)) {
+        when (resolveCatalogExerciseInfo(
+            catalogConfigurationId = ex.catalogConfigurationId,
+            exerciseDbId = ex.exerciseDbId,
+            exerciseId = ex.exerciseId,
+            exerciseName = ex.name,
+        )?.bodyPart?.lowercase(Locale.ROOT)) {
             "upper" -> upperCount += 1
             "lower" -> lowerCount += 1
             "full" -> fullCount += 1

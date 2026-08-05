@@ -72,6 +72,7 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.exercises.catalogSearchRedirects
+import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.WorkoutLog
@@ -674,7 +675,7 @@ internal fun AssistantTemplatesTab(
         templates = templates,
         searchQuery = searchQuery,
         onSelectTemplate = onSelectTemplate,
-        exerciseIndex = remember { exerciseCatalogSnapshot().associateBy { it.id.lowercase() } },
+        exerciseIndex = exerciseCatalogSnapshot().associateBy { it.id.lowercase() },
         glassDark = true,
     )
     if (applyDecision != null) {
@@ -784,10 +785,13 @@ internal fun buildExerciseCatalogLookup(catalog: List<ExerciseMuscleInfo>): Map<
 internal fun resolveCatalogExerciseInfo(
     exercise: Exercise,
     catalogLookup: Map<String, ExerciseMuscleInfo>,
-): ExerciseMuscleInfo? {
-    val byId = exercise.catalogConfigurationId ?: exercise.exerciseDbId ?: exercise.exerciseId
-    return byId?.trim()?.lowercase()?.let(catalogLookup::get)
-}
+): ExerciseMuscleInfo? = resolveCatalogExerciseInfoInIndex(
+    index = catalogLookup,
+    catalogConfigurationId = exercise.catalogConfigurationId,
+    exerciseDbId = exercise.exerciseDbId,
+    exerciseId = exercise.exerciseId,
+    exerciseName = exercise.name,
+)
 
 internal fun buildDiscomfortByExercise(
     workoutLogs: List<WorkoutLog>,

@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.auge
 
+import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.domain.auge.AugeFatigueEngine.calculateSetBatteryDrain
@@ -184,10 +185,13 @@ object AugeRecoveryEngine {
     private fun resolveDbInfo(
         ex: CompletedExercise,
         exerciseDb: Map<String, ExerciseMuscleInfo>,
-    ): ExerciseMuscleInfo? {
-        val lookupId = (ex.catalogConfigurationId ?: ex.exerciseDbId ?: ex.exerciseId)?.lowercase()
-        return lookupId?.let { exerciseDb[it] }
-    }
+    ): ExerciseMuscleInfo? = resolveCatalogExerciseInfoInIndex(
+        index = exerciseDb,
+        catalogConfigurationId = ex.catalogConfigurationId,
+        exerciseDbId = ex.exerciseDbId,
+        exerciseId = ex.exerciseId,
+        exerciseName = ex.exerciseName,
+    )
 
     private fun calculateMuscleDiscomfortPenaltyPct(
         muscleName: String,

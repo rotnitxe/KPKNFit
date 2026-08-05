@@ -2,7 +2,7 @@ package com.example.kpkn.screens.workout
 
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.Exercise
-import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
+import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -132,8 +132,12 @@ internal fun isWorkoutPulseActive(
 }
 
 internal fun inferDefaultLoadModeFromCatalog(exercise: Exercise): LoadModeV2 {
-    val catalogId = exercise.catalogConfigurationId ?: exercise.resolvedCanonicalExerciseId()
-    val info = com.example.kpkn.data.exercises.catalogExerciseIndex()[catalogId.lowercase()] ?: return LoadModeV2.LOAD
+    val info = resolveCatalogExerciseInfo(
+        catalogConfigurationId = exercise.catalogConfigurationId,
+        exerciseDbId = exercise.exerciseDbId,
+        exerciseId = exercise.exerciseId,
+        exerciseName = exercise.name,
+    ) ?: return LoadModeV2.LOAD
     val equipment = info.equipment?.lowercase().orEmpty()
     val name = exercise.name.lowercase()
     return when {

@@ -196,7 +196,7 @@ fun SessionEditorScreen(
     var navigatorHeightDp by remember { mutableStateOf(editorSpacing.bottomContentPadding) }
     val contentBottomPadding = navigatorHeightDp + 16.dp
     val fabBottomPadding = navigatorHeightDp + 8.dp
-    val exerciseInfoById = remember { catalogExerciseIndex() }
+    val exerciseInfoById = catalogExerciseIndex()
     val dragController = remember(session?.id) { SessionEditorDragController() }
     val partBounds = dragController.partBounds
     val partContentBounds = dragController.partContentBounds

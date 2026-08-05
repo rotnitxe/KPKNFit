@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.exercises.catalogExerciseIndex
+import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.PredictedDrain
@@ -493,9 +494,12 @@ object SplitApplicationEngine {
 
         fun collectFromExercises(exercises: List<Exercise>) {
             exercises.forEach { exercise ->
-                val info = (exercise.catalogConfigurationId ?: exercise.exerciseDbId ?: exercise.exerciseId)
-                    ?.lowercase()
-                    ?.let(catalogExerciseIndex()::get)
+                val info = resolveCatalogExerciseInfo(
+                    catalogConfigurationId = exercise.catalogConfigurationId,
+                    exerciseDbId = exercise.exerciseDbId,
+                    exerciseId = exercise.exerciseId,
+                    exerciseName = exercise.name,
+                )
                 SessionMuscleFilter.relevantMusclesFor(info).forEach { involved ->
                     muscles.add(
                         normalizeCanonicalMuscle(
