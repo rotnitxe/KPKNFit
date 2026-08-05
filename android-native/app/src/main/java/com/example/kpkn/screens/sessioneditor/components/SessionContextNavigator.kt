@@ -236,7 +236,6 @@ import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.showKpknSnackbar
 import com.example.kpkn.ui.components.SwipeToDeleteCard
 import com.example.kpkn.screens.wikilab.components.ExerciseFatigueScenarios
-import com.example.kpkn.screens.wikilab.CustomExerciseCreatorContent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

@@ -307,11 +307,12 @@ class TelemetryHelper(private val context: Context) {
     /**
      * Log navigation events
      */
-    fun logNavigation(from: String, to: String) {
+    fun logNavigation(from: String, to: String, traceId: String? = null) {
         context.logKpknEvent(
             TelemetryEvents.NAVIGATION,
             TelemetryParameters.NAVIGATION_FROM to from,
-            TelemetryParameters.NAVIGATION_TO to to
+            TelemetryParameters.NAVIGATION_TO to to,
+            traceId = traceId
         )
     }
     

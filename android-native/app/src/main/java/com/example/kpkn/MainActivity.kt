@@ -312,6 +312,22 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        KpknDiagnosticLogger.event("app", "activity_start")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (hasResumedOnce) {
+            telemetryHelper.logAppForeground()
+        } else {
+            hasResumedOnce = true
+        }
+    }
+
+    private var hasResumedOnce = false
+
     private fun requestRequiredPermissions() {
         if (
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
@@ -373,6 +389,17 @@ class MainActivity : ComponentActivity() {
 
 // ─── App root with Navigation Compose ───────────────────────────────────────
 
+private fun resolveRouteTemplate(route: String?, arguments: android.os.Bundle?): String? {
+    if (route == null || arguments == null) return route
+    var resolved: String = route
+    Regex("\\{([^}]+)\\}").findAll(route).forEach { match ->
+        val key = match.groupValues[1]
+        val value = arguments.get(key)?.toString()
+        if (value != null) resolved = resolved.replace(match.value, value)
+    }
+    return resolved
+}
+
 @Composable
 fun KPKNApp(
     themeMode: AppThemeMode,
@@ -391,6 +418,9 @@ fun KPKNApp(
     val allPrograms by programsViewModel.programs.collectAsState()
     val currentBackStack by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStack?.destination?.route
+    val resolvedRoute = remember(currentBackStack) {
+        resolveRouteTemplate(currentRoute, currentBackStack?.arguments)
+    }
     val previousRoute = remember { mutableStateOf<String?>(null) }
     val pendingReport by ReportRequestBus.pending.collectAsState()
 
@@ -421,18 +451,26 @@ fun KPKNApp(
     
     // Log navigation when route changes
     LaunchedEffect(currentRoute) {
-        KpknDiagnosticLogger.setCurrentScreen(currentRoute)
-        KpknDiagnosticLogger.event("app", "screen_visible", mapOf("route" to (currentRoute ?: "unknown")))
+        KpknDiagnosticLogger.setCurrentScreen(resolvedRoute)
+        if (currentRoute == null) return@LaunchedEffect
+        val traceId = UUID.randomUUID().toString()
+        KpknDiagnosticLogger.event(
+            "app",
+            "screen_visible",
+            mapOf("route" to resolvedRoute),
+            traceId = traceId,
+        )
         if (currentRoute != previousRoute.value) {
             telemetryHelper.logNavigation(
                 from = previousRoute.value ?: "unknown",
-                to = currentRoute ?: "unknown"
+                to = resolvedRoute ?: "unknown",
+                traceId = traceId,
             )
             previousRoute.value = currentRoute
         }
     }
     
-    val isFullscreenWizard = currentRoute == KpknRoute.WikiLabExerciseCreator.route ||
+    val isFullscreenWizard =
         currentRoute?.startsWith("session-editor") == true ||
         currentRoute?.startsWith("workout") == true
     val primaryProgramId = activeProgram?.id ?: allPrograms.firstOrNull()?.id
@@ -797,7 +835,6 @@ fun KPKNApp(
                     NavigationBarItem(
                         selected = homeSel,
                         onClick = {
-                            telemetryHelper.logNavigation(currentTab, KpknRoute.Home.route)
                             navController.navigate(KpknRoute.Home.route) { launchSingleTop = true }
                         },
                         icon = { Icon(Icons.Default.Home, null, tint = navIconTint(homeSel)) },
@@ -808,7 +845,6 @@ fun KPKNApp(
                     NavigationBarItem(
                         selected = trainSel,
                         onClick = {
-                            telemetryHelper.logNavigation(currentTab, KpknRoute.Training.route)
                             val activeProgramId = activeProgram?.id
                             if (activeProgramId != null) {
                                 navController.navigate(KpknRoute.ProgramDetail.create(activeProgramId)) {
@@ -827,7 +863,6 @@ fun KPKNApp(
                         selected = nutSel,
                         onClick = {
                             telemetryHelper.logNutritionOpen()
-                            telemetryHelper.logNavigation(currentTab, KpknRoute.Nutrition.route)
                             navController.navigate(KpknRoute.Nutrition.route) { launchSingleTop = true }
                         },
                         icon = { NutritionIcon(tint = navIconTint(nutSel)) },
@@ -838,7 +873,6 @@ fun KPKNApp(
                     NavigationBarItem(
                         selected = wikiSel,
                         onClick = {
-                            telemetryHelper.logNavigation(currentTab, KpknRoute.WikiLab.route)
                             navController.navigate(KpknRoute.WikiLab.route) { launchSingleTop = true }
                         },
                         icon = { WikiIcon(tint = navIconTint(wikiSel)) },
@@ -1322,22 +1356,8 @@ private fun KPKNNavGraph(
         }
         composable(KpknRoute.WikiLabExercises.route) {
             WikiLabScreen(
-                onCreateExercise = { navController.navigate(KpknRoute.WikiLabExerciseCreator.route) },
                 onOpenExercise = { navController.navigate(KpknRoute.WikiLabExerciseDetail.create(it)) },
                 onBack = { navController.popBackStack() },
-            )
-        }
-        composable(KpknRoute.WikiLabExerciseCreator.route) {
-            CustomExerciseCreatorScreen(
-                onBack = { navController.popBackStack() },
-                onSaved = { exerciseId ->
-                    val previous = navController.previousBackStackEntry?.destination?.route.orEmpty()
-                    if (previous.contains("session-editor")) {
-                        navController.popBackStack()
-                    } else {
-                        navController.navigate(KpknRoute.WikiLabExerciseDetail.create(exerciseId))
-                    }
-                },
             )
         }
         composable(KpknRoute.WikiLabMuscleAnatomy.route) {
@@ -1618,7 +1638,6 @@ private fun KPKNNavGraph(
                 programId = programId,
                 sessionId = sessionId,
                 onBack = { navController.popBackStack() },
-                onOpenExerciseCreator = { navController.navigate(KpknRoute.WikiLabExerciseCreator.route) },
                 onOpenExerciseDetail = { navController.navigate(KpknRoute.WikiLabExerciseDetail.create(it)) },
                 onSavedAndExit = {
                     navController.navigate(KpknRoute.ProgramDetail.create(programId)) {

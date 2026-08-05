@@ -49,6 +49,7 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -56,6 +57,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.neverEqualPolicy
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -66,12 +68,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.exercises.catalogv2.toLegacySelection
+import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.repository.CustomExerciseRepository
+import com.example.kpkn.domain.exercises.SmartCreateRequest
+import com.example.kpkn.domain.exercises.SmartExerciseCreator
 import com.example.kpkn.domain.exercises.explainMuscleContribution
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseBodyRegionV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogRepositoryV2
@@ -85,7 +91,9 @@ import com.example.kpkn.domain.exercises.catalogv2.ExerciseSearchHitV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseSelectionV2
 import com.example.kpkn.screens.sessioneditor.CatalogSearchField
 import com.example.kpkn.screens.wikilab.wikilabMuscleColor
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.compose.runtime.rememberCoroutineScope
 
 /**
@@ -104,7 +112,6 @@ internal fun ExercisePickerV2Catalog(
     onMultiSelect: (List<ExerciseMuscleInfo>) -> List<String>,
     onSelectionChange: (List<ExerciseMuscleInfo>) -> Unit,
     onOpenExerciseDetail: (String) -> Unit,
-    onOpenExerciseCreator: () -> Unit,
     onCreateSuperset: ((List<ExerciseMuscleInfo>) -> Unit)? = null,
     onDismiss: () -> Unit,
     initialCatalogDefinitionId: String? = null,
@@ -120,38 +127,13 @@ internal fun ExercisePickerV2Catalog(
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Row(
+        Text(
+            "CATÁLOGO DE EJERCICIOS",
+            fontWeight = FontWeight.Black,
+            color = Color.White,
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(
-                    "Catálogo de ejercicios",
-                    fontWeight = FontWeight.Black,
-                    color = Color.White,
-                )
-                Text(
-                    when (val current = state) {
-                        ExerciseCatalogStateV2.Loading -> "Cargando ejercicios…"
-                        is ExerciseCatalogStateV2.Error -> "No se pudo cargar el catálogo"
-                        is ExerciseCatalogStateV2.Ready -> {
-                            val count = current.catalog.families.sumOf { it.definitions.size }
-                            "$count ejercicios · selecciona un ejercicio para ver sus opciones"
-                        }
-                    },
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.70f),
-                )
-            }
-            TextButton(onClick = onOpenExerciseCreator) {
-                Icon(Icons.Default.Add, contentDescription = null, tint = Color.White)
-                Spacer(Modifier.width(4.dp))
-                Text("Crear", color = Color.White)
-            }
-            IconButton(onClick = onDismiss) {
-                Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = Color.White)
-            }
-        }
+            textAlign = TextAlign.Center,
+        )
 
         // Search is intentionally always visible as a floating pill at the
         // bottom. It must not be hidden behind an icon or disappear while the
@@ -357,7 +339,12 @@ private fun ColumnScope.CatalogReadyContent(
             def.id to searchMatchChipLabels(cfg, def)
         }.toMap()
     }
-    val selectedRows = remember { mutableStateOf<Map<String, ExerciseMuscleInfo>>(emptyMap()) }
+    val selectedRows = remember {
+        // neverEqualPolicy: reordenar el LinkedHashMap produce un mapa igual
+        // (la igualdad de Maps ignora el orden), y sin esto Compose no
+        // recompondría y el reorden no se vería.
+        mutableStateOf<Map<String, ExerciseMuscleInfo>>(emptyMap(), neverEqualPolicy())
+    }
     var expandedDefinitionId by rememberSaveable { mutableStateOf<String?>(null) }
     val customExercises by CustomExerciseRepository.customExercises.collectAsStateWithLifecycle()
     val visibleCustomExercises = remember(customExercises, query) {
@@ -837,10 +824,17 @@ private fun ColumnScope.CatalogReadyContent(
 
         if (definitions.isEmpty() && visibleCustomExercises.isEmpty()) {
             item("empty") {
-                Text(
-                    "No encontramos ejercicios con esa búsqueda.",
-                    color = Color.White.copy(alpha = 0.72f),
-                    modifier = Modifier.padding(vertical = 24.dp),
+                SmartCreateSuggestion(
+                    query = query,
+                    onCreate = { info ->
+                        if (editingExisting) {
+                            onSelect(info)
+                        } else {
+                            selectedRows.value = selectedRows.value + (info.id to info)
+                            onSelectionChange(selectedRows.value.values.toList())
+                        }
+                        onSearch("")
+                    },
                 )
             }
         }
@@ -1012,6 +1006,12 @@ private fun MuscleInvolvementSection(exercise: ExerciseMuscleInfo) {
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.SemiBold,
                     )
+                    val emphasisCode = contribution.emphasis?.trim()?.lowercase()?.takeIf { it.isNotBlank() }
+                    val emphasisLabel = emphasisCode?.replaceFirstChar { it.uppercaseChar() }
+                    if (emphasisLabel != null && !muscleName.lowercase().contains(emphasisCode)) {
+                        Spacer(Modifier.width(6.dp))
+                        EmphasisChip(emphasisLabel)
+                    }
                     Spacer(Modifier.weight(1f))
                     Text(
                         formatSeriesEquivalent(contribution.seriesEquivalent),
@@ -1043,6 +1043,22 @@ private fun MuscleInvolvementSection(exercise: ExerciseMuscleInfo) {
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun EmphasisChip(label: String) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(999.dp))
+            .background(Color.White.copy(alpha = 0.10f))
+            .padding(horizontal = 8.dp, vertical = 3.dp),
+    ) {
+        Text(
+            label,
+            color = Color.White.copy(alpha = 0.82f),
+            style = MaterialTheme.typography.bodySmall,
+        )
     }
 }
 
@@ -1260,4 +1276,161 @@ private fun draftAfterAxisSelection(
         result.keys.firstOrNull { it != axis }?.let(result::remove) ?: break
     }
     return result
+}
+
+/**
+ * Empty-search entry point for smart creation: "«query» no está en el catálogo"
+ * with an inline form (nombre + Implemento/Estación/Lateralidad). On confirm it
+ * derives the technical data from the closest existing exercise, persists the
+ * custom exercise and auto-selects it.
+ */
+@Composable
+private fun SmartCreateSuggestion(
+    query: String,
+    onCreate: (ExerciseMuscleInfo) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var name by remember(query) { mutableStateOf(query) }
+    var implementoId by remember { mutableStateOf<String?>(null) }
+    var estacionId by remember { mutableStateOf<String?>(null) }
+    var lateralidadId by remember { mutableStateOf<String?>("bilateral") }
+    var creating by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            "\"$query\" no está en el catálogo",
+            color = Color.White.copy(alpha = 0.72f),
+        )
+        if (!expanded) {
+            Button(
+                onClick = { expanded = true },
+                shape = RoundedCornerShape(999.dp),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(Icons.Default.Add, contentDescription = null)
+                Spacer(Modifier.width(6.dp))
+                Text("Crear este ejercicio")
+            }
+        } else {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Nombre del ejercicio", color = Color.White.copy(alpha = 0.6f)) },
+                singleLine = true,
+                colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color.White.copy(alpha = 0.4f),
+                    unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    cursorColor = Color.White,
+                ),
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            OptionChipRow(
+                title = "Implemento",
+                required = true,
+                value = implementoId,
+                options = SmartExerciseCreator.IMPLEMENTO_IDS,
+                label = SmartExerciseCreator::implementoLabel,
+                onSelect = { implementoId = it },
+            )
+            OptionChipRow(
+                title = "Estación",
+                value = estacionId,
+                options = SmartExerciseCreator.ESTACION_IDS,
+                label = SmartExerciseCreator::estacionLabel,
+                onSelect = { estacionId = it },
+            )
+            OptionChipRow(
+                title = "Lateralidad",
+                value = lateralidadId,
+                options = SmartExerciseCreator.LATERALIDAD_IDS,
+                label = SmartExerciseCreator::lateralidadLabel,
+                onSelect = { lateralidadId = it },
+            )
+
+            val canCreate = name.isNotBlank() && implementoId != null && !creating
+            Button(
+                onClick = {
+                    if (!canCreate) return@Button
+                    creating = true
+                    scope.launch {
+                        val info = withContext(Dispatchers.IO) {
+                            val created = SmartExerciseCreator.create(
+                                SmartCreateRequest(
+                                    name = name,
+                                    implementoId = implementoId ?: "",
+                                    estacionId = estacionId,
+                                    lateralidadId = lateralidadId,
+                                ),
+                                exerciseCatalogSnapshot(),
+                            )
+                            CustomExerciseRepository.upsert(created)
+                            created
+                        }
+                        creating = false
+                        onCreate(info)
+                    }
+                },
+                enabled = canCreate,
+                shape = RoundedCornerShape(999.dp),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                if (creating) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp,
+                    )
+                } else {
+                    Text("Crear y seleccionar")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun OptionChipRow(
+    title: String,
+    value: String?,
+    options: List<String>,
+    label: (String) -> String,
+    onSelect: (String) -> Unit,
+    required: Boolean = false,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            if (required) "$title *" else title,
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.White.copy(alpha = 0.7f),
+        )
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            options.forEach { optionId ->
+                val selected = value == optionId
+                FilterChip(
+                    selected = selected,
+                    onClick = { onSelect(optionId) },
+                    label = { Text(label(optionId), color = Color.White) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        containerColor = Color.White.copy(alpha = if (selected) 0.22f else 0.08f),
+                        labelColor = Color.White.copy(alpha = 0.85f),
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        enabled = true,
+                        selected = selected,
+                        borderColor = Color.White.copy(alpha = 0.25f),
+                        selectedBorderColor = Color.White.copy(alpha = 0.6f),
+                    ),
+                )
+            }
+        }
+    }
 }

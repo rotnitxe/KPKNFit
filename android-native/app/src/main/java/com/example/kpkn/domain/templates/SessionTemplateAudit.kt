@@ -184,7 +184,15 @@ object SessionTemplateAudit {
             exerciseIndex
         }
         if (exercise.catalogRevision != null) {
-            return exercise.catalogConfigurationId?.trim()?.lowercase()?.takeIf { it.isNotBlank() }?.let(index::get)
+            // Prefer the exact configuration, but fall through to the definition/instance
+            // ids when the index has no configuration-level entry (mirrors
+            // ExerciseMuscleResolver.resolveCatalogInfo).
+            exercise.catalogConfigurationId
+                ?.trim()
+                ?.lowercase()
+                ?.takeIf { it.isNotBlank() }
+                ?.let(index::get)
+                ?.let { return it }
         }
         val candidates = listOfNotNull(
             exercise.exerciseDbId,

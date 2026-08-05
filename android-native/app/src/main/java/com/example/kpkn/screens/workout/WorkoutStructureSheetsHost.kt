@@ -85,7 +85,6 @@ import com.example.kpkn.screens.sessioneditor.SideOrderChip
 import com.example.kpkn.screens.sessioneditor.UnilateralModeSelector
 import com.example.kpkn.screens.sessioneditor.components.ExercisePickerSheet
 import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
-import com.example.kpkn.screens.wikilab.CustomExerciseCreatorContent
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.KpknSheetTokens
@@ -134,7 +133,8 @@ internal fun rememberWorkoutStructureSheetsState(): WorkoutStructureSheetsState 
     remember { WorkoutStructureSheetsState() }
 
 /**
- * Live-workout catalog host with the same inline "Crear ejercicio" flow used by the session editor.
+ * Live-workout catalog host. Creation is integrated into the search flow, so
+ * this simply delegates to the shared v2 picker surface.
  */
 @Composable
 private fun LiveExercisePickerWithCreator(
@@ -153,68 +153,23 @@ private fun LiveExercisePickerWithCreator(
     editingCatalogDefinitionId: String? = null,
     editingCatalogConfigurationId: String? = null,
 ) {
-    var showInlineCreator by remember { mutableStateOf(false) }
-    var highlightedCreatedExerciseId by remember { mutableStateOf<String?>(null) }
-
-    Column(modifier = Modifier.fillMaxWidth()) {
-        if (showInlineCreator) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        "Crear ejercicio",
-                        fontWeight = FontWeight.Black,
-                        fontSize = 18.sp,
-                        color = KpknSheetTokens.TitleStrong,
-                    )
-                    Text(
-                        "Se guardará en Creados por ti",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = KpknSheetTokens.MutedStrong,
-                    )
-                }
-                TextButton(onClick = { showInlineCreator = false }) {
-                    Text("Catálogo", color = KpknSheetTokens.Body)
-                }
-            }
-            CustomExerciseCreatorContent(
-                onBack = { showInlineCreator = false },
-                onSaved = { createdId ->
-                    highlightedCreatedExerciseId = createdId
-                    showInlineCreator = false
-                    onSearch("")
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 560.dp),
-            )
-        } else {
-            ExercisePickerSheet(
-                query = query,
-                catalog = exerciseCatalogSnapshot(),
-                workoutLogs = workoutLogs,
-                editingExisting = editingExisting,
-                highlightedExerciseId = highlightedCreatedExerciseId,
-                selectedExercisesIds = selectedExercisesIds,
-                onToggleExerciseSelection = onToggleExerciseSelection,
-                onClearExerciseSelection = onClearExerciseSelection,
-                onSearch = onSearch,
-                onSelect = onSelect,
-                onMultiSelect = onMultiSelect,
-                onCreateSuperset = onCreateSuperset,
-                onOpenExerciseDetail = onOpenExerciseDetail,
-                onOpenExerciseCreator = { showInlineCreator = true },
-                onDismiss = onDismiss,
-                editingCatalogDefinitionId = editingCatalogDefinitionId,
-                editingCatalogConfigurationId = editingCatalogConfigurationId,
-            )
-        }
-    }
+    ExercisePickerSheet(
+        query = query,
+        catalog = exerciseCatalogSnapshot(),
+        workoutLogs = workoutLogs,
+        editingExisting = editingExisting,
+        selectedExercisesIds = selectedExercisesIds,
+        onToggleExerciseSelection = onToggleExerciseSelection,
+        onClearExerciseSelection = onClearExerciseSelection,
+        onSearch = onSearch,
+        onSelect = onSelect,
+        onMultiSelect = onMultiSelect,
+        onCreateSuperset = onCreateSuperset,
+        onOpenExerciseDetail = onOpenExerciseDetail,
+        onDismiss = onDismiss,
+        editingCatalogDefinitionId = editingCatalogDefinitionId,
+        editingCatalogConfigurationId = editingCatalogConfigurationId,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

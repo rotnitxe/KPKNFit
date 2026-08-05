@@ -234,7 +234,6 @@ import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.showKpknSnackbar
 import com.example.kpkn.ui.components.SwipeToDeleteCard
 import com.example.kpkn.screens.wikilab.components.ExerciseFatigueScenarios
-import com.example.kpkn.screens.wikilab.CustomExerciseCreatorContent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -404,7 +403,7 @@ internal fun SessionEditorSheets(
     onCreateSupersetGroup: () -> Unit,
     onOpenSupersetCreator: (String?, List<String>) -> Unit,
     onOpenExerciseDetail: (String) -> Unit,
-    onOpenExerciseCreator: () -> Unit,
+    onOpenCatalog: () -> Unit,
     allTemplates: List<SessionTemplate>,
     onSelectTemplate: (SessionTemplate) -> Unit,
     onConfirmApplyTemplate: (SessionTemplateApplyMode) -> Unit,
@@ -426,8 +425,6 @@ internal fun SessionEditorSheets(
      if (uiState.sheet == SessionEditorSheet.EXERCISE_PICKER) {
          var pendingPickerSelection by remember { mutableStateOf<List<ExerciseMuscleInfo>>(emptyList()) }
          var showPickerExitConfirm by remember { mutableStateOf(false) }
-         var showInlineCreator by remember { mutableStateOf(false) }
-         var highlightedCreatedExerciseId by remember { mutableStateOf<String?>(null) }
          val requestPickerDismiss = {
              if (pendingPickerSelection.isNotEmpty()) {
                  showPickerExitConfirm = true
@@ -444,66 +441,35 @@ internal fun SessionEditorSheets(
               Column(
                  modifier = Modifier.fillMaxSize(),
               ) {
-                  if (showInlineCreator) {
-                      Row(
-                          modifier = Modifier
-                              .fillMaxWidth()
-                              .padding(horizontal = 14.dp, vertical = 8.dp),
-                          horizontalArrangement = Arrangement.SpaceBetween,
-                          verticalAlignment = Alignment.CenterVertically,
-                      ) {
-                          Column(Modifier.weight(1f)) {
-                              Text("Crear ejercicio", fontWeight = FontWeight.Black, fontSize = 18.sp, color = Color.White)
-                              Text("Se guardará en Creados por ti", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.68f))
-                          }
-                          TextButton(onClick = { showInlineCreator = false }) {
-                              Text("Catálogo")
-                          }
-                      }
-                       CustomExerciseCreatorContent(
-                          onBack = { showInlineCreator = false },
-                          onSaved = { createdId ->
-                              highlightedCreatedExerciseId = createdId
-                              showInlineCreator = false
-                              onExerciseSearch("")
-                          },
-                          modifier = Modifier
-                              .fillMaxWidth()
-                              .heightIn(max = 560.dp),
-                      )
-                   } else {
-                       val pickerTargetExercise = uiState.pickerTargetExerciseId?.let { targetId ->
-                           session.allExercises().firstOrNull { it.id == targetId }
-                       }
-                       ExercisePickerSheet(
-                           query = uiState.searchQuery,
-                           catalog = exerciseCatalogSnapshot(),
-                           workoutLogs = uiState.workoutLogs,
-                           editingExisting = uiState.pickerTargetExerciseId != null,
-                           highlightedExerciseId = highlightedCreatedExerciseId,
-                           selectedExercisesIds = uiState.selectedExercisesIds,
-                           onToggleExerciseSelection = onToggleExerciseSelection,
-                           onClearExerciseSelection = onClearExerciseSelection,
-                           onSearch = onExerciseSearch,
-                           onSelect = onSelectExercise,
-                           onMultiSelect = onMultiSelectExercises,
-                           onCreateSuperset = { infos ->
-                               val exerciseIds = onMultiSelectExercises(infos)
-                               if (exerciseIds.size >= 2) {
-                                   onOpenSupersetCreator(uiState.pickerTargetPartId, exerciseIds)
-                               }
-                           },
-                           onOpenExerciseDetail = { id ->
-                               onDismiss()
-                               onOpenExerciseDetail(id)
-                           },
-                           onOpenExerciseCreator = { showInlineCreator = true },
-                           onDismiss = requestPickerDismiss,
-                           onSelectionChange = { pendingPickerSelection = it },
-                           editingCatalogDefinitionId = pickerTargetExercise?.catalogDefinitionId,
-                           editingCatalogConfigurationId = pickerTargetExercise?.catalogConfigurationId,
-                       )
+                   val pickerTargetExercise = uiState.pickerTargetExerciseId?.let { targetId ->
+                       session.allExercises().firstOrNull { it.id == targetId }
                    }
+                   ExercisePickerSheet(
+                       query = uiState.searchQuery,
+                       catalog = exerciseCatalogSnapshot(),
+                       workoutLogs = uiState.workoutLogs,
+                       editingExisting = uiState.pickerTargetExerciseId != null,
+                       selectedExercisesIds = uiState.selectedExercisesIds,
+                       onToggleExerciseSelection = onToggleExerciseSelection,
+                       onClearExerciseSelection = onClearExerciseSelection,
+                       onSearch = onExerciseSearch,
+                       onSelect = onSelectExercise,
+                       onMultiSelect = onMultiSelectExercises,
+                       onCreateSuperset = { infos ->
+                           val exerciseIds = onMultiSelectExercises(infos)
+                           if (exerciseIds.size >= 2) {
+                               onOpenSupersetCreator(uiState.pickerTargetPartId, exerciseIds)
+                           }
+                       },
+                       onOpenExerciseDetail = { id ->
+                           onDismiss()
+                           onOpenExerciseDetail(id)
+                       },
+                       onDismiss = requestPickerDismiss,
+                       onSelectionChange = { pendingPickerSelection = it },
+                       editingCatalogDefinitionId = pickerTargetExercise?.catalogDefinitionId,
+                       editingCatalogConfigurationId = pickerTargetExercise?.catalogConfigurationId,
+                   )
              }
          }
          if (showPickerExitConfirm) {
@@ -654,7 +620,7 @@ internal fun SessionEditorSheets(
                     sessionExercises = session.allExercises(),
                     onUpdateDraft = onSupersetDraftUpdate,
                     onConfirm = onCreateSupersetGroup,
-                    onOpenCatalog = onOpenExerciseCreator,
+                    onOpenCatalog = onOpenCatalog,
                     onDismiss = onDismiss,
                 )
             }

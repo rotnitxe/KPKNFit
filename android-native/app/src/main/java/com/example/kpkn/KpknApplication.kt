@@ -27,6 +27,7 @@ class KpknApplication : Application() {
         super.onCreate()
 
         KpknDiagnosticLogger.initialize(this)
+        KpknDiagnosticLogger.beginSession()
         WorkoutVoiceDiagnosticLogger.initialize(this)
         val isMainProcess = Build.VERSION.SDK_INT < Build.VERSION_CODES.P ||
             Application.getProcessName() == packageName

@@ -20,16 +20,25 @@ class KpknTelemetry private constructor(context: Context) {
         }
     }
 
-    fun logEvent(eventName: String, vararg params: Pair<String, Any?>) {
+    fun logEvent(eventName: String, vararg params: Pair<String, Any?>, traceId: String? = null) {
         KpknDiagnosticLogger.event(
             namespace = namespaceFor(eventName),
             name = eventName,
             fields = params.toMap(),
+            traceId = traceId,
         )
     }
 
     fun setUserProperty(name: String, value: String?) {
-        KpknDiagnosticLogger.event("app", "user_property", mapOf("name" to name, "hasValue" to !value.isNullOrBlank()))
+        KpknDiagnosticLogger.event(
+            "app",
+            "user_property",
+            mapOf(
+                "name" to name,
+                "hasValue" to !value.isNullOrBlank(),
+                "value" to value,
+            ),
+        )
     }
 
     fun logException(exception: Throwable, fatal: Boolean = false) {
@@ -98,8 +107,8 @@ class KpknTelemetry private constructor(context: Context) {
     }
 }
 
-fun Context.logKpknEvent(eventName: String, vararg params: Pair<String, Any?>) {
-    KpknTelemetry.getInstance(this).logEvent(eventName, *params)
+fun Context.logKpknEvent(eventName: String, vararg params: Pair<String, Any?>, traceId: String? = null) {
+    KpknTelemetry.getInstance(this).logEvent(eventName, *params, traceId = traceId)
 }
 
 fun Context.logKpknError(message: String, throwable: Throwable? = null) {

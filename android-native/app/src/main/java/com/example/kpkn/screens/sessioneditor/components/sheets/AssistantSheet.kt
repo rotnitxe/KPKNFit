@@ -82,6 +82,8 @@ import com.example.kpkn.data.sessions.SessionTemplateApplyMode
 import com.example.kpkn.screens.sessioneditor.SessionEditorUiState
 import com.example.kpkn.screens.sessioneditor.SessionEstimatedRings
 import com.example.kpkn.screens.sessioneditor.buildMuscleVolumeRows
+import com.example.kpkn.screens.sessioneditor.SessionSubMuscleBreakdownList
+import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.screens.sessioneditor.components.TemplateCatalogBrowser
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknSheet
@@ -103,7 +105,8 @@ private val EnergyRingColor = com.example.kpkn.ui.theme.RingBlue
 private val SpineRingColor = com.example.kpkn.ui.theme.RingYellow
 private val MuscleRingColor = com.example.kpkn.ui.theme.RingRed
 private val DirectBarColor = Color(0xFF22C55E)
-private val IndirectBarColor = Color(0xFF64748B)
+private val SecondaryBarColor = Color(0xFF64748B)
+private val StabilizerBarColor = Color(0xFF38BDF8)
 
 @Composable
 internal fun AssistantGlassOverlay(
@@ -354,7 +357,8 @@ private fun AssistantMainTab(uiState: SessionEditorUiState) {
             )
         } else {
             val maxDirect = volumeRows.maxOfOrNull { it.directSets }?.coerceAtLeast(1.0) ?: 1.0
-            val maxIndirect = volumeRows.maxOfOrNull { it.indirectSets }?.coerceAtLeast(1.0) ?: 1.0
+            val maxSecondary = volumeRows.maxOfOrNull { it.secondarySets }?.coerceAtLeast(1.0) ?: 1.0
+            val maxStabilizer = volumeRows.maxOfOrNull { it.stabilizerSets }?.coerceAtLeast(1.0) ?: 1.0
             // Sin scroll anidado: el sheet padre ya scrollea (evita jank al abrir).
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -364,13 +368,16 @@ private fun AssistantMainTab(uiState: SessionEditorUiState) {
                     MuscleVolumeCard(
                         muscle = row.muscle,
                         directSets = row.directSets,
-                        indirectSets = row.indirectSets,
+                        secondarySets = row.secondarySets,
+                        stabilizerSets = row.stabilizerSets,
                         intensityLabel = row.intensity.label,
                         maxDirect = maxDirect,
-                        maxIndirect = maxIndirect,
+                        maxSecondary = maxSecondary,
+                        maxStabilizer = maxStabilizer,
                         energyDrain = summary.muscleEnergyDrain[row.muscle] ?: 0,
                         spinalDrain = summary.muscleSpinalDrain[row.muscle] ?: 0,
                         muscleDrain = summary.muscleDrainProjection[row.muscle] ?: 0,
+                        session = session,
                     )
                 }
                 if (volumeRows.size > 12) {
@@ -453,24 +460,45 @@ private fun AssistantMainTab(uiState: SessionEditorUiState) {
 private fun MuscleVolumeCard(
     muscle: String,
     directSets: Double,
-    indirectSets: Double,
+    secondarySets: Double,
+    stabilizerSets: Double,
     intensityLabel: String,
     maxDirect: Double,
-    maxIndirect: Double,
+    maxSecondary: Double,
+    maxStabilizer: Double,
     energyDrain: Int,
     spinalDrain: Int,
     muscleDrain: Int,
+    session: com.example.kpkn.data.models.Session? = null,
 ) {
+    var expanded by remember { mutableStateOf(false) }
+    val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle)
+    val hasPortions = canonical in setOf("Deltoides", "Glúteos", "Pectorales")
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Text(
-            muscle,
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.labelMedium,
-            color = Color.White,
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(if (hasPortions) Modifier.clickable { expanded = !expanded } else Modifier),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                muscle,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.labelMedium,
+                color = Color.White,
+                modifier = Modifier.weight(1f),
+            )
+            if (hasPortions) {
+                Text(
+                    if (expanded) " ▴" else " ▾",
+                    color = Color.White.copy(alpha = 0.5f),
+                    style = MaterialTheme.typography.labelSmall,
+                )
+            }
+        }
 
         // Direct volume bar
         val directText = formatSets(directSets)
@@ -480,12 +508,30 @@ private fun MuscleVolumeCard(
             color = DirectBarColor,
         )
 
-        // Indirect volume bar (always shown when > 0; zero shows thin track)
-        if (indirectSets > 0.0) {
+        // Secondary volume bar
+        if (secondarySets > 0.0) {
             VolumeBarRow(
-                label = "${formatSets(indirectSets)} series indirectas",
-                progress = (indirectSets / maxIndirect).toFloat().coerceIn(0f, 1f),
-                color = IndirectBarColor,
+                label = "${formatSets(secondarySets)} series como secundario",
+                progress = (secondarySets / maxSecondary).toFloat().coerceIn(0f, 1f),
+                color = SecondaryBarColor,
+            )
+        }
+
+        // Stabilizer volume bar
+        if (stabilizerSets > 0.0) {
+            VolumeBarRow(
+                label = "${formatSets(stabilizerSets)} series como estabilizador",
+                progress = (stabilizerSets / maxStabilizer).toFloat().coerceIn(0f, 1f),
+                color = StabilizerBarColor,
+            )
+        }
+
+        if (expanded && hasPortions && session != null) {
+            SessionSubMuscleBreakdownList(
+                muscleName = canonical,
+                session = session,
+                countIndirect = true,
+                adjustByIntensity = false,
             )
         }
 

@@ -268,7 +268,7 @@ private fun CompactDirectIndirectList(title: String, metrics: List<com.example.k
     metrics.forEach { metric ->
         AnalyticsMetricRow(
             label = metric.muscle,
-            value = "${metric.directSets.format1()} / ${metric.indirectSets.format1()}",
+            value = "${metric.directSets.format1()} / sec ${metric.secondarySets.format1()} / estab ${metric.stabilizerSets.format1()}",
             detail = metric.explanation,
         )
     }

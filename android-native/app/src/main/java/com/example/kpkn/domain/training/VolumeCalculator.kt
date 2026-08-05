@@ -16,8 +16,13 @@ import com.example.kpkn.domain.auge.AugeClassifiers
 
 data class RoleSeparatedMuscleVolume(
     val directSets: Double = 0.0,
-    val indirectSets: Double = 0.0,
+    val secondarySets: Double = 0.0,
+    val stabilizerSets: Double = 0.0,
 ) {
+    /** Indirect = secondary + stabilizer work; kept as a convenience getter. */
+    val indirectSets: Double
+        get() = secondarySets + stabilizerSets
+
     val totalSets: Double
         get() = directSets + indirectSets
 }
@@ -265,28 +270,32 @@ object VolumeCalculator {
                 val bucket = perExercise.getOrPut(canonical) { MutableRoleVolume() }
                 when (involvement.role) {
                     MuscleRole.PRIMARY -> bucket.direct = maxOf(bucket.direct, contribution)
-                    MuscleRole.SECONDARY, MuscleRole.STABILIZER -> bucket.indirect = maxOf(bucket.indirect, contribution)
+                    MuscleRole.SECONDARY -> bucket.secondary = maxOf(bucket.secondary, contribution)
+                    MuscleRole.STABILIZER -> bucket.stabilizer = maxOf(bucket.stabilizer, contribution)
                     MuscleRole.NEUTRALIZER -> Unit
                 }
             }
             perExercise.forEach { (muscle, contribution) ->
                 val total = totals.getOrPut(muscle) { MutableRoleVolume() }
                 total.direct += setWeight * contribution.direct
-                total.indirect += setWeight * contribution.indirect
+                total.secondary += setWeight * contribution.secondary
+                total.stabilizer += setWeight * contribution.stabilizer
             }
         }
 
         return totals.mapValues { (_, value) ->
             RoleSeparatedMuscleVolume(
                 directSets = value.direct / safeDivisor,
-                indirectSets = value.indirect / safeDivisor,
+                secondarySets = value.secondary / safeDivisor,
+                stabilizerSets = value.stabilizer / safeDivisor,
             )
         }
     }
 
     private data class MutableRoleVolume(
         var direct: Double = 0.0,
-        var indirect: Double = 0.0,
+        var secondary: Double = 0.0,
+        var stabilizer: Double = 0.0,
     )
 
     fun calculateUnifiedMuscleVolume(

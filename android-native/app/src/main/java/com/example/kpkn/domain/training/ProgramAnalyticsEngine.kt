@@ -114,9 +114,12 @@ data class NamedMetric(
 data class DirectIndirectMetric(
     val muscle: String,
     val directSets: Double,
-    val indirectSets: Double,
+    val secondarySets: Double,
+    val stabilizerSets: Double,
     val explanation: String,
-)
+) {
+    val indirectSets: Double get() = secondarySets + stabilizerSets
+}
 
 data class RatioMetric(
     val leftLabel: String,
@@ -175,7 +178,8 @@ object ProgramAnalyticsEngine {
         val repsByMuscle = mutableMapOf<String, Double>()
         val timeByMuscle = mutableMapOf<String, Double>()
         val directByMuscle = mutableMapOf<String, Double>()
-        val indirectByMuscle = mutableMapOf<String, Double>()
+        val secondaryByMuscle = mutableMapOf<String, Double>()
+        val stabilizerByMuscle = mutableMapOf<String, Double>()
         val stabilityBuckets = mutableMapOf<String, Double>()
         var stabilityDemand = 0.0
 
@@ -195,13 +199,26 @@ object ProgramAnalyticsEngine {
                 setsByMuscle[canonical] = setsByMuscle.orZero(canonical) + sets * contribution
                 repsByMuscle[canonical] = repsByMuscle.orZero(canonical) + sets * targetReps * contribution
                 timeByMuscle[canonical] = timeByMuscle.orZero(canonical) + estimatedMinutes * contribution
-                val hasPrimaryInGroup = relevantMuscles.any { m ->
-                    VolumeCalculator.normalizeCanonicalMuscleGroup(m.muscle, m.emphasis) == canonical && m.role == MuscleRole.PRIMARY
-                }
-                if (hasPrimaryInGroup) {
-                    directByMuscle[canonical] = directByMuscle.orZero(canonical) + sets * contribution
-                } else {
-                    indirectByMuscle[canonical] = indirectByMuscle.orZero(canonical) + sets * contribution
+            }
+            // Role-separated volume, mirroring VolumeCalculator: max contribution per
+            // canonical per role within one exercise, then summed across exercises.
+            val perExercise = mutableMapOf<String, MutableMap<MuscleRole, Double>>()
+            relevantMuscles.forEach { m ->
+                val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(m.muscle, m.emphasis)
+                if (canonical.isBlank()) return@forEach
+                val contribution = resolveMuscleVolumeContribution(m)
+                val byRole = perExercise.getOrPut(canonical) { mutableMapOf() }
+                val existing = byRole[m.role] ?: 0.0
+                if (contribution > existing) byRole[m.role] = contribution
+            }
+            perExercise.forEach { (canonical, byRole) ->
+                byRole.forEach { (role, contribution) ->
+                    when (role) {
+                        MuscleRole.PRIMARY -> directByMuscle[canonical] = directByMuscle.orZero(canonical) + sets * contribution
+                        MuscleRole.SECONDARY -> secondaryByMuscle[canonical] = secondaryByMuscle.orZero(canonical) + sets * contribution
+                        MuscleRole.STABILIZER -> stabilizerByMuscle[canonical] = stabilizerByMuscle.orZero(canonical) + sets * contribution
+                        MuscleRole.NEUTRALIZER -> Unit
+                    }
                 }
             }
         }
@@ -213,15 +230,16 @@ object ProgramAnalyticsEngine {
             forgottenMuscles = forgotten,
             repsByMuscle = repsByMuscle.toMuscleMetrics("repeticiones planificadas ponderadas"),
             timeMinutesByMuscle = timeByMuscle.toMuscleMetrics("minutos estimados por descansos y series"),
-            directIndirectByMuscle = (directByMuscle.keys + indirectByMuscle.keys)
+            directIndirectByMuscle = (directByMuscle.keys + secondaryByMuscle.keys + stabilizerByMuscle.keys)
                 .distinct()
                 .sorted()
                 .map { muscle ->
                     DirectIndirectMetric(
                         muscle = muscle,
                         directSets = directByMuscle.orZero(muscle).round1(),
-                        indirectSets = indirectByMuscle.orZero(muscle).round1(),
-                        explanation = "Primarios vs secundarios/estabilizadores desde ExerciseMuscleInfo.",
+                        secondarySets = secondaryByMuscle.orZero(muscle).round1(),
+                        stabilizerSets = stabilizerByMuscle.orZero(muscle).round1(),
+                        explanation = "Primarios vs secundarios vs estabilizadores desde ExerciseMuscleInfo.",
                     )
                 },
             unilateralExerciseRatio = rows.count { it.exercise.isEffectivelyUnilateral() }.toDouble() / plannedCount,

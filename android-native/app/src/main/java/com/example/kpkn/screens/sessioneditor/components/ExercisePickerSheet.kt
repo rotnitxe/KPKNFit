@@ -102,9 +102,8 @@ internal fun ExercisePickerSheet(
     onSearch: (String) -> Unit,
     onSelect: (ExerciseMuscleInfo) -> Unit,
     onMultiSelect: (List<ExerciseMuscleInfo>) -> List<String>,
-    onCreateSuperset: ((List<ExerciseMuscleInfo>) -> Unit)? = null,
+onCreateSuperset: ((List<ExerciseMuscleInfo>) -> Unit)? = null,
     onOpenExerciseDetail: (String) -> Unit,
-    onOpenExerciseCreator: () -> Unit,
     onDismiss: () -> Unit,
     highlightedExerciseId: String? = null,
     onSelectionChange: (List<ExerciseMuscleInfo>) -> Unit = {},
@@ -126,7 +125,6 @@ internal fun ExercisePickerSheet(
         onMultiSelect = onMultiSelect,
         onSelectionChange = onSelectionChange,
         onOpenExerciseDetail = onOpenExerciseDetail,
-        onOpenExerciseCreator = onOpenExerciseCreator,
         onCreateSuperset = onCreateSuperset,
         onDismiss = onDismiss,
         initialCatalogDefinitionId = editingCatalogDefinitionId,
@@ -289,19 +287,6 @@ internal fun ExercisePickerSheet(
                         tint = KpknSheetTokens.Body.copy(alpha = 0.88f),
                         modifier = Modifier.size(18.dp),
                     )
-                }
-                FilledTonalButton(
-                    onClick = onOpenExerciseCreator,
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = androidx.compose.material3.ButtonDefaults.filledTonalButtonColors(
-                        containerColor = Color.White.copy(alpha = 0.12f),
-                        contentColor = Color.White.copy(alpha = 0.92f),
-                    ),
-                ) {
-                    Icon(Icons.Default.Add, null, modifier = Modifier.size(15.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text("Crear", style = MaterialTheme.typography.labelSmall)
                 }
             }
         }

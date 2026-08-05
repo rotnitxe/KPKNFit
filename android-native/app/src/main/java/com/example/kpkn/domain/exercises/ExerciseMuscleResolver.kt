@@ -50,10 +50,26 @@ object ExerciseMuscleResolver {
         exercise: Exercise,
         exerciseIndex: Map<String, ExerciseMuscleInfo>,
     ): ExerciseMuscleInfo? {
-        val dbId = (exercise.catalogConfigurationId ?: exercise.exerciseDbId ?: exercise.exerciseId)
-            ?.trim()
-            ?.lowercase()
-        return dbId?.let(exerciseIndex::get)
+        // Try every identity the exercise carries, in order of specificity,
+        // until one resolves. Volume counters are indexed by definition id
+        // (snapshot) while AUGE/history lookups also index configuration ids;
+        // a configuration miss must fall through to the exercise/db/instance
+        // id instead of silently returning null (which drops the sets in
+        // volume accounting).
+        val candidates = listOfNotNull(
+            exercise.catalogConfigurationId,
+            exercise.exerciseDbId,
+            exercise.exerciseId,
+        ).map { it.trim().lowercase() }.distinct()
+        candidates.forEach { id ->
+            exerciseIndex[id]?.let { return it }
+        }
+        // Last resort: restore the name-equality fallback that was in place
+        // before the v2 reconstruction, so legacy exercises (which carry
+        // neither configuration nor catalog ids) still resolve.
+        return exerciseIndex.values.firstOrNull {
+            it.name.equals(exercise.name, ignoreCase = true)
+        }
     }
 
     private fun selectedTechnicalMuscles(

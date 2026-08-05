@@ -203,7 +203,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import coil.compose.AsyncImage
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.exercises.catalogSearchRedirects
-import com.example.kpkn.data.exercises.buildExerciseCatalogLookup
+import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.models.discomfortLabel
 import com.example.kpkn.data.sessions.SessionTemplate
@@ -238,7 +238,6 @@ import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.showKpknSnackbar
 import com.example.kpkn.ui.components.SwipeToDeleteCard
 import com.example.kpkn.screens.wikilab.components.ExerciseFatigueScenarios
-import com.example.kpkn.screens.wikilab.CustomExerciseCreatorContent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -448,21 +447,23 @@ internal fun averageSessionIntensityTier(
 }
 
 /**
- * Per-muscle direct/indirect set counts for the assistant volume card.
- * Direct = PRIMARY contribution × sets; Indirect = SECONDARY/STABILIZER contribution × sets.
+ * Per-muscle role-separated set counts for the assistant volume card.
+ * Direct = PRIMARY contribution × sets. SecondaryIndirect = SECONDARY contribution × sets.
+ * StabilizerIndirect = STABILIZER contribution × sets.
  * Intensity is averaged only over exercises that contribute PRIMARY volume to that muscle.
  */
 internal data class MuscleVolumeRow(
     val muscle: String,
     val directSets: Double,
-    val indirectSets: Double,
+    val secondarySets: Double,
+    val stabilizerSets: Double,
     val intensity: SessionIntensityTier,
 )
 
 internal fun buildMuscleVolumeRows(session: Session): List<MuscleVolumeRow> {
     val volumes = VolumeCalculator.calculateRoleSeparatedMuscleVolume(
         sessions = listOf(session),
-        exerciseList = exerciseCatalogSnapshot(),
+        exerciseList = catalogIndexForVolume.values.toList(),
         aliases = catalogSearchRedirects(),
     )
     val exerciseIndex = catalogIndexForVolume
@@ -484,15 +485,18 @@ internal fun buildMuscleVolumeRows(session: Session): List<MuscleVolumeRow> {
         MuscleVolumeRow(
             muscle = muscle,
             directSets = volume.directSets,
-            indirectSets = volume.indirectSets,
+            secondarySets = volume.secondarySets,
+            stabilizerSets = volume.stabilizerSets,
             intensity = averageSessionIntensityTier(intensitySets[muscle].orEmpty()),
         )
-    }.filter { it.directSets > 0.0 || it.indirectSets > 0.0 }
+    }.filter { it.directSets > 0.0 || it.secondarySets > 0.0 || it.stabilizerSets > 0.0 }
         .sortedByDescending { it.directSets }
 }
 
 private val catalogIndexForVolume: Map<String, com.example.kpkn.data.models.ExerciseMuscleInfo> by lazy {
-    buildExerciseCatalogLookup(exerciseCatalogSnapshot())
+    // Full index (definition + configuration + custom ids) so v2-picked exercises
+    // resolve their involved muscles and actually contribute volume.
+    catalogExerciseIndex()
 }
 
 internal fun buildDisplayContributions(
@@ -546,6 +550,7 @@ internal fun calculateSubMuscleBreakdown(
     val targetSubMuscles = when (canonicalMuscle) {
         "Deltoides" -> listOf("Deltoides Anterior", "Deltoides Lateral", "Deltoides Posterior")
         "Glúteos" -> listOf("Glúteo Mayor", "Glúteo Medio", "Glúteo Menor")
+        "Pectorales" -> listOf("Pectoral Superior", "Pectoral Medio", "Pectoral Inferior")
         else -> return emptyList()
     }
     
@@ -557,12 +562,9 @@ internal fun calculateSubMuscleBreakdown(
         val musclesToCount = ExerciseMuscleResolver.effectiveMusclesForVolume(exercise, exerciseIndex)
 
         musclesToCount.forEach { involvement ->
-            val isMatch = if (countIndirect) {
-                involvement.role == com.example.kpkn.data.models.MuscleRole.SECONDARY || involvement.role == com.example.kpkn.data.models.MuscleRole.STABILIZER
-            } else {
-                involvement.role == com.example.kpkn.data.models.MuscleRole.PRIMARY
-            }
-            if (isMatch) {
+            // El breakdown de porciones desglosa TODO el trabajo de ese músculo
+            // (directo + secundario + estabilizador), no filtra por rol.
+            if (involvement.role != com.example.kpkn.data.models.MuscleRole.NEUTRALIZER) {
                 val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(involvement.muscle, involvement.emphasis)
                 if (canonical == canonicalMuscle) {
                     val subMuscle = resolveSpecificSubMuscle(involvement.muscle, involvement.emphasis)
@@ -702,7 +704,7 @@ internal fun SessionSubMuscleBreakdownList(
     countIndirect: Boolean,
     adjustByIntensity: Boolean,
 ) {
-    val exerciseIndex = remember { exerciseCatalogSnapshot().associateBy { it.id.lowercase() } }
+    val exerciseIndex = remember { catalogExerciseIndex() }
     val breakdown = remember(muscleName, session, countIndirect, adjustByIntensity) {
         calculateSubMuscleBreakdown(muscleName, session, exerciseIndex, countIndirect, adjustByIntensity)
     }

@@ -63,7 +63,34 @@ class VolumeCalculatorTest {
         val result = VolumeCalculator.calculateRoleSeparatedMuscleVolume(listOf(session), listOf(info))
 
         assertEquals(2.0, result["Cuádriceps"]?.directSets ?: 0.0, 0.01)
+        assertEquals(0.0, result["Cuádriceps"]?.stabilizerSets ?: -1.0, 0.01)
+        assertEquals(0.0, result["Glúteos"]?.directSets ?: -1.0, 0.01)
+        assertEquals(0.8, result["Glúteos"]?.stabilizerSets ?: 0.0, 0.01)
         assertEquals(0.8, result["Glúteos"]?.indirectSets ?: 0.0, 0.01)
+    }
+
+    @Test
+    fun roleSeparatedVolume_splits_secondary_and_stabilizer_buckets() {
+        val info = ExerciseMuscleInfo(
+            id = "plank",
+            name = "Plancha",
+            involvedMuscles = listOf(
+                InvolvedMuscle("Abdomen", MuscleRole.PRIMARY, 1.0),
+                InvolvedMuscle("Deltoides", MuscleRole.SECONDARY, 0.5),
+                InvolvedMuscle("Cuádriceps", MuscleRole.STABILIZER, 0.4),
+                InvolvedMuscle("Erectores Espinales", MuscleRole.STABILIZER, 0.4),
+            ),
+        )
+        val session = makeSession("plank", listOf(makeExercise("plank", listOf(makeSet(), makeSet()))))
+
+        val result = VolumeCalculator.calculateRoleSeparatedMuscleVolume(listOf(session), listOf(info))
+
+        assertEquals(2.0, result["Abdomen"]?.directSets ?: 0.0, 0.01)
+        assertEquals(1.0, result["Deltoides"]?.secondarySets ?: 0.0, 0.01)
+        assertEquals(0.0, result["Deltoides"]?.stabilizerSets ?: -1.0, 0.01)
+        assertEquals(0.8, result["Cuádriceps"]?.stabilizerSets ?: 0.0, 0.01)
+        assertEquals(0.8, result["Erectores Espinales"]?.stabilizerSets ?: 0.0, 0.01)
+        assertEquals(1.0, result["Deltoides"]?.indirectSets ?: 0.0, 0.01)
     }
 
     @Test
@@ -84,6 +111,56 @@ class VolumeCalculatorTest {
 
         assertEquals(0.4, result["Glúteos"]?.indirectSets ?: 0.0, 0.01)
         assertFalse(result.containsKey("Tensor Fascia Lata"))
+    }
+
+    @Test
+    fun roleSeparatedVolume_resolves_v2_configuration_miss_via_definition_id() {
+        // An exercise picked from the v2 catalog carries a configuration id that
+        // is absent from snapshot indexes. The resolver must fall through to the
+        // definition id so the exercise contributes its sets.
+        val info = ExerciseMuscleInfo(
+            id = "back_chest_supported_row",
+            name = "Remo Chest Supported",
+            involvedMuscles = listOf(InvolvedMuscle("Dorsales", MuscleRole.PRIMARY, 1.0)),
+        )
+        val exercise = Exercise(
+            id = "session-instance-uuid",
+            name = "Remo Chest Supported",
+            exerciseDbId = "back_chest_supported_row",
+            catalogRevision = "v2-approved-2026-08-02-c",
+            catalogDefinitionId = "back_chest_supported_row",
+            catalogConfigurationId = "chest_supported_row__dumbbells__medium",
+            sets = listOf(makeSet(), makeSet()),
+        )
+
+        val result = VolumeCalculator.calculateRoleSeparatedMuscleVolume(
+            sessions = listOf(makeSession("v2", listOf(exercise))),
+            exerciseList = listOf(info),
+        )
+
+        assertEquals(2.0, result["Dorsales"]?.directSets ?: 0.0, 0.01)
+    }
+
+    @Test
+    fun roleSeparatedVolume_falls_back_to_name_when_no_id_matches() {
+        val info = ExerciseMuscleInfo(
+            id = "legacy_squat_id",
+            name = "Sentadilla Profunda",
+            involvedMuscles = listOf(InvolvedMuscle("Cuádriceps", MuscleRole.PRIMARY, 1.0)),
+        )
+        val exercise = Exercise(
+            id = "x",
+            name = "Sentadilla Profunda",
+            exerciseDbId = "legacy_id_no_longer_in_catalog",
+            sets = listOf(makeSet()),
+        )
+
+        val result = VolumeCalculator.calculateRoleSeparatedMuscleVolume(
+            sessions = listOf(makeSession("legacy", listOf(exercise))),
+            exerciseList = listOf(info),
+        )
+
+        assertEquals(1.0, result["Cuádriceps"]?.directSets ?: 0.0, 0.01)
     }
 
     @Test

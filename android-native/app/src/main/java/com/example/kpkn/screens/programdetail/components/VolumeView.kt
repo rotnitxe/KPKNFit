@@ -49,7 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.exercises.catalogSearchRedirects
-import com.example.kpkn.data.exercises.buildExerciseCatalogLookup
+import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.AthleteProfileScore
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramMode
@@ -136,7 +136,7 @@ fun VolumeView(
 ) {
     val volumeScopeOptions = remember(program) { buildVolumeScopeOptions(program) }
     var selectedVolumeScopeId by rememberSaveable(program.id) { mutableStateOf("") }
-    var showIndirectVolume by rememberSaveable(program.id) { mutableStateOf(false) }
+    var indirectMode by rememberSaveable(program.id) { mutableStateOf(0) }
     var adjustVolumeByIntensity by rememberSaveable(program.id) { mutableStateOf(false) }
     LaunchedEffect(volumeScopeOptions) {
         if (volumeScopeOptions.none { it.id == selectedVolumeScopeId }) {
@@ -146,12 +146,12 @@ fun VolumeView(
     val selectedVolumeScope = remember(volumeScopeOptions, selectedVolumeScopeId) {
         volumeScopeOptions.firstOrNull { it.id == selectedVolumeScopeId } ?: volumeScopeOptions.firstOrNull()
     }
-    val canonicalVolumes = remember(program, selectedVolumeScope, showIndirectVolume, adjustVolumeByIntensity) {
+    val canonicalVolumes = remember(program, selectedVolumeScope, indirectMode, adjustVolumeByIntensity) {
         mergeCanonicalVolumeCatalog(
             calculateDisplayWeeklyMuscleVolume(
                 weeks = selectedVolumeScope?.weeks ?: program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks },
                 averageByWeek = selectedVolumeScope?.averageByWeek ?: false,
-                countIndirect = showIndirectVolume,
+                indirectMode = indirectMode,
                 adjustByIntensity = adjustVolumeByIntensity
             )
         )
@@ -165,7 +165,7 @@ fun VolumeView(
     val completedVolumes = remember(programLogs) {
         VolumeCalculator.calculateCompletedWeeklyMuscleVolume(
             logs = programLogs,
-            exerciseList = exerciseCatalogSnapshot(),
+            exerciseList = catalogExerciseIndex().values.toList(),
             aliases = catalogSearchRedirects(),
             weeksCount = program.volumeRecommendations.firstOrNull()?.let {
                 (programLogs.size / 3).coerceAtLeast(1)
@@ -238,22 +238,21 @@ fun VolumeView(
             modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Row(
+            Column(
                 modifier = Modifier.weight(1f),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Text(
-                    text = "Volumen indirecto",
+                    text = "Alcance del volumen",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                androidx.compose.material3.Switch(
-                    checked = showIndirectVolume,
-                    onCheckedChange = { showIndirectVolume = it },
-                    modifier = Modifier.scale(0.8f)
-                )
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    IndirectModeChip(label = "Directo", mode = 0, selected = indirectMode, onSelect = { indirectMode = it })
+                    IndirectModeChip(label = "+Secundario", mode = 1, selected = indirectMode, onSelect = { indirectMode = it })
+                    IndirectModeChip(label = "+Estabilizador", mode = 2, selected = indirectMode, onSelect = { indirectMode = it })
+                }
             }
             Row(
                 modifier = Modifier.weight(1f),
@@ -279,7 +278,7 @@ fun VolumeView(
             personalizedTargets = personalizedTargets,
             isVolumeCalibrated = isVolumeCalibrated,
             selectedVolumeScope = selectedVolumeScope,
-            showIndirectVolume = showIndirectVolume,
+            indirectMode = indirectMode,
             adjustByIntensity = adjustVolumeByIntensity,
             completedVolumes = completedVolumes,
             muscleCdbsStatus = muscleCdbsStatus,
@@ -536,7 +535,7 @@ private fun CanonicalVolumeBarsCard(
     personalizedTargets: Map<String, PersonalizedVolumeTarget>,
     isVolumeCalibrated: Boolean,
     selectedVolumeScope: VolumeScopeOption?,
-    showIndirectVolume: Boolean,
+    indirectMode: Int,
     adjustByIntensity: Boolean,
     completedVolumes: List<CanonicalMuscleVolumeEntry> = emptyList(),
     muscleCdbsStatus: Map<String, MuscleOvertrainingStatus> = emptyMap(),
@@ -678,11 +677,18 @@ private fun CanonicalVolumeBarsCard(
                                         )
 
                                         if (isMuscleExpanded) {
+                                            SubMuscleBreakdownList(
+                                                muscleName = entry.muscleName,
+                                                weeks = selectedVolumeScope?.weeks ?: emptyList(),
+                                                averageByWeek = selectedVolumeScope?.averageByWeek ?: false,
+                                                indirectMode = indirectMode,
+                                                adjustByIntensity = adjustByIntensity,
+                                            )
                                             ExerciseBreakdownList(
                                                 muscleName = entry.muscleName,
                                                 weeks = selectedVolumeScope?.weeks ?: emptyList(),
                                                 averageByWeek = selectedVolumeScope?.averageByWeek ?: false,
-                                                countIndirect = showIndirectVolume,
+                                                indirectMode = indirectMode,
                                             )
                                         }
                                     }
@@ -826,15 +832,15 @@ private fun ExerciseBreakdownList(
     muscleName: String,
     weeks: List<ProgramWeek>,
     averageByWeek: Boolean,
-    countIndirect: Boolean = false,
+    indirectMode: Int = 0,
 ) {
-    val breakdown = remember(muscleName, weeks, averageByWeek, countIndirect) {
-        calculateExerciseBreakdownForMuscle(muscleName, weeks, averageByWeek, countIndirect)
+    val breakdown = remember(muscleName, weeks, averageByWeek, indirectMode) {
+        calculateExerciseBreakdownForMuscle(muscleName, weeks, averageByWeek, indirectMode)
     }
 
     if (breakdown.isEmpty()) {
         Text(
-            text = "Sin ejercicios directos registrados para este músculo.",
+            text = "Sin ejercicios registrados para este músculo en este alcance.",
             fontSize = 11.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
             modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 4.dp)
@@ -1211,11 +1217,9 @@ private fun calculateExerciseBreakdownForMuscle(
     muscleName: String,
     weeks: List<ProgramWeek>,
     averageByWeek: Boolean,
-    // Bug fix #2: el breakdown de ejercicios ahora respeta el mismo flag que las barras
-    // principales, mostrando solo directos o directos+indirectos según corresponda.
-    countIndirect: Boolean = false,
+    indirectMode: Int = 0,
 ): List<ExerciseVolumeBreakdown> {
-    val exerciseIndex = buildExerciseCatalogLookup(exerciseCatalogSnapshot())
+    val exerciseIndex = catalogExerciseIndex()
     val divisor = if (averageByWeek) weeks.size.coerceAtLeast(1).toDouble() else 1.0
     val breakdownMap = mutableMapOf<String, Pair<Double, Int>>()
 
@@ -1223,10 +1227,7 @@ private fun calculateExerciseBreakdownForMuscle(
         val countedSets = countEffectiveSets(exercise.sets)
         if (countedSets > 0) {
             val musclesToCount = ExerciseMuscleResolver.effectiveMusclesForVolume(exercise, exerciseIndex)
-                .filter { involvement ->
-                    if (countIndirect) true
-                    else involvement.role == com.example.kpkn.data.models.MuscleRole.PRIMARY
-                }
+                .filter { involvement -> roleIncludedInMode(involvement.role, indirectMode) }
             val contributions = VolumeCalculator.buildPerExerciseMuscleContributions(musclesToCount)
             val multiplier = contributions[muscleName]
             if (multiplier != null && multiplier > 0.0) {
@@ -1363,21 +1364,25 @@ private fun countDisplaySets(exerciseSets: List<com.example.kpkn.data.models.Exe
 private fun calculateDisplayWeeklyMuscleVolume(
     weeks: List<ProgramWeek>,
     averageByWeek: Boolean,
-    countIndirect: Boolean,
+    indirectMode: Int,
     adjustByIntensity: Boolean
 ): List<CanonicalMuscleVolumeEntry> {
     val sessions = weeks.flatMap { it.sessions }
     val divisor = if (averageByWeek) weeks.size.coerceAtLeast(1).toDouble() else 1.0
     val roleSeparated = VolumeCalculator.calculateRoleSeparatedMuscleVolume(
         sessions = sessions,
-        exerciseList = exerciseCatalogSnapshot(),
+        exerciseList = catalogExerciseIndex().values.toList(),
         aliases = catalogSearchRedirects(),
         divisor = divisor,
         adjustByIntensity = adjustByIntensity,
     )
 
     return roleSeparated.map { (muscleName, volume) ->
-        val selectedSets = if (countIndirect) volume.totalSets else volume.directSets
+        val selectedSets = when (indirectMode) {
+            2 -> volume.totalSets
+            1 -> volume.directSets + volume.secondarySets
+            else -> volume.directSets
+        }
         CanonicalMuscleVolumeEntry(
             muscleId = muscleName.lowercase().replace(" ", "-"),
             muscleName = muscleName,
@@ -1386,21 +1391,51 @@ private fun calculateDisplayWeeklyMuscleVolume(
     }.sortedByDescending { it.weeklySets }
 }
 
+/** Which roles count for a given volume-alcance mode: 0 = direct, 1 = +secondary, 2 = +stabilizer. */
+private fun roleIncludedInMode(
+    role: com.example.kpkn.data.models.MuscleRole,
+    indirectMode: Int,
+): Boolean = when (role) {
+    com.example.kpkn.data.models.MuscleRole.PRIMARY -> true
+    com.example.kpkn.data.models.MuscleRole.SECONDARY -> indirectMode >= 1
+    com.example.kpkn.data.models.MuscleRole.STABILIZER -> indirectMode >= 2
+    com.example.kpkn.data.models.MuscleRole.NEUTRALIZER -> false
+}
+
+@Composable
+private fun IndirectModeChip(
+    label: String,
+    mode: Int,
+    selected: Int,
+    onSelect: (Int) -> Unit,
+) {
+    val isSelected = selected == mode
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(999.dp))
+            .background(
+                if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
+                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+            )
+            .clickable { onSelect(mode) }
+            .padding(horizontal = 10.dp, vertical = 5.dp),
+    ) {
+        Text(
+            text = label,
+            fontSize = 10.sp,
+            fontWeight = if (isSelected) FontWeight.Black else FontWeight.Medium,
+            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
 private fun buildDisplayContributions(
     involvedMuscles: List<com.example.kpkn.data.models.InvolvedMuscle>,
-    countIndirect: Boolean
+    indirectMode: Int
 ): Map<String, Double> {
     val grouped = linkedMapOf<String, Double>()
     involvedMuscles.forEach { involvement ->
-        // Bug fix #1: cuando countIndirect=true incluimos TODOS los roles (primary + secondary +
-        // stabilizer). Antes se excluía erróneamente el PRIMARY, lo que hacía que las barras
-        // mostrasen menos series al activar el switch en lugar de más.
-        val isMatch = if (countIndirect) {
-            true
-        } else {
-            involvement.role == com.example.kpkn.data.models.MuscleRole.PRIMARY
-        }
-        if (isMatch) {
+        if (roleIncludedInMode(involvement.role, indirectMode)) {
             val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(involvement.muscle, involvement.emphasis)
             val contribution = com.example.kpkn.data.models.resolveMuscleVolumeContribution(involvement)
             val current = grouped[canonical] ?: 0.0
@@ -1417,7 +1452,7 @@ private fun calculateSubMuscleBreakdown(
     sessions: List<com.example.kpkn.data.models.Session>,
     exerciseIndex: Map<String, com.example.kpkn.data.models.ExerciseMuscleInfo>,
     divisor: Double,
-    countIndirect: Boolean,
+    indirectMode: Int,
     adjustByIntensity: Boolean
 ): List<SubMuscleContribution> {
     val targetSubMuscles = when (canonicalMuscle) {
@@ -1438,12 +1473,7 @@ private fun calculateSubMuscleBreakdown(
             val musclesToCount = ExerciseMuscleResolver.effectiveMusclesForVolume(exercise, exerciseIndex)
 
             musclesToCount.forEach { involvement ->
-                val isMatch = if (countIndirect) {
-                    involvement.role != com.example.kpkn.data.models.MuscleRole.NEUTRALIZER
-                } else {
-                    involvement.role == com.example.kpkn.data.models.MuscleRole.PRIMARY
-                }
-                if (isMatch) {
+                if (roleIncludedInMode(involvement.role, indirectMode)) {
                     val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(involvement.muscle, involvement.emphasis)
                     if (canonical == canonicalMuscle) {
                         val subMuscle = resolveSpecificSubMuscle(involvement.muscle, involvement.emphasis)
@@ -1481,14 +1511,15 @@ private fun SubMuscleBreakdownList(
     muscleName: String,
     weeks: List<ProgramWeek>,
     averageByWeek: Boolean,
-    countIndirect: Boolean,
+    indirectMode: Int = 0,
     adjustByIntensity: Boolean,
 ) {
-    val exerciseIndex = remember { exerciseCatalogSnapshot().associateBy { it.id.lowercase() } }
+    val exerciseIndex = remember { catalogExerciseIndex() }
     val divisor = if (averageByWeek) weeks.size.coerceAtLeast(1).toDouble() else 1.0
-    val subMuscleBreakdown = remember(muscleName, weeks, averageByWeek, countIndirect, adjustByIntensity) {
-        calculateSubMuscleBreakdown(muscleName, weeks.flatMap { it.sessions }, exerciseIndex, divisor, countIndirect, adjustByIntensity)
+    val subMuscleBreakdown = remember(muscleName, weeks, averageByWeek, indirectMode, adjustByIntensity) {
+        calculateSubMuscleBreakdown(muscleName, weeks.flatMap { it.sessions }, exerciseIndex, divisor, indirectMode, adjustByIntensity)
     }
+    if (subMuscleBreakdown.isEmpty()) return
 
     Column(
         modifier = Modifier

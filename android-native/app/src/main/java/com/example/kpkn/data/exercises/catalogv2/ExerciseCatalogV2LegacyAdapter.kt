@@ -3,6 +3,7 @@ package com.example.kpkn.data.exercises.catalogv2
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.InvolvedMuscle
 import com.example.kpkn.data.models.MuscleRole
+import com.example.kpkn.domain.exercises.EmphasisEngine
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseConfigurationV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseDefinitionV2
@@ -47,6 +48,12 @@ internal fun ExerciseDefinitionV2.toLegacyInfo(
             muscle = muscleLabel(muscleId) ?: muscleId,
             role = role,
             volumeContribution = null,
+            emphasis = EmphasisEngine.deriveEmphasis(
+                muscleId = muscleId,
+                definitionId = id,
+                movementPatternId = profile.movementPatternId,
+                selectedOptions = configuration.selectedOptions,
+            ),
             biomechanicalReason = noteByMuscle[muscleId],
         )
     val involved = buildList {

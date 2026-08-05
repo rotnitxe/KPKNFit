@@ -83,7 +83,6 @@ sealed class KpknRoute(val route: String) {
     // ─── WikiLab Sub-screens ────────────────────────────────────────────
 
     object WikiLabExercises : KpknRoute("wikilab/exercises")
-    object WikiLabExerciseCreator : KpknRoute("wikilab/exercise-creator")
     object WikiLabMuscleAnatomy : KpknRoute("wikilab/muscles")
     object WikiLabMuscleDetail : KpknRoute("wikilab/muscle/{muscleId}") {
         fun create(muscleId: String) = "wikilab/muscle/$muscleId"

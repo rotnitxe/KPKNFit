@@ -58,7 +58,6 @@ private val CATEGORIES = listOf(
 @Composable
 fun WikiLabScreen(
     modifier: Modifier = Modifier,
-    onCreateExercise: () -> Unit = {},
     onOpenExercise: (String) -> Unit,
     onBack: () -> Unit = {},
 ) {
@@ -230,23 +229,9 @@ fun WikiLabScreen(
 
                 item { Spacer(Modifier.height(80.dp)) }
             }
-
-            FloatingActionButton(
-                onClick = onCreateExercise,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(16.dp),
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = RoundedCornerShape(8.dp),
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Crear ejercicio")
-            }
         }
     }
-}
-
-// ═══════════════════════════════════════════════════════════════════════
+}// ═══════════════════════════════════════════════════════════════════════
 // EXERCISE ROW (NO CARDS)
 // ═══════════════════════════════════════════════════════════════════════
 
