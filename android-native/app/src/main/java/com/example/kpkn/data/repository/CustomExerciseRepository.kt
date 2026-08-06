@@ -48,7 +48,10 @@ object CustomExerciseRepository {
         }
         upsertCustomExerciseOverlay(normalized)
         scope.launch {
-            runCatching { db.customExerciseDao().upsert(normalized.toEntity()) }
+            runCatching {
+                val existing = db.customExerciseDao().getById(normalized.id)
+                db.customExerciseDao().upsert(normalized.toEntity(createdAt = existing?.createdAt))
+            }
         }
     }
 

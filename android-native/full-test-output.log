@@ -1,0 +1,67 @@
+
+> Configure project :app
+WARNING: The option setting 'android.disallowKotlinSourceSets=false' is experimental.
+The current default is 'true'.
+
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preBaseDebugBuild UP-TO-DATE
+> Task :app:compileBaseDebugAidl UP-TO-DATE
+> Task :app:generateBaseDebugBuildConfig UP-TO-DATE
+> Task :app:generateBaseDebugResources UP-TO-DATE
+> Task :app:packageBaseDebugResources UP-TO-DATE
+> Task :app:processBaseDebugNavigationResources UP-TO-DATE
+> Task :app:parseBaseDebugLocalResources UP-TO-DATE
+> Task :app:generateBaseDebugRFile UP-TO-DATE
+> Task :app:kspBaseDebugKotlin UP-TO-DATE
+> Task :app:compileBaseDebugKotlin UP-TO-DATE
+> Task :app:javaPreCompileBaseDebug UP-TO-DATE
+> Task :app:compileBaseDebugJavaWithJavac UP-TO-DATE
+> Task :app:checkBaseDebugAarMetadata UP-TO-DATE
+> Task :app:mapBaseDebugSourceSetPaths UP-TO-DATE
+> Task :app:compileBaseDebugNavigationResources UP-TO-DATE
+> Task :app:mergeBaseDebugResources UP-TO-DATE
+> Task :app:createBaseDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksBaseDebug UP-TO-DATE
+> Task :app:processBaseDebugMainManifest UP-TO-DATE
+> Task :app:processBaseDebugManifest UP-TO-DATE
+> Task :app:processBaseDebugManifestForPackage UP-TO-DATE
+> Task :app:processBaseDebugResources UP-TO-DATE
+> Task :app:bundleBaseDebugClassesToRuntimeJar UP-TO-DATE
+> Task :app:bundleBaseDebugClassesToCompileJar UP-TO-DATE
+> Task :app:kspBaseDebugUnitTestKotlin UP-TO-DATE
+> Task :app:preBaseDebugUnitTestBuild UP-TO-DATE
+> Task :app:compileBaseDebugUnitTestKotlin UP-TO-DATE
+> Task :app:javaPreCompileBaseDebugUnitTest UP-TO-DATE
+> Task :app:compileBaseDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:generateBaseDebugAssets UP-TO-DATE
+> Task :app:mergeBaseDebugAssets UP-TO-DATE
+> Task :app:packageBaseDebugUnitTestForUnitTest UP-TO-DATE
+> Task :app:processBaseDebugUnitTestManifest UP-TO-DATE
+> Task :app:generateBaseDebugUnitTestConfig UP-TO-DATE
+> Task :app:processBaseDebugJavaRes UP-TO-DATE
+> Task :app:processBaseDebugUnitTestJavaRes UP-TO-DATE
+> Task :app:testBaseDebugUnitTest
+> Task :app:mergeBaseDebugNativeDebugMetadata NO-SOURCE
+> Task :app:compressBaseDebugAssets UP-TO-DATE
+> Task :app:generateBaseDebugGlobalSynthetics UP-TO-DATE
+> Task :app:l8DexDesugarLibBaseDebug UP-TO-DATE
+> Task :app:mergeBaseDebugJavaResource UP-TO-DATE
+> Task :app:checkBaseDebugDuplicateClasses UP-TO-DATE
+> Task :app:desugarBaseDebugFileDependencies UP-TO-DATE
+> Task :app:mergeExtDexBaseDebug UP-TO-DATE
+> Task :app:mergeLibDexBaseDebug UP-TO-DATE
+> Task :app:dexBuilderBaseDebug UP-TO-DATE
+> Task :app:mergeProjectDexBaseDebug UP-TO-DATE
+> Task :app:mergeBaseDebugJniLibFolders UP-TO-DATE
+> Task :app:mergeBaseDebugNativeLibs UP-TO-DATE
+> Task :app:stripBaseDebugDebugSymbols UP-TO-DATE
+> Task :app:validateSigningBaseDebug UP-TO-DATE
+> Task :app:writeBaseDebugAppMetadata UP-TO-DATE
+> Task :app:writeBaseDebugSigningConfigVersions UP-TO-DATE
+> Task :app:packageBaseDebug UP-TO-DATE
+> Task :app:createBaseDebugApkListingFileRedirect UP-TO-DATE
+> Task :app:assembleBaseDebug UP-TO-DATE
+
+BUILD SUCCESSFUL in 31s
+51 actionable tasks: 1 executed, 50 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.4.1/userguide/configuration_cache_enabling.html

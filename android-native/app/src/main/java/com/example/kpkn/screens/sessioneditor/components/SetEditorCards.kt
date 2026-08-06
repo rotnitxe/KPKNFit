@@ -479,7 +479,14 @@ fun SetIntensityBlock(
                 }
             }
             
-            KpknDropdownMenu(expanded = showIntensityMenu, onDismissRequest = { showIntensityMenu = false }) {
+            DropdownMenu(
+                expanded = showIntensityMenu,
+                onDismissRequest = { showIntensityMenu = false },
+                shape = RoundedCornerShape(12.dp),
+                containerColor = Color.White.copy(alpha = 0.10f),
+                tonalElevation = 0.dp,
+                shadowElevation = 0.dp,
+            ) {
                 listOf(
                     IntensityMode.RPE to "RPE",
                     IntensityMode.RIR to "RIR",

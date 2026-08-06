@@ -3,6 +3,7 @@ package com.example.kpkn.domain.exercises
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.InvolvedMuscle
 import com.example.kpkn.data.models.MuscleRole
+import com.example.kpkn.data.models.resolveMuscleVolumeContribution
 
 data class ExerciseMatchResult(
     val exercise: ExerciseMuscleInfo,
@@ -248,14 +249,21 @@ fun inferFromMatches(
     val cnc = avgCnc?.let { (it * eqCncMult).coerceIn(0.5, 5.0) }
     val ssc = avgSsc?.let { (it * sscMultiplier).coerceIn(0.0, 2.0) }
 
-    // Merge muscles from top matches (weighted by score)
+    // Merge muscles from top matches (weighted by score for ranking only).
+    // The stored volume contribution must come from the real catalog data
+    // (explicit value or role fallback 1.0/0.5/0.4), never from the match
+    // score: otherwise a weak equipment/name match turns a primary muscle
+    // into a tiny 0.3 contribution.
     val muscleScores = mutableMapOf<String, Pair<MuscleRole, Double>>()
+    val muscleSources = mutableMapOf<String, InvolvedMuscle>()
     for (match in matches) {
         for (muscle in match.exercise.involvedMuscles) {
             val existing = muscleScores[muscle.muscle]
-            val newScore = (muscle.volumeContribution ?: 1.0) * match.score
+            val contribution = resolveMuscleVolumeContribution(muscle)
+            val newScore = contribution * match.score
             if (existing == null || newScore > existing.second) {
                 muscleScores[muscle.muscle] = muscle.role to newScore
+                muscleSources[muscle.muscle] = muscle
             }
         }
     }
@@ -263,7 +271,10 @@ fun inferFromMatches(
     val sortedMuscles = muscleScores.entries
         .sortedByDescending { it.value.second }
         .take(6)
-        .map { InvolvedMuscle(it.key, it.value.first, it.value.second.coerceIn(0.3, 1.0)) }
+        .map { (muscleName, _) ->
+            val source = muscleSources.getValue(muscleName)
+            source.copy(volumeContribution = resolveMuscleVolumeContribution(source))
+        }
 
     // Most common body part and chain from matches
     val bodyPart = matches

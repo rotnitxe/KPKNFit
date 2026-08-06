@@ -2040,9 +2040,13 @@ internal fun SetInputCardV2(
                             }
 
                             1 -> Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                ) {
                                     FilterChip(
                                         selected = showPartialsMode,
+                                        modifier = Modifier.weight(1f),
                                         onClick = {
                                             showPartialsMode = !showPartialsMode
                                             if (showPartialsMode && partialSets.isEmpty()) partialSets = listOf(0)
@@ -2057,6 +2061,7 @@ internal fun SetInputCardV2(
                                     )
                                     FilterChip(
                                         selected = dropSetEnabled,
+                                        modifier = Modifier.weight(1f),
                                         onClick = { dropSetEnabled = !dropSetEnabled },
                                         label = { Text("Drop-set", style = MaterialTheme.typography.labelSmall) },
                                         colors = FilterChipDefaults.filterChipColors(
@@ -2068,6 +2073,7 @@ internal fun SetInputCardV2(
                                     )
                                     FilterChip(
                                         selected = restPauseEnabled,
+                                        modifier = Modifier.weight(1f),
                                         onClick = { restPauseEnabled = !restPauseEnabled },
                                         label = { Text("Rest-Pause", style = MaterialTheme.typography.labelSmall) },
                                         colors = FilterChipDefaults.filterChipColors(

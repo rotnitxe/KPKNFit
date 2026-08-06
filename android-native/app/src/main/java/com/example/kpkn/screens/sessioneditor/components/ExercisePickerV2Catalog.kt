@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -31,11 +32,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -44,6 +49,9 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Slider
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -71,13 +79,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.exercises.catalogv2.toLegacySelection
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.MuscleRole
+import com.example.kpkn.data.models.InvolvedMuscle
+import com.example.kpkn.data.models.resolveMuscleVolumeContribution
 import com.example.kpkn.data.repository.CustomExerciseRepository
 import com.example.kpkn.domain.exercises.SmartCreateRequest
+import com.example.kpkn.domain.exercises.ExercisePatternDetector
+import com.example.kpkn.domain.exercises.ExerciseMatchLexicon
 import com.example.kpkn.domain.exercises.SmartExerciseCreator
 import com.example.kpkn.domain.exercises.explainMuscleContribution
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseBodyRegionV2
@@ -348,12 +361,38 @@ private fun ColumnScope.CatalogReadyContent(
     }
     var expandedDefinitionId by rememberSaveable { mutableStateOf<String?>(null) }
     val customExercises by CustomExerciseRepository.customExercises.collectAsStateWithLifecycle()
+    val editingCustomExercise = remember { mutableStateOf<ExerciseMuscleInfo?>(null) }
+    val deletingCustomExercise = remember { mutableStateOf<ExerciseMuscleInfo?>(null) }
     val visibleCustomExercises = remember(customExercises, query) {
         customExercises.filter {
             query.isBlank() ||
                 it.name.contains(query, ignoreCase = true) ||
                 it.id.contains(query, ignoreCase = true)
         }
+    }
+
+    val exactMatch = remember(query, catalog, customExercises) {
+        ExerciseMatchLexicon.hasExactMatch(
+            query = query,
+            definitions = catalog.families.flatMap { it.definitions },
+            customExercises = customExercises,
+        )
+    }
+
+    val editing = editingCustomExercise.value
+    if (editing != null) {
+        SmartExerciseEditorPage(
+            exercise = editing,
+            onSave = { saved ->
+                val wasSelected = selectedRows.value.containsKey(saved.id)
+                val next = if (wasSelected) selectedRows.value + (saved.id to saved) else selectedRows.value
+                selectedRows.value = next
+                if (wasSelected) onSelectionChange(next.values.toList())
+                editingCustomExercise.value = null
+            },
+            onClose = { editingCustomExercise.value = null },
+        )
+        return
     }
 
     val listState = rememberLazyListState()
@@ -476,6 +515,8 @@ private fun ColumnScope.CatalogReadyContent(
                         selectedRows.value = next
                         onSelectionChange(next.values.toList())
                     },
+                    onEdit = { editingCustomExercise.value = custom },
+                    onDelete = { deletingCustomExercise.value = custom },
                 )
             }
         }
@@ -813,10 +854,11 @@ private fun ColumnScope.CatalogReadyContent(
             }
         }
 
-        if (definitions.isEmpty() && visibleCustomExercises.isEmpty()) {
-            item("empty") {
+        if (query.isNotBlank() && !exactMatch) {
+            item("smart-create") {
                 SmartCreateSuggestion(
                     query = query,
+                    hasPartialResults = definitions.isNotEmpty() || visibleCustomExercises.isNotEmpty(),
                     onCreate = { info ->
                         if (editingExisting) {
                             onSelect(info)
@@ -907,6 +949,31 @@ private fun ColumnScope.CatalogReadyContent(
                 shape = RoundedCornerShape(14.dp),
             ) { Text("Agregar ${selectedRows.value.size} ejercicio(s)", fontWeight = FontWeight.Black) }
         }
+    }
+    deletingCustomExercise.value?.let { deleting ->
+        AlertDialog(
+            onDismissRequest = { deletingCustomExercise.value = null },
+            title = { Text("Eliminar ejercicio", color = Color.White) },
+            text = { Text("¿Eliminar «${deleting.name}»? Esta acción no se puede deshacer.", color = Color.White.copy(alpha = 0.8f)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    val wasSelected = selectedRows.value.containsKey(deleting.id)
+                    CustomExerciseRepository.delete(deleting.id)
+                    if (wasSelected) {
+                        val next = selectedRows.value - deleting.id
+                        selectedRows.value = next
+                        onSelectionChange(next.values.toList())
+                    }
+                    deletingCustomExercise.value = null
+                }) { Text("Eliminar", color = Color(0xFFEF4444)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { deletingCustomExercise.value = null }) {
+                    Text("Cancelar", color = Color.White)
+                }
+            },
+            containerColor = Color(0xFF101418),
+        )
     }
 }
 
@@ -1050,6 +1117,8 @@ private fun CustomExerciseCard(
     editingExisting: Boolean,
     onSelect: () -> Unit,
     onToggle: () -> Unit,
+    onEdit: () -> Unit = {},
+    onDelete: () -> Unit = {},
 ) {
     val primaryMuscles = remember(exercise) {
         exercise.involvedMuscles
@@ -1094,6 +1163,29 @@ private fun CustomExerciseCard(
                         style = MaterialTheme.typography.labelSmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                Spacer(Modifier.width(2.dp))
+                IconButton(
+                    onClick = onEdit,
+                    modifier = Modifier.size(28.dp),
+                ) {
+                    Icon(
+                        Icons.Default.Edit,
+                        contentDescription = "Editar ejercicio",
+                        tint = Color.White.copy(alpha = 0.75f),
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
+                IconButton(
+                    onClick = onDelete,
+                    modifier = Modifier.size(28.dp),
+                ) {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = "Eliminar ejercicio",
+                        tint = Color(0xFFEF4444).copy(alpha = 0.85f),
+                        modifier = Modifier.size(16.dp),
                     )
                 }
             }
@@ -1368,172 +1460,296 @@ private fun draftAfterAxisSelection(
     }
     return result
 }
-
 /**
- * Empty-search entry point for smart creation: "«query» no está en el catálogo"
- * with an inline form (nombre + Implemento/Estación/Lateralidad). On confirm it
- * derives the technical data from the closest existing exercise, persists the
- * custom exercise and auto-selects it.
+ * Diálogo reutilizable para editar un ejercicio personalizado existente.
  */
 @Composable
-private fun SmartCreateSuggestion(
-    query: String,
-    onCreate: (ExerciseMuscleInfo) -> Unit,
+fun SmartExerciseEditorDialog(
+    initial: ExerciseMuscleInfo,
+    onSave: (ExerciseMuscleInfo) -> Unit,
+    onDismiss: () -> Unit,
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    var name by remember(query) { mutableStateOf(query) }
-    var implementoId by remember { mutableStateOf<String?>(null) }
-    var estacionId by remember { mutableStateOf<String?>(null) }
-    var lateralidadId by remember { mutableStateOf<String?>("bilateral") }
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(20.dp),
+            color = Color(0xFF101418),
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 620.dp)
+                .verticalScroll(rememberScrollState()),
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    "Editar (${initial.name})",
+                    color = Color.White,
+                    fontWeight = FontWeight.Black,
+                    style = MaterialTheme.typography.titleLarge,
+                )
+                SmartExerciseForm(initial = initial, onSave = onSave, onDismiss = onDismiss)
+            }
+        }
+    }
+}
+
+/**
+ * Página de edición dentro del sheet: reemplaza el catálogo completo (sin
+ * filtros ni título de catálogo) y muestra solo el editor con su cabecera.
+ */
+@Composable
+internal fun SmartExerciseEditorPage(
+    exercise: ExerciseMuscleInfo,
+    onSave: (ExerciseMuscleInfo) -> Unit,
+    onClose: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .imePadding()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onClose) {
+                Icon(Icons.Default.ArrowBack, "Volver", tint = Color.White)
+            }
+            Text(
+                "Editar (${exercise.name})",
+                color = Color.White,
+                fontWeight = FontWeight.Black,
+                style = MaterialTheme.typography.titleLarge,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        SmartExerciseForm(initial = exercise, onSave = onSave, onDismiss = onClose)
+    }
+}
+
+/**
+ * Formulario del creador inteligente. Se usa inline en el buscador sin
+ * resultados y dentro del diálogo de edición. Deriva nombre → patrón →
+ * match de catálogo → músculos, permite descripción propia y ajuste manual
+ * del involucramiento cuando la detección es incierta.
+ */
+@Composable
+internal fun SmartExerciseForm(
+    initial: ExerciseMuscleInfo?,
+    onSave: (ExerciseMuscleInfo) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val catalog = remember { exerciseCatalogSnapshot() }
+    var name by remember(initial) { mutableStateOf(initial?.name ?: "") }
+    var implementoId by remember(initial) {
+        mutableStateOf(
+            initial?.catalogVariantChips?.getOrNull(0)
+                ?.let { SmartExerciseCreator.implementoIdFromLabel(it) }
+                ?: initial?.equipment?.let { SmartExerciseCreator.implementoIdFromLabel(it) },
+        )
+    }
+    var estacionId by remember(initial) {
+        mutableStateOf(
+            initial?.catalogVariantChips?.getOrNull(1)
+                ?.let { SmartExerciseCreator.estacionIdFromLabel(it) },
+        )
+    }
+    var lateralidadId by remember(initial) {
+        mutableStateOf(
+            initial?.catalogVariantChips?.getOrNull(2)
+                ?.let { SmartExerciseCreator.lateralidadIdFromLabel(it) }
+        )
+    }
+    var description by remember(initial) { mutableStateOf(initial?.description.orEmpty()) }
+    var musclesOverride by remember(initial) {
+        mutableStateOf(initial?.involvedMuscles?.takeIf { it.isNotEmpty() })
+    }
+    var manualExpanded by remember(initial) { mutableStateOf(initial != null) }
     var creating by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
+    val preview = remember(name, implementoId, estacionId, lateralidadId, description, musclesOverride) {
+        if (name.isNotBlank()) {
+            runCatching {
+                SmartExerciseCreator.preview(
+                    SmartCreateRequest(
+                        name = name,
+                        implementoId = implementoId ?: "",
+                        estacionId = estacionId,
+                        lateralidadId = lateralidadId,
+                        description = description,
+                        musclesOverride = musclesOverride,
+                        existingId = initial?.id,
+                    ),
+                    catalog,
+                )
+            }.getOrNull()
+        } else null
+    }
+
+
+
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+        modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text(
-            "\"$query\" no está en el catálogo",
-            color = Color.White.copy(alpha = 0.72f),
+        OutlinedTextField(
+            value = name,
+            onValueChange = { name = it },
+            label = { Text("Nombre del ejercicio", color = Color.White.copy(alpha = 0.6f)) },
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color.White.copy(alpha = 0.4f),
+                unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                cursorColor = Color.White,
+            ),
+            modifier = Modifier.fillMaxWidth(),
         )
-        if (!expanded) {
-            Button(
-                onClick = { expanded = true },
-                shape = RoundedCornerShape(999.dp),
-                modifier = Modifier.fillMaxWidth(),
+
+        OptionChipRow(
+            title = "Implemento",
+            required = true,
+            value = implementoId,
+            options = SmartExerciseCreator.IMPLEMENTO_IDS,
+            label = SmartExerciseCreator::implementoLabel,
+            onSelect = { implementoId = it },
+        )
+        OptionChipRow(
+            title = "Estación",
+            value = estacionId,
+            options = SmartExerciseCreator.ESTACION_IDS,
+            label = SmartExerciseCreator::estacionLabel,
+            onSelect = { estacionId = it },
+        )
+        OptionChipRow(
+            title = "Lateralidad",
+            value = lateralidadId,
+            options = SmartExerciseCreator.LATERALIDAD_IDS,
+            label = SmartExerciseCreator::lateralidadLabel,
+            onSelect = { lateralidadId = it },
+        )
+
+        OutlinedTextField(
+            value = description,
+            onValueChange = { description = it },
+            label = { Text("Descripción", color = Color.White.copy(alpha = 0.6f)) },
+            placeholder = {
+                Text(
+                    if (preview?.manualRecommended == true) {
+                        "El nombre no permite inferirla; describe brevemente el ejercicio"
+                    } else {
+                        "Se genera automáticamente si la dejas vacía"
+                    },
+                    color = Color.White.copy(alpha = 0.35f),
+                )
+            },
+            minLines = 2,
+            maxLines = 4,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color.White.copy(alpha = 0.4f),
+                unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                cursorColor = Color.White,
+            ),
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        preview?.let { p ->
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.White.copy(alpha = 0.05f))
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Icon(Icons.Default.Add, contentDescription = null)
-                Spacer(Modifier.width(6.dp))
-                Text("Crear este ejercicio")
-            }
-        } else {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Nombre del ejercicio", color = Color.White.copy(alpha = 0.6f)) },
-                singleLine = true,
-                colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.White.copy(alpha = 0.4f),
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    cursorColor = Color.White,
-                ),
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            OptionChipRow(
-                title = "Implemento",
-                required = true,
-                value = implementoId,
-                options = SmartExerciseCreator.IMPLEMENTO_IDS,
-                label = SmartExerciseCreator::implementoLabel,
-                onSelect = { implementoId = it },
-            )
-            OptionChipRow(
-                title = "Estación",
-                value = estacionId,
-                options = SmartExerciseCreator.ESTACION_IDS,
-                label = SmartExerciseCreator::estacionLabel,
-                onSelect = { estacionId = it },
-            )
-            OptionChipRow(
-                title = "Lateralidad",
-                value = lateralidadId,
-                options = SmartExerciseCreator.LATERALIDAD_IDS,
-                label = SmartExerciseCreator::lateralidadLabel,
-                onSelect = { lateralidadId = it },
-            )
-
-            // Previsualización en vivo: el mismo motor que persiste el ejercicio
-            // deriva los chips técnicos y el involucramiento muscular por
-            // similitud con el catálogo. Se actualiza al cambiar nombre o chips.
-            val previewImplemento = implementoId
-            val preview = remember(name, previewImplemento, estacionId, lateralidadId) {
-                if (name.isNotBlank() && previewImplemento != null) {
-                    runCatching {
-                        SmartExerciseCreator.create(
-                            SmartCreateRequest(
-                                name = name,
-                                implementoId = previewImplemento,
-                                estacionId = estacionId,
-                                lateralidadId = lateralidadId,
-                            ),
-                            exerciseCatalogSnapshot(),
-                        )
-                    }.getOrNull()
-                } else null
-            }
-            if (preview != null) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color.White.copy(alpha = 0.05f))
-                        .padding(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
+                Text(
+                    "Derivado automáticamente por similitud",
+                    color = Color.White.copy(alpha = 0.74f),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                )
+                p.detectedPattern?.let { PatternBanner(it) }
+                if (p.manualRecommended) {
                     Text(
-                        "Derivado automáticamente por similitud",
-                        color = Color.White.copy(alpha = 0.74f),
+                        "No pudimos detectar el patrón con certeza: revisa el involucramiento muscular antes de guardar.",
+                        color = Color(0xFFFBBF24),
                         style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
                     )
-                    if (preview.catalogVariantChips.isNotEmpty()) {
-                        FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            verticalArrangement = Arrangement.spacedBy(6.dp),
-                        ) {
-                            preview.catalogVariantChips.forEach { value ->
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(999.dp))
-                                        .background(Color.White.copy(alpha = 0.10f))
-                                        .padding(horizontal = 8.dp, vertical = 3.dp),
-                                ) {
-                                    Text(
-                                        value,
-                                        color = Color.White.copy(alpha = 0.82f),
-                                        style = MaterialTheme.typography.labelSmall,
-                                    )
-                                }
+                }
+                if (p.exercise.catalogVariantChips.isNotEmpty()) {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        p.exercise.catalogVariantChips.forEach { value ->
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(999.dp))
+                                    .background(Color.White.copy(alpha = 0.10f))
+                                    .padding(horizontal = 8.dp, vertical = 3.dp),
+                            ) {
+                                Text(
+                                    value,
+                                    color = Color.White.copy(alpha = 0.82f),
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
                             }
                         }
                     }
-                    if (preview.involvedMuscles.isNotEmpty()) {
-                        MuscleInvolvementSection(preview)
-                    }
+                }
+                if (p.exercise.involvedMuscles.isNotEmpty()) {
+                    MuscleInvolvementSection(p.exercise)
                 }
             }
+        }
 
-            val canCreate = name.isNotBlank() && implementoId != null && !creating
+        val editableMuscles = musclesOverride ?: preview?.exercise?.involvedMuscles.orEmpty()
+        if (editableMuscles.isNotEmpty() && (manualExpanded || preview?.manualRecommended == true)) {
+            ManualMuscleEditor(
+                muscles = editableMuscles,
+                onChange = { updated -> musclesOverride = updated },
+            )
+        }
+        TextButton(
+            onClick = { manualExpanded = !manualExpanded },
+            modifier = Modifier.align(Alignment.End),
+        ) {
+            Text(
+                if (manualExpanded) "Ocultar ajuste manual" else "Ajustar involucramiento manualmente",
+                color = Color.White.copy(alpha = 0.7f),
+            )
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier.weight(1f),
+            ) {
+                Text("Cancelar", color = Color.White.copy(alpha = 0.7f))
+            }
             Button(
                 onClick = {
-                    if (!canCreate) return@Button
+                    val result = preview?.exercise ?: return@Button
                     creating = true
                     scope.launch {
-                        val info = withContext(Dispatchers.IO) {
-                            val created = SmartExerciseCreator.create(
-                                SmartCreateRequest(
-                                    name = name,
-                                    implementoId = implementoId ?: "",
-                                    estacionId = estacionId,
-                                    lateralidadId = lateralidadId,
-                                ),
-                                exerciseCatalogSnapshot(),
-                            )
-                            CustomExerciseRepository.upsert(created)
-                            created
-                        }
+                        withContext(Dispatchers.IO) { CustomExerciseRepository.upsert(result) }
                         creating = false
-                        onCreate(info)
+                        onSave(result)
                     }
                 },
-                enabled = canCreate,
+                enabled = name.isNotBlank() && implementoId != null && !creating && preview != null,
                 shape = RoundedCornerShape(999.dp),
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.weight(1f),
             ) {
                 if (creating) {
                     CircularProgressIndicator(
@@ -1542,7 +1758,219 @@ private fun SmartCreateSuggestion(
                         strokeWidth = 2.dp,
                     )
                 } else {
-                    Text("Crear y seleccionar")
+                    Text(if (initial == null) "Crear y seleccionar" else "Guardar cambios")
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Empty-search entry point: "«query» no está en el catálogo". Crea el
+ * ejercicio automáticamente con el nombre buscado y los datos del ejercicio
+ * de referencia; el editor queda disponible al editar el ejercicio después.
+ */
+@Composable
+private fun SmartCreateSuggestion(
+    query: String,
+    hasPartialResults: Boolean = false,
+    onCreate: (ExerciseMuscleInfo) -> Unit,
+) {
+    var creating by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val catalog = remember { exerciseCatalogSnapshot() }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            if (hasPartialResults) "\"$query\" no coincide exactamente con ningún ejercicio" else "\"$query\" no está en el catálogo",
+            color = Color.White.copy(alpha = 0.72f),
+        )
+        Button(
+            onClick = {
+                if (creating) return@Button
+                creating = true
+                scope.launch {
+                    val created = withContext(Dispatchers.IO) {
+                        val info = SmartExerciseCreator.createAutomatic(query, catalog)
+                        CustomExerciseRepository.upsert(info)
+                        info
+                    }
+                    creating = false
+                    onCreate(created)
+                }
+            },
+            enabled = !creating,
+            shape = RoundedCornerShape(999.dp),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            if (creating) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(18.dp),
+                    color = Color.White,
+                    strokeWidth = 2.dp,
+                )
+            } else {
+                Icon(Icons.Default.Add, contentDescription = null)
+                Spacer(Modifier.width(6.dp))
+                Text("Crear este ejercicio automáticamente")
+            }
+        }
+    }
+}
+
+@Composable
+private fun PatternBanner(pattern: ExercisePatternDetector.DetectedMovementPattern) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text(
+            "Patrón detectado:",
+            color = Color.White.copy(alpha = 0.7f),
+            style = MaterialTheme.typography.labelSmall,
+        )
+        Text(
+            pattern.label,
+            color = Color(0xFF4ADE80),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+        )
+    }
+}
+
+private val MANUAL_MUSCLE_OPTIONS = listOf(
+    "Pectorales", "Dorsales", "Deltoides", "Bíceps", "Tríceps", "Antebrazo",
+    "Cuádriceps", "Isquiosurales", "Glúteos", "Core", "Abdomen", "Trapecio",
+    "Romboides", "Erectores Espinales", "Pantorrillas", "Aductores",
+)
+
+@Composable
+private fun ManualMuscleEditor(
+    muscles: List<InvolvedMuscle>,
+    onChange: (List<InvolvedMuscle>) -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            "Involucramiento manual",
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.labelLarge,
+        )
+        muscles.forEachIndexed { index, muscle ->
+            val volume = (muscle.volumeContribution ?: resolveMuscleVolumeContribution(muscle)).toFloat()
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Color.White.copy(alpha = 0.05f))
+                    .padding(10.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        muscle.muscle,
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.weight(1f),
+                    )
+                    TextButton(
+                        onClick = { onChange(muscles.filterIndexed { i, _ -> i != index }) },
+                    ) {
+                        Text(
+                            "Quitar",
+                            color = Color.White.copy(alpha = 0.6f),
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf(
+                        MuscleRole.PRIMARY to "Primario",
+                        MuscleRole.SECONDARY to "Secundario",
+                        MuscleRole.STABILIZER to "Estabilizador",
+                    ).forEach { (role, label) ->
+                        FilterChip(
+                            selected = muscle.role == role,
+                            onClick = {
+                                onChange(
+                                    muscles.toMutableList().also { it[index] = muscle.copy(role = role) },
+                                )
+                            },
+                            label = { Text(label, color = Color.White) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                containerColor = if (muscle.role == role) {
+                                    Color.White.copy(alpha = 0.22f)
+                                } else {
+                                    Color.White.copy(alpha = 0.08f)
+                                },
+                            ),
+                            border = FilterChipDefaults.filterChipBorder(
+                                enabled = true,
+                                selected = muscle.role == role,
+                                borderColor = Color.White.copy(alpha = 0.25f),
+                                selectedBorderColor = Color.White.copy(alpha = 0.6f),
+                            ),
+                        )
+                    }
+                }
+                Slider(
+                    value = volume.coerceIn(0.0f, 1.0f),
+                    onValueChange = { newVolume ->
+                        onChange(
+                            muscles.toMutableList().also {
+                                it[index] = muscle.copy(
+                                    volumeContribution = newVolume.toDouble().coerceIn(0.0, 1.0),
+                                )
+                            },
+                        )
+                    },
+                    valueRange = 0f..1f,
+                    steps = 19,
+                )
+                Text(
+                    "Aporte: ${"%.2f".format(volume)}",
+                    color = Color.White.copy(alpha = 0.6f),
+                    style = MaterialTheme.typography.labelSmall,
+                )
+            }
+        }
+        val available = MANUAL_MUSCLE_OPTIONS.filter { option ->
+            muscles.none { it.muscle.equals(option, ignoreCase = true) }
+        }
+        if (available.isNotEmpty()) {
+            Text(
+                "Agregar músculo",
+                color = Color.White.copy(alpha = 0.7f),
+                style = MaterialTheme.typography.labelSmall,
+            )
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                available.take(12).forEach { option ->
+                    FilterChip(
+                        selected = false,
+                        onClick = {
+                            onChange(muscles + InvolvedMuscle(option, MuscleRole.SECONDARY, 0.5))
+                        },
+                        label = { Text(option, color = Color.White) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            containerColor = Color.White.copy(alpha = 0.08f),
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = false,
+                            borderColor = Color.White.copy(alpha = 0.25f),
+                            selectedBorderColor = Color.White.copy(alpha = 0.6f),
+                        ),
+                    )
                 }
             }
         }

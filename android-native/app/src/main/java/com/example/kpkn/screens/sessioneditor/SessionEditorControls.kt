@@ -61,6 +61,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -400,7 +401,7 @@ internal fun ExerciseSetsCarousel(
     if (exercise.sets.isEmpty()) {
         // Empty state
         Column(
-            modifier = modifier
+        modifier = modifier
                 .fillMaxWidth()
                 .padding(vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -465,11 +466,19 @@ internal fun ExerciseSetsCarousel(
         }
         val baseHeight = if (showUnilateralDualCards) 460.dp else 278.dp
         val expandedHeight = if (showUnilateralDualCards) 580.dp else 400.dp
+        val density = LocalDensity.current
+        var setCardTotalHeight by remember { mutableStateOf(220.dp) }
         // Carousel using LazyRow
         LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(if (anyTechniqueConfigExpanded) expandedHeight else baseHeight),
+                .then(
+                    if (showUnilateralDualCards) {
+                        Modifier.height(if (anyTechniqueConfigExpanded) expandedHeight else baseHeight)
+                    } else {
+                        Modifier
+                    },
+                ),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             contentPadding = PaddingValues(horizontal = 4.dp),
             state = listState,
@@ -483,8 +492,13 @@ internal fun ExerciseSetsCarousel(
 
                     Box(
                         modifier = Modifier
-                            .width(292.dp)
-                            .fillMaxHeight(),
+                            .width(264.dp)
+                        .then(if (showUnilateralDualCards) Modifier.fillMaxHeight() else Modifier)
+                        .onSizeChanged { size ->
+                            if (!showUnilateralDualCards && size.height > 0) {
+                                setCardTotalHeight = with(density) { size.height.toDp() }
+                            }
+                        },
                     ) {
                         if (showUnilateralDualCards) {
                             val showLeftCard = set.leftTarget != null
@@ -571,6 +585,7 @@ internal fun ExerciseSetsCarousel(
                                 canMoveUp = index > 0,
                                 canMoveDown = index < exercise.sets.size - 1,
                                 isUnilateral = exercise.isEffectivelyUnilateral(),
+                                fillHeight = false,
                                 unilateralIntensityMode = exercise.unilateralIntensityMode,
                                 onUpdate = { updater -> onUpdateSet(set.id, updater) },
                                 onRemove = { onRemoveSet(set.id) },
@@ -588,12 +603,22 @@ internal fun ExerciseSetsCarousel(
             item("add-set") {
                 Box(
                     modifier = Modifier
-                        .width(292.dp)
-                        .fillMaxHeight()
+                        .width(264.dp)
+                        .then(if (showUnilateralDualCards) Modifier.fillMaxHeight() else Modifier.height(setCardTotalHeight))
                         .padding(end = 16.dp),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
-                    AddSetGhostCard(onAddSet = { onAddSet(null) })
+                    if (showUnilateralDualCards) {
+                        AddSetGhostCard(onAddSet = { onAddSet(null) })
+                    } else {
+                        Column(Modifier.fillMaxSize()) {
+                            Spacer(Modifier.height(33.dp))
+                            AddSetGhostCard(
+                                onAddSet = { onAddSet(null) },
+                                modifier = Modifier.fillMaxWidth().fillMaxHeight(),
+                            )
+                    }
+                }
                 }
             }
         }
@@ -785,7 +810,7 @@ private fun RingCaption(label: String, pct: Int, color: Color) {
 }
 
 @Composable
-internal fun AddSetGhostCard(onAddSet: () -> Unit) {
+internal fun AddSetGhostCard(onAddSet: () -> Unit, modifier: Modifier = Modifier) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()

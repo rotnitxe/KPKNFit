@@ -4,6 +4,7 @@ import com.example.kpkn.data.models.AnatomicalConsideration
 import com.example.kpkn.data.models.CommonMistake
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.InvolvedMuscle
+import com.example.kpkn.data.models.resolveMuscleVolumeContribution
 import java.util.UUID
 
 /**
@@ -12,10 +13,13 @@ import java.util.UUID
  * derived by coincidence with the closest existing exercise.
  *
  * Name-first matching (the user typed a variant such as "Peso muerto rumano
- * con mancuernas"), filtered/boosted by the chosen implemento, then AUGE/RINGS
- * and muscle involvement are inferred from the matched exercises through
+ * con mancuernas"), filtered/boosted by the chosen implemento and by the
+ * detected movement pattern, then AUGE/RINGS and muscle involvement are
+ * inferred from the matched exercises through
  * [ExerciseMatchEngine.inferFromMatches]. ttc and axialLoadFactor come from the
- * best match; the per-muscle emphasis is propagated from the same match.
+ * best match; the per-muscle volume/role/emphasis is propagated from the same
+ * match (explicit catalog values or role fallback 1.0/0.5/0.4), never from the
+ * match score.
  */
 object SmartExerciseCreator {
 
@@ -53,10 +57,41 @@ object SmartExerciseCreator {
         "Peso Corporal" to "bodyweight", "Disco" to "bodyweight",
     )
 
-    fun create(request: SmartCreateRequest, catalog: List<ExerciseMuscleInfo>): ExerciseMuscleInfo {
+    /**
+     * Crea (o reutiliza, si `existingId` viene en el request) un ejercicio
+     * personalizado a partir de la detección automática.
+     */
+    fun create(request: SmartCreateRequest, catalog: List<ExerciseMuscleInfo>): ExerciseMuscleInfo =
+        preview(request, catalog).exercise
+
+    /**
+     * Creación automática sin formulario: toma el nombre buscado y deriva
+     * implemento/estación/lateralidad (chips) del mejor match de referencia.
+     * El usuario ajusta esos datos después, al editar el ejercicio.
+     */
+    fun createAutomatic(name: String, catalog: List<ExerciseMuscleInfo>): ExerciseMuscleInfo {
+        val trimmed = name.trim()
+        val initial = preview(SmartCreateRequest(name = trimmed, implementoId = ""), catalog)
+        val ref = initial.reference
+        val request = SmartCreateRequest(
+            name = trimmed,
+            implementoId = ref?.equipment?.let { implementoIdFromLabel(it) } ?: "",
+            estacionId = ref?.catalogVariantChips?.getOrNull(1)?.let { estacionIdFromLabel(it) },
+            lateralidadId = ref?.catalogVariantChips?.getOrNull(2)?.let { lateralidadIdFromLabel(it) },
+        )
+        return preview(request, catalog).exercise
+    }
+
+    /**
+     * Vista previa del creador inteligente: expone el ejercicio derivado, el
+     * patrón detectado, cuántos matches hubo y si conviene ofrecer edición
+     * manual del involucramiento muscular.
+     */
+    fun preview(request: SmartCreateRequest, catalog: List<ExerciseMuscleInfo>): SmartCreatePreview {
         val name = request.name.trim()
         val equipment = IMPLEMENTO_LABELS[request.implementoId] ?: "Mancuerna"
-        val matches = findBestMatches(catalog, name, equipment)
+        val detected = ExercisePatternDetector.detect(name)
+        val matches = findBestMatches(catalog, name, equipment, detected)
         val suggestions = inferFromMatches(
             matches = matches,
             name = name,
@@ -66,11 +101,7 @@ object SmartExerciseCreator {
             isAxialLoaded = equipment in AXIAL_EQUIPMENT,
         )
         val top = matches.firstOrNull()?.exercise
-        val emphasisByMuscle = top?.involvedMuscles.orEmpty()
-            .associate { it.muscle.lowercase() to it.emphasis }
-        val involved = suggestions.suggestedMuscles.map { muscle ->
-            muscle.copy(emphasis = emphasisByMuscle[muscle.muscle.lowercase()] ?: muscle.emphasis)
-        }
+        val involved = buildInvolvedMuscles(request, suggestions, top)
 
         val chosenOptions = buildList {
             request.implementoId.takeIf { it.isNotBlank() }?.let { add(IMPLEMENTO_LABELS[it] ?: it) }
@@ -78,10 +109,25 @@ object SmartExerciseCreator {
             request.lateralidadId?.let { add(LATERALITY_LABELS[it] ?: it) }
         }
 
-        return ExerciseMuscleInfo(
-            id = "custom:${UUID.randomUUID()}",
-            name = name.ifBlank { "Ejercicio nuevo" },
+        val displayName = name.ifBlank { "Ejercicio nuevo" }
+        val description = request.description?.trim()?.takeIf { it.isNotBlank() }
+            ?: if (matches.isNotEmpty()) {
+                autoGenerateCustomExerciseDescription(
+                    ExerciseMuscleInfo(
+                        id = "auto",
+                        name = displayName,
+                        involvedMuscles = involved,
+                        equipment = equipment,
+                    ),
+                    detected,
+                )
+            } else null
+
+        val exercise = ExerciseMuscleInfo(
+            id = request.existingId ?: "custom:${UUID.randomUUID()}",
+            name = displayName,
             alias = name,
+            description = description,
             involvedMuscles = involved,
             equipment = equipment,
             category = top?.category ?: "Fuerza",
@@ -105,20 +151,57 @@ object SmartExerciseCreator {
             // Chips user-facing de la variante (Implemento · Estación · Lateralidad).
             catalogVariantChips = chosenOptions,
         )
+
+        val manualRecommended = matches.isEmpty() ||
+            detected == null ||
+            detected.confidence != ExercisePatternDetector.PatternConfidence.HIGH
+        return SmartCreatePreview(
+            exercise = exercise,
+            detectedPattern = detected,
+            matchCount = matches.size,
+            manualRecommended = manualRecommended,
+            reference = top,
+        )
+    }
+
+    private fun buildInvolvedMuscles(
+        request: SmartCreateRequest,
+        suggestions: InferredSuggestions,
+        top: ExerciseMuscleInfo?,
+    ): List<InvolvedMuscle> {
+        if (!request.musclesOverride.isNullOrEmpty()) {
+            return request.musclesOverride.map { muscle ->
+                muscle.copy(volumeContribution = resolveMuscleVolumeContribution(muscle))
+            }
+        }
+        val byName = top?.involvedMuscles?.associateBy { it.muscle.lowercase() } ?: emptyMap()
+        return suggestions.suggestedMuscles.map { muscle ->
+            val source = byName[muscle.muscle.lowercase()]
+            muscle.copy(
+                role = source?.role ?: muscle.role,
+                volumeContribution = source?.let { resolveMuscleVolumeContribution(it) }
+                    ?: resolveMuscleVolumeContribution(muscle),
+                emphasis = source?.emphasis ?: muscle.emphasis,
+                biomechanicalReason = source?.biomechanicalReason ?: muscle.biomechanicalReason,
+            )
+        }
     }
 
     private fun findBestMatches(
         catalog: List<ExerciseMuscleInfo>,
         name: String,
         equipment: String,
+        pattern: ExercisePatternDetector.DetectedMovementPattern? = null,
         maxResults: Int = 8,
     ): List<ExerciseMatchResult> {
         val tokens = tokenize(name)
         val queryGroup = EQUIPMENT_GROUPS[equipment]
+        val mentionedMuscles = ExerciseMatchLexicon.mentionedMuscleGroups(name)
         return catalog
             .filter { it.efc != null && it.cnc != null }
             .map { candidate ->
-                val sim = nameSimilarity(tokens, candidate.alias ?: candidate.name)
+                val candidateText = candidate.alias ?: candidate.name
+                val sim = ExerciseMatchLexicon.tokenSimilarity(name, candidateText)
                 var score = sim * 0.7
                 val candidateGroup = candidate.equipment?.let { EQUIPMENT_GROUPS[it] }
                 score += when {
@@ -126,10 +209,30 @@ object SmartExerciseCreator {
                     queryGroup != null && candidateGroup == queryGroup -> 0.20
                     else -> 0.0
                 }
+                if (pattern != null) {
+                    score += when {
+                        candidate.movementPattern?.equals(pattern.patternId, ignoreCase = true) == true -> 0.18
+                        candidate.force?.equals(pattern.label, ignoreCase = true) == true -> 0.15
+                        else -> 0.0
+                    }
+                }
+                if (ExerciseMatchLexicon.containsKnownPhrase(name, candidateText)) {
+                    score += 0.22
+                }
+                if (mentionedMuscles.isNotEmpty() && candidate.involvedMuscles.isNotEmpty()) {
+                    val candidateMuscles = candidate.involvedMuscles
+                        .map { ExerciseMatchLexicon.normalize(it.muscle) }
+                        .toSet()
+                    val muscleHit = mentionedMuscles.any { m ->
+                        val normalized = ExerciseMatchLexicon.normalize(m)
+                        candidateMuscles.any { it.contains(normalized) }
+                    }
+                    if (muscleHit) score += 0.12
+                }
                 ExerciseMatchResult(exercise = candidate, score = score) to sim
             }
-            // Solo coincidencias con solapamiento real de tokens: un ejercicio que
-            // comparte equipo pero ningún token de nombre (ej. "Curl" al buscar
+            // Solo coincidencias con solapamiento real: un ejercicio que comparte
+            // equipo pero ningún token/sinónimo de nombre (ej. "Curl" al buscar
             // "peso muerto rumano") contaminaría la inferencia AUGE.
             .filter { (_, sim) -> tokens.isEmpty() || sim > 0.0 }
             .filter { (result, _) -> result.score > 0.15 }
@@ -137,31 +240,14 @@ object SmartExerciseCreator {
             .take(maxResults)
             .map { it.first }
     }
-
     private val NAME_TOKENS_TO_IGNORE = setOf(
         "el", "la", "los", "las", "de", "del", "con", "en", "para", "y", "a", "al",
-        "variante", "estilo", "barra", "mancuerna", "mancuernas",
-        "maquina", "polea", "kettlebell", "banda", "peso", "corporal", "sentado",
-        "de pie", "bilateral", "unilateral", "alternado",
+        "un", "una", "variante", "estilo", "bilateral", "unilateral", "alternado",
+        "ejercicio", "ejercicios",
     )
 
     private fun tokenize(name: String): Set<String> =
-        name.lowercase()
-            .replace(Regex("[^a-záéíóúñü\\s]"), " ")
-            .split(Regex("\\s+"))
-            .filter { it.isNotBlank() && it !in NAME_TOKENS_TO_IGNORE }
-            .toSet()
-
-    private fun nameSimilarity(queryTokens: Set<String>, candidate: String): Double {
-        if (queryTokens.isEmpty()) return 0.0
-        val candidateTokens = tokenize(candidate)
-        if (candidateTokens.isEmpty()) return 0.0
-        val intersection = queryTokens.intersect(candidateTokens)
-        val jaccard = intersection.size.toDouble() / (queryTokens.size + candidateTokens.size - intersection.size)
-        val overlap = intersection.size.toDouble() / queryTokens.size
-        return (jaccard * 0.6 + overlap * 0.4).coerceIn(0.0, 1.0)
-    }
-
+        ExerciseMatchLexicon.tokenKeys(name).filter { it !in NAME_TOKENS_TO_IGNORE }.toSet()
     private val STATION_LABELS = mapOf("seated" to "Sentado", "standing" to "De pie")
     private val LATERALITY_LABELS = mapOf(
         "bilateral" to "Bilateral",
@@ -176,6 +262,16 @@ object SmartExerciseCreator {
     fun implementoLabel(id: String): String = IMPLEMENTO_LABELS[id] ?: id
     fun estacionLabel(id: String): String = STATION_LABELS[id] ?: id
     fun lateralidadLabel(id: String): String = LATERALITY_LABELS[id] ?: id
+
+    /** Devuelve el id de implemento a partir de la etiqueta guardada en chips. */
+    fun implementoIdFromLabel(label: String): String? =
+        IMPLEMENTO_LABELS.entries.firstOrNull { it.value.equals(label, ignoreCase = true) }?.key
+
+    fun estacionIdFromLabel(label: String): String? =
+        STATION_LABELS.entries.firstOrNull { it.value.equals(label, ignoreCase = true) }?.key
+
+    fun lateralidadIdFromLabel(label: String): String? =
+        LATERALITY_LABELS.entries.firstOrNull { it.value.equals(label, ignoreCase = true) }?.key
 }
 
 data class SmartCreateRequest(
@@ -183,4 +279,19 @@ data class SmartCreateRequest(
     val implementoId: String,
     val estacionId: String? = null,
     val lateralidadId: String? = null,
+    /** Descripción escrita por el usuario; null/blanco dispara autogeneración. */
+    val description: String? = null,
+    /** Override manual del involucramiento muscular (rol + aporte). */
+    val musclesOverride: List<InvolvedMuscle>? = null,
+    /** Id existente para editar un ejercicio personalizado; null crea uno nuevo. */
+    val existingId: String? = null,
+)
+
+data class SmartCreatePreview(
+    val exercise: ExerciseMuscleInfo,
+    val detectedPattern: ExercisePatternDetector.DetectedMovementPattern?,
+    val matchCount: Int,
+    val manualRecommended: Boolean,
+    /** Mejor match del catálogo usado como referencia (puede ser null). */
+    val reference: ExerciseMuscleInfo? = null,
 )

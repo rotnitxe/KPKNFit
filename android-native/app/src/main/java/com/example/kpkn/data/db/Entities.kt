@@ -300,11 +300,14 @@ data class CustomExerciseEntity(
     val updatedAt: String,
 )
 
-fun ExerciseMuscleInfo.toEntity(nowIso: String = Instant.now().toString()) = CustomExerciseEntity(
+fun ExerciseMuscleInfo.toEntity(
+    nowIso: String = Instant.now().toString(),
+    createdAt: String? = null,
+) = CustomExerciseEntity(
     id = id,
     name = name,
     data = dbJson.encodeToString(this.copy(isCustom = true)),
-    createdAt = nowIso,
+    createdAt = createdAt ?: nowIso,
     updatedAt = nowIso,
 )
 

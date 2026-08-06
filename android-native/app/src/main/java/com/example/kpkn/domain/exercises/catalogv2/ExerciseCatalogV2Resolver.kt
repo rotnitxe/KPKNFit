@@ -1,11 +1,15 @@
 package com.example.kpkn.domain.exercises.catalogv2
 
-import java.text.Normalizer
+import com.example.kpkn.domain.exercises.ExerciseMatchLexicon
 
 /**
  * Pure resolver for the v2 contract. It never falls back to a default when a
  * definition/configuration pair is invalid and it never creates combinations
  * that were not materialized by the compiler.
+ *
+ * Search uses the shared match lexicon: accent folding, singular/plural,
+ * synonyms ES/EN, prefix/substring matching, muscle aliases and typo
+ * tolerance, keeping AND semantics across query terms.
  */
 class ExerciseCatalogV2Resolver(
     private val catalog: ExerciseCatalogV2,
@@ -15,6 +19,20 @@ class ExerciseCatalogV2Resolver(
             .flatMap { it.definitions }
             .associateBy { it.id }
 
+    private data class SearchIndex(
+        val text: String,
+        val rawTokens: Set<String>,
+        val keys: Set<String>,
+        val familyName: String,
+    )
+
+    private val definitionIndex: Map<String, SearchIndex> =
+        catalog.families.flatMap { family ->
+            family.definitions.map { definition ->
+                definition.id to buildIndex(definition, family.canonicalName)
+            }
+        }.toMap()
+
     init {
         require(catalog.schemaVersion == 2) { "Unsupported catalog schema: ${catalog.schemaVersion}" }
         require(definitionsById.size == catalog.families.sumOf { it.definitions.size }) {
@@ -22,7 +40,7 @@ class ExerciseCatalogV2Resolver(
         }
         catalog.families.forEach { family ->
             require(family.definitions.all { it.familyId == family.id }) {
-                "Definition family mismatch in ${family.id}"
+                "Family mismatch in ${family.id}"
             }
             family.definitions.forEach { definition ->
                 require(definition.configurations.map { it.id }.distinct().size == definition.configurations.size) {
@@ -78,8 +96,9 @@ class ExerciseCatalogV2Resolver(
         query: String,
         filters: ExerciseSearchFiltersV2 = ExerciseSearchFiltersV2(),
     ): List<ExerciseSearchHitV2> {
-        val normalizedTerms = normalize(query).split(' ').filter(String::isNotBlank)
-        if (normalizedTerms.isEmpty()) return emptyList()
+        val normalizedQuery = ExerciseMatchLexicon.normalize(query)
+        val rawTerms = normalizedQuery.split(' ').filter(String::isNotBlank)
+        if (rawTerms.isEmpty()) return emptyList()
 
         return definitionsById.values
             .filter { definition ->
@@ -94,66 +113,134 @@ class ExerciseCatalogV2Resolver(
                     })
             }
             .mapNotNull { definition ->
-            val definitionText = normalize(
-                buildString {
-                    append(definition.canonicalName)
-                    append(' ')
-                    append(definition.description)
-                    append(' ')
-                    append(definition.searchTerms.joinToString(" "))
-                    definition.configurations.forEach { configuration ->
-                        append(' ')
-                        append(configuration.displaySummary)
-                        append(' ')
-                        append(configuration.selectedOptions.values.joinToString(" ") { localizedCatalogTerms(it) })
-                        append(' ')
-                        append(localizedCatalogTerms(configuration.profile.equipmentId))
-                        append(' ')
-                        append(configuration.profile.setupCues.joinToString(" "))
-                        append(' ')
-                        append(configuration.profile.executionCues.joinToString(" "))
-                    }
-                },
-            )
-            if (!normalizedTerms.all { definitionText.contains(it) }) return@mapNotNull null
+                val index = definitionIndex.getValue(definition.id)
+                if (!rawTerms.all { termMatchesIndex(index, it) }) return@mapNotNull null
 
-            // A query may contain both the parent name and a configuration
-            // term ("curl bayesiano"). The parent satisfies the full query,
-            // while the configuration term selects one explicit config. It
-            // must never synthesize a configuration from the remaining axes.
-            val configuration = definition.configurations
-                .firstOrNull { config ->
-                    val configText = normalize(
-                        buildString {
-                            append(config.displaySummary)
-                            append(' ')
-                            append(config.selectedOptions.values.joinToString(" ") { localizedCatalogTerms(it) })
-                            append(' ')
-                            append(localizedCatalogTerms(config.profile.equipmentId))
-                        },
-                    )
-                    normalizedTerms.any { term -> term.length >= 4 && configText.contains(term) }
-                }
-            ExerciseSearchHitV2(
-                definitionId = definition.id,
-                suggestedConfigurationId = configuration?.id,
-                matchedTerm = normalizedTerms.joinToString(" "),
-                score = normalizedTerms.sumOf { term ->
+                // A query may contain both the parent name and a configuration
+                // term ("curl bayesiano"). The parent satisfies the full query,
+                // while the configuration term selects one explicit config. It
+                // must never synthesize a configuration from the remaining axes.
+                val configuration = definition.configurations
+                    .firstOrNull { config ->
+                        val configText = ExerciseMatchLexicon.normalize(buildConfigText(config))
+                        rawTerms.any { term -> term.length >= 4 && textMatchesTerm(configText, term) }
+                    }
+                val phraseBonus =
+                    if (normalizedQuery.length >= 4 && index.text.contains(normalizedQuery)) 50 else 0
+                val score = rawTerms.sumOf { term ->
                     when {
-                        normalize(definition.canonicalName).contains(term) -> 100
-                        definition.searchTerms.any { normalize(it).contains(term) } -> 50
+                        ExerciseMatchLexicon.normalize(definition.canonicalName).contains(term) -> 100
+                        definition.searchTerms.any { ExerciseMatchLexicon.normalize(it).contains(term) } -> 50
+                        ExerciseMatchLexicon.normalize(index.familyName).contains(term) -> 40
                         else -> 10
                     }
-                },
-            )
-            }.sortedWith(compareByDescending<ExerciseSearchHitV2> { it.score }.thenBy { it.definitionId })
+                } + phraseBonus
+
+                ExerciseSearchHitV2(
+                    definitionId = definition.id,
+                    suggestedConfigurationId = configuration?.id,
+                    matchedTerm = rawTerms.joinToString(" "),
+                    score = score,
+                )
+            }
+            .sortedWith(compareByDescending<ExerciseSearchHitV2> { it.score }.thenBy { it.definitionId })
     }
 
-    private fun normalize(value: String): String =
-        Normalizer.normalize(value.lowercase(), Normalizer.Form.NFD)
-            .replace("\\p{InCombiningDiacriticalMarks}+".toRegex(), "")
-            .replace("[^a-z0-9]+".toRegex(), " ")
-            .trim()
+    private fun buildIndex(definition: ExerciseDefinitionV2, familyName: String): SearchIndex {
+        val raw = buildString {
+            append(definition.canonicalName)
+            append(' ')
+            append(definition.description)
+            append(' ')
+            append(definition.searchTerms.joinToString(" "))
+            append(' ')
+            append(familyName)
+            definition.configurations.forEach { configuration ->
+                append(' ')
+                append(configuration.displaySummary)
+                append(' ')
+                append(configuration.selectedOptions.values.joinToString(" ") { localizedCatalogTerms(it) })
+                append(' ')
+                append(localizedCatalogTerms(configuration.profile.equipmentId))
+                append(' ')
+                append(localizedMuscleTerms(configuration.profile.primaryMuscles))
+                append(' ')
+                append(localizedMuscleTerms(configuration.profile.secondaryMuscles))
+                append(' ')
+                append(localizedMuscleTerms(configuration.profile.stabilizerMuscles))
+                append(' ')
+                append(configuration.profile.setupCues.joinToString(" "))
+                append(' ')
+                append(configuration.profile.executionCues.joinToString(" "))
+            }
+        }
+        val text = ExerciseMatchLexicon.normalize(raw.toString())
+        return SearchIndex(
+            text = text,
+            rawTokens = ExerciseMatchLexicon.stemTokens(text),
+            keys = ExerciseMatchLexicon.tokenKeys(text),
+            familyName = ExerciseMatchLexicon.normalize(familyName),
+        )
+    }
+
+    private fun buildConfigText(configuration: ExerciseConfigurationV2): String =
+        buildString {
+            append(configuration.displaySummary)
+            append(' ')
+            append(configuration.selectedOptions.values.joinToString(" ") { localizedCatalogTerms(it) })
+            append(' ')
+            append(localizedCatalogTerms(configuration.profile.equipmentId))
+        }
+
+    private fun termMatchesIndex(index: SearchIndex, term: String): Boolean {
+        val key = ExerciseMatchLexicon.synonymKey(term)
+        if (key in index.keys) return true
+        val stemmed = ExerciseMatchLexicon.stem(term)
+        if (stemmed.length >= 2 && index.rawTokens.any { it == stemmed || it.startsWith(stemmed) }) {
+            return true
+        }
+        if (term.length >= 3 && index.text.contains(term)) return true
+        if (term.length >= 5 && index.rawTokens.any { ExerciseMatchLexicon.fuzzyMatch(term, it) }) {
+            return true
+        }
+        return false
+    }
+
+    private fun textMatchesTerm(text: String, term: String): Boolean {
+        val stemmed = ExerciseMatchLexicon.stem(term)
+        if (stemmed.length >= 2) {
+            val tokens = ExerciseMatchLexicon.stemTokens(text)
+            if (tokens.any { it == stemmed || it.startsWith(stemmed) }) return true
+        }
+        return term.length >= 3 && text.contains(term)
+    }
+
+    private fun localizedMuscleTerms(ids: List<String>): String = ids.joinToString(" ") { id ->
+        when (id) {
+            "pectoralis" -> "pectoral pectorales pecho chest"
+            "deltoid" -> "deltoides hombro shoulder"
+            "triceps" -> "triceps tricep"
+            "biceps" -> "biceps bicep"
+            "forearm" -> "antebrazo forearm"
+            "latissimus_dorsi" -> "dorsal dorsales espalda back lat"
+            "erector_spinae" -> "erectores espinales erector spine"
+            "hamstrings" -> "isquiosurales isquio isquios hamstring"
+            "gluteus_maximus" -> "gluteos gluteo glute glutes"
+            "gluteus_medius" -> "gluteo medio"
+            "quadriceps" -> "cuadriceps quad quads"
+            "calves" -> "pantorrillas pantorrilla calf calves"
+            "tibialis_anterior" -> "tibial anterior"
+            "hip_flexors" -> "flexores cadera hip flexor"
+            "neck" -> "cuello neck"
+            "adductors" -> "aductores adductor"
+            "tensor_fasciae_latae" -> "tensor fascia lata"
+            "trapezius" -> "trapecio trapezius traps"
+            "rhomboids" -> "romboides"
+            "abdominals" -> "abdominal abdominales abs"
+            "core" -> "core"
+            else -> id
+        }
+    }
 
     private fun localizedCatalogTerms(value: String): String = when (value.lowercase()) {
         "barbell" -> "barra"

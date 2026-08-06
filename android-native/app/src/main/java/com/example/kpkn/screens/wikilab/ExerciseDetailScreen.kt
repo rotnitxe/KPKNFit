@@ -26,6 +26,7 @@ import androidx.compose.foundation.BorderStroke
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.CustomExerciseRepository
+import com.example.kpkn.screens.sessioneditor.components.SmartExerciseEditorDialog
 import com.example.kpkn.screens.wikilab.components.CaupolicanSquatInteractiveViewer
 import com.example.kpkn.screens.wikilab.components.ExerciseFatigueScenarios
 import com.example.kpkn.screens.wikilab.components.SquatVariant
@@ -62,6 +63,8 @@ fun ExerciseDetailScreen(
         name.contains("high bar") || name.contains("low bar")
     }
     var selectedTechnicalOption by remember(exercise.id) { mutableStateOf<Pair<TechnicalAspect, AspectOption>?>(null) }
+    var showEditor by remember { mutableStateOf(false) }
+    var confirmDelete by remember { mutableStateOf(false) }
 
     Scaffold(
         containerColor = Color.Black,
@@ -80,6 +83,16 @@ fun ExerciseDetailScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, "Volver", tint = Color.White)
+                    }
+                },
+                actions = {
+                    if (exercise.isCustom) {
+                        IconButton(onClick = { showEditor = true }) {
+                            Icon(Icons.Default.Edit, "Editar ejercicio", tint = Color.White)
+                        }
+                        IconButton(onClick = { confirmDelete = true }) {
+                            Icon(Icons.Default.Delete, "Eliminar ejercicio", tint = Color(0xFFEF4444))
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -256,6 +269,37 @@ fun ExerciseDetailScreen(
 
             item { Spacer(Modifier.height(80.dp)) }
         }
+    }
+
+    if (showEditor) {
+        SmartExerciseEditorDialog(
+            initial = exercise,
+            onSave = {
+                CustomExerciseRepository.upsert(it)
+                showEditor = false
+            },
+            onDismiss = { showEditor = false },
+        )
+    }
+    if (confirmDelete) {
+        AlertDialog(
+            onDismissRequest = { confirmDelete = false },
+            title = { Text("Eliminar ejercicio", color = Color.White) },
+            text = { Text("¿Eliminar «${exercise.name}»? Esta acción no se puede deshacer.", color = Color.White.copy(alpha = 0.8f)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    CustomExerciseRepository.delete(exercise.id)
+                    confirmDelete = false
+                    onBack()
+                }) { Text("Eliminar", color = Color(0xFFEF4444)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmDelete = false }) {
+                    Text("Cancelar", color = Color.White)
+                }
+            },
+            containerColor = Color(0xFF101418),
+        )
     }
 }
 

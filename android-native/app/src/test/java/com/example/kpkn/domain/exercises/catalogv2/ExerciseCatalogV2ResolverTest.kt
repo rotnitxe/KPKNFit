@@ -34,6 +34,72 @@ class ExerciseCatalogV2ResolverTest {
                 ),
                 evidence = evidence(),
             ),
+            ExerciseFamilyV2(
+                id = "knee_dominant",
+                canonicalName = "Sentadillas",
+                description = "Familia dominante de rodilla.",
+                definitions = listOf(
+                    ExerciseDefinitionV2(
+                        id = "back_squat",
+                        familyId = "knee_dominant",
+                        kind = ExerciseDefinitionKindV2.PARENT,
+                        canonicalName = "Sentadilla con Barra",
+                        description = "Sentadilla clásica con barra.",
+                        searchTerms = listOf("sentadilla trasera", "back squat"),
+                        optionAxes = emptyList(),
+                        configurations = listOf(
+                            ExerciseConfigurationV2(
+                                id = "back_squat__barbell",
+                                selectedOptions = emptyMap(),
+                                displaySummary = "Barra",
+                                profile = profile(
+                                    movementPatternId = "knee_dominant",
+                                    equipmentId = "barbell",
+                                    primary = listOf("quadriceps"),
+                                    secondary = listOf("gluteus_maximus"),
+                                ),
+                                evidence = evidence(),
+                            ),
+                        ),
+                        defaultConfigurationId = "back_squat__barbell",
+                        evidence = evidence(),
+                    ),
+                ),
+                evidence = evidence(),
+            ),
+            ExerciseFamilyV2(
+                id = "chest_fly",
+                canonicalName = "Aperturas de Pecho",
+                description = "Familia de aperturas.",
+                definitions = listOf(
+                    ExerciseDefinitionV2(
+                        id = "cable_chest_fly",
+                        familyId = "chest_fly",
+                        kind = ExerciseDefinitionKindV2.PARENT,
+                        canonicalName = "Aperturas en Polea",
+                        description = "Aperturas de pecho en polea.",
+                        searchTerms = listOf("cable fly", "aperturas polea"),
+                        optionAxes = emptyList(),
+                        configurations = listOf(
+                            ExerciseConfigurationV2(
+                                id = "cable_chest_fly__cable",
+                                selectedOptions = emptyMap(),
+                                displaySummary = "Polea",
+                                profile = profile(
+                                    movementPatternId = "horizontal_abduction",
+                                    equipmentId = "cable",
+                                    primary = listOf("pectoralis"),
+                                    secondary = listOf("deltoid"),
+                                ),
+                                evidence = evidence(),
+                            ),
+                        ),
+                        defaultConfigurationId = "cable_chest_fly__cable",
+                        evidence = evidence(),
+                    ),
+                ),
+                evidence = evidence(),
+            ),
         ),
     )
 
@@ -64,6 +130,34 @@ class ExerciseCatalogV2ResolverTest {
             performanceProfileId = "biceps_curl__$id",
         ),
         evidence = evidence(),
+    )
+
+    private fun profile(
+        movementPatternId: String,
+        equipmentId: String,
+        primary: List<String>,
+        secondary: List<String>,
+    ) = ResolvedExerciseProfileV2(
+        movementPatternId = movementPatternId,
+        bodyRegion = ExerciseBodyRegionV2.UPPER,
+        kineticChain = ExerciseKineticChainV2.ANTERIOR,
+        laterality = ExerciseLateralityV2.BILATERAL,
+        equipmentId = equipmentId,
+        loadMode = "free_external_load",
+        primaryMuscles = primary,
+        secondaryMuscles = secondary,
+        stabilizerMuscles = emptyList(),
+        efc = 2.0,
+        cnc = 1.5,
+        ssc = 0.0,
+        ttc = 1.0,
+        axialLoadFactor = 0.0,
+        technicalDifficulty = 3.0,
+        resistanceProfile = "gravity_arc",
+        setupCues = listOf("Posición estable."),
+        executionCues = listOf("Ejecuta con control."),
+        commonMistakes = listOf("Perder la posición."),
+        performanceProfileId = "${movementPatternId}__${equipmentId}",
     )
 
     private fun evidence() = CatalogEvidenceV2(
@@ -124,5 +218,23 @@ class ExerciseCatalogV2ResolverTest {
                 filters = ExerciseSearchFiltersV2(equipmentIds = setOf("cable")),
             ).isEmpty(),
         )
+    }
+
+    @Test
+    fun search_synonym_squat_finds_sentadilla() {
+        val result = ExerciseCatalogV2Resolver(catalog).search("squat")
+        assertEquals(listOf("back_squat"), result.map { it.definitionId })
+    }
+
+    @Test
+    fun search_tolerates_typos_in_long_terms() {
+        val result = ExerciseCatalogV2Resolver(catalog).search("sentadila")
+        assertEquals(listOf("back_squat"), result.map { it.definitionId })
+    }
+
+    @Test
+    fun search_muscle_alias_pecho_finds_chest_fly() {
+        val result = ExerciseCatalogV2Resolver(catalog).search("pecho")
+        assertEquals(listOf("cable_chest_fly"), result.map { it.definitionId })
     }
 }

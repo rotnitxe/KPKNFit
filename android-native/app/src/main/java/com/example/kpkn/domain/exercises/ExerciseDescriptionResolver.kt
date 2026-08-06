@@ -2,6 +2,7 @@ package com.example.kpkn.domain.exercises
 
 import com.example.kpkn.data.models.AspectOption
 import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.TechnicalAspect
 
 /** Resolves the canonical blurb plus the context supplied by selected chips. */
@@ -75,4 +76,23 @@ private fun genericTechnicalOptionDescription(
             "Las mancuernas permiten libertad de trayectoria y hacen visible cualquier diferencia de control entre ambos lados."
         else -> "Esta variante modifica la posición o la resistencia para cambiar la demanda del ejercicio; conserva un rango cómodo y controlado."
     }
+}
+/**
+ * Genera una descripción por defecto para un ejercicio creado por el usuario.
+ * Se usa cuando el nombre es reconocible (match de catálogo/patrón) y el
+ * usuario no escribió una descripción propia.
+ */
+fun autoGenerateCustomExerciseDescription(
+    exercise: ExerciseMuscleInfo,
+    pattern: ExercisePatternDetector.DetectedMovementPattern? = null,
+): String {
+    val primary = exercise.involvedMuscles
+        .filter { it.role == MuscleRole.PRIMARY }
+        .map { it.muscle }
+        .distinct()
+        .joinToString(" y ")
+        .ifBlank { "la musculatura objetivo" }
+    val patternText = pattern?.let { " dentro del patrón de ${it.label.lowercase()}" }.orEmpty()
+    val equipment = exercise.equipment?.takeIf { it.isNotBlank() } ?: "carga controlada"
+    return "${exercise.name} es un ejercicio orientado a $primary$patternText. Se realiza con $equipment, priorizando un rango controlado y una progresión técnica estable."
 }

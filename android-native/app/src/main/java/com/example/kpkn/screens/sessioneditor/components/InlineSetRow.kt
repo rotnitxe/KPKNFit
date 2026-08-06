@@ -61,6 +61,7 @@ import com.example.kpkn.screens.sessioneditor.components.SetEditorCard
 import com.example.kpkn.screens.sessioneditor.components.SessionEditorBreakpoint
 import com.example.kpkn.screens.sessioneditor.components.rememberSessionEditorBreakpoint
 import com.example.kpkn.screens.sessioneditor.EditorMiniField
+import com.example.kpkn.screens.sessioneditor.kpknEditorFieldColors
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
 import com.example.kpkn.screens.sessioneditor.safeIntOrNull
 import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
@@ -68,7 +69,6 @@ import com.example.kpkn.screens.sessioneditor.formatEstimatedMetric
 import com.example.kpkn.screens.sessioneditor.DarkEditorChip
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
-import com.example.kpkn.ui.components.KpknDropdownMenu
 
 @Composable
 internal fun InlineSetRow(
@@ -266,7 +266,15 @@ internal fun InlineSetRow(
                         Icon(Icons.Default.KeyboardArrowDown, null, tint = Color.White.copy(alpha = 0.7f), modifier = Modifier.size(13.dp))
                     }
                 }
-                KpknDropdownMenu(expanded = showLoadModeMenu, onDismissRequest = { showLoadModeMenu = false }) {
+                DropdownMenu(
+                    expanded = showLoadModeMenu,
+                    onDismissRequest = { showLoadModeMenu = false },
+                    modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f), RoundedCornerShape(12.dp)),
+                    shape = RoundedCornerShape(12.dp),
+                    containerColor = DarkEditorChip,
+                    tonalElevation = 0.dp,
+                    shadowElevation = 0.dp,
+                ) {
                     listOf(
                         LoadModeV2.LOAD to "Carga externa",
                         LoadModeV2.BODYWEIGHT to "Peso corporal",
@@ -359,7 +367,7 @@ internal fun InlineSetRow(
                         value = metricValue,
                         stateKey = "metric-${set.id}-${setStateKeySuffix}",
                         keyboardType = KeyboardType.Number,
-                        modifier = Modifier.weight(if (isAmrapMode) if (isNarrowScreen) 1.2f else 1.35f else 0.72f),
+                        modifier = Modifier.weight(if (isAmrapMode) if (isNarrowScreen) 1.2f else 1.35f else 0.55f),
                     ) { input ->
                         onUpdate(if (isUnilateral) updateUniSet {
                             when (trainingMode) {
@@ -382,45 +390,45 @@ internal fun InlineSetRow(
                 }
                 if (!isAmrapMode && !isRmMode && !isSoloRpeMode) {
                     if (!showPlannedIntensity) {
-                        // Botón "Programar intensidad" alineado con el input de repeticiones,
-                        // con el énfasis de la tarjeta en un tono oscuro.
-                        Surface(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(56.dp)
-                                .clip(RoundedCornerShape(16.dp))
-                                .clickable {
-                                    showPlannedIntensity = true
-                                    onUpdate { current ->
-                                        current.copy(
-                                            intensityMode = IntensityMode.RPE,
-                                            targetRPE = current.targetRPE ?: 8.0,
-                                            targetRIR = null,
-                                            isFailure = false,
-                                        )
-                                    }
+                        // Botón "Intensidad" con el mismo componente y tamaño que el input de reps.
+                        Box(modifier = Modifier.weight(1f)) {
+                            OutlinedTextField(
+                                value = "",
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("Intensidad", style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                                trailingIcon = {
+                                    Icon(
+                                        Icons.Default.KeyboardArrowDown,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp),
+                                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                                    )
                                 },
-                            shape = RoundedCornerShape(16.dp),
-                            color = intensitySurface,
-                            border = BorderStroke(1.dp, intensityBorder),
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(horizontal = 10.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            ) {
-                                Icon(Icons.Default.Add, null, tint = intensityLabelColor, modifier = Modifier.size(15.dp))
-                                Text(
-                                    if (isNarrowScreen) "Intensidad" else "Programar intensidad",
-                                    style = MaterialTheme.typography.labelMedium,
+                                singleLine = true,
+                                shape = RoundedCornerShape(16.dp),
+                                textStyle = MaterialTheme.typography.bodySmall.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = intensityLabelColor,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                            }
+                                    color = Color.White.copy(alpha = 0.94f),
+                                ),
+                                colors = kpknEditorFieldColors(),
+                                modifier = Modifier.fillMaxWidth().height(64.dp),
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .clickable {
+                                        showPlannedIntensity = true
+                                        onUpdate { current ->
+                                            current.copy(
+                                                intensityMode = IntensityMode.RPE,
+                                                targetRPE = current.targetRPE ?: 8.0,
+                                                targetRIR = null,
+                                                isFailure = false,
+                                            )
+                                        }
+                                    },
+                            )
                         }
                     } else {
                         Row(
@@ -428,81 +436,76 @@ internal fun InlineSetRow(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.Top,
                         ) {
-                            Surface(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(56.dp)
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .clickable { showIntensityMenu = true },
-                                shape = RoundedCornerShape(16.dp),
-                                color = intensitySurface,
-                                border = BorderStroke(1.dp, intensityBorder),
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(horizontal = 10.dp, vertical = 5.dp),
-                                    verticalArrangement = Arrangement.Center,
-                                ) {
-                                    Text(
-                                        "Intensidad",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = intensityLabelColor.copy(alpha = 0.72f),
-                                        maxLines = 1,
-                                    )
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(
-                                            intensityLabel,
-                                            style = MaterialTheme.typography.labelMedium,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.White,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                        )
-                                        Spacer(Modifier.width(3.dp))
+                            Box(modifier = Modifier.weight(1.6f)) {
+                                OutlinedTextField(
+                                    value = intensityLabel,
+                                    onValueChange = {},
+                                    readOnly = true,
+                                    label = { Text("Intensidad", style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                                    singleLine = true,
+                                    trailingIcon = {
                                         Icon(
                                             Icons.Default.KeyboardArrowDown,
-                                            null,
-                                            tint = Color.White.copy(alpha = 0.7f),
-                                            modifier = Modifier.size(13.dp),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(16.dp),
+                                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                                        )
+                                    },
+                                    shape = RoundedCornerShape(16.dp),
+                                    textStyle = MaterialTheme.typography.bodySmall.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White.copy(alpha = 0.94f),
+                                    ),
+                                    colors = kpknEditorFieldColors(),
+                                    modifier = Modifier.fillMaxWidth().height(64.dp),
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .matchParentSize()
+                                        .clickable { showIntensityMenu = true },
+                                )
+                                DropdownMenu(
+                                    expanded = showIntensityMenu,
+                                    onDismissRequest = { showIntensityMenu = false },
+                                    modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f), RoundedCornerShape(12.dp)),
+                                    shape = RoundedCornerShape(12.dp),
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    tonalElevation = 0.dp,
+                                    shadowElevation = 0.dp,
+                                ) {
+                                    listOf(
+                                        IntensityMode.RPE to "RPE",
+                                        IntensityMode.RIR to "RIR",
+                                        IntensityMode.FAILURE to "Fallo",
+                                    ).forEach { (mode, label) ->
+                                        DropdownMenuItem(
+                                            text = { Text(label) },
+                                            onClick = {
+                                                showIntensityMenu = false
+                                                val updater: (ExerciseSet) -> ExerciseSet = {
+                                                    when (mode) {
+                                                        IntensityMode.RPE -> it.copy(intensityMode = IntensityMode.RPE, isFailure = false, targetRPE = it.targetRPE ?: 8.0, targetRIR = null, targetPercentageRM = null)
+                                                        IntensityMode.RIR -> it.copy(intensityMode = IntensityMode.RIR, isFailure = false, targetRIR = it.targetRIR ?: 2, targetRPE = null, targetPercentageRM = null)
+                                                        IntensityMode.FAILURE -> it.copy(intensityMode = IntensityMode.FAILURE, isFailure = true, targetRIR = null, targetRPE = null, targetPercentageRM = null)
+                                                        else -> it
+                                                    }
+                                                }
+                                                if (isUnilateral) {
+                                                    val side = activeUniSide
+                                                    onUpdate { current ->
+                                                        val currentSide = (if (side == "L") current.leftTarget else current.rightTarget) ?: UnilateralTarget()
+                                                        val temp = ExerciseSet(id = "", targetRPE = currentSide.targetRPE, targetRIR = currentSide.targetRIR, intensityMode = currentSide.intensityMode ?: current.intensityMode, weight = currentSide.weight, targetPercentageRM = current.targetPercentageRM)
+                                                        val updated = updater(temp)
+                                                        val newSide = currentSide.copy(targetRPE = updated.targetRPE, targetRIR = updated.targetRIR, intensityMode = updated.intensityMode, weight = updated.weight)
+                                                        if (side == "L") current.copy(leftTarget = newSide, isFailure = updated.isFailure, intensityMode = updated.intensityMode, targetPercentageRM = updated.targetPercentageRM)
+                                                        else current.copy(rightTarget = newSide, isFailure = updated.isFailure, intensityMode = updated.intensityMode, targetPercentageRM = updated.targetPercentageRM)
+                                                    }
+                                                } else {
+                                                    onUpdate(updater)
+                                                }
+                                            },
                                         )
                                     }
-                                }
-                            }
-                            KpknDropdownMenu(expanded = showIntensityMenu, onDismissRequest = { showIntensityMenu = false }) {
-                                listOf(
-                                    IntensityMode.RPE to "RPE",
-                                    IntensityMode.RIR to "RIR",
-                                    IntensityMode.FAILURE to "Fallo",
-                                ).forEach { (mode, label) ->
-                                    DropdownMenuItem(
-                                        text = { Text(label) },
-                                        onClick = {
-                                            showIntensityMenu = false
-                                            val updater: (ExerciseSet) -> ExerciseSet = {
-                                                when (mode) {
-                                                    IntensityMode.RPE -> it.copy(intensityMode = IntensityMode.RPE, isFailure = false, targetRPE = it.targetRPE ?: 8.0, targetRIR = null, targetPercentageRM = null)
-                                                    IntensityMode.RIR -> it.copy(intensityMode = IntensityMode.RIR, isFailure = false, targetRIR = it.targetRIR ?: 2, targetRPE = null, targetPercentageRM = null)
-                                                    IntensityMode.FAILURE -> it.copy(intensityMode = IntensityMode.FAILURE, isFailure = true, targetRIR = null, targetRPE = null, targetPercentageRM = null)
-                                                    else -> it
-                                                }
-                                            }
-                                            if (isUnilateral) {
-                                                val side = activeUniSide
-                                                onUpdate { current ->
-                                                    val currentSide = (if (side == "L") current.leftTarget else current.rightTarget) ?: UnilateralTarget()
-                                                    val temp = ExerciseSet(id = "", targetRPE = currentSide.targetRPE, targetRIR = currentSide.targetRIR, intensityMode = currentSide.intensityMode ?: current.intensityMode, weight = currentSide.weight, targetPercentageRM = current.targetPercentageRM)
-                                                    val updated = updater(temp)
-                                                    val newSide = currentSide.copy(targetRPE = updated.targetRPE, targetRIR = updated.targetRIR, intensityMode = updated.intensityMode, weight = updated.weight)
-                                                    if (side == "L") current.copy(leftTarget = newSide, isFailure = updated.isFailure, intensityMode = updated.intensityMode, targetPercentageRM = updated.targetPercentageRM)
-                                                    else current.copy(rightTarget = newSide, isFailure = updated.isFailure, intensityMode = updated.intensityMode, targetPercentageRM = updated.targetPercentageRM)
-                                                }
-                                            } else {
-                                                onUpdate(updater)
-                                            }
-                                        },
-                                    )
                                 }
                             }
                             // En "Fallo" no hay valor que ingresar: solo queda el modo puesto.
@@ -536,7 +539,7 @@ internal fun InlineSetRow(
                     }
                 } else if (isAmrapMode) {
                     Surface(
-                        modifier = Modifier.weight(1f),
+                                    modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(if (isNarrowScreen) 12.dp else 14.dp),
                         color = accentColor.copy(alpha = 0.12f),
                     ) {
