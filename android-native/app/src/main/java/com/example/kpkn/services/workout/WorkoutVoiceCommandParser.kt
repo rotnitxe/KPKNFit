@@ -186,6 +186,9 @@ object WorkoutVoiceCommandParser {
                 base += CONFIRM_KEYWORDS
                 base += CANCEL_KEYWORDS
                 base += STOP_SPEAKING_KEYWORDS
+                // Correcciones numéricas durante la confirmación ("no, era 47.5"):
+                // sin números en la gramática Vosk no puede emitirlos.
+                base += defaultNumericGrammarTokens()
             }
             else -> {
                 base += STOP_SPEAKING_KEYWORDS
@@ -242,6 +245,18 @@ object WorkoutVoiceCommandParser {
                 add(trimmed.lowercase())
                 add(normalizeText(trimmed))
             }
+        }
+    }
+
+    /**
+     * Solo frases de confirmación/cancelación (y stop). No incluye los números
+     * que ahora forman parte de la gramática Vosk en CONFIRM_WAIT: usarlo para
+     * decidir si un final tardío es un sí/no válido (stale-grace), no una corrección.
+     */
+    fun confirmOrCancelPhraseTokens(): Set<String> = buildSet {
+        for (token in CONFIRM_KEYWORDS + CANCEL_KEYWORDS + STOP_SPEAKING_KEYWORDS) {
+            add(token.lowercase())
+            add(normalizeText(token))
         }
     }
 
@@ -536,12 +551,20 @@ object WorkoutVoiceCommandParser {
             if (n != null) weightDeltaKg = -n
         }
 
-        // "eran 9" / "era nueve"
+        // "eran 9" / "era nueve" → reps; "era cien kilos" / "era 47.5" → peso.
         val repsWere = Regex(
-            """(?:eran|era)\s+(\d+|$wordAlts)(?:\s*(?:reps?|repeticiones?))?""",
+            """(?:eran|era)\s+(\d+(?:[.,]\d+)?|$wordAlts)(?:\s*((?:kilos?|kg)))?(?:\s*(?:reps?|repeticiones?))?""",
         ).find(lower)
         if (repsWere != null) {
-            metricValue = parseSpokenInteger(repsWere.groupValues[1])
+            val spoken = repsWere.groupValues[1]
+            val followedByKilos = repsWere.groupValues[2].isNotBlank()
+            val asDouble = spoken.replace(',', '.').toDoubleOrNull() ?: VOICE_INTEGER_WORDS[spoken]?.toDouble()
+            when {
+                // Decimal explícito ("era 47.5") nunca es reps → corrige el peso.
+                asDouble != null && asDouble % 1.0 != 0.0 -> weightKg = asDouble
+                followedByKilos -> weightKg = asDouble
+                else -> metricValue = asDouble?.toInt()
+            }
         }
 
         // Natural multi-field: "82 por 9", "82 x 9", "82 kilos por nueve reps"
@@ -617,19 +640,29 @@ object WorkoutVoiceCommandParser {
 
     fun parseRestAwareCommand(normalized: String): VoiceSessionCommand? {
         val lower = normalized
-        if (USE_ADAPTIVE_REST_KEYWORDS.any { lower.contains(normalizeText(it)) }) {
+        if (USE_ADAPTIVE_REST_KEYWORDS.any { matchesRestKeyword(lower, normalizeText(it)) }) {
             return VoiceSessionCommand.UseAdaptiveRest
         }
         parseAdjustRestTime(lower)?.let { return it }
         if (UNDO_KEYWORDS.any { matchesAnyKeyword(lower, setOf(normalizeText(it))) || lower.contains(normalizeText(it)) }) {
             return VoiceSessionCommand.UndoLastSet
         }
-        if (SKIP_REST_KEYWORDS.any { lower.contains(normalizeText(it)) } ||
+        if (SKIP_REST_KEYWORDS.any { matchesRestKeyword(lower, normalizeText(it)) } ||
             SKIP_KEYWORDS.any { lower.contains(it) }
         ) {
             return VoiceSessionCommand.SkipRest
         }
         return null
+    }
+
+    /**
+     * Las keywords de descanso de una sola palabra se matchean por token exacto
+     * para que "sigue" no colisione con "siguiente" ni "para" con cualquier frase.
+     */
+    private fun matchesRestKeyword(lower: String, keyword: String): Boolean {
+        if (keyword.isBlank()) return false
+        if (' ' in keyword) return lower.contains(keyword)
+        return lower.split(' ').contains(keyword)
     }
 
     fun parseAdjustRestTime(normalized: String): VoiceSessionCommand.AdjustRestTime? {

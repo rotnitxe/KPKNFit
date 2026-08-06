@@ -2350,7 +2350,10 @@ class WorkoutVoiceController(
         val pendingAction = _state.value.pendingAction
         val mergedInterpretation = pendingAction?.baseInterpretation?.let { base ->
             base.copy(
-                transcript = mergeTranscripts(base.transcript, interpretation.transcript),
+                transcript = WorkoutVoiceConfirmationCorrections.mergeTranscripts(
+                    base.transcript,
+                    interpretation.transcript,
+                ),
                 intensityValue = interpretation.intensityValue ?: base.intensityValue,
                 intensityKind = interpretation.intensityKind ?: base.intensityKind,
                 loadModeOverride = interpretation.loadModeOverride ?: base.loadModeOverride,
@@ -2962,97 +2965,84 @@ class WorkoutVoiceController(
         }
     }
 
-    /** Une dos transcripts evitando duplicar tokens que ya aparecen en el primero. */
-    private fun mergeTranscripts(base: String, addition: String): String {
-        val baseTokens = base.split(' ').filter { it.isNotBlank() }
-        val addTokens = addition.split(' ').filter { it.isNotBlank() }
-        if (baseTokens.isEmpty()) return addition.trim()
-        if (addTokens.isEmpty()) return base.trim()
-        val result = baseTokens.toMutableList()
-        for (token in addTokens) {
-            if (token !in result) result += token
-        }
-        return result.joinToString(" ")
-    }
-
     private fun handleConfirmCorrection(text: String) {
         val info = exerciseInfoProvider?.invoke()
-        val reparsed = WorkoutVoiceCommandParser.parseCommand(
-                    transcript = text,
-                    isTimeMode = info?.isTimeMode == true,
-                    isUnilateral = info?.isUnilateral == true,
-                    hasPendingConfirmation = false,
-                    isRestTimerActive = false,
-                    unitMode = info?.unitMode ?: if (info?.isTimeMode == true) UnitModeV2.TIME else UnitModeV2.REPS,
-                    customUnit = info?.customUnit,
-                    trackRom = info?.trackRom == true,
-                    tagNames = info?.tagNames.orEmpty(),
-                )
-                when (reparsed) {
-                    is VoiceSessionCommand.RegisterSet -> {
-                        // Correction while confirming: replace draft interpretation and re-ask sí/no.
-                        confirmedOrCancelled = false
-                        confirmationJob?.cancel()
-                        val replacementToken = ++confirmationToken
-                        confirmationReprompted = false
-                        _state.update {
-                            it.copy(
-                                lastInterpretation = reparsed.interpretation,
-                                lastCommand = reparsed,
-                            )
-                        }
-                        continuousEngine.pause()
-                        runSpeakingOrSkip(
-                            onComplete = {
-                                updateStage(VoicePipelineStage.CONFIRM_WAIT)
-                                pushGrammar(VoicePipelineStage.CONFIRM_WAIT)
-                                val activeScope = scope
-                                if (activeScope != null) {
-                                    startEngineForCurrentInputMode(activeScope)
-                                    startConfirmationTimeout(reparsed.interpretation, replacementToken)
-                                }
-                            },
-                            speak = {
-                                ttsManager.speakSetConfirmation(
-                                    weightKg = reparsed.interpretation.weightKg,
-                                    metricValue = reparsed.interpretation.resolvedMetricValue,
-                                    metricLabel = metricLabel(info?.unitMode ?: UnitModeV2.REPS, info?.customUnit),
-                                    rpe = if (reparsed.interpretation.intensityKind == WorkoutVoiceIntensityKind.RPE) {
-                                        reparsed.interpretation.intensityValue
-                                    } else {
-                                        null
-                                    },
-                                    rir = if (reparsed.interpretation.intensityKind == WorkoutVoiceIntensityKind.RIR) {
-                                        reparsed.interpretation.intensityValue?.toInt()
-                                    } else {
-                                        null
-                                    },
-                                    reachedFailure = reparsed.interpretation.reachedFailure,
-                                    romPercent = reparsed.interpretation.romPercent,
-                                    tagName = reparsed.interpretation.tagName,
-                                    advancedDetails = buildList {
-                                        reparsed.interpretation.helpedReps?.let { add("$it repeticiones con ayuda") }
-                                        if (reparsed.interpretation.isFailedSet) add("serie fallida")
-                                        reparsed.interpretation.dropSets.forEach { add("dropset de ${it.weight} kilos y ${it.reps} repeticiones") }
-                                        reparsed.interpretation.restPauses.forEach { add("rest pause de ${it.restTime} segundos y ${it.reps} repeticiones") }
-                                    },
-                                )
-                            },
-                        )
-                    }
-                    else -> {
-                        // Noise / unrelated speech — never confirm.
-                        continuousEngine.pause()
-                        runSpeakingOrSkip(
-                            onComplete = {
-                                updateStage(VoicePipelineStage.CONFIRM_WAIT)
-                                pushGrammar(VoicePipelineStage.CONFIRM_WAIT)
-                                startEngineForCurrentInputMode(scope ?: return@runSpeakingOrSkip)
-                            },
-                            speak = { ttsManager.speakError("¿Lo registro? Dime sí, o no.") },
-                        )
-                    }
+        val current = _state.value.lastInterpretation ?: WorkoutVoiceInterpretation(transcript = text)
+        val correction = WorkoutVoiceConfirmationCorrections.buildCorrection(
+            draft = current,
+            text = text,
+            isTimeMode = info?.isTimeMode == true,
+            isUnilateral = info?.isUnilateral == true,
+            unitMode = info?.unitMode ?: if (info?.isTimeMode == true) UnitModeV2.TIME else UnitModeV2.REPS,
+            customUnit = info?.customUnit,
+            trackRom = info?.trackRom == true,
+        )
+        val merged = if (correction == null || correction.fields.isEmpty()) {
+            null
+        } else {
+            WorkoutVoiceConfirmationCorrections.mergeCorrection(current, correction)
+        }
+        if (merged == null) {
+            // Noise / unrelated speech — never confirm, re-ask sí/no.
+            continuousEngine.pause()
+            runSpeakingOrSkip(
+                onComplete = {
+                    updateStage(VoicePipelineStage.CONFIRM_WAIT)
+                    pushGrammar(VoicePipelineStage.CONFIRM_WAIT)
+                    startEngineForCurrentInputMode(scope ?: return@runSpeakingOrSkip)
+                },
+                speak = { ttsManager.speakError("¿Lo registro? Dime sí, o no.") },
+            )
+            return
+        }
+        confirmedOrCancelled = false
+        confirmationJob?.cancel()
+        val replacementToken = ++confirmationToken
+        confirmationReprompted = false
+        _state.update {
+            it.copy(
+                lastInterpretation = merged,
+                lastCommand = VoiceSessionCommand.RegisterSet(merged),
+            )
+        }
+        continuousEngine.pause()
+        runSpeakingOrSkip(
+            onComplete = {
+                updateStage(VoicePipelineStage.CONFIRM_WAIT)
+                pushGrammar(VoicePipelineStage.CONFIRM_WAIT)
+                val activeScope = scope
+                if (activeScope != null) {
+                    startEngineForCurrentInputMode(activeScope)
+                    startConfirmationTimeout(merged, replacementToken)
                 }
+            },
+            speak = {
+                ttsManager.speakSetConfirmation(
+                    weightKg = merged.weightKg,
+                    metricValue = merged.resolvedMetricValue,
+                    metricLabel = metricLabel(info?.unitMode ?: UnitModeV2.REPS, info?.customUnit),
+                    rpe = if (merged.intensityKind == WorkoutVoiceIntensityKind.RPE) {
+                        merged.intensityValue
+                    } else {
+                        null
+                    },
+                    rir = if (merged.intensityKind == WorkoutVoiceIntensityKind.RIR) {
+                        merged.intensityValue?.toInt()
+                    } else {
+                        null
+                    },
+                    reachedFailure = merged.reachedFailure,
+                    romPercent = merged.romPercent,
+                    tagName = merged.tagName,
+                    advancedDetails = buildList {
+                        merged.helpedReps?.let { add("$it repeticiones con ayuda") }
+                        if (merged.isFailedSet) add("serie fallida")
+                        merged.dropSets.forEach { add("dropset de ${it.weight} kilos y ${it.reps} repeticiones") }
+                        merged.restPauses.forEach { add("rest pause de ${it.restTime} segundos y ${it.reps} repeticiones") }
+                    },
+                )
+            },
+        )
     }
 
     private fun handleAddSetPersistenceInput(text: String) {
@@ -3679,7 +3669,7 @@ class WorkoutVoiceController(
 
 private fun isConfirmOrCancelPhrase(text: String): Boolean {
     val normalized = text.trim().lowercase()
-    val confirmTokens = WorkoutVoiceCommandParser.grammarTokensForStage(VoicePipelineStage.CONFIRM_WAIT)
+    val confirmTokens = WorkoutVoiceCommandParser.confirmOrCancelPhraseTokens()
     return confirmTokens.any { token -> normalized == token || normalized.startsWith("$token ") }
 }
 
