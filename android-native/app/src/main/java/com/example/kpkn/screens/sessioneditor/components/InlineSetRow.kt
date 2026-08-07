@@ -49,7 +49,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -116,6 +118,13 @@ internal fun InlineSetRow(
             predictedWeight != null && reference1RM != null && reference1RM > 0 -> ((predictedWeight / reference1RM) * 100.0).coerceIn(40.0, 100.0)
             set.targetReps != null -> estimatePercent1RM(set.targetReps)
             else -> 75.0
+        }
+    }
+    var localSliderPercent by remember(set.id, sliderPercent) { mutableStateOf(sliderPercent.toFloat()) }
+    LaunchedEffect(sliderPercent) {
+        // Sync when external value changes and not dragging (approx by checking equality)
+        if (kotlin.math.abs(localSliderPercent - sliderPercent.toFloat()) > 0.01f) {
+            localSliderPercent = sliderPercent.toFloat()
         }
     }
     val displayedWeight = predictedWeight
@@ -576,8 +585,14 @@ internal fun InlineSetRow(
                         )
                         if (isRmMode) {
                             Slider(
-                                value = sliderPercent.toFloat(),
-                                onValueChange = { onUpdate { current -> current.copy(targetPercentageRM = it.toDouble(), intensityMode = IntensityMode.LOAD) } },
+                                value = localSliderPercent,
+                                onValueChange = { localSliderPercent = it },
+                                onValueChangeFinished = {
+                                    val v = localSliderPercent.toDouble()
+                                    if (v != set.targetPercentageRM) {
+                                        onUpdate { current -> current.copy(targetPercentageRM = v, intensityMode = IntensityMode.LOAD) }
+                                    }
+                                },
                                 valueRange = 45f..100f,
                                 enabled = reference1RM != null,
                             )
@@ -620,14 +635,20 @@ private fun AccentSetValueField(
         value = localValue,
         onValueChange = {
             localValue = it
-            onCommit(it)
         },
         label = { Text(label) },
         singleLine = true,
         enabled = enabled,
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(onDone = {
+            if (localValue != value) onCommit(localValue)
+        }),
         modifier = modifier.onFocusChanged { focusState ->
+            val wasFocused = isFocused
             isFocused = focusState.isFocused
+            if (wasFocused && !focusState.isFocused && localValue != value) {
+                onCommit(localValue)
+            }
         },
         shape = RoundedCornerShape(16.dp),
         textStyle = MaterialTheme.typography.bodySmall.copy(

@@ -222,8 +222,8 @@ class SessionEditorDragController {
         return dx + dy
     }
 
-    fun updateExerciseDrag(delta: Offset, session: Session) {
-        val groupedPartsForDrag = session.parts.filterNot { it.isUncategorizedPart() }
+    fun updateExerciseDrag(delta: Offset, session: Session, groupedParts: List<com.example.kpkn.data.models.SessionPart>? = null) {
+        val groupedPartsForDrag = groupedParts ?: session.parts.filterNot { it.isUncategorizedPart() }
         val activeExerciseId = draggingExerciseId ?: return
         val currentPartId = draggingExercisePartId ?: return
         draggingExerciseOffset += delta

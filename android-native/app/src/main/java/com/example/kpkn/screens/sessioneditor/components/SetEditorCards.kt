@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -18,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -108,15 +110,21 @@ fun CompactNumericField(
             value = localValue,
             onValueChange = {
                 localValue = it
-                onValueChange(it)
             },
             label = { Text(label, color = Color.White.copy(alpha = 0.5f)) },
             singleLine = true,
             enabled = enabled,
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = {
+                if (localValue != value) onValueChange(localValue)
+            }),
             modifier = Modifier
                 .onFocusChanged { focusState ->
+                    val wasFocused = isFocused
                     isFocused = focusState.isFocused
+                    if (wasFocused && !focusState.isFocused && localValue != value) {
+                        onValueChange(localValue)
+                    }
                 }
                 .height(48.dp),
             colors = OutlinedTextFieldDefaults.colors(
@@ -551,9 +559,19 @@ fun SetEstimationFooter(
                 
                 if (state.isRmMode) {
                     val currentPct = state.percentRmLabel?.replace("% RM", "")?.trim()?.toDoubleOrNull() ?: 75.0
+                    var localPct by remember(state.percentRmLabel) { mutableStateOf(currentPct.toFloat()) }
+                    LaunchedEffect(currentPct) {
+                        if (kotlin.math.abs(localPct - currentPct.toFloat()) > 0.01f) {
+                            localPct = currentPct.toFloat()
+                        }
+                    }
                     Slider(
-                        value = currentPct.toFloat(),
-                        onValueChange = { onPercentageChange(it.toDouble()) },
+                        value = localPct,
+                        onValueChange = { localPct = it },
+                        onValueChangeFinished = {
+                            val v = localPct.toDouble()
+                            if (v != currentPct) onPercentageChange(v)
+                        },
                         valueRange = 45f..100f,
                         modifier = Modifier.height(24.dp)
                     )

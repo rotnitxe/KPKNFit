@@ -292,6 +292,194 @@ internal fun buildAugeSummary(
     )
 }
 
+internal fun buildAugeSummaryFromMetrics(
+    currentSession: Session,
+    weekSessions: List<Session>,
+    currentMetrics: SessionAugeComputation,
+    weeklyMetrics: List<SessionAugeComputation>,
+    program: Program?,
+    settings: Settings,
+): SessionEditorAugeSummary {
+    val weeklyDrain = aggregateWeeklyDrain(weeklyMetrics.map { it.drain })
+    val weeklySetCount = weeklyMetrics.sumOf { it.setCount }
+    val weeklyDurationMinutes = weeklyMetrics.sumOf { it.durationMinutes }
+    val weeklyDifficulty = computeDifficulty(
+        averageRpe = weeklyMetrics.map { it.averageRpe }.filter { it > 0.0 }.averageOrNull() ?: 0.0,
+        averageRm = 0.0,
+    )
+    val sessionLimit = defaultSessionVolumeLimit(settings)
+    val weeklyLimit = defaultWeeklyVolumeLimit(settings)
+    val alerts = mutableListOf<SessionEditorAugeAlert>()
+    val suggestions = mutableListOf<SessionEditorAugeAlert>()
+    currentMetrics.volumeMap.entries
+        .sortedByDescending { it.value.effective }
+        .forEach { (muscle, data) ->
+            if (data.effective <= sessionLimit) return@forEach
+            val roleBreakdown = currentMetrics.muscleRoleMap[muscle] ?: MuscleRoleBreakdown()
+            val context = currentMetrics.muscleRecommendationContext[muscle] ?: MuscleRecommendationContext()
+            val intensityHint = when {
+                context.usesFailure -> "conviene quitar fallo o pasar a RIR"
+                context.usesRir -> "subir un poco el RIR"
+                context.usesPercent -> "bajar %RM"
+                else -> "bajar RPE"
+            }
+            val roleHint = when {
+                roleBreakdown.stabilizerShare >= 0.45 -> "Gran parte viene de estabilizadores; ajustar técnica o bajar intensidad global ayuda."
+                roleBreakdown.secondaryShare >= 0.45 -> "Mucho volumen llega por secundarios en multiarticulares."
+                else -> "El volumen es principalmente directo."
+            }
+            val message = when {
+                data.fail > 0.0 && data.flat > 0.0 && (data.fail / data.flat) >= 0.7 ->
+                    "Muchas series cerca del fallo. $roleHint Mejor recortar series y $intensityHint."
+                data.fail > 0.0 && data.flat > 0.0 && (data.fail / data.flat) <= 0.3 ->
+                    "${formatOneDecimal(data.effective)} pts sobre $sessionLimit. $roleHint Puedes bajar series o $intensityHint."
+                else ->
+                    "${formatOneDecimal(data.effective)} pts sobre $sessionLimit. $roleHint Recorta un poco o $intensityHint."
+            }
+            val correction = when {
+                context.usesFailure || context.usesRir || context.usesPercent -> SessionEditorAugeCorrectionType.REDUCE_RPE
+                else -> SessionEditorAugeCorrectionType.REDUCE_SERIES
+            }
+            suggestions += SessionEditorAugeAlert(
+                id = "volume-session-$muscle",
+                title = "Recomendación para $muscle",
+                message = message,
+                severity = SessionEditorAugeAlertSeverity.INFO,
+                source = SessionEditorAugeAlertSource.SESSION,
+                muscle = muscle,
+                correctionType = correction,
+            )
+        }
+    val combinedWeeklyVolumeFlat = weeklyMetrics.flatMap { it.volumeMap.entries }.groupBy({ it.key }, { it.value.flat }).mapValues { it.value.sum() }
+    val volumeThresholdsByMuscle = buildVolumeThresholdsByMuscle(
+        sessionVolumeByMuscle = currentMetrics.volumeMap.mapValues { (_, value) -> value.flat },
+        weeklyVolumeByMuscle = combinedWeeklyVolumeFlat,
+        program = program,
+        settings = settings,
+    )
+    combinedWeeklyVolumeFlat.entries
+        .sortedByDescending { it.value }
+        .forEach { (muscle, flat) ->
+            if (flat <= weeklyLimit) return@forEach
+            suggestions += SessionEditorAugeAlert(
+                id = "volume-week-$muscle",
+                title = "Recomendación semanal para $muscle",
+                message = "${formatOneDecimal(flat)} series equivalentes sobre $weeklyLimit. Repartir el estímulo de la semana te deja más fresco.",
+                severity = SessionEditorAugeAlertSeverity.INFO,
+                source = SessionEditorAugeAlertSource.WEEK,
+                muscle = muscle,
+                correctionType = SessionEditorAugeCorrectionType.REDUCE_SERIES,
+            )
+        }
+    if (currentMetrics.totalSpinalLoad > 25.0) {
+        val topAxialExercise = currentMetrics.exerciseInsights.maxByOrNull { it.spinal }
+        val critical = currentMetrics.totalSpinalLoad > 40.0
+        suggestions += SessionEditorAugeAlert(
+            id = "system-spinal",
+            title = "Recomendación columna",
+            message = if (critical) {
+                "La sesión acumula bastante carga axial. Bajar series o intensidad del ejercicio más demandante protege la columna."
+            } else {
+                "La sesión ya suma carga axial relevante. Ajustar densidad o intensidad puede mejorar la tolerancia."
+            },
+            severity = SessionEditorAugeAlertSeverity.INFO,
+            source = SessionEditorAugeAlertSource.SYSTEM,
+            exerciseId = topAxialExercise?.exerciseId,
+            exerciseName = topAxialExercise?.name,
+            correctionType = SessionEditorAugeCorrectionType.REDUCE_VOLUME_RPE,
+        )
+    }
+    if (currentMetrics.drain.cns >= 85 || currentMetrics.averageRpe >= 9.3) {
+        val topNeuralExercise = currentMetrics.exerciseInsights.maxByOrNull { it.cns }
+        suggestions += SessionEditorAugeAlert(
+            id = "system-neural",
+            title = "Recomendación energía",
+            message = "Tu Energía ya va alta para esta sesión. Bajar RPE, subir RIR o reducir %1RM deja margen sin romper el plan.",
+            severity = SessionEditorAugeAlertSeverity.INFO,
+            source = SessionEditorAugeAlertSource.SYSTEM,
+            exerciseId = topNeuralExercise?.exerciseId,
+            exerciseName = topNeuralExercise?.name,
+            correctionType = SessionEditorAugeCorrectionType.REDUCE_RPE,
+        )
+    }
+    if (currentMetrics.elbowStress > 8) {
+        suggestions += SessionEditorAugeAlert(
+            id = "system-elbow",
+            title = "Recomendación codos",
+            message = "Hay bastante trabajo aislado de tríceps en ángulos agresivos. Ajustar intensidad o distribuir mejor los accesorios ayuda.",
+            severity = SessionEditorAugeAlertSeverity.INFO,
+            source = SessionEditorAugeAlertSource.SYSTEM,
+        )
+    }
+    if (currentMetrics.kneeStress > 8) {
+        suggestions += SessionEditorAugeAlert(
+            id = "system-knee",
+            title = "Recomendación rodillas",
+            message = "Extensiones puras o patrones similares se están acumulando. Bajar densidad o reforzar calentamiento mejora tolerancia.",
+            severity = SessionEditorAugeAlertSeverity.INFO,
+            source = SessionEditorAugeAlertSource.SYSTEM,
+        )
+    }
+    if (settings.calorieGoalObjective == CalorieGoalObjective.DEFICIT) {
+        suggestions += SessionEditorAugeAlert(
+            id = "info-deficit",
+            title = "Déficit activo",
+            message = "En déficit calórico conviene apretar menos el volumen efectivo por sesión para que la recuperación no se caiga.",
+            severity = SessionEditorAugeAlertSeverity.INFO,
+            source = SessionEditorAugeAlertSource.SYSTEM,
+        )
+    }
+    if (currentMetrics.averageRpe in 0.1..<6.5) {
+        suggestions += SessionEditorAugeAlert(
+            id = "suggest-light-intensity",
+            title = "Sesión liviana",
+            message = "La intensidad media está baja. Si el objetivo era más estímulo, aún hay margen para subir la intensidad (RPE, RIR o %RM).",
+            severity = SessionEditorAugeAlertSeverity.INFO,
+            source = SessionEditorAugeAlertSource.SYSTEM,
+        )
+    }
+    val status = computeAugeStatus(currentMetrics.drain, weeklyMetrics.map { it.drain }, currentSession.id, weekSessions, settings)
+    val orderedAlerts = alerts.distinctBy { it.id }.sortedWith(
+        compareBy<SessionEditorAugeAlert> {
+            when (it.source) {
+                SessionEditorAugeAlertSource.SYSTEM -> 0
+                SessionEditorAugeAlertSource.SESSION -> 1
+                SessionEditorAugeAlertSource.WEEK -> 2
+                SessionEditorAugeAlertSource.EXERCISE -> 3
+            }
+        }.thenBy { it.title }
+    )
+    val orderedSuggestions = suggestions.distinctBy { it.id }.sortedBy { suggestion ->
+        when (suggestion.source) {
+            SessionEditorAugeAlertSource.SESSION -> 0
+            SessionEditorAugeAlertSource.SYSTEM -> 1
+            SessionEditorAugeAlertSource.WEEK -> 2
+            SessionEditorAugeAlertSource.EXERCISE -> 3
+        }
+    }
+    return SessionEditorAugeSummary(
+        sessionDrain = currentMetrics.drain,
+        weeklyDrain = weeklyDrain,
+        sessionSetCount = currentMetrics.setCount,
+        weeklySetCount = weeklySetCount,
+        sessionDurationMinutes = currentMetrics.durationMinutes,
+        weeklyDurationMinutes = weeklyDurationMinutes,
+        sessionDifficulty = currentMetrics.difficulty,
+        weeklyDifficulty = weeklyDifficulty,
+        status = status,
+        alerts = orderedAlerts,
+        suggestions = orderedSuggestions,
+        topExercises = currentMetrics.exerciseInsights.sortedByDescending { it.total }.take(4),
+        muscleDrainProjection = currentMetrics.muscleDrainProjection,
+        muscleEnergyDrain = currentMetrics.muscleEnergyDrain,
+        muscleSpinalDrain = currentMetrics.muscleSpinalDrain,
+        sessionVolumeByMuscle = currentMetrics.volumeMap.mapValues { (_, acc) -> acc.flat },
+        weeklyVolumeByMuscle = combinedWeeklyVolumeFlat,
+        volumeThresholdsByMuscle = volumeThresholdsByMuscle,
+        usesCalibratedVolumeThresholds = program?.volumeRecommendations?.isNotEmpty() == true && program.athleteProfileScore != null,
+    )
+}
+
 internal fun computeSessionAugeComputation(
     session: Session,
     exerciseIndex: Map<String, ExerciseMuscleInfo>,

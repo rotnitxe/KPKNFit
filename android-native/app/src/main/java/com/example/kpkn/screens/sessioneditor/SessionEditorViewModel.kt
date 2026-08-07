@@ -7,8 +7,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
-import com.example.kpkn.data.exercises.catalogSearchRedirects
+import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.repository.CompetitionRepository
@@ -119,13 +118,7 @@ class SessionEditorViewModel(
     /** Combined (system + user) template list, updated reactively. */
     val allTemplates: StateFlow<List<SessionTemplate>> = templateRepository.allTemplates
     internal val exerciseIndex: Map<String, ExerciseMuscleInfo>
-        get() {
-            val base = exerciseCatalogSnapshot().associateBy { it.id.lowercase() }
-            val aliasEntries = catalogSearchRedirects().mapNotNull { (alias, canonical) ->
-                base[canonical]?.let { alias.lowercase() to it }
-            }.toMap()
-            return base + aliasEntries
-        }
+        get() = catalogExerciseIndex()
     private var augeJob: Job? = null
     private var autoSaveJob: Job? = null
     private var loadSessionJob: Job? = null
@@ -149,12 +142,29 @@ class SessionEditorViewModel(
     }
 
     private data class CachedWeeklyMetrics(
-        val sessionIds: Set<String>,
-        val metrics: List<SessionAugeComputation>,
+        val programId: String,
+        val mesoIndex: Int,
+        val settingsHash: Int,
+        val catalogVersion: Int,
+        val perSession: Map<String, Pair<Int, SessionAugeComputation>>,
     )
 
     @Volatile
     private var weeklyMetricsCache: CachedWeeklyMetrics? = null
+
+    private var assistantJob: Job? = null
+
+    private fun Session.contentHashForAuge(): Int {
+        // Hash solo de lo que afecta AUGE: ejercicios/parts/supersets/warmup/targetDuration
+        // Excluye name/description/lastModifiedAtMs/dayOfWeek
+        var r = exercises.hashCode()
+        r = 31 * r + parts.hashCode()
+        r = 31 * r + supersetGroups.hashCode()
+        r = 31 * r + (targetDurationMinutes ?: 0)
+        r = 31 * r + warmup.hashCode()
+        r = 31 * r + isMeetDay.hashCode()
+        return r
+    }
 
     internal val draftPrefs by lazy {
         getApplication<Application>().getSharedPreferences(SESSION_EDITOR_DRAFT_PREFS, Context.MODE_PRIVATE)
@@ -516,13 +526,10 @@ class SessionEditorViewModel(
 
     internal fun updateSession(reason: String = "Edición", transform: (Session) -> Session) {
         val current = _uiState.value.session ?: return
+        val transformed = transform(current)
+        if (transformed == current) return
+        val updated = transformed.copy(lastModifiedAtMs = System.currentTimeMillis())
         _uiState.update { state ->
-            val transformed = transform(current)
-            val updated = if (transformed != current) {
-                transformed.copy(lastModifiedAtMs = System.currentTimeMillis())
-            } else {
-                transformed
-            }
             state.copy(
                 session = updated,
                 dayOfWeek = updated.dayOfWeek ?: state.dayOfWeek,
@@ -575,54 +582,65 @@ class SessionEditorViewModel(
         }.getOrElse { SessionEnergySummary() }
         val programLogs = repository.getLogsForProgram(state.programId)
         val program = repository.getProgramById(state.programId)
+        val settingsVal = repository.settings.value
+        val index = exerciseIndex
+        val catalogVersion = index.size
+        val settingsHash = settingsVal.hashCode()
+        val cache = weeklyMetricsCache
+        val canReuseCache = cache != null && cache.programId == state.programId && cache.mesoIndex == state.mesoIndex && cache.settingsHash == settingsHash && cache.catalogVersion == catalogVersion
+        val perSessionMutable = mutableMapOf<String, Pair<Int, SessionAugeComputation>>()
+        if (canReuseCache) {
+            perSessionMutable.putAll(cache!!.perSession)
+        }
+        fun cachedCompute(s: Session): SessionAugeComputation {
+            val h = s.contentHashForAuge()
+            val cached = if (canReuseCache) cache?.perSession?.get(s.id) else null
+            if (cached != null && cached.first == h) return cached.second
+            val computed = computeSessionAugeComputation(s, index, settingsVal, programLogs, state.programId, state.mesoIndex)
+            perSessionMutable[s.id] = h to computed
+            return computed
+        }
         val summary = runCatching {
-            buildAugeSummary(
-                currentSession = session,
-                weekSessions = draftAwareWeekSessions,
-                exerciseIndex = exerciseIndex,
-                settings = repository.settings.value,
-                programLogs = programLogs,
-                program = program,
+            val currentMetrics = cachedCompute(session)
+            val weeklyMetrics = draftAwareWeekSessions.map { cachedCompute(it) }
+            weeklyMetricsCache = CachedWeeklyMetrics(
                 programId = state.programId,
                 mesoIndex = state.mesoIndex,
+                settingsHash = settingsHash,
+                catalogVersion = catalogVersion,
+                perSession = perSessionMutable,
+            )
+            buildAugeSummaryFromMetrics(
+                currentSession = session,
+                weekSessions = draftAwareWeekSessions,
+                currentMetrics = currentMetrics,
+                weeklyMetrics = weeklyMetrics,
+                program = program,
+                settings = settingsVal,
             )
         }.getOrElse {
-            SessionEditorAugeSummary(
-                sessionDrain = PredictedDrain(0, 0, 0),
-                weeklyDrain = PredictedDrain(0, 0, 0),
-                sessionSetCount = totalSets,
-                sessionDurationMinutes = estimateSessionDurationMinutes(totalSets, averageRest),
-                sessionEnergy = sessionEnergy,
-            )
-        }
-        val assistantReport = runCatching {
-            val templates = allTemplates.value
-            SessionAssistantEngine.evaluate(
-                input = SessionAssistantInput(
-                    allExercisesInSession = session.allExercises(),
+            // Fallback sin cache
+            try {
+                buildAugeSummary(
+                    currentSession = session,
                     weekSessions = draftAwareWeekSessions,
-                    currentSessionId = session.id,
+                    exerciseIndex = index,
+                    settings = settingsVal,
+                    programLogs = programLogs,
                     program = program,
-                    settings = repository.settings.value,
-                    workoutLogs = programLogs,
-                    exerciseIndex = exerciseIndex,
-                    ruleLimits = com.example.kpkn.domain.sessionassistant.SessionEditorRuleLimits(
-                        maxRPE = state.ruleLimits.maxRPE ?: 10.0,
-                        maxExercisesPerMuscle = state.ruleLimits.maxExercisesPerMuscle ?: 6,
-                        maxVolumePerMuscleSession = state.ruleLimits.maxVolumePerMuscleSession ?: 12.0,
-                        maxVolumePerMuscleWeekly = state.ruleLimits.maxVolumePerMuscleWeekly ?: 24.0,
-                        maxSamePatternPerSession = state.ruleLimits.maxSamePatternPerSession ?: 4,
-                        rigidLimits = state.ruleLimits.rigidLimits,
-                    ),
-                    mesoIndex = state.mesoIndex,
                     programId = state.programId,
-                    targetDurationMinutes = session.targetDurationMinutes,
-                    supersetGroups = session.allSupersetGroups(),
-                    sessionWarmup = session.warmup,
-                ),
-                allTemplates = templates,
-            )
-        }.getOrNull()
+                    mesoIndex = state.mesoIndex,
+                )
+            } catch (_: Throwable) {
+                SessionEditorAugeSummary(
+                    sessionDrain = PredictedDrain(0, 0, 0),
+                    weeklyDrain = PredictedDrain(0, 0, 0),
+                    sessionSetCount = totalSets,
+                    sessionDurationMinutes = estimateSessionDurationMinutes(totalSets, averageRest),
+                    sessionEnergy = sessionEnergy,
+                )
+            }
+        }
         val timeBreakdown = runCatching {
             calculateSessionTimeBreakdown(
                 exercises = exercises,
@@ -630,22 +648,119 @@ class SessionEditorViewModel(
                 sessionWarmup = session.warmup,
             )
         }.getOrNull()
-        // TimeCoach se genera bajo demanda al abrir TIEMPO (evitar coste en cada edit/open de AUGE).
-        _uiState.update {
-            it.copy(
-                estimatedDurationMinutes = timeBreakdown?.totalMinutes
-                    ?: estimateSessionDurationMinutes(totalSets, averageRest),
-                sessionTimeBreakdown = timeBreakdown,
-                predictedDrain = summary.sessionDrain,
-                augeSummary = summary.copy(
-                    sessionEnergy = sessionEnergy,
-                    sessionTimeBreakdown = timeBreakdown,
-                    sessionDurationMinutes = timeBreakdown?.totalMinutes
+        // Assistant bajo demanda: inmediato si AUGE abierto, si no debounce 2500ms
+        val shouldEvaluateAssistantNow = state.sheet == SessionEditorSheet.AUGE
+        if (shouldEvaluateAssistantNow) {
+            val assistantReport = runCatching {
+                val templates = allTemplates.value
+                SessionAssistantEngine.evaluate(
+                    input = SessionAssistantInput(
+                        allExercisesInSession = session.allExercises(),
+                        weekSessions = draftAwareWeekSessions,
+                        currentSessionId = session.id,
+                        program = program,
+                        settings = settingsVal,
+                        workoutLogs = programLogs,
+                        exerciseIndex = index,
+                        ruleLimits = com.example.kpkn.domain.sessionassistant.SessionEditorRuleLimits(
+                            maxRPE = state.ruleLimits.maxRPE ?: 10.0,
+                            maxExercisesPerMuscle = state.ruleLimits.maxExercisesPerMuscle ?: 6,
+                            maxVolumePerMuscleSession = state.ruleLimits.maxVolumePerMuscleSession ?: 12.0,
+                            maxVolumePerMuscleWeekly = state.ruleLimits.maxVolumePerMuscleWeekly ?: 24.0,
+                            maxSamePatternPerSession = state.ruleLimits.maxSamePatternPerSession ?: 4,
+                            rigidLimits = state.ruleLimits.rigidLimits,
+                        ),
+                        mesoIndex = state.mesoIndex,
+                        programId = state.programId,
+                        targetDurationMinutes = session.targetDurationMinutes,
+                        supersetGroups = session.allSupersetGroups(),
+                        sessionWarmup = session.warmup,
+                    ),
+                    allTemplates = templates,
+                )
+            }.getOrNull()
+            _uiState.update {
+                it.copy(
+                    estimatedDurationMinutes = timeBreakdown?.totalMinutes
                         ?: estimateSessionDurationMinutes(totalSets, averageRest),
-                ),
-                assistantReport = assistantReport,
-                ghostExerciseCards = assistantReport?.tarjetasFantasma ?: emptyList(),
-            )
+                    sessionTimeBreakdown = timeBreakdown,
+                    predictedDrain = summary.sessionDrain,
+                    augeSummary = summary.copy(
+                        sessionEnergy = sessionEnergy,
+                        sessionTimeBreakdown = timeBreakdown,
+                        sessionDurationMinutes = timeBreakdown?.totalMinutes
+                            ?: estimateSessionDurationMinutes(totalSets, averageRest),
+                    ),
+                    assistantReport = assistantReport,
+                    ghostExerciseCards = assistantReport?.tarjetasFantasma ?: emptyList(),
+                )
+            }
+        } else {
+            // Rings/volumen sin assistant inmediato
+            _uiState.update {
+                it.copy(
+                    estimatedDurationMinutes = timeBreakdown?.totalMinutes
+                        ?: estimateSessionDurationMinutes(totalSets, averageRest),
+                    sessionTimeBreakdown = timeBreakdown,
+                    predictedDrain = summary.sessionDrain,
+                    augeSummary = summary.copy(
+                        sessionEnergy = sessionEnergy,
+                        sessionTimeBreakdown = timeBreakdown,
+                        sessionDurationMinutes = timeBreakdown?.totalMinutes
+                            ?: estimateSessionDurationMinutes(totalSets, averageRest),
+                    ),
+                )
+            }
+            assistantJob?.cancel()
+            assistantJob = viewModelScope.launch(Dispatchers.Default) {
+                delay(2500)
+                val s = _uiState.value
+                val sess = s.session ?: return@launch
+                // Si se abrió AUGE entretanto, el otro path ya se encargó
+                if (s.sheet == SessionEditorSheet.AUGE) return@launch
+                val prog = repository.getProgramById(s.programId)
+                val logs = repository.getLogsForProgram(s.programId)
+                val setVal = repository.settings.value
+                val idx = exerciseIndex
+                val report = runCatching {
+                    val templates = allTemplates.value
+                    SessionAssistantEngine.evaluate(
+                        input = SessionAssistantInput(
+                            allExercisesInSession = sess.allExercises(),
+                            weekSessions = if (s.weekSessions.any { it.id == sess.id }) s.weekSessions.map { if (it.id == sess.id) sess else it } else s.weekSessions + sess,
+                            currentSessionId = sess.id,
+                            program = prog,
+                            settings = setVal,
+                            workoutLogs = logs,
+                            exerciseIndex = idx,
+                            ruleLimits = com.example.kpkn.domain.sessionassistant.SessionEditorRuleLimits(
+                                maxRPE = s.ruleLimits.maxRPE ?: 10.0,
+                                maxExercisesPerMuscle = s.ruleLimits.maxExercisesPerMuscle ?: 6,
+                                maxVolumePerMuscleSession = s.ruleLimits.maxVolumePerMuscleSession ?: 12.0,
+                                maxVolumePerMuscleWeekly = s.ruleLimits.maxVolumePerMuscleWeekly ?: 24.0,
+                                maxSamePatternPerSession = s.ruleLimits.maxSamePatternPerSession ?: 4,
+                                rigidLimits = s.ruleLimits.rigidLimits,
+                            ),
+                            mesoIndex = s.mesoIndex,
+                            programId = s.programId,
+                            targetDurationMinutes = sess.targetDurationMinutes,
+                            supersetGroups = sess.allSupersetGroups(),
+                            sessionWarmup = sess.warmup,
+                        ),
+                        allTemplates = templates,
+                    )
+                }.getOrNull()
+                _uiState.update { it.copy(assistantReport = report, ghostExerciseCards = report?.tarjetasFantasma ?: emptyList()) }
+            }
+        }
+    }
+
+    fun refreshAssistantImmediate() {
+        val state = _uiState.value
+        val session = state.session ?: return
+        assistantJob?.cancel()
+        viewModelScope.launch(Dispatchers.Default) {
+            recalcAndPushAuge(state, session)
         }
     }
 
@@ -655,7 +770,7 @@ class SessionEditorViewModel(
     fun updateSessionName(name: String) = updateSessionTextField { it.copy(name = name) }
     fun updateSessionDescription(description: String) = updateSessionTextField { it.copy(description = description) }
 
-    /** Text edits: debounce autosave/AUGE; versions are only created after trained workouts. */
+    /** Text edits: debounce autosave; no AUGE recalc for name/description. */
     private fun updateSessionTextField(transform: (Session) -> Session) {
         val current = _uiState.value.session ?: return
         _uiState.update { state ->
@@ -667,7 +782,6 @@ class SessionEditorViewModel(
                 hasUnsavedChanges = updated != state.originalSession,
             )
         }
-        scheduleAugeRecalc()
         scheduleAutoSave()
         textHistoryDebounceJob?.cancel()
         textHistoryDebounceJob = viewModelScope.launch {
@@ -742,6 +856,9 @@ class SessionEditorViewModel(
                 quickActionsPartId = if (sheet == SessionEditorSheet.QUICK_ACTIONS) state.quickActionsPartId else null,
                 quickActionsExerciseId = if (sheet == SessionEditorSheet.QUICK_ACTIONS) state.quickActionsExerciseId else null,
             )
+        }
+        if (sheet == SessionEditorSheet.AUGE) {
+            refreshAssistantImmediate()
         }
     }
 

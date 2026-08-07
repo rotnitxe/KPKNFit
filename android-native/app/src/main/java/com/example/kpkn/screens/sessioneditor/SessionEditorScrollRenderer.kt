@@ -46,6 +46,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.domain.exercises.resolveCatalogInfoForDisplay
+import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
@@ -92,6 +93,16 @@ internal fun SessionEditorListItem(
     projectedShiftFor: (String, Int, String) -> Float,
     viewModel: SessionEditorViewModel,
 ) {
+    // M2: anchorNames memoizado O(1) en lugar de O(n) por tarjeta
+    val anchorNames = remember(session.exercises, session.parts) {
+        session.allExercises().associate { ex ->
+            ex.resolvedCanonicalExerciseId()?.lowercase()?.trim().orEmpty() to ex.name
+        }.filterKeys { it.isNotEmpty() }
+    }
+    // M4: supersetGroups memoizado
+    val supersetGroupsById = remember(session.supersetGroups) {
+        session.supersetGroups.associateBy { it.id }
+    }
     when (listItem) {
         is SessionListItem.CompetitionEditor -> {
             CompetitionSessionEditor(
@@ -222,7 +233,7 @@ internal fun SessionEditorListItem(
         }
 
         is SessionListItem.LooseSuperset -> {
-            val supersetGroup = session.allSupersetGroups().firstOrNull { it.id == listItem.groupId } ?: return
+            val supersetGroup = supersetGroupsById[listItem.groupId] ?: return
             val supersetMembers = listItem.memberIds.mapNotNull { id ->
                 session.exercises.firstOrNull { it.id == id }
             }
@@ -272,7 +283,7 @@ internal fun SessionEditorListItem(
 
         is SessionListItem.PartSuperset -> {
             val part = groupedParts.firstOrNull { it.id == listItem.partId } ?: return
-            val supersetGroup = session.allSupersetGroups().firstOrNull { it.id == listItem.groupId } ?: return
+            val supersetGroup = supersetGroupsById[listItem.groupId] ?: return
             val supersetMembers = listItem.memberIds.mapNotNull { id ->
                 part.exercises.firstOrNull { it.id == id }
             }

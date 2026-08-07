@@ -395,10 +395,10 @@ private fun ColumnScope.CatalogReadyContent(
         }
     }
 
-    val exactMatch = remember(query, catalog, customExercises) {
+    val exactMatch = remember(query, definitionsById, customExercises) {
         ExerciseMatchLexicon.hasExactMatch(
             query = query,
-            definitions = catalog.families.flatMap { it.definitions },
+            definitions = definitionsById.values.toList(),
             customExercises = customExercises,
         )
     }

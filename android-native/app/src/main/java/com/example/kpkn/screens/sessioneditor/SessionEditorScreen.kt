@@ -206,7 +206,7 @@ fun SessionEditorScreen(
         // Cambio de sesión: los bounds pertenecen al layout anterior.
         dragController.clearBounds()
     }
-    LaunchedEffect(session, uiState.collapsedPartIds) {
+    LaunchedEffect(session?.parts, session?.exercises, uiState.collapsedPartIds) {
         // Tras ediciones, solo se descartan bounds de ítems que ya no existen
         // (sin vaciar todo: onGloballyPositioned no se re-dispara si nada se movió).
         val active = session ?: return@LaunchedEffect
@@ -225,11 +225,6 @@ fun SessionEditorScreen(
 
     fun beginExerciseDrag(partId: String, exerciseId: String, grab: Offset) =
         dragController.beginExerciseDrag(partId, exerciseId, grab)
-
-    fun updateExerciseDrag(delta: Offset) {
-        val activeSession = session ?: return
-        dragController.updateExerciseDrag(delta, activeSession)
-    }
 
     fun endExerciseDrag() {
         val activeSession = session ?: return
@@ -270,7 +265,7 @@ fun SessionEditorScreen(
         }
         return
     }
-    val sessionListItems = remember(session, uiState.collapsedPartIds) {
+    val sessionListItems = remember(session.parts, session.exercises, session.supersetGroups, uiState.collapsedPartIds) {
         buildSessionListItems(session, uiState.collapsedPartIds)
     }
     val scrollableListItems = remember(sessionListItems) {
@@ -278,6 +273,7 @@ fun SessionEditorScreen(
             if (tail.lastOrNull() is SessionListItem.AddActions) tail.dropLast(1) else tail
         }
     }
+    val allExercisesForUi = remember(session.exercises, session.parts) { session.allExercises() }
     // Sticky compact header ONLY when the expanded hero (item 0) has fully left the viewport.
     // Es un overlay translúcido: NO empuja el contenido (empujarlo/animarlo durante
     // el scroll hacía que el contenido se moviera más rápido que el dedo).
@@ -288,7 +284,7 @@ fun SessionEditorScreen(
     }
 
     // Auto-scroll al ejercicio recién añadido (índice = Hero + offset en scrollable)
-    LaunchedEffect(pendingAutoExpandExerciseId, scrollableListItems) {
+    LaunchedEffect(pendingAutoExpandExerciseId) {
         val expandId = pendingAutoExpandExerciseId ?: return@LaunchedEffect
         val targetIndex = lazyColumnIndexForExercise(scrollableListItems, expandId)
         if (targetIndex >= 0) {
@@ -296,7 +292,11 @@ fun SessionEditorScreen(
         }
     }
 
-    val groupedParts = session.parts.filterNot { it.isUncategorizedPart() }
+    val groupedParts = remember(session.parts) { session.parts.filterNot { it.isUncategorizedPart() } }
+    fun updateExerciseDrag(delta: Offset) {
+        val activeSession = session ?: return
+        dragController.updateExerciseDrag(delta, activeSession, groupedParts)
+    }
     val draggedExerciseIds = remember(session, draggingExerciseId, draggingExercisePartId) {
         val activeId = draggingExerciseId ?: return@remember emptySet<String>()
         val sourcePartId = draggingExercisePartId
@@ -499,7 +499,7 @@ fun SessionEditorScreen(
                 )
             }
 
-            items(scrollableListItems, key = { it.stableKey }) { listItem ->
+            items(scrollableListItems, key = { it.stableKey }, contentType = { it::class }) { listItem ->
                 SessionEditorListItem(
                     listItem = listItem,
                     session = session,
@@ -649,7 +649,7 @@ fun SessionEditorScreen(
 
         val showTimeFab =
             session.targetDurationMinutes != null ||
-                session.allExercises().isNotEmpty() ||
+                allExercisesForUi.isNotEmpty() ||
                 uiState.estimatedDurationMinutes > 0
         if (showTimeFab) {
             val estimated = uiState.sessionTimeBreakdown?.totalMinutes
@@ -669,7 +669,7 @@ fun SessionEditorScreen(
             )
         }
 
-        val previewExercise = draggingExerciseId?.let { activeId -> session.allExercises().firstOrNull { it.id == activeId } }
+        val previewExercise = draggingExerciseId?.let { activeId -> allExercisesForUi.firstOrNull { it.id == activeId } }
         val previewPartId = draggingExercisePartId
         val previewRect = if (previewPartId != null && draggingExerciseId != null) {
             dragController.dragStartExerciseRect ?: exerciseBounds["$previewPartId|$draggingExerciseId"]

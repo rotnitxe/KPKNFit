@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
@@ -40,6 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -73,14 +75,20 @@ internal fun EditorMiniField(
         value = localValue,
         onValueChange = {
             localValue = it
-            onCommit(it)
         },
         label = { Text(label) },
         singleLine = true,
         enabled = enabled,
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(onDone = {
+            if (localValue != value) onCommit(localValue)
+        }),
         modifier = modifier.onFocusChanged { focusState ->
+            val wasFocused = isFocused
             isFocused = focusState.isFocused
+            if (wasFocused && !focusState.isFocused && localValue != value) {
+                onCommit(localValue)
+            }
         },
         shape = RoundedCornerShape(16.dp),
         textStyle = MaterialTheme.typography.bodySmall.copy(
