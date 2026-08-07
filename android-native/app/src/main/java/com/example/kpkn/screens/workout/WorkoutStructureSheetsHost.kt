@@ -642,6 +642,7 @@ internal fun WorkoutStructureSheetsHost(
                                 supersetSelectedIds = if (isSelected) {
                                     supersetSelectedIds.filterNot { it == ex.id }
                                 } else {
+                                    if (supersetSelectedIds.size >= 4) return@clickable
                                     supersetSelectedIds + ex.id
                                 }
                             }.padding(vertical = 4.dp),

@@ -553,10 +553,15 @@ class WorkoutVoiceCommandHandler(
                     "voice_structure_action",
                     mapOf("type" to "create_superset", "members" to command.members.size),
                 )
-                ports.createLiveSuperset(command.members)
-                voiceController.speakFeedbackUpdated(
-                    "Superserie creada con ${command.exerciseNames.joinToString(", ")}.",
-                )
+                val cappedMembers = command.members.take(4)
+                val cappedNames = command.exerciseNames.take(4)
+                ports.createLiveSuperset(cappedMembers)
+                val message = if (command.members.size > 4) {
+                    "Superserie creada con ${cappedNames.joinToString(", ")} — solo 4 ejercicios agrupados por límite."
+                } else {
+                    "Superserie creada con ${cappedNames.joinToString(", ")}."
+                }
+                voiceController.speakFeedbackUpdated(message)
             }
             is VoiceSessionCommand.DissolveSuperset -> {
                 WorkoutVoiceDiagnosticLogger.event(

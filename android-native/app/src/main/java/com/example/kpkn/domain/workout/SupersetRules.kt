@@ -43,6 +43,7 @@ object SupersetRules {
                 visualPlacement = existing?.visualPlacement,
                 roundRestBetweenExercises = existing?.roundRestBetweenExercises.orEmpty(),
                 roundRestAfterSuperset = existing?.roundRestAfterSuperset.orEmpty(),
+                isOptional = existing?.isOptional ?: false,
             )
         }
         val validGroupIds = normalizedGroups.map { it.id }.toSet()
@@ -92,20 +93,22 @@ object SupersetRules {
         val allIds = session.allExercises().map { it.id }.toSet()
         if (!targetIds.all { it in allIds }) return session
 
+        val maxSetsForTargets = targetIds.mapNotNull { tid -> session.allExercises().find { it.id == tid }?.sets?.size }.maxOrNull() ?: 1
+        val clampedRounds = rounds?.coerceAtLeast(1)?.let { maxOf(it, maxSetsForTargets) }
         val group = SupersetGroup(
             id = groupId,
             exerciseOrder = targetIds,
             restBetweenExercises = restBetweenExercises.coerceAtLeast(0),
             restAfterSuperset = restAfterSuperset.coerceAtLeast(0),
-            rounds = rounds?.coerceAtLeast(1),
+            rounds = clampedRounds,
             visualPlacement = SupersetVisualPlacement(
                 partId = anchorPartId,
                 anchorExerciseId = anchorExerciseId,
             ),
-            roundRestBetweenExercises = rounds?.let { count ->
+            roundRestBetweenExercises = clampedRounds?.let { count ->
                 (0 until count.coerceAtLeast(1)).associateWith { restBetweenExercises.coerceAtLeast(0) }
             }.orEmpty(),
-            roundRestAfterSuperset = rounds?.let { count ->
+            roundRestAfterSuperset = clampedRounds?.let { count ->
                 (0 until count.coerceAtLeast(1)).associateWith { restAfterSuperset.coerceAtLeast(0) }
             }.orEmpty(),
         )
@@ -257,7 +260,10 @@ object SupersetRules {
         val existing = session.allSupersetGroups().firstOrNull { it.id == groupId } ?: return session
         val nextRestBetween = restBetweenExercises?.coerceAtLeast(0) ?: existing.restBetweenExercises
         val nextRestAfter = restAfterSuperset?.coerceAtLeast(0) ?: existing.restAfterSuperset
-        val nextRounds = rounds?.coerceAtLeast(1) ?: existing.rounds
+        val rawNextRounds = rounds?.coerceAtLeast(1) ?: existing.rounds
+        // C2: rounds nunca < max(sets) para evitar sets inalcanzables y progreso <100%
+        val maxSets = session.allExercises().filter { it.supersetGroupRefOrLegacyId() == groupId }.maxOfOrNull { it.sets.size } ?: 1
+        val nextRounds = rawNextRounds?.let { maxOf(it, maxSets) }
         val roundCount = nextRounds ?: roundCount(session, groupId)
         val nextRoundBetween = (0 until roundCount).associateWith { round ->
             existing.roundRestBetweenExercises[round] ?: nextRestBetween
@@ -355,7 +361,7 @@ object SupersetRules {
                 supersetId = null,
                 supersetRestBetween = null,
                 supersetRestAfter = null,
-                restTime = copiedRoundRest ?: exercise.restTime,
+                restTime = exercise.restTime ?: copiedRoundRest,
             )
         }
         return session.copy(
