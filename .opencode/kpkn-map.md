@@ -36,8 +36,8 @@
 - Verify the real code and Room schema when older docs disagree.
 
 <!-- KAUPOLIKAN_DYNAMIC_MAP_START -->
-Generated at: 2026-08-03T22:22:30.880Z
-Kotlin files: 452
+Generated at: 2026-08-07T03:08:37.410Z
+Kotlin files: 460
 Room version detected in KpknDatabase.kt: 20
 
 ### Entities
@@ -108,7 +108,6 @@ Room version detected in KpknDatabase.kt: 20
 - WikiLabChainDetail: wikilab/chain/{chainId}
 - WikiLabConceptDetail: wikilab/concept/{conceptId}
 - WikiLabConcepts: wikilab/concepts
-- WikiLabExerciseCreator: wikilab/exercise-creator
 - WikiLabExerciseDetail: wikilab/exercise/{exerciseId}
 - WikiLabExercises: wikilab/exercises
 - WikiLabJointDetail: wikilab/joint/{jointId}

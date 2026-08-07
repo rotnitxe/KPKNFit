@@ -33,10 +33,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -97,10 +101,18 @@ internal fun TemplateCatalogBrowser(
     val rowBg = if (glassDark) Color.White.copy(alpha = 0.06f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
 
     val templateIdsKey = remember(templates) { templates.map { it.id } }
-    val facetsById = remember(templateIdsKey, exerciseIndex.size) {
-        SessionTemplateFacetsCache.getOrBuild(templates, exerciseIndex)
+    val facetsById by produceState<Map<String, com.example.kpkn.domain.templates.SessionTemplateFacets>>(initialValue = emptyMap(), templateIdsKey, exerciseIndex.size) {
+        value = withContext(Dispatchers.Default) {
+            SessionTemplateFacetsCache.getOrBuild(templates, exerciseIndex)
+        }
     }
     val splits = remember { SPLIT_TEMPLATES.filterNot { it.id == "custom" } }
+    if (facetsById.isEmpty() && templates.isNotEmpty()) {
+        Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
+    }
 
     var groupMode by rememberSaveable { mutableStateOf(TemplateGroupMode.MUSCLE_GROUP.name) }
     var sessionTypeName by rememberSaveable { mutableStateOf(TemplateSessionType.ALL.name) }

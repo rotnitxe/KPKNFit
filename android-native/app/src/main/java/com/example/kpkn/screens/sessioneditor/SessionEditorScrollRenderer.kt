@@ -114,7 +114,7 @@ internal fun SessionEditorListItem(
                 isDragging = draggingPartId == part.id,
                 dragOffsetY = if (draggingPartId == part.id) draggingPartOffsetY else 0f,
                 isDropTarget = partDropTargetId == part.id && draggingPartId != part.id,
-                onBoundsChange = { rect -> dragController.partBounds[part.id] = rect },
+                onBoundsChange = { rect -> dragController.registerPartBoundsDuringDrag(part.id, rect) },
                 onContentBoundsChange = { rect -> dragController.partContentBounds[part.id] = rect },
                 onDragStart = { dragController.beginPartDrag(part.id) },
                 onDrag = { deltaY -> dragController.updatePartDrag(deltaY, groupedParts) },
@@ -161,6 +161,7 @@ internal fun SessionEditorListItem(
                     exerciseDropTargetPartId = exerciseDropTargetPartId,
                     exerciseDropTargetIndex = exerciseDropTargetIndex,
                     exerciseBounds = dragController.exerciseBounds,
+                    dragController = dragController,
                     pendingAutoExpandExerciseId = pendingAutoExpandExerciseId,
                     onPendingAutoExpandHandled = onPendingAutoExpandHandled,
                     beginExerciseDrag = beginExerciseDrag,
@@ -208,6 +209,7 @@ internal fun SessionEditorListItem(
                     exerciseDropTargetPartId = exerciseDropTargetPartId,
                     exerciseDropTargetIndex = exerciseDropTargetIndex,
                     exerciseBounds = dragController.exerciseBounds,
+                    dragController = dragController,
                     pendingAutoExpandExerciseId = pendingAutoExpandExerciseId,
                     onPendingAutoExpandHandled = onPendingAutoExpandHandled,
                     beginExerciseDrag = beginExerciseDrag,
@@ -256,6 +258,7 @@ internal fun SessionEditorListItem(
                     exerciseDropTargetPartId = exerciseDropTargetPartId,
                     exerciseDropTargetIndex = exerciseDropTargetIndex,
                     exerciseBounds = dragController.exerciseBounds,
+                    dragController = dragController,
                     pendingAutoExpandExerciseId = pendingAutoExpandExerciseId,
                     onPendingAutoExpandHandled = onPendingAutoExpandHandled,
                     beginExerciseDrag = beginExerciseDrag,
@@ -308,6 +311,7 @@ internal fun SessionEditorListItem(
                     exerciseDropTargetPartId = exerciseDropTargetPartId,
                     exerciseDropTargetIndex = exerciseDropTargetIndex,
                     exerciseBounds = dragController.exerciseBounds,
+                    dragController = dragController,
                     pendingAutoExpandExerciseId = pendingAutoExpandExerciseId,
                     onPendingAutoExpandHandled = onPendingAutoExpandHandled,
                     beginExerciseDrag = beginExerciseDrag,
@@ -372,6 +376,7 @@ private fun LooseExerciseItem(
     exerciseDropTargetPartId: String?,
     exerciseDropTargetIndex: Int?,
     exerciseBounds: MutableMap<String, Rect>,
+    dragController: SessionEditorDragController,
     pendingAutoExpandExerciseId: String?,
     onPendingAutoExpandHandled: (String) -> Unit,
     beginExerciseDrag: (String, String, Offset) -> Unit,
@@ -397,7 +402,13 @@ private fun LooseExerciseItem(
                     (exerciseDropTargetPartId == partId && exerciseDropTargetIndex == index)
                 ) && draggingExerciseId != exercise.id,
             isPartDropTarget = exerciseDropTargetPartId == partId && draggingExerciseId != exercise.id,
-            onBoundsChange = { rect -> exerciseBounds["$partId|${exercise.id}"] = rect },
+            onBoundsChange = { rect ->
+                val key = "$partId|${exercise.id}"
+                exerciseBounds[key] = rect
+                if (dragController.isExerciseDragging) {
+                    dragController.registerExerciseBoundsDuringDrag(key, rect)
+                }
+            },
             onDragStart = { grab -> beginExerciseDrag(partId, exercise.id, grab) },
             onDrag = updateExerciseDrag,
             onDragEnd = { endExerciseDrag() },
@@ -442,6 +453,7 @@ private fun PartExerciseItem(
     exerciseDropTargetPartId: String?,
     exerciseDropTargetIndex: Int?,
     exerciseBounds: MutableMap<String, Rect>,
+    dragController: SessionEditorDragController,
     pendingAutoExpandExerciseId: String?,
     onPendingAutoExpandHandled: (String) -> Unit,
     beginExerciseDrag: (String, String, Offset) -> Unit,
@@ -466,7 +478,13 @@ private fun PartExerciseItem(
                     (exerciseDropTargetPartId == part.id && exerciseDropTargetIndex == index)
                 ) && draggingExerciseId != exercise.id,
             isPartDropTarget = exerciseDropTargetPartId == part.id && draggingExerciseId != exercise.id,
-            onBoundsChange = { rect -> exerciseBounds["${part.id}|${exercise.id}"] = rect },
+            onBoundsChange = { rect ->
+                val key = "${part.id}|${exercise.id}"
+                exerciseBounds[key] = rect
+                if (dragController.isExerciseDragging) {
+                    dragController.registerExerciseBoundsDuringDrag(key, rect)
+                }
+            },
             onDragStart = { grab -> beginExerciseDrag(part.id, exercise.id, grab) },
             onDrag = updateExerciseDrag,
             onDragEnd = { endExerciseDrag() },
@@ -512,6 +530,7 @@ private fun LooseSupersetItem(
     exerciseDropTargetPartId: String?,
     exerciseDropTargetIndex: Int?,
     exerciseBounds: MutableMap<String, Rect>,
+    dragController: SessionEditorDragController,
     pendingAutoExpandExerciseId: String?,
     onPendingAutoExpandHandled: (String) -> Unit,
     beginExerciseDrag: (String, String, Offset) -> Unit,
@@ -531,7 +550,13 @@ private fun LooseSupersetItem(
         isDragging = draggingExerciseId == firstMember.id,
         dragOffset = if (draggingExerciseId == firstMember.id) draggingExerciseOffset else Offset.Zero,
         modifier = Modifier,
-        onBoundsChange = { rect -> exerciseBounds["$partId|${firstMember.id}"] = rect },
+        onBoundsChange = { rect ->
+            val key = "$partId|${firstMember.id}"
+            exerciseBounds[key] = rect
+            if (dragController.isExerciseDragging) {
+                dragController.registerExerciseBoundsDuringDrag(key, rect)
+            }
+        },
         onDragStart = { grab -> beginExerciseDrag(partId, firstMember.id, grab) },
         onDrag = updateExerciseDrag,
         onDragEnd = { endExerciseDrag() },
@@ -576,9 +601,13 @@ private fun LooseSupersetItem(
                         ) && draggingExerciseId != member.id,
                     isPartDropTarget = exerciseDropTargetPartId == partId && draggingExerciseId != member.id,
                     onBoundsChange = { rect ->
-                        // The first member key represents the whole superset
-                        // block; its card must not overwrite the group bounds.
-                        if (member.id != firstMember.id) exerciseBounds["$partId|${member.id}"] = rect
+                        if (member.id != firstMember.id) {
+                            val key = "$partId|${member.id}"
+                            exerciseBounds[key] = rect
+                            if (dragController.isExerciseDragging) {
+                                dragController.registerExerciseBoundsDuringDrag(key, rect)
+                            }
+                        }
                     },
                     onDragStart = { grab -> beginExerciseDrag(partId, member.id, grab) },
                     onDrag = updateExerciseDrag,
@@ -628,6 +657,7 @@ private fun PartSupersetItem(
     exerciseDropTargetPartId: String?,
     exerciseDropTargetIndex: Int?,
     exerciseBounds: MutableMap<String, Rect>,
+    dragController: SessionEditorDragController,
     pendingAutoExpandExerciseId: String?,
     onPendingAutoExpandHandled: (String) -> Unit,
     beginExerciseDrag: (String, String, Offset) -> Unit,
@@ -646,7 +676,13 @@ private fun PartSupersetItem(
         isDragging = draggingExerciseId == firstMember.id,
         dragOffset = if (draggingExerciseId == firstMember.id) draggingExerciseOffset else Offset.Zero,
         modifier = Modifier,
-        onBoundsChange = { rect -> exerciseBounds["${part.id}|${firstMember.id}"] = rect },
+        onBoundsChange = { rect ->
+            val key = "${part.id}|${firstMember.id}"
+            exerciseBounds[key] = rect
+            if (dragController.isExerciseDragging) {
+                dragController.registerExerciseBoundsDuringDrag(key, rect)
+            }
+        },
         onDragStart = { grab -> beginExerciseDrag(part.id, firstMember.id, grab) },
         onDrag = updateExerciseDrag,
         onDragEnd = { endExerciseDrag() },
@@ -691,7 +727,13 @@ private fun PartSupersetItem(
                         ) && draggingExerciseId != member.id,
                     isPartDropTarget = exerciseDropTargetPartId == part.id && draggingExerciseId != member.id,
                     onBoundsChange = { rect ->
-                        if (member.id != firstMember.id) exerciseBounds["${part.id}|${member.id}"] = rect
+                        if (member.id != firstMember.id) {
+                            val key = "${part.id}|${member.id}"
+                            exerciseBounds[key] = rect
+                            if (dragController.isExerciseDragging) {
+                                dragController.registerExerciseBoundsDuringDrag(key, rect)
+                            }
+                        }
                     },
                     onDragStart = { grab -> beginExerciseDrag(part.id, member.id, grab) },
                     onDrag = updateExerciseDrag,

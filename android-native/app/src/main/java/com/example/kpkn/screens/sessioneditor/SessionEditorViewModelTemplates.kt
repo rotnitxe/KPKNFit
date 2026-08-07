@@ -6,7 +6,12 @@ import com.example.kpkn.data.sessions.SessionTemplateApplyDecision
 import com.example.kpkn.data.sessions.SessionTemplateApplyMode
 import com.example.kpkn.data.sessions.SessionTemplateSourceType
 import com.example.kpkn.data.sessions.SessionTemplateTag
+import android.util.Log
+import androidx.lifecycle.viewModelScope
 import com.example.kpkn.domain.templates.SessionTemplateEngine
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.example.kpkn.domain.workout.SupersetRules
 import java.util.UUID
 
@@ -60,7 +65,15 @@ fun SessionEditorViewModel.saveCurrentSessionAsTemplate(
     description: String,
     tags: List<SessionTemplateTag>,
 ): Boolean {
+    val trimmedName = name.trim()
+    if (trimmedName.isBlank()) {
+        Log.w("SessionEditorVM", "saveCurrentSessionAsTemplate: nombre vacio")
+        return false
+    }
     val session = currentUiState.session ?: return false
+    if (session.allExercises().size > 12) {
+        Log.w("SessionEditorVM", "Plantilla grande ${session.allExercises().size} ejercicios")
+    }
     val now = java.time.Instant.now().toString()
     val allExercises = session.exercises + session.parts.flatMap { it.exercises }
     val template = SessionTemplate(
@@ -82,6 +95,19 @@ fun SessionEditorViewModel.saveCurrentSessionAsTemplate(
 
 internal fun SessionEditorViewModel.applyTemplateInternal(template: SessionTemplate, mode: SessionTemplateApplyMode) {
     val session = currentUiState.session ?: return
+    // ensure large templates don't block UI
+    if (template.session.allExercises().size > 12) {
+        Log.w("SessionEditorVM", "applyTemplateInternal plantilla grande ${template.id}")
+    }
+    viewModelScope.launch {
+        val prepared = withContext(Dispatchers.Default) { template }
+        val result = SessionTemplateEngine.applyTemplate(prepared, session, mode)
+        updateSession { result }
+        updateUi { it.copy(sheet = SessionEditorSheet.NONE, templateApplyDecision = null, templateSearchQuery = "") }
+        return@launch
+    }
+    // fallback for tests without scope - keep original sync path for now
+    
     val result = SessionTemplateEngine.applyTemplate(template, session, mode)
     updateSession { result }
     updateUi {

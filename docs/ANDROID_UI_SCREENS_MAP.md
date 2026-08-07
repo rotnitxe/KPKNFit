@@ -210,10 +210,10 @@ Shows the physiological diagnostic overview from the AUGE Engine.
     *   **Programs List (`ProgramsScreen.kt` + `ProgramsViewModel.kt`):** Vertical scroll of active, historical, and premium templates.
     *   **Program Detail View (`ProgramDetailScreen.kt` + `ProgramDetailViewModel.kt` + `components/`):** A calendar-like microcycle view (`MainTab`). Includes volume charts displaying accumulated sets per muscle group per week.
 2.  **Session Editor (`screens/sessioneditor/`):**
-    *   **Files:** `SessionEditorScreen.kt`, `SessionEditorViewModel.kt`, `SessionEditorContracts.kt`, `SessionEditorRulesEngine.kt` (pure rules, unit-tested), `VariantFlowSheet.kt`, `components/`.
-    *   **Drag-and-Drop Builder:** Interface for sequencing exercises within a session.
-    *   **Supersets & Drop-sets:** UI to bundle adjacent exercises into supersets (creates visual brackets connecting cards).
-    *   **Parameter Editor:** Inputs to customize default rest times, RPE targets, and reps.
+     *   **Files:** `SessionEditorScreen.kt`, `SessionEditorViewModel.kt`, `SessionEditorContracts.kt`, `SessionEditorRulesEngine.kt` (pure rules, unit-tested), `SessionEditorDragController.kt`, `SessionEditorScrollRenderer.kt`, `VariantFlowSheet.kt`, `components/` (`GroupEditorCard.kt`, `ExerciseEditorCard.kt`, `SupersetGroupEditorCard.kt`).
+     *   **Drag-and-Drop Builder (2026-08-06 fix):** Window-coords (`boundsInWindow`) frozen at drag start but compensated on scroll via `applyScrollDelta` (-delta for content-up). Uses `LazyListState` `layoutInfo` + `onGloballyPositioned` for visible items only; virtualized items that enter viewport via auto-scroll are registered via `registerExerciseBoundsDuringDrag` / `registerPartBoundsDuringDrag` and expand `frozen*` zones with `mergeBounds`. Auto-scroll triggers at 96dp from viewport edge at 18dp per 16ms via `listState.scroll { scrollBy(delta) }` and shifts frozen rects. Header drag fixed: `GroupEditorCard` now respects `dragOffsetY` (`translationY = if(isDragging) dragOffsetY else 0f`).
+     *   **Supersets & Drop-sets:** UI to bundle adjacent exercises into supersets (creates visual brackets connecting cards).
+     *   **Parameter Editor:** Inputs to customize default rest times, RPE targets, and reps.
 3.  **WikiLab Encyclopedia (`screens/wikilab/`):**
     *   **Home:** `WikiLabHomeScreen.kt` (route `wikilab`) + `WikiLabScreen.kt`.
     *   **Anatomical Explorer:** Grid of categories: Muscles (`MuscleCategoryScreen.kt`, `MuscleGroupDetailScreen.kt`), Joints (`JointsListScreen.kt`, `JointDetailScreen.kt`), Tendons (`TendonDetailScreen.kt`), Movement Patterns (`PatternsListScreen.kt`, `MovementPatternDetailScreen.kt`).

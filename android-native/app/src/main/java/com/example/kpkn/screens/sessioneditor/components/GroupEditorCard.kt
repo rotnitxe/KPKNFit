@@ -378,7 +378,7 @@ internal fun GroupEditorCard(
             .padding(top = 8.dp, bottom = if (collapsed) 4.dp else 0.dp)
             .onGloballyPositioned { onBoundsChange(it.boundsInWindow()) }
             .graphicsLayer {
-                translationY = 0f
+                translationY = if (isDragging) dragOffsetY else 0f
                 scaleX = if (isDragging) 1.02f else dropScale
                 scaleY = if (isDragging) 1.02f else dropScale
                 alpha = if (isDragging) 0.22f else 1f

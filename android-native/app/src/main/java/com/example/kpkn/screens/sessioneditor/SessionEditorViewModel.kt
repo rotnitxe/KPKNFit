@@ -118,7 +118,6 @@ class SessionEditorViewModel(
 
     /** Combined (system + user) template list, updated reactively. */
     val allTemplates: StateFlow<List<SessionTemplate>> = templateRepository.allTemplates
-        .stateIn(viewModelScope, SharingStarted.Lazily, templateRepository.allTemplates.value)
     internal val exerciseIndex: Map<String, ExerciseMuscleInfo>
         get() {
             val base = exerciseCatalogSnapshot().associateBy { it.id.lowercase() }

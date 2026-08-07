@@ -67,6 +67,7 @@ import androidx.compose.ui.graphics.Color
 import com.example.kpkn.data.models.Session
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -84,6 +85,8 @@ import com.example.kpkn.screens.sessioneditor.components.rememberSessionEditorSp
 import com.example.kpkn.ui.components.KpknSnackbar
 import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.showKpknSnackbar
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 import com.example.kpkn.screens.sessioneditor.components.SessionHero
@@ -105,6 +108,7 @@ import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.IconButton
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.animateFloatAsState
@@ -189,6 +193,7 @@ fun SessionEditorScreen(
     }
 
     val editorSpacing = rememberSessionEditorSpacing()
+    val density = LocalDensity.current
     val contentBottomPadding = editorSpacing.bottomContentPadding + 16.dp
     val fabBottomPadding = editorSpacing.fabBottomPadding
     val exerciseInfoById = catalogExerciseIndex()
@@ -361,6 +366,56 @@ fun SessionEditorScreen(
     }
 
     var editorRootBounds by remember { mutableStateOf<Rect?>(null) }
+    var lazyColumnWindowBounds by remember { mutableStateOf<Rect?>(null) }
+
+    // Auto-scroll durante drag: si el dedo se acerca al borde superior/inferior
+    // del viewport, scrollea la lista y desplaza los Rect congelados en window
+    // inverso al scroll para mantener hit-testing coherente.
+    LaunchedEffect(draggingExerciseId, draggingPartId, lazyColumnWindowBounds) {
+        if (draggingExerciseId == null && draggingPartId == null) return@LaunchedEffect
+        while (isActive) {
+            val viewport = lazyColumnWindowBounds
+            if (viewport == null) {
+                delay(16)
+                continue
+            }
+            val pointerY: Float? = when {
+                draggingExerciseId != null -> {
+                    val start = dragController.dragStartExerciseRect
+                    if (start != null) start.top + dragController.dragStartGrabOffset.y + draggingExerciseOffset.y else null
+                }
+                draggingPartId != null -> {
+                    val start = dragController.dragStartPartRect
+                    if (start != null) start.center.y + draggingPartOffsetY else null
+                }
+                else -> null
+            }
+            if (pointerY == null) {
+                delay(16)
+                continue
+            }
+            val thresholdPx = with(density) { 96.dp.toPx() }
+            val scrollSpeedPx = with(density) { 18.dp.toPx() }
+            val canScroll = listState.layoutInfo.totalItemsCount > 0
+            if (!canScroll) {
+                delay(16)
+                continue
+            }
+            val delta: Float = when {
+                pointerY < viewport.top + thresholdPx -> -scrollSpeedPx
+                pointerY > viewport.bottom - thresholdPx - with(density) { fabBottomPadding.toPx() } -> scrollSpeedPx
+                else -> 0f
+            }
+            if (delta != 0f) {
+                var consumed = 0f
+                listState.scroll { consumed = scrollBy(delta) }
+                if (consumed != 0f) {
+                    dragController.applyScrollDelta(consumed)
+                }
+            }
+            delay(16)
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -377,7 +432,8 @@ fun SessionEditorScreen(
             state = listState,
             modifier = Modifier
                 .fillMaxSize()
-                .imePadding(),
+                .imePadding()
+                .onGloballyPositioned { lazyColumnWindowBounds = it.boundsInWindow() },
             contentPadding = PaddingValues(bottom = padding.calculateBottomPadding() + contentBottomPadding),
         ) {
             item {
@@ -467,11 +523,41 @@ fun SessionEditorScreen(
                     onLooseBoundsReport = { rect ->
                         if (!dragController.isExerciseDragging) {
                             looseContentBounds = mergeBounds(looseContentBounds, rect)
+                        } else {
+                            val currentFrozen = dragController.frozenLooseContentBounds
+                            val shouldExpand = currentFrozen == null ||
+                                rect.top < currentFrozen.top - 1f ||
+                                rect.bottom > currentFrozen.bottom + 1f ||
+                                rect.left < currentFrozen.left - 1f ||
+                                rect.right > currentFrozen.right + 1f
+                            if (shouldExpand) {
+                                looseContentBounds = mergeBounds(looseContentBounds, rect)
+                                dragController.frozenLooseContentBounds = when (currentFrozen) {
+                                    null -> rect
+                                    else -> mergeBounds(currentFrozen, rect)
+                                }
+                            }
                         }
                     },
                     onPartContentBoundsReport = { partId, rect ->
                         if (!dragController.isExerciseDragging) {
                             partContentBounds[partId] = mergeBounds(partContentBounds[partId], rect)
+                        } else {
+                            if (partId !in dragController.frozenPartContentBounds) {
+                                partContentBounds[partId] = rect
+                                dragController.frozenPartContentBounds =
+                                    dragController.frozenPartContentBounds + (partId to rect)
+                            } else {
+                                val existing = dragController.frozenPartContentBounds[partId]
+                                if (existing != null &&
+                                    (rect.top < existing.top - 1f || rect.bottom > existing.bottom + 1f)
+                                ) {
+                                    val expanded = mergeBounds(existing, rect)
+                                    dragController.frozenPartContentBounds =
+                                        dragController.frozenPartContentBounds + (partId to expanded)
+                                    partContentBounds[partId] = mergeBounds(partContentBounds[partId], rect)
+                                }
+                            }
                         }
                     },
                     beginExerciseDrag = ::beginExerciseDrag,

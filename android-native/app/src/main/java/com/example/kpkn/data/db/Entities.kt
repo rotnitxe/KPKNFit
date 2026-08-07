@@ -289,6 +289,9 @@ fun com.example.kpkn.data.sessions.SessionTemplate.toEntity() = SessionTemplateE
 fun SessionTemplateEntity.toSessionTemplate(): com.example.kpkn.data.sessions.SessionTemplate =
     dbJson.decodeFromString(data)
 
+fun SessionTemplateEntity.toSessionTemplateOrNull(): com.example.kpkn.data.sessions.SessionTemplate? =
+    runCatching { dbJson.decodeFromString<com.example.kpkn.data.sessions.SessionTemplate>(data) }.getOrNull()
+
 // ─── Custom Exercises ─────────────────────────────────────────────────────────
 
 @Entity(tableName = "custom_exercises", indices = [Index("name")])

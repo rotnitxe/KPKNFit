@@ -41,6 +41,12 @@ class SessionEditorDragController {
     var frozenPartContentBounds by mutableStateOf<Map<String, Rect>>(emptyMap())
     var frozenLooseContentBounds by mutableStateOf<Rect?>(null)
 
+    // Compensación de scroll durante drag: en window-coords todo se desplaza
+    // al scrollear. Los frozen se capturan en window y deben desplazarse
+    // inverso al scroll para que el pointer (dedo en window) siga comparándose
+    // contra rects en window actuales.
+    private var accumulatedScrollPx: Float = 0f
+
     fun clearBounds() {
         partBounds.clear()
         partContentBounds.clear()
@@ -75,6 +81,7 @@ class SessionEditorDragController {
         dragStartExerciseRect = exerciseBounds["$partId|$exerciseId"]
         dragStartGrabOffset = grabOffset
         isExerciseDragging = true
+        accumulatedScrollPx = 0f
         frozenExerciseBounds = exerciseBounds.toMap()
         // Zonas derivadas del frame actual: nunca acumular historial de
         // scrolls/desplazamientos visuales, o la zona "suelta" engulle la pantalla.
@@ -90,6 +97,69 @@ class SessionEditorDragController {
         looseContentBounds = freshLoose
         partContentBounds.clear()
         partContentBounds.putAll(freshParts)
+    }
+
+    /**
+     * Desplaza todos los Rect congelados inverso al scroll de la lista.
+     * deltaPx > 0  => contenido sube (scroll down), window Y de los Rect baja.
+     * Se invoca desde el auto-scroll de SessionEditorScreen.
+     */
+    fun applyScrollDelta(deltaPx: Float) {
+        if (!isExerciseDragging && draggingPartId == null) return
+        if (deltaPx == 0f) return
+        accumulatedScrollPx += deltaPx
+        fun Rect.shifted(): Rect = Rect(left, top - deltaPx, right, bottom - deltaPx)
+        frozenExerciseBounds = frozenExerciseBounds.mapValues { (_, r) -> r.shifted() }
+        frozenPartContentBounds = frozenPartContentBounds.mapValues { (_, r) -> r.shifted() }
+        frozenLooseContentBounds = frozenLooseContentBounds?.shifted()
+        if (partBounds.isNotEmpty()) {
+            val shiftedParts = partBounds.mapValues { (_, r) -> r.shifted() }
+            partBounds.clear()
+            partBounds.putAll(shiftedParts)
+        }
+        if (exerciseBounds.isNotEmpty()) {
+            val shiftedExercises = exerciseBounds.mapValues { (_, r) -> r.shifted() }
+            exerciseBounds.clear()
+            exerciseBounds.putAll(shiftedExercises)
+        }
+        if (partContentBounds.isNotEmpty()) {
+            val shiftedPartContents = partContentBounds.mapValues { (_, r) -> r.shifted() }
+            partContentBounds.clear()
+            partContentBounds.putAll(shiftedPartContents)
+        }
+        looseContentBounds = looseContentBounds?.shifted()
+    }
+
+    fun registerExerciseBoundsDuringDrag(key: String, rect: Rect) {
+        if (!isExerciseDragging) {
+            exerciseBounds[key] = rect
+            return
+        }
+        exerciseBounds[key] = rect
+        if (key in frozenExerciseBounds) return
+        frozenExerciseBounds = frozenExerciseBounds + (key to rect)
+        val partId = key.substringBefore("|")
+        if (partId == LOOSE_PART_ID) {
+            frozenLooseContentBounds = unionRects(listOfNotNull(frozenLooseContentBounds, rect))
+            looseContentBounds = frozenLooseContentBounds
+        } else {
+            val existing = frozenPartContentBounds[partId]
+            val expanded = if (existing != null) unionRects(listOf(existing, rect)) else rect
+            if (expanded != null) {
+                frozenPartContentBounds = frozenPartContentBounds + (partId to expanded)
+                val liveExisting = partContentBounds[partId]
+                val liveExpanded = if (liveExisting != null) unionRects(listOf(liveExisting, rect)) else rect
+                if (liveExpanded != null) partContentBounds[partId] = liveExpanded
+            }
+        }
+    }
+
+    fun registerPartBoundsDuringDrag(partId: String, rect: Rect) {
+        if (draggingPartId == null && !isExerciseDragging) {
+            partBounds[partId] = rect
+            return
+        }
+        partBounds[partId] = rect
     }
 
     private fun unionRects(rects: Collection<Rect>): Rect? {
@@ -266,6 +336,7 @@ class SessionEditorDragController {
         frozenExerciseBounds = emptyMap()
         frozenPartContentBounds = emptyMap()
         frozenLooseContentBounds = null
+        accumulatedScrollPx = 0f
     }
 
     fun beginPartDrag(partId: String) {
@@ -274,6 +345,7 @@ class SessionEditorDragController {
         partDropTargetId = null
         partDropTargetIndex = null
         dragStartPartRect = partBounds[partId]
+        accumulatedScrollPx = 0f
     }
 
     fun updatePartDrag(deltaY: Float, groupedParts: List<com.example.kpkn.data.models.SessionPart>) {
@@ -316,6 +388,7 @@ class SessionEditorDragController {
         partDropTargetId = null
         partDropTargetIndex = null
         dragStartPartRect = null
+        accumulatedScrollPx = 0f
     }
 
     fun projectedShiftFor(partId: String, index: Int, exerciseId: String): Float {

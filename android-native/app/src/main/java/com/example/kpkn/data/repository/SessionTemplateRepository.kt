@@ -1,12 +1,12 @@
 package com.example.kpkn.data.repository
 
 import android.content.Context
+import android.util.Log
 import com.example.kpkn.data.db.KpknDatabase
-import com.example.kpkn.data.db.toSessionTemplate
 import com.example.kpkn.data.db.toEntity
+import com.example.kpkn.data.db.toSessionTemplateOrNull
 import com.example.kpkn.data.sessions.SESSION_TEMPLATES_SYSTEM
 import com.example.kpkn.data.sessions.SessionTemplate
-import com.example.kpkn.data.sessions.SessionTemplateApplyMode
 import com.example.kpkn.data.sessions.SessionTemplateSourceType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -57,7 +57,12 @@ class SessionTemplateRepository private constructor(context: Context) {
 
     init {
         scope.launch {
-            val persisted = db.sessionTemplateDao().getAll().map { it.toSessionTemplate() }
+            val persisted = db.sessionTemplateDao().getAll().mapNotNull {
+                it.toSessionTemplateOrNull() ?: run {
+                    Log.w("SessionTemplateRepo", "Descartada plantilla corrupta id=${it.id}")
+                    null
+                }
+            }
             _userTemplates.value = persisted
         }
     }
@@ -84,7 +89,10 @@ class SessionTemplateRepository private constructor(context: Context) {
             if (idx >= 0) current.toMutableList().also { it[idx] = template }
             else listOf(template) + current
         }
-        scope.launch { db.sessionTemplateDao().upsert(template.toEntity()) }
+        scope.launch {
+            runCatching { db.sessionTemplateDao().upsert(template.toEntity()) }
+                .onFailure { Log.e("SessionTemplateRepo", "upsert fallo id=${template.id}", it) }
+        }
     }
 
     /**
@@ -93,7 +101,10 @@ class SessionTemplateRepository private constructor(context: Context) {
     fun deleteUserTemplate(id: String) {
         if (SESSION_TEMPLATES_SYSTEM.any { it.id == id }) return
         _userTemplates.update { it.filterNot { t -> t.id == id } }
-        scope.launch { db.sessionTemplateDao().delete(id) }
+        scope.launch {
+            runCatching { db.sessionTemplateDao().delete(id) }
+                .onFailure { Log.e("SessionTemplateRepo", "delete fallo id=$id", it) }
+        }
     }
 
     /**
