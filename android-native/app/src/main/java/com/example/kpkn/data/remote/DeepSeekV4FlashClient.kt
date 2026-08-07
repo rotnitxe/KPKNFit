@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.SystemClock
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.data.secure.DeepSeekCredentialStore
+import com.example.kpkn.telemetry.nutrition.NutritionTelemetry
 import kotlinx.coroutines.suspendCancellableCoroutine
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -52,6 +53,7 @@ class DeepSeekV4FlashClient(
         .build()
 
     suspend fun analyzeNutrition(request: AiNutritionRequest): Result<AiNutritionResult> {
+        val startedAtMs = SystemClock.elapsedRealtime()
         val knownFoods = request.knownFoods.asSequence().map(String::trim).filter(String::isNotBlank).distinct().take(MAX_KNOWN_FOOD_HINTS).toList()
         val knownBlock = knownFoods.takeIf { it.isNotEmpty() }?.let { "\nNombres conocidos: ${it.joinToString(", ")}" }.orEmpty()
         val hintsBlock = request.userHints.entries.joinToString("\n") { "${it.key}: ${it.value}" }
@@ -65,13 +67,28 @@ class DeepSeekV4FlashClient(
             Esquema: {"items":[{"rawText":"","canonicalName":"","grams":0,"quantity":1,"preparation":null,"confidence":0.0,"nutritionPer100g":{"calories":0,"protein":0,"carbs":0,"fats":0},"reviewRequired":false}],"overallConfidence":0.0,"usedModel":true,"modelVersion":"deepseek-v4-flash"}
         """.trimIndent()
         val user = "Descripción del usuario: ${request.description}$hintsBlock$knownBlock\nDevuelve solo el JSON final."
-        return completeJson(system, user, 1536, operation = "nutrition").mapCatching { completion ->
+        val result = completeJson(system, user, 1536, operation = "nutrition").mapCatching { completion ->
             parseNutrition(completion.content).copy(
                 elapsedMs = 0,
                 modelVersion = MODEL,
                 usedModel = true,
             )
         }
+        // NutriTelemetry: latencia y resultado de la llamada externa (jamás la API key).
+        NutritionTelemetry.event(
+            "api_call",
+            mapOf(
+                "provider" to "deepseek",
+                "operation" to "nutrition",
+                "durationMs" to SystemClock.elapsedRealtime() - startedAtMs,
+                "ok" to result.isSuccess,
+                "httpCode" to (result.exceptionOrNull() as? DeepSeekClientException)?.httpCode,
+                "errorType" to result.exceptionOrNull()?.javaClass?.simpleName,
+                "items" to result.getOrNull()?.items?.size,
+                "overallConfidence" to result.getOrNull()?.overallConfidence,
+            ),
+        )
+        return result
     }
 
     suspend fun completeJson(systemPrompt: String, userPrompt: String, maxTokens: Int = 2048, operation: String = "report_enrichment"): Result<DeepSeekJsonCompletion> {

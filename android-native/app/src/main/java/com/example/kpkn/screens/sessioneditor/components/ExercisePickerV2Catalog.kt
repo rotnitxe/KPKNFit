@@ -66,8 +66,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.neverEqualPolicy
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -97,7 +99,6 @@ import com.example.kpkn.domain.exercises.catalogv2.ExerciseBodyRegionV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogRepositoryV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogStateV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
-import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Resolver
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseConfigurationV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseDefinitionV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseSearchFiltersV2
@@ -106,6 +107,9 @@ import com.example.kpkn.domain.exercises.catalogv2.ExerciseSelectionV2
 import com.example.kpkn.screens.sessioneditor.CatalogSearchField
 import com.example.kpkn.screens.wikilab.wikilabMuscleColor
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.runtime.rememberCoroutineScope
@@ -253,7 +257,7 @@ private fun FloatingCatalogSearch(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, FlowPreview::class)
 @Composable
 private fun ColumnScope.CatalogReadyContent(
     catalog: ExerciseCatalogV2,
@@ -271,7 +275,6 @@ private fun ColumnScope.CatalogReadyContent(
     initialCatalogDefinitionId: String?,
     initialCatalogConfigurationId: String?,
 ) {
-    val resolver = remember(catalog) { ExerciseCatalogV2Resolver(catalog) }
     val scope = rememberCoroutineScope()
     val definitionsById = remember(catalog) {
         catalog.families.flatMap { it.definitions }.associateBy { it.id }
@@ -292,8 +295,25 @@ private fun ColumnScope.CatalogReadyContent(
         if (filterMuscle != null && configs.none { config -> config.profile.primaryMuscles.contains(filterMuscle) }) return false
         return true
     }
-    val searchHits = remember(catalog, query, searchFilters) {
-        if (query.isBlank()) emptyList() else resolver.search(query, searchFilters)
+    // Debounced search: one fuzzy pass per ~150 ms pause on Dispatchers.Default
+    // instead of a synchronous stemming pass on the main thread per keystroke.
+    val currentQuery by rememberUpdatedState(query)
+    val searchHits by produceState<List<ExerciseSearchHitV2>>(
+        initialValue = emptyList(),
+        repository,
+        searchFilters,
+    ) {
+        snapshotFlow { currentQuery }
+            .debounce(150)
+            .collectLatest { committedQuery ->
+                value = if (committedQuery.isBlank()) {
+                    emptyList()
+                } else {
+                    withContext(Dispatchers.Default) {
+                        repository.search(committedQuery, searchFilters)
+                    }
+                }
+            }
     }
     val definitions = remember(catalog, query, searchHits, filterRegion, filterMuscle) {
         if (query.isBlank()) {
@@ -302,7 +322,7 @@ private fun ColumnScope.CatalogReadyContent(
                 .filter(::definitionMatchesFilter)
                 .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.canonicalName })
         } else {
-            // The resolver already orders hits by relevance. Keep that order
+            // The repository search already orders hits by relevance. Keep that order
             // instead of alphabetizing it again: an exact parent match must
             // never be displaced by a weak token match from a secondary alias
             // (for example, "peso corporal" + "bicho muerto").
@@ -338,9 +358,13 @@ private fun ColumnScope.CatalogReadyContent(
     // Cuando el usuario escribe "Press Inclinado con Mancuernas", el mejor hit
     // trae su configuración sugerida: se preseleccionan los chips del draft para
     // que al presionar el ejercicio quede agregado al instante (sin expandir).
-    LaunchedEffect(query, suggestedDrafts) {
+    LaunchedEffect(suggestedDrafts) {
         if (query.isNotBlank() && suggestedDrafts.isNotEmpty()) {
-            draftByDefinition.value = draftByDefinition.value + suggestedDrafts
+            val current = draftByDefinition.value
+            val additions = suggestedDrafts.filter { (id, options) -> current[id] != options }
+            if (additions.isNotEmpty()) {
+                draftByDefinition.value = current + additions
+            }
         }
     }
     // Chips del título: las opciones coincidentes de la búsqueda, de-duplicadas
@@ -503,7 +527,7 @@ private fun ColumnScope.CatalogReadyContent(
             item("custom-heading") {
                 Text("Ejercicios personalizados", color = Color.White, fontWeight = FontWeight.Bold)
             }
-            items(visibleCustomExercises, key = { "custom:" + it.id }) { custom ->
+            items(visibleCustomExercises, key = { "custom:" + it.id }, contentType = { "custom" }) { custom ->
                 val selected = custom.id in selectedRows.value
                 CustomExerciseCard(
                     exercise = custom,
@@ -521,14 +545,22 @@ private fun ColumnScope.CatalogReadyContent(
             }
         }
 
-        items(definitions, key = { it.id }) { definition ->
-            val default = definition.configurations.firstOrNull { it.id == definition.defaultConfigurationId }
+        items(definitions, key = { it.id }, contentType = { "catalog-def" }) { definition ->
+            val default = remember(definition) {
+                definition.configurations.firstOrNull { it.id == definition.defaultConfigurationId }
+            }
             val selectedOptions = draftByDefinition.value[definition.id]
                 ?: default?.selectedOptions.orEmpty()
-            val compatibility = repository.compatibility(definition.id, selectedOptions)
+            // Memoized: typing, selection and expansion recompose every visible
+            // card; without remember this matcher would re-run for all of them.
+            val compatibility = remember(repository, definition.id, selectedOptions) {
+                repository.compatibility(definition.id, selectedOptions)
+            }
             val selectedConfigurationId = compatibility.exactConfigurationId
-            val selectedConfiguration = selectedConfigurationId?.let { id ->
-                definition.configurations.firstOrNull { it.id == id }
+            val selectedConfiguration = remember(definition, selectedConfigurationId) {
+                selectedConfigurationId?.let { id ->
+                    definition.configurations.firstOrNull { it.id == id }
+                }
             }
             // A compatible partial draft can resolve to exactly one materialized
             // configuration (for example implement=cable implies station=standing).
@@ -1014,7 +1046,9 @@ private fun CatalogDescription(
         )
         configuration?.let { selected ->
             if (catalog != null) {
-                val legacyInfo = exactInfo(catalog, definition, selected.id)
+                val legacyInfo = remember(catalog, definition, selected.id) {
+                    exactInfo(catalog, definition, selected.id)
+                }
                 if (legacyInfo != null && legacyInfo.involvedMuscles.isNotEmpty()) {
                     MuscleInvolvementSection(legacyInfo)
                 }
@@ -1026,7 +1060,7 @@ private fun CatalogDescription(
 @Composable
 private fun MuscleInvolvementSection(exercise: ExerciseMuscleInfo) {
     val expandedMuscle = remember { mutableStateOf<String?>(null) }
-    val contributions = oneSeriesVolumeContributions(exercise)
+    val contributions = remember(exercise) { oneSeriesVolumeContributions(exercise) }
     Column(
         modifier = Modifier
             .fillMaxWidth()

@@ -4,7 +4,9 @@ import kotlinx.serialization.json.Json
 
 /** Runtime gate: draft or partially reviewed catalog data is never loadable. */
 object ExerciseCatalogV2Loader {
-    private val json = Json { ignoreUnknownKeys = false }
+    // Lenient about additive (unknown) fields so future asset revisions remain
+    // parseable; the approval gate below still rejects missing/invalid data.
+    private val json = Json { ignoreUnknownKeys = true }
 
     private fun requireNonBlank(value: String, label: String) {
         require(value.isNotBlank()) { "$label must not be blank" }

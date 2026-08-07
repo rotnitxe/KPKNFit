@@ -1,5 +1,11 @@
 package com.example.kpkn.screens.sessioneditor.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -29,6 +35,7 @@ import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -50,6 +57,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -86,12 +94,14 @@ internal fun SessionHero(
     onOpenTransfer: () -> Unit,
     onOpenHistory: () -> Unit,
     onOpenRules: () -> Unit,
+    roadmapContent: @Composable () -> Unit = {},
 ) {
     // Local HazeState: glass samples ONLY the cover under the pill.
     // Screen-level hazeState stays reserved for dock/FAB chrome (Blur KPKN.md).
     val heroHazeState = remember { HazeState() }
     val background = session.background
     val glowColor = remember(background?.value) { resolveHeroGlowColor(background) }
+    var roadmapExpanded by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -135,63 +145,98 @@ internal fun SessionHero(
                     contentAlignment = Alignment.CenterStart,
                 ) {
                     Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .animateContentSize(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        val titleFontSize = when {
-                            session.name.length < 15 -> 34.sp
-                            session.name.length < 25 -> 28.sp
-                            else -> 22.sp
+                        // Botón "Ver semana" centrado en la parte superior.
+                        Text(
+                            text = "Ver semana",
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .clip(HeroCompactShape)
+                                .clickable { roadmapExpanded = !roadmapExpanded }
+                                .padding(horizontal = 14.dp, vertical = 4.dp),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White.copy(alpha = 0.82f),
+                            textAlign = TextAlign.Center,
+                        )
+                        // Roadmap: se despliega agrandando levemente el hero header.
+                        AnimatedVisibility(
+                            visible = roadmapExpanded,
+                            enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
+                            exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(),
+                        ) {
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                roadmapContent()
+                                HorizontalDivider(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    color = Color.White.copy(alpha = 0.10f),
+                                )
+                            }
                         }
-                        BasicTextField(
-                            value = session.name,
-                            onValueChange = onNameChange,
+                        // Título/descripción.
+                        Column(
                             modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            textStyle = MaterialTheme.typography.displaySmall.copy(
-                                fontSize = titleFontSize,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White,
-                            ),
-                            cursorBrush = SolidColor(Color.White),
-                            decorationBox = { innerTextField ->
-                                Box(modifier = Modifier.fillMaxWidth()) {
-                                    if (session.name.isBlank()) {
-                                        Text(
-                                            "Nueva sesión",
-                                            color = Color.White.copy(alpha = 0.55f),
-                                            fontSize = titleFontSize,
-                                            fontWeight = FontWeight.Bold,
-                                        )
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            val titleFontSize = when {
+                                session.name.length < 15 -> 34.sp
+                                session.name.length < 25 -> 28.sp
+                                else -> 22.sp
+                            }
+                            BasicTextField(
+                                value = session.name,
+                                onValueChange = onNameChange,
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true,
+                                textStyle = MaterialTheme.typography.displaySmall.copy(
+                                    fontSize = titleFontSize,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White,
+                                ),
+                                cursorBrush = SolidColor(Color.White),
+                                decorationBox = { innerTextField ->
+                                    Box(modifier = Modifier.fillMaxWidth()) {
+                                        if (session.name.isBlank()) {
+                                            Text(
+                                                "Nueva sesión",
+                                                color = Color.White.copy(alpha = 0.55f),
+                                                fontSize = titleFontSize,
+                                                fontWeight = FontWeight.Bold,
+                                            )
+                                        }
+                                        innerTextField()
                                     }
-                                    innerTextField()
-                                }
-                            },
-                        )
-                        BasicTextField(
-                            value = session.description.orEmpty(),
-                            onValueChange = onDescriptionChange,
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            maxLines = 1,
-                            textStyle = MaterialTheme.typography.bodyMedium.copy(
-                                color = Color.White.copy(alpha = 0.78f),
-                                fontWeight = FontWeight.Medium,
-                            ),
-                            cursorBrush = SolidColor(Color.White),
-                            decorationBox = { innerTextField ->
-                                Box(modifier = Modifier.fillMaxWidth()) {
-                                    if (session.description.isNullOrBlank()) {
-                                        Text(
-                                            "Añadir descripción",
-                                            color = Color.White.copy(alpha = 0.45f),
-                                            style = MaterialTheme.typography.bodyMedium,
-                                        )
+                                },
+                            )
+                            BasicTextField(
+                                value = session.description.orEmpty(),
+                                onValueChange = onDescriptionChange,
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true,
+                                maxLines = 1,
+                                textStyle = MaterialTheme.typography.bodyMedium.copy(
+                                    color = Color.White.copy(alpha = 0.78f),
+                                    fontWeight = FontWeight.Medium,
+                                ),
+                                cursorBrush = SolidColor(Color.White),
+                                decorationBox = { innerTextField ->
+                                    Box(modifier = Modifier.fillMaxWidth()) {
+                                        if (session.description.isNullOrBlank()) {
+                                            Text(
+                                                "Añadir descripción",
+                                                color = Color.White.copy(alpha = 0.45f),
+                                                style = MaterialTheme.typography.bodyMedium,
+                                            )
+                                        }
+                                        innerTextField()
                                     }
-                                    innerTextField()
-                                }
-                            },
-                        )
+                                },
+                            )
+                        }
                     }
                 }
             }

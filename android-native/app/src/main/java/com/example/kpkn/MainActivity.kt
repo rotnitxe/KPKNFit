@@ -100,6 +100,7 @@ import com.example.kpkn.screens.workout.WorkoutScreen
 
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
 import com.example.kpkn.telemetry.TelemetryHelper
+import com.example.kpkn.telemetry.nutrition.NutritionTelemetry
 import com.example.kpkn.ui.components.icons.DumbbellIcon
 import com.example.kpkn.ui.components.icons.NutritionIcon
 import com.example.kpkn.ui.components.icons.WikiIcon
@@ -248,6 +249,11 @@ class MainActivity : ComponentActivity() {
                     workoutReminderManager.scheduleSleepReminder(settings.sleepReminderTime)
                 }
             }.onFailure { logKpknError("MainActivity", "Error setting up workout reminders", it) }
+
+            // 9. Preload Catalog V2 picker cache (decodes the ~3 MB asset once per process)
+            runCatching {
+                com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache.getOrLoad(this@MainActivity)
+            }.onFailure { logKpknError("MainActivity", "Error preloading Catalog V2 cache", it) }
         }
 
         // API ≤ 32: observe locale change events emitted by SettingsViewModel
@@ -525,6 +531,10 @@ fun KPKNApp(
             return@LaunchedEffect
         }
         telemetryHelper.logMealLogStart("shared")
+        NutritionTelemetry.event(
+            "shared_text_received",
+            mapOf("channel" to "intent", "descriptionLength" to normalized.length),
+        )
         nutritionViewModel.enqueueSharedDescription(normalized, openTab = 0)
         if (currentRoute != KpknRoute.Nutrition.route) {
             navController.navigate(KpknRoute.Nutrition.route) {
@@ -537,6 +547,10 @@ fun KPKNApp(
 
     DisposableEffect(Unit) {
         val listener: (String) -> Unit = { text ->
+            NutritionTelemetry.event(
+                "shared_text_received",
+                mapOf("channel" to "navigation_bus", "descriptionLength" to text.length),
+            )
             nutritionViewModel.enqueueSharedDescription(text, openTab = 0)
             val routeNow = navController.currentBackStackEntry?.destination?.route
             if (routeNow != KpknRoute.Nutrition.route) {

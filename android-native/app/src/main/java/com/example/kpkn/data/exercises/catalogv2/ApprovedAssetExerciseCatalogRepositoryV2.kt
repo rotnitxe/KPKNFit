@@ -4,7 +4,6 @@ import android.content.Context
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogRepositoryV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogResolveResultV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogStateV2
-import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Loader
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseConfigurationCompatibilityV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseSearchHitV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseSearchFiltersV2
@@ -30,18 +29,19 @@ class ApprovedAssetExerciseCatalogRepositoryV2(
     override val state: StateFlow<ExerciseCatalogStateV2> = errorState
 
     override suspend fun load() {
+        CatalogV2ProcessCache.peek()?.let { entry ->
+            delegate = entry.repository
+            errorState.value = ExerciseCatalogStateV2.Ready(entry.catalog)
+            return
+        }
         errorState.value = ExerciseCatalogStateV2.Loading
         val result = withContext(ioDispatcher) {
-            runCatching {
-                context.assets.open("exercise_catalog_v2.json").bufferedReader().use { it.readText() }
-            }.mapCatching(ExerciseCatalogV2Loader::decodeApproved)
+            runCatching { CatalogV2ProcessCache.getOrLoad(context) }
         }
         result.fold(
-            onSuccess = { catalog ->
-                val loaded = InMemoryExerciseCatalogRepositoryV2(catalog)
-                loaded.load()
-                delegate = loaded
-                errorState.value = ExerciseCatalogStateV2.Ready(catalog)
+            onSuccess = { entry ->
+                delegate = entry.repository
+                errorState.value = ExerciseCatalogStateV2.Ready(entry.catalog)
             },
             onFailure = { failure ->
                 delegate = null

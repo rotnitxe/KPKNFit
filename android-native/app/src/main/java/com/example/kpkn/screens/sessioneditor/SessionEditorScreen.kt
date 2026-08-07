@@ -28,7 +28,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -68,7 +67,6 @@ import androidx.compose.ui.graphics.Color
 import com.example.kpkn.data.models.Session
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -105,7 +103,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.IconButton
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.ui.input.pointer.pointerInput
@@ -192,10 +189,8 @@ fun SessionEditorScreen(
     }
 
     val editorSpacing = rememberSessionEditorSpacing()
-    val density = LocalDensity.current
-    var navigatorHeightDp by remember { mutableStateOf(editorSpacing.bottomContentPadding) }
-    val contentBottomPadding = navigatorHeightDp + 16.dp
-    val fabBottomPadding = navigatorHeightDp + 8.dp
+    val contentBottomPadding = editorSpacing.bottomContentPadding + 16.dp
+    val fabBottomPadding = editorSpacing.fabBottomPadding
     val exerciseInfoById = catalogExerciseIndex()
     val dragController = remember(session?.id) { SessionEditorDragController() }
     val partBounds = dragController.partBounds
@@ -408,6 +403,43 @@ fun SessionEditorScreen(
                     onOpenTransfer = { viewModel.openSheet(SessionEditorSheet.TRANSFER) },
                     onOpenHistory = { viewModel.openSheet(SessionEditorSheet.HISTORY) },
                     onOpenRules = { viewModel.openSheet(SessionEditorSheet.RULES) },
+                    roadmapContent = {
+                        SessionContextNavigator(
+                            sessions = uiState.siblingSessions,
+                            selectedSessionId = uiState.selectedSiblingSessionId ?: session.id,
+                            onSelectSession = viewModel::requestSessionSwitch,
+                            weekStartDay = uiState.weekStartDay,
+                            activeDayOfWeek = uiState.dayOfWeek,
+                            onSelectDay = { day ->
+                                viewModel.selectRoadmapDay(day)
+                            },
+                            roadmapOptions = uiState.roadmapOptions,
+                            onSelectRoadmapOption = viewModel::selectRoadmapOption,
+                            competitionKeyDaysInWeek = uiState.competitionKeyDaysInWeek,
+                            onCreateSessionForDay = { day ->
+                                viewModel.createSessionForDay(day)
+                            },
+                            onCreateCompetitionSessionForDay = { day ->
+                                viewModel.createCompetitionSessionForDay(day)
+                            },
+                            isSimpleProgram = uiState.isSimpleProgram,
+                            hasActiveLoops = uiState.hasActiveLoops,
+                            hazeState = hazeState,
+                            onSetMainSessionForDay = viewModel::setMainSessionForDay,
+                            currentSessionId = session.id,
+                            currentDayOfWeek = uiState.dayOfWeek,
+                            currentSession = session,
+                            activeVariant = uiState.activeVariant,
+                            availableVariants = uiState.availableVariants,
+                            onCreateVariant = { variant, name -> viewModel.createVariant(variant, name) },
+                            onDeleteVariant = { viewModel.deleteVariant(it) },
+                            onSwitchVariant = {
+                                viewModel.commitActiveVariantChanges()
+                                viewModel.switchVariant(it)
+                            },
+                            embedded = true,
+                        )
+                    },
                 )
             }
 
@@ -548,51 +580,6 @@ fun SessionEditorScreen(
                     .zIndex(260f),
                 hazeState = hazeState,
                 onClick = { viewModel.openRulesSheet(initialTab = 1) },
-            )
-        }
-
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .zIndex(250f)
-                .onSizeChanged { size ->
-                    navigatorHeightDp = with(density) { size.height.toDp() }.coerceAtLeast(56.dp)
-                },
-        ) {
-            SessionContextNavigator(
-                sessions = uiState.siblingSessions,
-                selectedSessionId = uiState.selectedSiblingSessionId ?: session.id,
-                onSelectSession = viewModel::requestSessionSwitch,
-                weekStartDay = uiState.weekStartDay,
-                activeDayOfWeek = uiState.dayOfWeek,
-                onSelectDay = { day ->
-                    viewModel.selectRoadmapDay(day)
-                },
-                roadmapOptions = uiState.roadmapOptions,
-                onSelectRoadmapOption = viewModel::selectRoadmapOption,
-                competitionKeyDaysInWeek = uiState.competitionKeyDaysInWeek,
-                onCreateSessionForDay = { day ->
-                    viewModel.createSessionForDay(day)
-                },
-                onCreateCompetitionSessionForDay = { day ->
-                    viewModel.createCompetitionSessionForDay(day)
-                },
-                isSimpleProgram = uiState.isSimpleProgram,
-                hasActiveLoops = uiState.hasActiveLoops,
-                hazeState = hazeState,
-                onSetMainSessionForDay = viewModel::setMainSessionForDay,
-                currentSessionId = session.id,
-                currentDayOfWeek = uiState.dayOfWeek,
-                currentSession = session,
-                activeVariant = uiState.activeVariant,
-                availableVariants = uiState.availableVariants,
-                onCreateVariant = { variant, name -> viewModel.createVariant(variant, name) },
-                onDeleteVariant = { viewModel.deleteVariant(it) },
-                onSwitchVariant = {
-                    viewModel.commitActiveVariantChanges()
-                    viewModel.switchVariant(it)
-                },
             )
         }
 

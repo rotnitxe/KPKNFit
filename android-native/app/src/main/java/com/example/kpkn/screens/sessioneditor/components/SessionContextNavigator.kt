@@ -353,6 +353,7 @@ internal fun SessionContextNavigator(
     onCreateVariant: (WeekVariant, String) -> Unit = { _, _ -> },
     onDeleteVariant: (WeekVariant) -> Unit = {},
     onSwitchVariant: (WeekVariant) -> Unit = {},
+    embedded: Boolean = false,
 ) {
     val orderedDays = remember(weekStartDay) {
         val safeStart = weekStartDay.coerceIn(1, 7)
@@ -396,22 +397,34 @@ internal fun SessionContextNavigator(
             .firstOrNull { it !in availableVariants }
     }
 
-    val navShape = RoundedCornerShape(22.dp)
-    val navModifier = Modifier
-        .wrapContentWidth()
-        .padding(horizontal = 10.dp)
-        .padding(top = 2.dp, bottom = 0.dp)
-        .kpknGlassOrFallback(hazeState, navShape)
-    Box(
-        modifier = Modifier
+    val hostModifier = if (embedded) {
+        Modifier.fillMaxWidth()
+    } else {
+        Modifier
             .fillMaxWidth()
-            .navigationBarsPadding(),
+            .navigationBarsPadding()
+    }
+    val navShape = RoundedCornerShape(22.dp)
+    val navModifier = if (embedded) {
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp)
+            .padding(top = 2.dp, bottom = 0.dp)
+    } else {
+        Modifier
+            .wrapContentWidth()
+            .padding(horizontal = 10.dp)
+            .padding(top = 2.dp, bottom = 0.dp)
+            .kpknGlassOrFallback(hazeState, navShape)
+    }
+    Box(
+        modifier = hostModifier,
         contentAlignment = Alignment.Center,
     ) {
         Box(modifier = navModifier) {
         Column(
             modifier = Modifier
-                .wrapContentWidth()
+                .fillMaxWidth()
                 .padding(horizontal = 8.dp)
                 .padding(top = 5.dp, bottom = 4.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),

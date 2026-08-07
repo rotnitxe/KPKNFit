@@ -5,6 +5,8 @@ import android.content.Context
 import android.os.Build
 import android.os.StrictMode
 import com.example.kpkn.telemetry.KpknTelemetry
+import com.example.kpkn.telemetry.nutrition.NutritionCrashHook
+import com.example.kpkn.telemetry.nutrition.NutritionTelemetry
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.data.secure.DeepSeekSettingsMigration
 import com.example.kpkn.services.diagnostics.ReportEnrichmentScheduler
@@ -39,6 +41,11 @@ class KpknApplication : Application() {
         }
         if (isMainProcess) {
             WorkoutVoiceExitInfoCollector.initialize(this)
+            // NutriTelemetry: store JSONL local + hook de crashes del proceso.
+            // El hook va tras initialize para que el próximo arranque emita
+            // previous_session_crash/exit con el contexto persistido.
+            NutritionTelemetry.initialize(this)
+            NutritionCrashHook.install(this)
         }
 
         // Enable StrictMode in debug builds to catch disk/network on main thread and leaked closeables.

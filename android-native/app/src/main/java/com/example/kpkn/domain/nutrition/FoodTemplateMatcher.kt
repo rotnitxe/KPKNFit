@@ -63,9 +63,21 @@ object FoodTemplateMatcher {
         return (tokenOverlap * 0.65) + (foodOverlap * 0.35)
     }
 
-    /** Detecta cantidades explícitas en la consulta ("1", "3", "dos", "media"…) */
+    /**
+     * Detecta cantidades explícitas en la consulta ("1", "3", "dos", "media"…).
+     *
+     * CRASH-FIX: el grupo anclado `(?:[\s-]+[a-z]+)*` con backtracking libre podía
+     * degenerar exponencialmente en consultas largas (StackOverflowError en el hilo
+     * que lo ejecutara — antes el main thread → crash al pulsar "Analizar").
+     * Se usan cuantificadores POSESIVOS/ATÓMICOS (sin backtracking dentro del grupo:
+     * no hay nada que recomponer porque el patrón termina ahí) y además se acota la
+     * longitud de entrada en [quantitiesMismatch].
+     */
     private val QUANTITY_ANCHOR_PATTERN =
-        Regex("""(?:^|\s)(\d+(?:[.,]\d+)?|un|una|uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|media|medio|mitad|cuarto|tercio|doble|triple)(?:\s*[x×]\s*\d+)?\s+([a-záéíóúñü]+(?:[\s-]+[a-záéíóúñü]+)*)""")
+        Regex("""(?:^|\s)(\d+(?:[.,]\d+)?|un|una|uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|media|medio|mitad|cuarto|tercio|doble|triple)(?:\s*[x×]\s*\d+)?\s+([a-záéíóúñü]++(?:[\s-]++[a-záéíóúñü]++)*+)""")
+
+    /** Entrada acotada: defensa adicional contra descripciones patológicamente largas. */
+    private const val MAX_QUERY_CHARS = 600
 
     private val QUANTITY_LITERALS = mapOf(
         "un" to 1.0, "una" to 1.0, "uno" to 1.0, "dos" to 2.0, "tres" to 3.0,
@@ -79,7 +91,7 @@ object FoodTemplateMatcher {
         val templateFoods = template.foods.filter { it.amount > 0 }
         if (templateFoods.isEmpty()) return false
 
-        QUANTITY_ANCHOR_PATTERN.findAll(normalizedQuery).forEach { match ->
+        QUANTITY_ANCHOR_PATTERN.findAll(normalizedQuery.take(MAX_QUERY_CHARS)).forEach { match ->
             val qty = QUANTITY_LITERALS[match.groupValues[1].lowercase()]
                 ?: match.groupValues[1].replace(",", ".").toDoubleOrNull()
                 ?: return@forEach

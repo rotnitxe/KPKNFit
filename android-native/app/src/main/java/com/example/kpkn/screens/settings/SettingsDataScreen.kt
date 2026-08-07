@@ -50,6 +50,7 @@ import com.example.kpkn.screens.settings.components.SettingsInfoRow
 import com.example.kpkn.screens.settings.components.SettingsSectionCard
 import com.example.kpkn.screens.settings.components.SettingsSectionHeader
 import com.example.kpkn.services.workout.WorkoutVoiceDiagnosticStorage
+import com.example.kpkn.telemetry.nutrition.NutritionTelemetry
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -111,6 +112,28 @@ fun SettingsDataScreen(
             }
     }
 
+    var nutritionTelemetryEnabled by remember { mutableStateOf(NutritionTelemetry.isEnabled()) }
+
+    val nutritionTelemetryExportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree(),
+    ) { uri: Uri? ->
+        uri ?: return@rememberLauncherForActivityResult
+        val appContext = context.applicationContext
+        NutritionTelemetry.exportToAsync(appContext, uri) { copied, total ->
+            android.os.Handler(android.os.Looper.getMainLooper()).post {
+                Toast.makeText(
+                    appContext,
+                    if (total == 0) {
+                        "Todavía no hay datos de telemetría de nutrición"
+                    } else {
+                        "Telemetría de nutrición exportada: $copied de $total archivos"
+                    },
+                    Toast.LENGTH_LONG,
+                ).show()
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -152,6 +175,27 @@ fun SettingsDataScreen(
                             },
                         )
                     }
+                }
+            }
+
+            item { SettingsSectionHeader("Telemetría de nutrición") }
+            item {
+                SettingsSectionCard {
+                    SettingsActionItem(
+                        title = if (nutritionTelemetryEnabled) "Telemetría activada" else "Telemetría desactivada",
+                        description = "Guarda en el dispositivo métricas del análisis de comidas (sin el texto de tus descripciones) para detectar crashes, fallos de análisis y cuellos de botella. Nada sale del teléfono salvo exportación manual.",
+                        icon = Icons.Default.Info,
+                        onClick = {
+                            NutritionTelemetry.setEnabled(!nutritionTelemetryEnabled)
+                            nutritionTelemetryEnabled = NutritionTelemetry.isEnabled()
+                        },
+                    )
+                    SettingsActionItem(
+                        title = "Exportar telemetría de nutrición",
+                        description = "Copia los JSONL locales (eventos, etapas y crashes) a la carpeta que elijas para revisarlos o compartirlos.",
+                        icon = Icons.Default.Download,
+                        onClick = { nutritionTelemetryExportLauncher.launch(null) },
+                    )
                 }
             }
 
