@@ -56,10 +56,18 @@ object SessionEditorRulesEngine {
                 isIsolation -> (defaults.isolationReps ?: safeReps).coerceAtLeast(1)
                 else -> safeReps
             }
-            val effectiveRpe = when {
-                isCompound -> (defaults.compoundRpe ?: safeRpe).coerceIn(1.0, 10.0)
-                isIsolation -> (defaults.isolationRpe ?: safeRpe).coerceIn(0.0, 10.0)
-                else -> safeRpe
+            // FIX: Respetar la intensidad realmente configurada por el usuario.
+            // Antes effectiveRpe se coaccionaba siempre como RPE (1-10) y luego se truncaba a RIR 0-5,
+            // ignorando RIR 0 para compuestos (coerce 1-10) y perdiendo RIR 6 por toInt+cap 5.
+            val rawIntensity = when {
+                isCompound -> defaults.compoundRpe ?: defaults.rpe
+                isIsolation -> defaults.isolationRpe ?: defaults.rpe
+                else -> defaults.rpe
+            }
+            val effectiveIntensity = when (mode) {
+                IntensityMode.RIR -> rawIntensity.coerceIn(0.0, 6.0)
+                IntensityMode.RPE -> rawIntensity.coerceIn(1.0, 10.0)
+                else -> rawIntensity
             }
             val effectiveRest = when {
                 isCompound -> (defaults.compoundRestSeconds ?: safeRest).coerceAtLeast(0)
@@ -70,8 +78,8 @@ object SessionEditorRulesEngine {
                 val existing = sets.getOrNull(index)
                 val target = (existing ?: ExerciseSet(id = UUID.randomUUID().toString())).copy(
                     targetReps = effectiveReps,
-                    targetRPE = if (mode == IntensityMode.RPE) effectiveRpe else null,
-                    targetRIR = if (mode == IntensityMode.RIR) effectiveRpe.toInt().coerceIn(0, 5) else null,
+                    targetRPE = if (mode == IntensityMode.RPE) effectiveIntensity else null,
+                    targetRIR = if (mode == IntensityMode.RIR) effectiveIntensity.roundToInt().coerceIn(0, 6) else null,
                     intensityMode = mode,
                     targetPercentageRM = null,
                     isFailure = mode == IntensityMode.FAILURE,

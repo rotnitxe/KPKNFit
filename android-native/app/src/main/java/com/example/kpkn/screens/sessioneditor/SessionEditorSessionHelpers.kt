@@ -88,27 +88,32 @@ internal fun Exercise.withSessionEditorDefaults(
             isIsolation -> (defaults.isolationReps ?: defaults.reps).coerceAtLeast(1)
             else -> defaults.reps.coerceAtLeast(1)
         }
-        val safeRpe = when {
-            isCompound -> (defaults.compoundRpe ?: defaults.rpe).coerceIn(1.0, 10.0)
-            isIsolation -> (defaults.isolationRpe ?: defaults.rpe).coerceIn(0.0, 10.0)
-            else -> defaults.rpe.coerceIn(1.0, 10.0)
-        }
-        val safeRest = when {
-            isCompound -> (defaults.compoundRestSeconds ?: defaults.normalRestSeconds).coerceAtLeast(0)
-            isIsolation -> (defaults.isolationRestSeconds ?: defaults.normalRestSeconds).coerceAtLeast(0)
-            else -> defaults.normalRestSeconds.coerceAtLeast(0)
+        val rawIntensity = when {
+            isCompound -> defaults.compoundRpe ?: defaults.rpe
+            isIsolation -> defaults.isolationRpe ?: defaults.rpe
+            else -> defaults.rpe
         }
         val mode = when (intensityType) {
             DefaultIntensityType.RIR -> IntensityMode.RIR
             DefaultIntensityType.FALLO -> IntensityMode.FAILURE
             else -> IntensityMode.RPE
         }
+        val effectiveIntensity = when (mode) {
+            IntensityMode.RIR -> rawIntensity.coerceIn(0.0, 6.0)
+            IntensityMode.RPE -> rawIntensity.coerceIn(1.0, 10.0)
+            else -> rawIntensity
+        }
+        val safeRest = when {
+            isCompound -> (defaults.compoundRestSeconds ?: defaults.normalRestSeconds).coerceAtLeast(0)
+            isIsolation -> (defaults.isolationRestSeconds ?: defaults.normalRestSeconds).coerceAtLeast(0)
+            else -> defaults.normalRestSeconds.coerceAtLeast(0)
+        }
         val nextSets = List(safeSetCount) { index ->
             val existing = sets.getOrNull(index) ?: ExerciseSet(id = UUID.randomUUID().toString())
             existing.copy(
                 targetReps = safeReps,
-                targetRPE = if (mode == IntensityMode.RPE) safeRpe else null,
-                targetRIR = if (mode == IntensityMode.RIR) safeRpe.toInt().coerceIn(0, 5) else null,
+                targetRPE = if (mode == IntensityMode.RPE) effectiveIntensity else null,
+                targetRIR = if (mode == IntensityMode.RIR) effectiveIntensity.roundToInt().coerceIn(0, 6) else null,
                 targetPercentageRM = null,
                 intensityMode = mode,
                 isFailure = mode == IntensityMode.FAILURE,

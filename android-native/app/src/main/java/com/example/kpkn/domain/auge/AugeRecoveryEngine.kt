@@ -76,8 +76,38 @@ object AugeRecoveryEngine {
     private fun involvedMusclesFor(
         exercise: CompletedExercise,
         info: ExerciseMuscleInfo?,
-    ): List<InvolvedMuscle> = exercise.effectiveMuscles?.takeIf { it.isNotEmpty() }
-        ?: info?.involvedMuscles.orEmpty()
+    ): List<InvolvedMuscle> {
+        val raw = exercise.effectiveMuscles?.takeIf { it.isNotEmpty() }
+            ?: info?.involvedMuscles.orEmpty()
+        if (raw.isNotEmpty()) return raw
+        // Fallback heurístico para logs custom/legacy sin snapshot muscular: evita drenaje 0 en rings.
+        val lower = exercise.exerciseName.lowercase().trim()
+        fun mus(m: String, role: MuscleRole = MuscleRole.PRIMARY) = InvolvedMuscle(muscle = m, role = role)
+        return when {
+            lower.contains("press banca") || lower.contains("bench press") || lower.contains("press de banca") ->
+                listOf(mus("Pectorales"), mus("Tríceps", MuscleRole.SECONDARY), mus("Deltoides Anterior", MuscleRole.SECONDARY))
+            lower.contains("dominada") || lower.contains("pull-up") || lower.contains("pull up") || lower.contains("chin") ->
+                listOf(mus("Dorsales"), mus("Bíceps", MuscleRole.SECONDARY))
+            lower.contains("remo") || lower.contains("row") -> listOf(mus("Dorsales"), mus("Bíceps", MuscleRole.SECONDARY))
+            lower.contains("sentadilla") || lower.contains("squat") -> listOf(mus("Cuádriceps"), mus("Glúteos", MuscleRole.SECONDARY))
+            lower.contains("peso muerto") || lower.contains("deadlift") || lower.contains("rumano") ->
+                listOf(mus("Isquiosurales"), mus("Glúteos", MuscleRole.SECONDARY), mus("Erectores Espinales", MuscleRole.STABILIZER))
+            lower.contains("hip thrust") || lower.contains("empuje de cadera") -> listOf(mus("Glúteos"), mus("Isquiosurales", MuscleRole.SECONDARY))
+            lower.contains("press militar") || lower.contains("overhead press") || lower.contains("military press") ->
+                listOf(mus("Deltoides"), mus("Tríceps", MuscleRole.SECONDARY))
+            lower.contains("curl") && (lower.contains("bicep") || lower.contains("bíceps")) -> listOf(mus("Bíceps"))
+            lower.contains("tricep") || lower.contains("tríceps") || lower.contains("pushdown") || lower.contains("francés") || lower.contains("frances") ->
+                listOf(mus("Tríceps"))
+            lower.contains("lateral") -> listOf(mus("Deltoides Lateral"))
+            lower.contains("pantorrilla") || lower.contains("gemelo") || lower.contains("calf") -> listOf(mus("Pantorrillas"))
+            lower.contains("leg press") || lower.contains("prensa") -> listOf(mus("Cuádriceps"), mus("Glúteos", MuscleRole.SECONDARY))
+            lower.contains("leg curl") || lower.contains("femoral") -> listOf(mus("Isquiosurales"))
+            lower.contains("leg extension") -> listOf(mus("Cuádriceps"))
+            lower.contains("plancha") || lower.contains("plank") || lower.contains("abdomen") || lower.contains("core") -> listOf(mus("Abdomen"))
+            lower.contains("lunge") || lower.contains("zancada") || lower.contains("búlgara") || lower.contains("bulgara") -> listOf(mus("Cuádriceps"), mus("Glúteos", MuscleRole.SECONDARY))
+            else -> listOf(mus("Core"))
+        }
+    }
 
     private fun normKey(s: String) = s
         .lowercase().trim()

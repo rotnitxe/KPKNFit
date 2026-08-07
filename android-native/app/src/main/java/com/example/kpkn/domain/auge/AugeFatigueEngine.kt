@@ -90,11 +90,109 @@ object AugeFatigueEngine {
         )
     }
 
+    /**
+     * Heurística de fallback cuando el catálogo no trae efc/cnc/ssc (ej. ejercicios custom,
+     * imports legacy o familias aún no curadas). Restaura el comportamiento previo a
+     * 99f3d4cf donde los ejercicios sin métricas se omitían por completo del drenaje,
+     * dejando los rings en 99% tras sesiones intensas.
+     * La DB sigue siendo la fuente primaria; la heurística solo evita drenaje nulo.
+     */
+    private fun deriveAugeMetricsHeuristic(exerciseName: String, equipment: String?): AugeMetrics {
+        val lower = exerciseName.lowercase().trim()
+        val hasEquipment = equipment?.lowercase() ?: ""
+
+        val (baseEfc, baseCnc, baseSsc) = when {
+            lower.contains("deadlift") || lower.contains("peso muerto") || lower.contains("rumano") -> Triple(4.0, 4.0, 1.6)
+            lower.contains("squat") || lower.contains("sentadilla") || lower.contains("hack squat") -> Triple(3.8, 3.8, 1.2)
+            lower.contains("bench press") || lower.contains("press banca") || lower.contains("press de banca") -> Triple(3.2, 3.5, 0.8)
+            lower.contains("overhead press") || lower.contains("military press") || lower.contains("press militar") -> Triple(3.0, 3.5, 1.0)
+            lower.contains("pull up") || lower.contains("pull-up") || lower.contains("dominada") || lower.contains("chin up") || lower.contains("chin-up") -> Triple(3.0, 3.0, 0.3)
+            lower.contains("row") || (lower.contains("remo") && !lower.contains("rumano")) -> Triple(3.0, 3.2, 0.7)
+            lower.contains("hip thrust") || lower.contains("empuje de cadera") -> Triple(3.5, 3.0, 0.8)
+            lower.contains("clean") || lower.contains("snatch") || lower.contains("arranque") || lower.contains("cargada") || lower.contains("envion") || lower.contains("envión") -> Triple(4.5, 4.5, 1.4)
+            lower.contains("lunge") || lower.contains("zancada") || lower.contains("bulgarian") || lower.contains("búlgaro") || lower.contains("bulgara") || lower.contains("búlgara") -> Triple(2.8, 2.5, 0.5)
+            lower.contains("curl") || lower.contains("bicep") || lower.contains("bíceps") -> Triple(1.5, 1.5, 0.1)
+            lower.contains("extension") && (lower.contains("tricep") || lower.contains("tríceps")) -> Triple(1.5, 1.5, 0.1)
+            lower.contains("lateral") || (lower.contains("deltoides") && lower.contains("lateral")) -> Triple(1.5, 1.5, 0.1)
+            lower.contains("pushdown") || lower.contains("pressdown") || lower.contains("frances") || lower.contains("francés") -> Triple(1.5, 1.5, 0.1)
+            lower.contains("leg press") || lower.contains("prensa") -> Triple(3.0, 2.5, 0.8)
+            lower.contains("leg curl") || lower.contains("femoral") || lower.contains("curl de pierna") -> Triple(2.0, 1.8, 0.2)
+            lower.contains("leg extension") || lower.contains("extension de cuadriceps") || lower.contains("extensión de cuádriceps") -> Triple(2.2, 2.0, 0.1)
+            lower.contains("calf") || lower.contains("pantorrilla") || lower.contains("gemelo") -> Triple(1.5, 1.2, 0.1)
+            lower.contains("fly") || lower.contains("apertura") || lower.contains("pec deck") || lower.contains("crossover") -> Triple(2.0, 1.8, 0.2)
+            lower.contains("dip") || lower.contains("fondo") -> Triple(2.8, 3.0, 0.6)
+            lower.contains("good morning") || lower.contains("buenos dias") || lower.contains("buenos días") -> Triple(2.8, 2.5, 1.2)
+            lower.contains("hyperextension") || lower.contains("hiperextension") || lower.contains("hiperextensión") -> Triple(2.0, 1.5, 0.8)
+            lower.contains("carry") || (lower.contains("cargada") && lower.contains("granjero")) -> Triple(2.0, 2.5, 1.0)
+            else -> Triple(2.5, 2.5, 0.5)
+        }
+
+        var efc = baseEfc; var cnc = baseCnc; var ssc = baseSsc
+
+        if (hasEquipment.contains("mancuerna") || hasEquipment.contains("dumbbell")) {
+            cnc += 0.2; ssc -= 0.2
+        }
+        if (hasEquipment.contains("smith")) {
+            cnc -= 0.5; efc -= 0.2
+        }
+        if (hasEquipment.contains("cable") || hasEquipment.contains("polea")) {
+            cnc -= 0.3; efc += 0.2
+        }
+        if (hasEquipment.contains("barra")) {
+            ssc += 0.2
+        }
+        if (exerciseName.contains("pausa", ignoreCase = true) || exerciseName.contains("pause", ignoreCase = true)) {
+            cnc += 0.3; efc += 0.5
+        }
+        if (exerciseName.contains("deficit", ignoreCase = true) || exerciseName.contains("déficit", ignoreCase = true)) {
+            ssc += 0.2; efc += 0.3
+        }
+        if (exerciseName.contains("parcial", ignoreCase = true) || exerciseName.contains("partial", ignoreCase = true)) {
+            efc -= 0.2; ssc += 0.2
+        }
+
+        return AugeMetrics(
+            efc = efc.coerceIn(1.0, 5.0),
+            cnc = cnc.coerceIn(1.0, 5.0),
+            ssc = ssc.coerceIn(0.0, 2.0),
+        )
+    }
+
     fun getDynamicAugeMetrics(
         exerciseName: String,
         equipment: String? = null,
         dbInfo: ExerciseMuscleInfo? = null,
-    ): AugeMetrics? = deriveAugeMetricsFromDb(dbInfo)
+    ): AugeMetrics? = deriveAugeMetricsFromDb(dbInfo) ?: deriveAugeMetricsHeuristic(exerciseName, equipment)
+
+    /** Fallback heurístico para ejercicios sin mapa muscular (custom/legacy). */
+    private fun heuristicInvolvedMuscles(exerciseName: String): List<InvolvedMuscle> {
+        val lower = exerciseName.lowercase().trim()
+        fun mus(m: String, role: MuscleRole = MuscleRole.PRIMARY) = InvolvedMuscle(muscle = m, role = role)
+        return when {
+            lower.contains("press banca") || lower.contains("bench press") || lower.contains("press de banca") ->
+                listOf(mus("Pectorales"), mus("Tríceps", MuscleRole.SECONDARY), mus("Deltoides Anterior", MuscleRole.SECONDARY))
+            lower.contains("dominada") || lower.contains("pull-up") || lower.contains("pull up") || lower.contains("chin") ->
+                listOf(mus("Dorsales"), mus("Bíceps", MuscleRole.SECONDARY))
+            lower.contains("remo") || lower.contains("row") -> listOf(mus("Dorsales"), mus("Bíceps", MuscleRole.SECONDARY))
+            lower.contains("sentadilla") || lower.contains("squat") -> listOf(mus("Cuádriceps"), mus("Glúteos", MuscleRole.SECONDARY))
+            lower.contains("peso muerto") || lower.contains("deadlift") || lower.contains("rumano") ->
+                listOf(mus("Isquiosurales"), mus("Glúteos", MuscleRole.SECONDARY), mus("Erectores Espinales", MuscleRole.STABILIZER))
+            lower.contains("hip thrust") || lower.contains("empuje de cadera") -> listOf(mus("Glúteos"), mus("Isquiosurales", MuscleRole.SECONDARY))
+            lower.contains("press militar") || lower.contains("overhead press") || lower.contains("military press") ->
+                listOf(mus("Deltoides"), mus("Tríceps", MuscleRole.SECONDARY))
+            lower.contains("curl") && (lower.contains("bicep") || lower.contains("bíceps")) -> listOf(mus("Bíceps"))
+            lower.contains("tricep") || lower.contains("tríceps") || lower.contains("pushdown") || lower.contains("francés") || lower.contains("frances") ->
+                listOf(mus("Tríceps"))
+            lower.contains("lateral") -> listOf(mus("Deltoides Lateral"))
+            lower.contains("pantorrilla") || lower.contains("gemelo") || lower.contains("calf") -> listOf(mus("Pantorrillas"))
+            lower.contains("leg press") || lower.contains("prensa") -> listOf(mus("Cuádriceps"), mus("Glúteos", MuscleRole.SECONDARY))
+            lower.contains("leg curl") || lower.contains("femoral") -> listOf(mus("Isquiosurales"))
+            lower.contains("leg extension") -> listOf(mus("Cuádriceps"))
+            lower.contains("plancha") || lower.contains("plank") || lower.contains("abdomen") || lower.contains("core") -> listOf(mus("Abdomen"))
+            lower.contains("lunge") || lower.contains("zancada") || lower.contains("búlgara") || lower.contains("bulgara") -> listOf(mus("Cuádriceps"), mus("Glúteos", MuscleRole.SECONDARY))
+            else -> listOf(mus("Core"))
+        }
+    }
 
     // ─── RPE efectivo (traduce RPE / RIR / failure) ──────────────────────────
 
@@ -534,18 +632,7 @@ object AugeFatigueEngine {
                 exerciseId = ex.exerciseId,
                 exerciseName = ex.exerciseName,
             )
-            val resolvedIdStr = ex.catalogConfigurationId
-                ?: ex.exerciseDbId
-                ?: ex.exerciseId
-                ?: ex.exerciseName
-            val metrics = getDynamicAugeMetrics(ex.exerciseName, dbInfo?.equipment, dbInfo)
-                ?: run {
-                    android.util.Log.d(
-                        "AugeFatigueEngine",
-                        "Sin métricas de fatiga para '${ex.exerciseName}' (id=$resolvedIdStr) — ejercicio omitido del drenaje",
-                    )
-                    return@forEach
-                }
+            val metrics = getDynamicAugeMetrics(ex.exerciseName, dbInfo?.equipment, dbInfo) ?: AugeMetrics()
             val densityMult = getDensityMultiplierForExercise(
                 supersetId = ex.supersetId,
                 restTime = ex.supersetRestBetween ?: ex.restTime,
@@ -555,8 +642,9 @@ object AugeFatigueEngine {
             )
             // Completed logs carry the chip-adjusted snapshot. Fall back to the
             // catalog only for logs created before chip metadata was persisted.
-            val involved = ex.effectiveMuscles?.takeIf { it.isNotEmpty() }
+            val rawInvolved = ex.effectiveMuscles?.takeIf { it.isNotEmpty() }
                 ?: dbInfo?.involvedMuscles.orEmpty()
+            val involved = if (rawInvolved.isNotEmpty()) rawInvolved else heuristicInvolvedMuscles(ex.exerciseName)
             val primaryMuscle = involved
                 .find { it.role == MuscleRole.PRIMARY }
                 ?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
@@ -686,19 +774,13 @@ object AugeFatigueEngine {
                 exerciseId = ex.exerciseId,
                 exerciseName = ex.name,
             )
-            val metrics = getDynamicAugeMetrics(ex.name, dbInfo?.equipment, dbInfo)
-                ?: run {
-                    android.util.Log.d(
-                        "AugeFatigueEngine",
-                        "Sin métricas de fatiga para '${ex.name}' — ejercicio omitido del drenaje ajustado",
-                    )
-                    return@forEach
-                }
+            val metrics = getDynamicAugeMetrics(ex.name, dbInfo?.equipment, dbInfo) ?: AugeMetrics()
             val densityMult = getDensityMultiplierForExercise(ex.supersetId, ex.restTime ?: 90)
-            val involved = when {
+            val rawInvolved = when {
                 !ex.effectiveMuscles.isNullOrEmpty() -> ex.effectiveMuscles!!
                 else -> dbInfo?.involvedMuscles.orEmpty()
             }
+            val involved = if (rawInvolved.isNotEmpty()) rawInvolved else heuristicInvolvedMuscles(ex.name)
             val primaryMuscle = involved
                 .find { it.role == MuscleRole.PRIMARY }
                 ?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
