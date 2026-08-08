@@ -14,6 +14,7 @@ import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.isSimpleProgram
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
+import com.example.kpkn.domain.workout.expectedSidesForSet
 import java.text.Normalizer
 import kotlin.math.roundToInt
 
@@ -32,7 +33,7 @@ object WorkoutEditingRules {
         exercise ?: return null
         val safeSetIdx = setIdx.coerceIn(0, exercise.sets.lastIndex.coerceAtLeast(0))
         val isUnilateral = exercise.isEffectivelyUnilateral()
-        if (!isSetDone(completedSets, exercise.id, safeSetIdx, isUnilateral)) return null
+        if (!isSetDoneForExercise(completedSets, exercise, safeSetIdx)) return null
 
         val resolvedSide = when {
             !isUnilateral -> null
@@ -50,11 +51,27 @@ object WorkoutEditingRules {
         )
     }
 
-    private fun isSetDone(completedSets: Map<String, CompletedSet>, exerciseId: String, setIdx: Int, isUnilateral: Boolean): Boolean =
-        completedSets.containsKey(buildCompletedSetKey(exerciseId, setIdx, null)) ||
+    private fun isSetDone(completedSets: Map<String, CompletedSet>, exerciseId: String, setIdx: Int, isUnilateral: Boolean): Boolean {
+        // Fallback for callers without Exercise: keep bilateral vs paired logic.
+        // Prefer overload with Exercise when available (see buildEditingState below).
+        return completedSets.containsKey(buildCompletedSetKey(exerciseId, setIdx, null)) ||
             (isUnilateral &&
                 completedSets.containsKey(buildCompletedSetKey(exerciseId, setIdx, "left")) &&
                 completedSets.containsKey(buildCompletedSetKey(exerciseId, setIdx, "right")))
+    }
+
+    private fun isSetDoneForExercise(completedSets: Map<String, CompletedSet>, exercise: Exercise, setIdx: Int): Boolean {
+        val set = exercise.sets.getOrNull(setIdx) ?: return false
+        val sides = exercise.expectedSidesForSet(set)
+        return sides.all { side ->
+            val key = when (side) {
+                "L" -> buildCompletedSetKey(exercise.id, setIdx, "left")
+                "R" -> buildCompletedSetKey(exercise.id, setIdx, "right")
+                else -> buildCompletedSetKey(exercise.id, setIdx, null)
+            }
+            completedSets.containsKey(key)
+        }
+    }
 
     private fun buildCompletedSetKey(exerciseId: String, setIdx: Int, side: String?): String = when (side) {
         "left" -> "${exerciseId}_${setIdx}_L"

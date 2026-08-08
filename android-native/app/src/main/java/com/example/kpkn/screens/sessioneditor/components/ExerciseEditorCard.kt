@@ -413,7 +413,12 @@ internal fun ExerciseEditorCard(
                                 onUpdateExercise { draft ->
                                     draft.copy(
                                         restTime = primary,
-                                        restBetweenSidesSeconds = side?.takeIf { it > 0 },
+                                        restBetweenSidesSeconds = if (draft.isEffectivelyUnilateral()) {
+                                            // Preservar valor existente si UI no editó lado (superseg: side==null)
+                                            side?.takeIf { it > 0 } ?: draft.restBetweenSidesSeconds
+                                        } else {
+                                            side?.takeIf { it > 0 }
+                                        },
                                     )
                                 }
                             }

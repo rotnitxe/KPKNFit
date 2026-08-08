@@ -4,6 +4,7 @@ import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WeekVariant
+import com.example.kpkn.data.models.UnilateralSideOrder
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import kotlinx.coroutines.CoroutineScope
@@ -42,6 +43,8 @@ class WorkoutStepNavigator(
         fun openFinishSheet()
         fun speakCurrentStepAnnouncementIfEnabled()
         fun isRecordingBusy(): Boolean
+        /** Prompt de voz del feedback final (último descanso, pendingPostExerciseIdx = -2). */
+        fun announceFinalPostExerciseFeedback(exerciseIds: List<String>)
     }
 
     fun resolveResumePosition(
@@ -180,14 +183,12 @@ class WorkoutStepNavigator(
             failureReason = "skipped_round",
         )
 
+        val seenRoundSets = mutableSetOf<Pair<String, Int>>()
         remainingRoundSteps.forEach { step ->
             val exercise = visible.firstOrNull { it.id == step.exerciseId } ?: return@forEach
             val setIndex = step.setIndex ?: return@forEach
-            val sides = if (exercise.isEffectivelyUnilateral()) {
-                listOf("left", "right")
-            } else {
-                listOf<String?>(null)
-            }
+            if (!seenRoundSets.add(exercise.id to setIndex)) return@forEach
+            val sides = exercise.expectedSidesForSet(setIndex)
             sides.forEach { side ->
                 val key = buildCompletedSetKey(exercise.id, setIndex, side)
                 if (!updatedCompleted.containsKey(key)) {
@@ -237,16 +238,9 @@ class WorkoutStepNavigator(
         val updatedCompleted = state.completedSets.toMutableMap()
         val updatedAdvanced = state.setAdvancedFeedback.toMutableMap()
 
-        val targetSides = if (exercise.isEffectivelyUnilateral()) {
-            val sideOrder = when (exercise.unilateralSideOrder) {
-                com.example.kpkn.data.models.UnilateralSideOrder.LEFT_RIGHT -> listOf("left", "right")
-                com.example.kpkn.data.models.UnilateralSideOrder.RIGHT_LEFT -> listOf("right", "left")
-            }
-            sideOrder.firstOrNull { side ->
-                !state.completedSets.containsKey(buildCompletedSetKey(exercise.id, state.currentSetIdx, side))
-            }?.let(::listOf).orEmpty()
-        } else {
-            listOf<String?>(null)
+        val expectedSides = exercise.expectedSidesForSet(state.currentSetIdx)
+        val targetSides = expectedSides.filter { side ->
+            !state.completedSets.containsKey(buildCompletedSetKey(exercise.id, state.currentSetIdx, side))
         }
         if (targetSides.isEmpty()) {
             nextSet(stopRest = false)
@@ -283,10 +277,9 @@ class WorkoutStepNavigator(
             ports.clearDraftForSet(exercise.id, state.currentSetIdx, side)
         }
         ports.refreshLoadSuggestions(getState())
-        val stillPendingSide = exercise.isEffectivelyUnilateral() &&
-            listOf("left", "right").any { side ->
-                !updatedCompleted.containsKey(buildCompletedSetKey(exercise.id, state.currentSetIdx, side))
-            }
+        val stillPendingSide = expectedSides.any { side ->
+            !updatedCompleted.containsKey(buildCompletedSetKey(exercise.id, state.currentSetIdx, side))
+        }
         scope.launch {
             ports.persistOngoingStateAndAwait()
             if (!stillPendingSide) {
@@ -341,6 +334,9 @@ class WorkoutStepNavigator(
                 )
             }
             ports.persistOngoingState()
+            if (shouldShowFeedback && state.voiceSessionEnabled) {
+                ports.announceFinalPostExerciseFeedback(feedbackTarget.unrecordedFeedbackExerciseIds(state))
+            }
             return
         }
 
@@ -818,6 +814,22 @@ class WorkoutStepNavigator(
 
         if (nextIncompleteStepAfter(getState()) == null) {
             ports.openFinishSheet()
+        }
+    }
+
+    private fun Exercise.expectedSidesForSet(setIndex: Int): List<String?> {
+        if (!isEffectivelyUnilateral()) return listOf(null)
+        val set = sets.getOrNull(setIndex) ?: return when (unilateralSideOrder) {
+            UnilateralSideOrder.LEFT_RIGHT -> listOf("left", "right")
+            UnilateralSideOrder.RIGHT_LEFT -> listOf("right", "left")
+        }
+        val hasLeftOnly = set.leftTarget != null && set.rightTarget == null
+        val hasRightOnly = set.rightTarget != null && set.leftTarget == null
+        return when {
+            hasLeftOnly -> listOf("left")
+            hasRightOnly -> listOf("right")
+            unilateralSideOrder == UnilateralSideOrder.LEFT_RIGHT -> listOf("left", "right")
+            else -> listOf("right", "left")
         }
     }
 

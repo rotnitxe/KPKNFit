@@ -22,6 +22,7 @@ import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.workout.LoadSuggestionEngine
 import com.example.kpkn.domain.workout.WorkoutStructuralEditor
 import com.example.kpkn.domain.workout.SupersetRules
+import com.example.kpkn.domain.workout.expectedSidesForSet
 import com.example.kpkn.services.workout.WorkoutPacingNotificationManager
 import com.example.kpkn.domain.workout.WorkoutContextRecurrenceEngine
 import com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngine
@@ -349,6 +350,8 @@ class WorkoutViewModel(
                 override fun openFinishSheet() = this@WorkoutViewModel.openFinishSheet()
                 override fun speakCurrentStepAnnouncementIfEnabled() = voiceCommandHandler.speakCurrentStepAnnouncementIfEnabled()
                 override fun isRecordingBusy() = recordingGate.isBusy()
+                override fun announceFinalPostExerciseFeedback(exerciseIds: List<String>) =
+                    voiceController.onVoicePendingFinalFeedbackPrompt(exerciseIds.toSet())
             },
         )
         voiceCommandHandler = WorkoutVoiceCommandHandler(
@@ -1115,13 +1118,28 @@ class WorkoutViewModel(
 
     /**
      * Returns true when a set slot is filled, accounting for bilateral (single key)
-     * and unilateral (paired _L / _R keys).
+     * and unilateral (paired _L / _R keys) plus single-side (only L or only R).
      */
-    fun isSetDone(completedSets: Map<String, CompletedSet>, exerciseId: String, setIdx: Int, isUnilateral: Boolean): Boolean =
-        completedSets.containsKey("${exerciseId}_${setIdx}") ||
-            (isUnilateral &&
-                completedSets.containsKey("${exerciseId}_${setIdx}_L") &&
-                completedSets.containsKey("${exerciseId}_${setIdx}_R"))
+    fun isSetDone(completedSets: Map<String, CompletedSet>, exerciseId: String, setIdx: Int, isUnilateral: Boolean): Boolean {
+        if (!isUnilateral) return completedSets.containsKey("${exerciseId}_${setIdx}")
+        // Try to resolve exercise to determine expected sides (single vs paired)
+        val exercise = visibleExercises(_uiState.value).firstOrNull { it.id == exerciseId }
+            ?: _uiState.value.session?.allExercises()?.firstOrNull { it.id == exerciseId }
+        if (exercise != null) {
+            val set = exercise.sets.getOrNull(setIdx) ?: return false
+            val sides = try {
+                exercise.expectedSidesForSet(set)
+            } catch (_: Throwable) {
+                listOf("L", "R")
+            }
+            return sides.all { side ->
+                val key = if (side == "B") "${exerciseId}_${setIdx}" else "${exerciseId}_${setIdx}_$side"
+                completedSets.containsKey(key)
+            }
+        }
+        return completedSets.containsKey("${exerciseId}_${setIdx}") ||
+            (completedSets.containsKey("${exerciseId}_${setIdx}_L") && completedSets.containsKey("${exerciseId}_${setIdx}_R"))
+    }
 
     private fun buildCompletedSetKey(exerciseId: String, setIdx: Int, side: String?): String = when (side) {
         "left" -> "${exerciseId}_${setIdx}_L"

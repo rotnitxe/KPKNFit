@@ -729,6 +729,8 @@ internal fun SetInputCardV2(
         mutableStateOf<Int?>(initialDraft?.rom ?: sessionCompletedSet?.rom ?: 100)
     }
     var selectedSide by remember(exercise.id, setIndex, lockedSide) { mutableStateOf(initialSelectedSide) }
+    val sideKey = if (supportsIndependentSides) lockedSide ?: selectedSide else "B"
+    val clearTechniqueStateOnSideChangeRef = remember { arrayOf<(() -> Unit)?>(null) }
 
     fun valueTextForSide(side: String): String = if (side == "left") leftValueText else rightValueText
     fun weightTextForSide(side: String): String = if (side == "left") leftWeightText else rightWeightText
@@ -760,6 +762,10 @@ internal fun SetInputCardV2(
             valueText = valueTextForSide(side)
             weightText = weightTextForSide(side)
         }
+        // Limpieza explícita tras cambiar de lado para evitar contaminación L→R (fix #1 ALTO)
+        // Nota: los estados técnicos están keyeados por sideKey (Triple) por lo que R nace limpio;
+        // esta invocación refuerza limpieza por si quedara retención.
+        clearTechniqueStateOnSideChangeRef[0]?.invoke()
     }
     LaunchedEffect(lockedSide) {
         lockedSide?.let { selectSide(it) }
@@ -786,48 +792,70 @@ internal fun SetInputCardV2(
     var reachedFailure by remember(exercise.id, setIndex, sessionCompletedSet?.id) {
         mutableStateOf(initialDraft?.reachedFailure ?: (sessionCompletedSet?.isFailure == true || currentSet.isFailure || currentSet.intensityMode == IntensityMode.FAILURE))
     }
-    var isFailedSet by remember(exercise.id, setIndex) { mutableStateOf(false) }
-    var isAmrap by remember(exercise.id, setIndex) { mutableStateOf(currentSet.isAmrap) }
-    var showAmrapSheet by remember(exercise.id, setIndex) { mutableStateOf(false) }
-    var amrapReachFailure by remember(exercise.id, setIndex) { mutableStateOf(true) }
-    var amrapReserveReps by remember(exercise.id, setIndex) { mutableStateOf<Int?>(null) }
-    var dropSetEnabled by remember(exercise.id, setIndex) { mutableStateOf(false) }
-    var restPauseEnabled by remember(exercise.id, setIndex) { mutableStateOf(false) }
-    var showPartialsMode by remember(exercise.id, setIndex) { mutableStateOf(false) }
+    var isFailedSet by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
+    var isAmrap by remember(exercise.id, setIndex, sideKey) { mutableStateOf(currentSet.isAmrap) }
+    var showAmrapSheet by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
+    var amrapReachFailure by remember(exercise.id, setIndex, sideKey) { mutableStateOf(true) }
+    var amrapReserveReps by remember(exercise.id, setIndex, sideKey) { mutableStateOf<Int?>(null) }
+    var dropSetEnabled by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
+    var restPauseEnabled by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
+    var showPartialsMode by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
     var assistedRepsValue by remember(exercise.id, setIndex, sessionCompletedSet?.id) {
         mutableIntStateOf(initialDraft?.assistedReps ?: sessionCompletedSet?.assistedReps ?: 0)
     }
-    var adjustmentsTab by remember(exercise.id, setIndex) { mutableIntStateOf(-1) }
-    var loadModeMenuExpanded by remember(exercise.id, setIndex) { mutableStateOf(false) }
-    var dropSets by remember(exercise.id, setIndex) {
+    var adjustmentsTab by remember(exercise.id, setIndex, sideKey) { mutableIntStateOf(-1) }
+    var loadModeMenuExpanded by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
+    var dropSets by remember(exercise.id, setIndex, sideKey) {
         mutableStateOf(listOf(DropSetEntry(weight = 0.0, reps = 0)))
     }
-    var restPauseSets by remember(exercise.id, setIndex) {
+    var restPauseSets by remember(exercise.id, setIndex, sideKey) {
         mutableStateOf(listOf(RestPauseData(restTime = 20, reps = 0)))
     }
-    var partialSets by remember(exercise.id, setIndex) {
+    var partialSets by remember(exercise.id, setIndex, sideKey) {
         mutableStateOf(listOf(0))
     }
-    var guidedPhase by remember(exercise.id, setIndex) {
+    var guidedPhase by remember(exercise.id, setIndex, sideKey) {
         mutableStateOf<GuidedTechniquePhase?>(null)
     }
-    var guidedMainCapture by remember(exercise.id, setIndex) {
+    var guidedMainCapture by remember(exercise.id, setIndex, sideKey) {
         mutableStateOf<GuidedMainCapture?>(null)
     }
-    var guidedDropDrafts by remember(exercise.id, setIndex) {
+    var guidedDropDrafts by remember(exercise.id, setIndex, sideKey) {
         mutableStateOf<List<DropSetEntry>>(emptyList())
     }
-    var guidedRestPauseDrafts by remember(exercise.id, setIndex) {
+    var guidedRestPauseDrafts by remember(exercise.id, setIndex, sideKey) {
         mutableStateOf<List<RestPauseData>>(emptyList())
     }
-    var guidedDropWeightText by remember(exercise.id, setIndex) { mutableStateOf("") }
-    var guidedDropRepsText by remember(exercise.id, setIndex) {
+    var guidedDropWeightText by remember(exercise.id, setIndex, sideKey) { mutableStateOf("") }
+    var guidedDropRepsText by remember(exercise.id, setIndex, sideKey) {
         mutableStateOf(RestPausePlanDefaults.Reps.toString())
     }
-    var guidedRestPauseRepsText by remember(exercise.id, setIndex) {
+    var guidedRestPauseRepsText by remember(exercise.id, setIndex, sideKey) {
         mutableStateOf(RestPausePlanDefaults.Reps.toString())
     }
-    LaunchedEffect(currentSet?.id, currentSet?.plannedIntensityTechniques, currentSet?.isDropSet, currentSet?.isRestPause) {
+    LaunchedEffect(currentSet?.id, currentSet?.plannedIntensityTechniques, currentSet?.isDropSet, currentSet?.isRestPause, sideKey) {
+        // Reset explícito al cambiar de lado para evitar contaminación L→R (fix #1 ALTO)
+        dropSetEnabled = false
+        restPauseEnabled = false
+        dropSets = listOf(DropSetEntry(weight = 0.0, reps = 0))
+        restPauseSets = listOf(RestPauseData(restTime = RestPausePlanDefaults.PauseSeconds, reps = RestPausePlanDefaults.Reps))
+        partialSets = listOf(0)
+        isAmrap = currentSet.isAmrap
+        showAmrapSheet = false
+        amrapReachFailure = true
+        amrapReserveReps = null
+        showPartialsMode = false
+        isFailedSet = false
+        guidedPhase = null
+        guidedMainCapture = null
+        guidedDropDrafts = emptyList()
+        guidedRestPauseDrafts = emptyList()
+        guidedDropWeightText = ""
+        guidedDropRepsText = RestPausePlanDefaults.Reps.toString()
+        guidedRestPauseRepsText = RestPausePlanDefaults.Reps.toString()
+        adjustmentsTab = -1
+        loadModeMenuExpanded = false
+
         val plannedDrop = currentSet?.plannedIntensityTechniques?.firstOrNull {
             it.type == TechniqueType.DROP_SET
         }
@@ -944,9 +972,37 @@ internal fun SetInputCardV2(
             }
         }
     }
-    var timerRunning by remember(exercise.id, setIndex) { mutableStateOf(false) }
-    var timerRemainingSeconds by remember(exercise.id, setIndex) { mutableIntStateOf(plannedTarget ?: 0) }
-    var timerElapsedSeconds by remember(exercise.id, setIndex) { mutableIntStateOf(0) }
+    var timerRunning by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
+    var timerRemainingSeconds by remember(exercise.id, setIndex, sideKey) { mutableIntStateOf(plannedTarget ?: 0) }
+    var timerElapsedSeconds by remember(exercise.id, setIndex, sideKey) { mutableIntStateOf(0) }
+
+    // Wiring para limpiar estado técnico al cambiar de lado (fix #1 ALTO: evita contaminación L→R)
+    // La limpieza se invoca desde selectSide() antes de cambiar selectedSide.
+    clearTechniqueStateOnSideChangeRef[0] = {
+        dropSetEnabled = false
+        restPauseEnabled = false
+        dropSets = listOf(DropSetEntry(weight = 0.0, reps = 0))
+        restPauseSets = listOf(RestPauseData(restTime = RestPausePlanDefaults.PauseSeconds, reps = RestPausePlanDefaults.Reps))
+        partialSets = listOf(0)
+        isAmrap = currentSet.isAmrap
+        showAmrapSheet = false
+        amrapReachFailure = true
+        amrapReserveReps = null
+        showPartialsMode = false
+        isFailedSet = false
+        guidedPhase = null
+        guidedMainCapture = null
+        guidedDropDrafts = emptyList()
+        guidedRestPauseDrafts = emptyList()
+        guidedDropWeightText = ""
+        guidedDropRepsText = RestPausePlanDefaults.Reps.toString()
+        guidedRestPauseRepsText = RestPausePlanDefaults.Reps.toString()
+        adjustmentsTab = -1
+        loadModeMenuExpanded = false
+        timerRunning = false
+        timerRemainingSeconds = plannedTarget ?: 0
+        timerElapsedSeconds = 0
+    }
 
     val achievedValue = valueText.toDoubleOrNull() ?: 0.0
     val targetDelta = plannedTarget?.toDouble()?.let { achievedValue - it }
@@ -1091,7 +1147,7 @@ internal fun SetInputCardV2(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            val guidedSkipAction = remember(exercise.id, setIndex) {
+            val guidedSkipAction = remember(exercise.id, setIndex, sideKey) {
                 arrayOf<(() -> Unit)?>(null)
             }
             val activeGuidedPhaseTop = guidedPhase
