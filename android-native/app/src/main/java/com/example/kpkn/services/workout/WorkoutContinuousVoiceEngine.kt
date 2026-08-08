@@ -903,9 +903,12 @@ class WorkoutContinuousVoiceEngine internal constructor(
                     if (command.generation != actorGeneration || !running) return
                     holdMicRouteAcrossPause = command.holdMicRouteAcrossPause
                     // Guarda anti-eco: descartar PCM un instante tras reanudar para no
-                    // decodificar la cola del TTS que acaba de terminar.
+                    // decodificar la cola del TTS que acaba de terminar. Con una
+                    // clarificación pendiente el usuario suele responder enseguida:
+                    // guardia (y discard asociado) acortados para no tragarse la
+                    // respuesta a la pregunta.
                     discardPcmOnly = true
-                    postTtsGuardUntilMs = clockMs() + POST_TTS_GUARD_MS
+                    postTtsGuardUntilMs = clockMs() + postTtsGuardMs(pendingClarificationActive)
                     if (!fallbackInFlight.get()) {
                         captureDesired = true
                         micRouter.acquire(WorkoutVoiceMicRouter.RouteMode.CONTINUOUS_VOICE_FIRST)
@@ -1528,7 +1531,9 @@ class WorkoutContinuousVoiceEngine internal constructor(
         // duplica el FST del modelo en RAM; con 1 basta (principal en uso + reutilización).
         private const val RECOGNIZER_CACHE_SIZE = 1
         private const val PARTIAL_EMIT_INTERVAL_MS = 250L
-        private const val POST_TTS_GUARD_MS = 600L
+        internal const val POST_TTS_GUARD_MS = 600L
+        /** Guardia acortada con clarificación pendiente: la respuesta rápida no debe descartarse. */
+        internal const val POST_TTS_CLARIFICATION_GUARD_MS = 150L
         private const val PCM_START_WATCHDOG_MS = 1_500L
         private const val MIC_BUSY_TIMEOUT_MS = 5_000L
         private const val MISSING_SESSION_RETRY_MS = 300L
@@ -1563,6 +1568,18 @@ internal fun voiceGrammarKey(
     contextHash: Long,
     pendingClarification: Boolean,
 ): Long = 31L * stage.ordinal + contextHash + if (pendingClarification) 1L shl 40 else 0L
+
+/**
+ * Guardia anti-eco post-TTS efectiva: con clarificación pendiente se acorta para
+ * no descartar la respuesta rápida del usuario (UpdateGrammar llega al actor
+ * antes que el Resume, así que el flag ya está fresco al procesarlo).
+ */
+internal fun postTtsGuardMs(pendingClarificationActive: Boolean): Long =
+    if (pendingClarificationActive) {
+        WorkoutContinuousVoiceEngine.POST_TTS_CLARIFICATION_GUARD_MS
+    } else {
+        WorkoutContinuousVoiceEngine.POST_TTS_GUARD_MS
+    }
 
 enum class VoiceCaptureState {
     IDLE,

@@ -21,12 +21,20 @@ object WorkoutVoiceIntentMatcher {
         customUnit: String? = null,
         trackRom: Boolean = false,
         tagNames: Set<String> = emptySet(),
+        voiceFeedbackPromptActive: Boolean = false,
     ): VoiceSessionCommand {
         if (showFinishSheet) {
             return WorkoutVoiceCommandParser.parseFinalFeedbackCommand(transcript)
         }
-        if (showPostExerciseSheet) {
-            return WorkoutVoiceCommandParser.parseFeedbackCommand(transcript)
+        if (showPostExerciseSheet || voiceFeedbackPromptActive) {
+            val feedbackCmd = WorkoutVoiceCommandParser.parseFeedbackCommand(
+                transcript,
+                bareNumberIsQuality = voiceFeedbackPromptActive,
+            )
+            // Serie dictada durante el prompt ("8 por 12"): no interceptar, sigue el parseo genérico.
+            if (!feedbackCmd.isEmpty || !WorkoutVoiceCommandParser.looksLikeSetPattern(transcript)) {
+                return feedbackCmd
+            }
         }
 
         val parsed = WorkoutVoiceCommandParser.parseCommand(

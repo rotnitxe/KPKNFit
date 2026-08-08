@@ -220,7 +220,13 @@ sealed class VoiceSessionCommand {
         val isSaveAction: Boolean = false,
         val exerciseSearchName: String? = null,
         val discomfortCandidates: Map<String, String> = emptyMap(),
-    ) : VoiceSessionCommand()
+    ) : VoiceSessionCommand() {
+        /** True cuando la frase no aportó ningún campo ni acción: el caller puede
+         *  re-intentar el parseo genérico (p.ej. serie "8 por 12" durante el prompt). */
+        val isEmpty: Boolean
+            get() = technicalQuality == null && discomfortId == null &&
+                perceivedIntensity == null && !isSaveAction && discomfortCandidates.isEmpty()
+    }
     data class LogFinalFeedback(
         val notes: String? = null,
         val discomfortId: String? = null,
@@ -228,6 +234,12 @@ sealed class VoiceSessionCommand {
         val neuralBattery: Int? = null,
         val spinalBattery: Int? = null,
         val isSaveAction: Boolean = false,
-    ) : VoiceSessionCommand()
+    ) : VoiceSessionCommand() {
+        /** True cuando la frase no aportó ningún campo ni acción de cierre:
+         *  el handler responde con la instrucción correcta en vez de silencio (P0). */
+        val isEmpty: Boolean
+            get() = notes == null && discomfortId == null && additionalDiscomfortNote == null &&
+                neuralBattery == null && spinalBattery == null && !isSaveAction
+    }
     data class Unknown(val raw: String) : VoiceSessionCommand()
 }

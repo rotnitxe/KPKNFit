@@ -246,6 +246,10 @@ class WorkoutTtsManager(context: Context) {
         speak("¿Sientes alguna molestia o dolor?", queueFlush = false)
     }
 
+    fun speakFeedbackSaveHint() {
+        speak("Di guardar cuando termines.", queueFlush = false)
+    }
+
     fun speakUnilateralSideRegistered(completedSide: String, pendingSide: String) {
         val comp = if (completedSide == "left") "izquierdo" else "derecho"
         val pend = if (pendingSide == "left") "izquierdo" else "derecho"

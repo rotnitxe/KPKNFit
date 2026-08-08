@@ -2,6 +2,8 @@ package com.example.kpkn.services.workout
 
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.DISCOMFORT_CATALOG
+import com.example.kpkn.data.models.DiscomfortCatalogEntry
+import com.example.kpkn.data.models.DiscomfortSection
 import java.text.Normalizer
 import java.util.Locale
 
@@ -232,6 +234,14 @@ object WorkoutVoiceCommandParser {
                 "lumbar", "espalda baja", "muneca", "muñeca", "cadera", "tobillo",
                 "sin molestia", "todo bien", "nota", "comentario", "observacion",
                 "observación", "neural", "nerviosa", "cns", "espinal", "columna", "espalda",
+                // Drill-down por zona: qualifiers y sinónimos hablados (c1/c2).
+                "interna", "interno", "externa", "externo", "anterior", "posterior",
+                "lateral", "medial", "dentro", "adentro", "fuera", "afuera",
+                "adelante", "delantera", "atras", "trasera", "frontal", "frente",
+                "alta", "arriba", "baja", "abajo", "costado", "rotula",
+                "espalda alta", "mano", "cuello", "cervical", "aquiles", "ingle",
+                "aductores", "inguinal", "isquios", "isquiotibiales", "pie", "planta",
+                "gluteo", "pelvis",
             )
         }
         if (stage != VoicePipelineStage.CONFIRM_WAIT) {
@@ -754,7 +764,7 @@ object WorkoutVoiceCommandParser {
         "setenta" to 70, "ochenta" to 80, "noventa" to 90, "cien" to 100, "ciento" to 100,
     )
 
-    fun parseFeedbackCommand(transcript: String): VoiceSessionCommand.LogFeedback {
+    fun parseFeedbackCommand(transcript: String, bareNumberIsQuality: Boolean = false): VoiceSessionCommand.LogFeedback {
         val lower = normalizeText(transcript)
 
         val saveKeywords = setOf("guardar", "listo", "ok", "guardar feedback", "terminar feedback", "completar")
@@ -771,6 +781,11 @@ object WorkoutVoiceCommandParser {
                 else -> extractNumberFromText(lower)?.toInt()?.coerceIn(1, 10)
             }
         }
+        // Número desnudo 1-10 = calidad técnica cuando el prompt de voz está activo (b3).
+        // Patrones de serie ("8 por 12") NUNCA se tragan: se detectan y van al parseo normal.
+        if (technicalQuality == null && bareNumberIsQuality && isBareQualityNumber(lower)) {
+            technicalQuality = extractNumberFromText(lower)?.toInt()?.takeIf { it in 1..10 }
+        }
 
         var perceivedIntensity: Double? = null
         if (lower.contains("intensidad") || lower.contains("rpe") || lower.contains("esfuerzo") || lower.contains("fatiga")) {
@@ -779,10 +794,19 @@ object WorkoutVoiceCommandParser {
 
         var discomfortId: String? = null
         var discomfortCandidates: Map<String, String> = emptyMap()
-        if (lower.contains("molestia") || lower.contains("dolor") || lower.contains("tiron")) {
-            val matches = matchDiscomfortCandidates(lower)
-            discomfortId = matches.singleOrNull()?.id
-            discomfortCandidates = if (matches.size > 1) matches.associate { it.id to it.label } else emptyMap()
+        val mentionsDiscomfort = lower.contains("molestia") || lower.contains("dolor") ||
+            lower.contains("tiron") || lower.contains("siento")
+        val discomfortMatches = when {
+            mentionsDiscomfort -> matchDiscomfortCandidates(lower)
+            else -> matchDiscomfortConfident(lower)
+        }
+        if (discomfortMatches.isNotEmpty()) {
+            discomfortId = discomfortMatches.singleOrNull()?.id
+            discomfortCandidates = if (discomfortMatches.size > 1) {
+                discomfortMatches.associate { it.id to it.label }
+            } else {
+                emptyMap()
+            }
         }
 
         return VoiceSessionCommand.LogFeedback(
@@ -795,11 +819,44 @@ object WorkoutVoiceCommandParser {
         )
     }
 
+    /**
+     * True cuando la frase parece una serie dictada ("8 por 12", "veinte por diez"):
+     * el gate de feedback no debe interceptarla (b1, riesgo conocido del plan).
+     */
+    fun looksLikeSetPattern(transcript: String): Boolean {
+        val lower = normalizeText(transcript)
+        if (Regex("\\d+\\s*(kilos?|kg)?\\s+por\\s+\\d+").containsMatchIn(lower)) return true
+        if (!lower.contains(" por ")) return false
+        val parts = lower.split(" por ")
+        return parts.size == 2 && parts.all { extractNumberFromText(it.trim()) != null }
+    }
+
+    private fun isBareQualityNumber(lower: String): Boolean {
+        if (lower.contains(" por ")) return false
+        val tokens = lower.split(' ').filter { it.isNotBlank() }
+        if (tokens.isEmpty() || tokens.size > 2) return false
+        val numericTokens = tokens.count { token ->
+            token.toDoubleOrNull() != null || VOICE_INTEGER_WORDS.containsKey(token)
+        }
+        return numericTokens == 1
+    }
+
     fun parseFinalFeedbackCommand(transcript: String): VoiceSessionCommand.LogFinalFeedback {
         val lower = normalizeText(transcript)
 
-        val saveKeywords = setOf("guardar y terminar", "guardar entrenamiento", "guardar sesion", "terminar entrenamiento", "finalizar entrenamiento", "finalizar sesion")
-        val isSaveAction = saveKeywords.any { lower.contains(it) }
+        // (P0) Keywords de cierre alineados con el prompt TTS de la finish sheet
+        // («Para finalizar, di sesión terminada», WorkoutViewModel.announceWorkoutSessionSummary).
+        // «guardar» a pelo cubre las variantes «guardar y terminar/entrenamiento/sesión».
+        val saveKeywords = setOf(
+            "guardar", "guardar y terminar",
+            "sesion terminada", "terminar sesion", "acabar sesion", "finalizar sesion", "guardar sesion",
+            "entrenamiento terminado", "terminar entrenamiento", "finalizar entrenamiento", "guardar entrenamiento",
+            "finalizar",
+        )
+        // Guard anti-negación: «no guardar», «todavía no», «aún no»… no disparan el save.
+        val negatedFinish = lower.contains("no guardar") || lower.contains("no terminar") ||
+            lower.contains("todavia no") || lower.contains("aun no")
+        val isSaveAction = !negatedFinish && saveKeywords.any { lower.contains(it) }
 
         var neural: Int? = null
         var spinal: Int? = null
@@ -855,15 +912,159 @@ object WorkoutVoiceCommandParser {
         return matchDiscomfortCandidates(text).singleOrNull()?.id
     }
 
-    private fun matchDiscomfortCandidates(text: String) = when {
-        text.contains("ninguna") || text.contains("sin molestia") || text.contains("todo bien") ->
-            DISCOMFORT_CATALOG.filter { it.id == "none" }
-        else -> DISCOMFORT_CATALOG.filter { entry ->
-            val haystack = normalizeText("${entry.label} ${entry.description} ${entry.section.label}")
-            val relevant = normalizeText(text).split(' ').filter { it.length >= 4 && it !in setOf("dolor", "molestia", "tengo") }
-            relevant.any(haystack::contains)
-        }.take(3)
+    /** Matching CON keyword de molestia ("dolor/molestia/tirón/siento"): acepta también hits débiles. */
+    private fun matchDiscomfortCandidates(text: String): List<DiscomfortCatalogEntry> =
+        matchDiscomfortScored(text, assumeDiscomfortContext = true)
+
+    /** Matching SIN keyword: solo hits de alta precisión (sinónimo hablado o label). */
+    private fun matchDiscomfortConfident(text: String): List<DiscomfortCatalogEntry> =
+        matchDiscomfortScored(text, assumeDiscomfortContext = false)
+
+    /**
+     * Matcher por pesos (c1): sinónimos hablados > label (alto) > description (medio) >
+     * section.label (bajo, excluyendo el término genérico de la sección). Las familias
+     * (shoulder_*, elbow_*, knee_*, hip_*) se devuelven enteras (refinadas por qualifiers)
+     * para habilitar el drill-down por zona (c2).
+     */
+    private fun matchDiscomfortScored(text: String, assumeDiscomfortContext: Boolean): List<DiscomfortCatalogEntry> {
+        val normalized = normalizeText(text)
+        if (normalized.contains("ninguna") || normalized.contains("sin molestia") || normalized.contains("todo bien")) {
+            return DISCOMFORT_CATALOG.filter { it.id == "none" }
+        }
+        // 1) Sinónimos hablados: id directo o familia de zona.
+        val synonymIds = mutableSetOf<String>()
+        for ((spokenKeys, catalogIds) in DISCOMFORT_SPOKEN_SYNONYMS) {
+            if (spokenKeys.any { matchesAnyKeyword(normalized, setOf(it)) }) {
+                synonymIds += catalogIds
+            }
+        }
+        if (synonymIds.size == 1) {
+            return DISCOMFORT_CATALOG.filter { it.id in synonymIds }
+        }
+        if (synonymIds.size > 1) {
+            return refineFamilyByZoneQualifiers(normalized, DISCOMFORT_CATALOG.filter { it.id in synonymIds })
+        }
+        // 2) Scoring por pesos sobre catálogo (sin "none").
+        val relevant = normalized.split(' ').filter { it.length >= 4 && it !in DISCOMFORT_STOPWORDS }
+        if (relevant.isEmpty()) return emptyList()
+        val scored = DISCOMFORT_CATALOG.filter { it.id != "none" }.mapNotNull { entry ->
+            val labelHaystack = normalizeText(entry.label)
+            val descriptionHaystack = normalizeText(entry.description)
+            val sectionHaystack = normalizeText(entry.section.label)
+            val sectionGeneric = DISCOMFORT_SECTION_GENERIC_TOKENS[entry.section].orEmpty()
+            var score = 0
+            for (token in relevant) {
+                when {
+                    labelHaystack.contains(token) -> score += DISCOMFORT_SCORE_LABEL
+                    descriptionHaystack.contains(token) -> score += DISCOMFORT_SCORE_DESCRIPTION
+                    token !in sectionGeneric && sectionHaystack.contains(token) -> score += DISCOMFORT_SCORE_SECTION
+                }
+            }
+            if (score > 0) entry to score else null
+        }
+        if (scored.isEmpty()) return emptyList()
+        val maxScore = scored.maxOf { it.second }
+        // Sin contexto explícito solo se acepta un hit de label (precisión alta).
+        if (!assumeDiscomfortContext && maxScore < DISCOMFORT_SCORE_LABEL) return emptyList()
+        return scored.filter { it.second == maxScore }.take(3).map { it.first }
     }
+
+    /** Familia de zona + qualifier hablado ("por dentro", "anterior") -> una sola entrada. */
+    private fun refineFamilyByZoneQualifiers(
+        normalized: String,
+        family: List<DiscomfortCatalogEntry>,
+    ): List<DiscomfortCatalogEntry> {
+        val hits = family.filter { entry ->
+            DISCOMFORT_ZONE_QUALIFIERS[entry.id].orEmpty().any { matchesAnyKeyword(normalized, setOf(it)) }
+        }
+        return if (hits.size == 1) hits else family
+    }
+
+    /**
+     * Resolución extendida del drill-down por zona (c2): dado el mapa de candidatos de
+     * [VoicePendingAction.DiscomfortSelection] acepta qualifiers hablados
+     * ("interna/externa/anterior/posterior/lateral/medial", "por dentro/fuera"), tokens
+     * distintivos del label y, como último recurso, el substring histórico del label.
+     */
+    fun resolveDiscomfortCandidateId(transcript: String, candidates: Map<String, String>): String? {
+        if (candidates.isEmpty()) return null
+        val lower = normalizeText(transcript)
+        // 1) Qualifier de zona.
+        val viaQualifier = candidates.keys.filter { id ->
+            DISCOMFORT_ZONE_QUALIFIERS[id].orEmpty().any { matchesAnyKeyword(lower, setOf(it)) }
+        }
+        if (viaQualifier.size == 1) return viaQualifier.first()
+        // 2) Token distintivo del label (presente en un solo candidato).
+        val labelTokens = candidates.mapValues { (_, label) ->
+            normalizeText(label).split(Regex("[^a-z0-9]+")).filter { it.length >= 4 }.toSet()
+        }
+        val viaDistinctiveToken = labelTokens.filter { (id, tokens) ->
+            tokens.any { token ->
+                labelTokens.none { (otherId, otherTokens) -> otherId != id && token in otherTokens } &&
+                    matchesAnyKeyword(lower, setOf(token))
+            }
+        }.keys
+        if (viaDistinctiveToken.size == 1) return viaDistinctiveToken.first()
+        // 3) Fallback histórico: substring del label completo.
+        return candidates.entries.firstOrNull { lower.contains(normalizeText(it.value)) }?.key
+    }
+
+    private const val DISCOMFORT_SCORE_LABEL = 3
+    private const val DISCOMFORT_SCORE_DESCRIPTION = 2
+    private const val DISCOMFORT_SCORE_SECTION = 1
+
+    private val DISCOMFORT_STOPWORDS = setOf(
+        "dolor", "molestia", "tengo", "tiron", "siento", "duele", "mucho", "poco",
+    )
+
+    /** Término genérico de cada sección: no puntúa como hit de sección (evita que
+     *  "dolor de hombro" arrastre codo/muñeca vía "Hombro y brazos"). */
+    private val DISCOMFORT_SECTION_GENERIC_TOKENS: Map<DiscomfortSection, Set<String>> = mapOf(
+        DiscomfortSection.SHOULDERS_ARMS to setOf("hombro"),
+        DiscomfortSection.SPINE_NECK to setOf("columna", "cuello"),
+        DiscomfortSection.HIP_PELVIS to setOf("cadera", "pelvis"),
+        DiscomfortSection.KNEE to setOf("rodilla"),
+        DiscomfortSection.ANKLE_FOOT to setOf("tobillo", "pie"),
+        DiscomfortSection.GENERAL to setOf("general"),
+    )
+
+    /** Sinónimos hablados -> ids del catálogo. Las frases específicas van primero. */
+    private val DISCOMFORT_SPOKEN_SYNONYMS: List<Pair<Set<String>, Set<String>>> = listOf(
+        setOf("espalda baja") to setOf("lumbar"),
+        setOf("espalda alta") to setOf("upper_back"),
+        setOf("lumbar", "lumbares", "lumbago") to setOf("lumbar"),
+        setOf("muneca", "munecas") to setOf("wrist_hand"),
+        setOf("mano", "manos") to setOf("wrist_hand"),
+        setOf("aquiles") to setOf("achilles"),
+        setOf("cuello", "cervical", "cervicales") to setOf("neck_cervical"),
+        setOf("ingle", "inguinal", "aductor", "aductores") to setOf("adductor_groin"),
+        setOf("isquio", "isquios", "isquiotibial", "isquiotibiales") to setOf("hamstring_proximal"),
+        setOf("tobillo", "tobillos") to setOf("ankle"),
+        setOf("pie", "pies", "planta") to setOf("plantar_foot"),
+        setOf("gluteo", "gluteos", "glutea") to setOf("hip_lateral"),
+        setOf("codo", "codos") to setOf("elbow_medial", "elbow_lateral"),
+        setOf("rodilla", "rodillas", "rotula") to setOf("knee_patellar", "knee_medial"),
+        setOf("hombro", "hombros") to setOf("shoulder_anterior", "shoulder_posterior"),
+        setOf("cadera", "caderas") to setOf("hip_front", "hip_lateral"),
+        setOf("espalda") to setOf("upper_back", "lumbar"),
+    )
+
+    /** Qualifiers hablados por entrada del catálogo para el drill-down por zona (c2). */
+    private val DISCOMFORT_ZONE_QUALIFIERS: Map<String, Set<String>> = mapOf(
+        "shoulder_anterior" to setOf("anterior", "frontal", "adelante", "delantera", "frente"),
+        "shoulder_posterior" to setOf("posterior", "atras", "trasera"),
+        "elbow_medial" to setOf("interna", "interno", "medial", "dentro", "adentro"),
+        "elbow_lateral" to setOf("externa", "externo", "lateral", "fuera", "afuera"),
+        "knee_patellar" to setOf("anterior", "adelante", "delantera", "frente", "rotula"),
+        "knee_medial" to setOf(
+            "interna", "interno", "medial", "lateral", "externa", "externo",
+            "dentro", "adentro", "fuera", "afuera", "costado", "costados",
+        ),
+        "hip_front" to setOf("anterior", "adelante", "delantera", "frente"),
+        "hip_lateral" to setOf("lateral", "externa", "externo", "fuera", "afuera", "costado", "glutea"),
+        "upper_back" to setOf("alta", "arriba", "toracica"),
+        "lumbar" to setOf("baja", "abajo"),
+    )
 
     private fun extractNumberFromText(text: String): Double? {
         val match = Regex("\\d+(?:[.,]\\d+)?").find(text)
