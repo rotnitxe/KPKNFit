@@ -8,6 +8,7 @@ import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
 import androidx.health.connect.client.records.BodyFatRecord
 import androidx.health.connect.client.records.WeightRecord
 import androidx.health.connect.client.records.ExerciseSessionRecord
+import androidx.health.connect.client.records.HeartRateRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.metadata.Metadata
 import androidx.health.connect.client.request.ReadRecordsRequest
@@ -34,6 +35,7 @@ class HealthConnectManager private constructor(private val context: Context) {
             HealthPermission.getReadPermission(BodyFatRecord::class),
             HealthPermission.getReadPermission(StepsRecord::class),
             HealthPermission.getReadPermission(ExerciseSessionRecord::class),
+            HealthPermission.getReadPermission(HeartRateRecord::class),
             HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class),
             HealthPermission.getWritePermission(WeightRecord::class),
             HealthPermission.getWritePermission(BodyFatRecord::class),
@@ -146,6 +148,23 @@ class HealthConnectManager private constructor(private val context: Context) {
         }
     }
 
+    suspend fun readHeartRate(startDate: LocalDate, endDate: LocalDate): List<HeartRateRecord> {
+        val healthClient = getClient() ?: return emptyList()
+        return try {
+            healthClient.readRecords(
+                ReadRecordsRequest(
+                    recordType = HeartRateRecord::class,
+                    timeRangeFilter = TimeRangeFilter.between(
+                        startDate.atStartOfDay(ZoneId.systemDefault()).toInstant(),
+                        endDate.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant(),
+                    ),
+                ),
+            ).records
+        } catch (_: Exception) {
+            emptyList()
+        }
+    }
+
     suspend fun readActiveCalories(startDate: LocalDate, endDate: LocalDate): List<ActiveCaloriesBurnedRecord> {
         val healthClient = getClient() ?: return emptyList()
         return try {
@@ -205,6 +224,7 @@ class HealthConnectManager private constructor(private val context: Context) {
         try {
             val steps = readSteps(startDate, endDate)
             val exercises = readExerciseSessions(startDate, endDate)
+            val heartRate = readHeartRate(startDate, endDate)
             val calories = readActiveCalories(startDate, endDate)
             val bodyMass = readBodyMass(startDate, endDate)
             val bodyFat = readBodyFat(startDate, endDate)
@@ -213,6 +233,7 @@ class HealthConnectManager private constructor(private val context: Context) {
                 HealthDataResult(
                     steps = steps,
                     exerciseSessions = exercises,
+                    heartRate = heartRate,
                     activeCalories = calories,
                     bodyMass = bodyMass,
                     bodyFat = bodyFat,
@@ -228,6 +249,7 @@ class HealthConnectManager private constructor(private val context: Context) {
 data class HealthDataResult(
     val steps: List<StepsRecord> = emptyList(),
     val exerciseSessions: List<ExerciseSessionRecord> = emptyList(),
+    val heartRate: List<HeartRateRecord> = emptyList(),
     val activeCalories: List<ActiveCaloriesBurnedRecord> = emptyList(),
     val bodyMass: List<WeightRecord> = emptyList(),
     val bodyFat: List<BodyFatRecord> = emptyList(),
@@ -242,6 +264,7 @@ data class HealthMetrics(
     val latestWeightKg: Double? = null,
     val latestBodyFatPercentage: Double? = null,
     val exerciseCount: Int = 0,
+    val averageHeartRateBpm: Double? = null,
 ) {
     companion object {
         fun fromHealthData(data: HealthDataResult): HealthMetrics {
@@ -252,6 +275,11 @@ data class HealthMetrics(
             val totalActiveCalories = data.activeCalories.sumOf { it.energy.inKilocalories }
             val latestWeight = data.bodyMass.lastOrNull()?.weight?.inKilograms
             val latestBodyFat = data.bodyFat.lastOrNull()?.percentage?.value
+            val heartRateSamples = data.heartRate.flatMap { it.samples }
+            val averageHeartRate = heartRateSamples
+                .map { it.beatsPerMinute.toDouble() }
+                .takeIf { it.isNotEmpty() }
+                ?.average()
 
             return HealthMetrics(
                 totalSteps = totalSteps,
@@ -260,6 +288,7 @@ data class HealthMetrics(
                 latestWeightKg = latestWeight,
                 latestBodyFatPercentage = latestBodyFat,
                 exerciseCount = data.exerciseSessions.size,
+                averageHeartRateBpm = averageHeartRate,
             )
         }
     }

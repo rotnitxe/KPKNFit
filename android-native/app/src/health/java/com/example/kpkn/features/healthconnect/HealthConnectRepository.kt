@@ -99,6 +99,10 @@ class HealthConnectRepository private constructor(context: Context) {
     suspend fun readExerciseSessionsFromHealthConnect(startDate: LocalDate, endDate: LocalDate): List<ExerciseSessionRecord> {
         return healthConnectManager.readExerciseSessions(startDate, endDate)
     }
+
+    suspend fun readHeartRateSeries(startDate: LocalDate, endDate: LocalDate): List<HeartRateRecord> {
+        return healthConnectManager.readHeartRate(startDate, endDate)
+    }
     
     suspend fun writeWeightToHealthConnect(weightKg: Double): Boolean {
         return healthConnectManager.writeBodyMass(weightKg, java.time.Instant.now())
@@ -117,4 +121,5 @@ typealias BodyMassRecord = androidx.health.connect.client.records.WeightRecord
 typealias BodyFatRecord = androidx.health.connect.client.records.BodyFatRecord
 typealias StepCountRecord = androidx.health.connect.client.records.StepsRecord
 typealias ExerciseSessionRecord = androidx.health.connect.client.records.ExerciseSessionRecord
+typealias HeartRateRecord = androidx.health.connect.client.records.HeartRateRecord
 typealias ActiveCaloriesBurnedRecord = androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
