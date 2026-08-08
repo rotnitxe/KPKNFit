@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Tren inferior · hamstrings · eccentric knee flexion",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_curl_nordic_peso_corporal",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "hams_curl_nordic_peso_corporal__default",
@@ -22,18 +22,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "De rodillas con los tobillos sujetos, bajas el cuerpo al frente frenando con los isquios.",
+                "La referencia para la parte trasera de la pierna."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón flexión rodilla eccéntrica para completar la repetición."
+                "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
               ],
-              "description": "De rodillas con los tobillos sujetos, bajas el cuerpo al frente frenando con los isquios. El rey de la parte trasera de la pierna.",
+              "description": "De rodillas con los tobillos sujetos, bajas el cuerpo al frente frenando con los isquios. La referencia para la parte trasera de la pierna.",
               "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Ejecuta «Curl Nórdico (Nordic Hamstring Curl)» siguiendo el patrón flexión rodilla eccéntrica con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "De rodillas con los tobillos sujetos, bajas el cuerpo al frente frenando con los isquios. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Y Extensión"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Principal: La rodilla produce la mayor parte de la subida y recibe el carga dominante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión Y Extensión"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Secundaria: La cadera acompaña la profundidad y ayuda a salir sin que la rodilla pierda su línea. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Dorsiflexión Y Control"
+                  ],
+                  "jointId": "tobillo",
+                  "note": "Estabilizadora: El tobillo permite que la tibia avance y mantiene el pie conectado al suelo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Del Tronco"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la flexión para que la carga no colapse el torso. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
@@ -41,11 +80,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "hamstrings",
-                  "note": "Principal: los isquiosurales flexionan la rodilla o extienden la cadera y concentran el trabajo; por eso suman la serie completa (1.0)."
+                  "note": "Principal: Los isquiosurales extiende la cadera y frena el descenso cuando la cadera se flexiona. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "gluteus_maximus",
-                  "note": "Secundario: el glúteo mayor asiste la extensión de cadera y completa el movimiento; por eso suma 0.5."
+                  "note": "Secundaria: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "hams_curl_nordic_peso_corporal__bodyweight__curl_nordico_nordic_hamstring_curl",
@@ -58,7 +97,43 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "eccentric_knee_flexion"
+                    "Flexión Y Extensión",
+                    "Dorsiflexión Y Control",
+                    "Estabilidad Del Tronco"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Y Extensión"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Principal: La rodilla produce la mayor parte de la subida y recibe el carga dominante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión Y Extensión"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Secundaria: La cadera acompaña la profundidad y ayuda a salir sin que la rodilla pierda su línea. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Dorsiflexión Y Control"
+                      ],
+                      "jointId": "tobillo",
+                      "note": "Estabilizadora: El tobillo permite que la tibia avance y mantiene el pie conectado al suelo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Del Tronco"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la flexión para que la carga no colapse el torso. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -83,46 +158,58 @@
                   "movementPatternId": "eccentric_knee_flexion",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "rodilla",
+                    "cadera",
+                    "tobillo",
+                    "columna-lumbar"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales",
+                    "tendon-iliopsoas",
+                    "tendon-aquiles"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón flexión rodilla eccéntrica para completar la repetición."
+                    "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
                   ],
                   "cues": [
-                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                    "De rodillas con los tobillos sujetos, bajas el cuerpo al frente frenando con los isquios. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Ejecuta «Curl Nórdico (Nordic Hamstring Curl)» siguiendo el patrón flexión rodilla eccéntrica con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "De rodillas con los tobillos sujetos, bajas el cuerpo al frente frenando con los isquios. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando acumular trabajo de cuádriceps graduando profundidad, apoyo y carga siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar flexión y extensión de la rodilla con ayuda de cadera y tobillo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de rodilla según tolerancia y rango disponible.",
+                    "Movilidad de cadera según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura peso corporal y adopta la posición específica de «Curl Nórdico (Nordic Hamstring Curl)» antes de iniciar; conserva una base estable."
+                    "Preparación: De rodillas con los tobillos sujetos, bajas el cuerpo al frente frenando con los isquios."
                   ]
                 },
                 "display": {
                   "displayName": "Curl Nórdico (Nordic Hamstring Curl)",
                   "displaySummary": "Peso Corporal",
                   "selectedOptions": {}
+                },
+                "editorial": {
+                  "benefits": [
+                    "De rodillas con los tobillos sujetos, bajas el cuerpo al frente frenando con los isquios.",
+                    "La referencia para la parte trasera de la pierna."
+                  ],
+                  "description": "De rodillas con los tobillos sujetos, bajas el cuerpo al frente frenando con los isquios. La referencia para la parte trasera de la pierna.",
+                  "technique": "De rodillas con los tobillos sujetos, bajas el cuerpo al frente frenando con los isquios. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "De rodillas con los tobillos sujetos, bajas el cuerpo al frente frenando con los isquios. La referencia para la parte trasera de la pierna."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -135,7 +222,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Nórdico (Nordic Hamstring Curl)",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "hams_curl_nordic_peso_corporal__default",
                   "definitionId": "hams_curl_nordic_peso_corporal",
                   "familyId": "lower_eccentric_knee_flexion",
@@ -152,8 +239,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar hamstrings dentro del patrón eccentric_knee_flexion.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar los isquiosurales mediante Curl Nórdico (Nordic Hamstring Curl) en la variante Peso Corporal.",
+                    "Priorizar acumular trabajo de cuádriceps graduando profundidad, apoyo y carga con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -175,7 +262,8 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón eccentric_knee_flexion y el objetivo hamstrings."
+                    "Conserva flexión y extensión de la rodilla con ayuda de cadera y tobillo y el objetivo de los isquiosurales.",
+                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -194,13 +282,15 @@
                 "gluteus_maximus"
               ],
               "setupCues": [
-                "Configura peso corporal y adopta la posición específica de «Curl Nórdico (Nordic Hamstring Curl)» antes de iniciar; conserva una base estable."
+                "Preparación: De rodillas con los tobillos sujetos, bajas el cuerpo al frente frenando con los isquios."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.2,
-              "ttc": 2.0
+              "techniqueSummary": "De rodillas con los tobillos sujetos, bajas el cuerpo al frente frenando con los isquios. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 2.0,
+              "variantRationale": "De rodillas con los tobillos sujetos, bajas el cuerpo al frente frenando con los isquios. La referencia para la parte trasera de la pierna."
             },
             "selectedOptions": {}
           }
@@ -210,9 +300,9 @@
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:hams_curl_nordic_peso_corporal"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_eccentric_knee_flexion",
@@ -228,9 +318,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:lower_eccentric_knee_flexion"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_eccentric_knee_flexion",
@@ -239,6 +329,6 @@
       "eccentric_knee_flexion"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

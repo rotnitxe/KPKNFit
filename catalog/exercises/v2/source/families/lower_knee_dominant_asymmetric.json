@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Tren inferior · quadriceps · knee dominant asymmetric",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_jefferson",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "quads_sentadilla_jefferson__default",
@@ -22,18 +22,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
+              "benefits": [
+                "De pie sobre la barra, un extremo al frente y otro atrás: bajas en diagonal.",
+                "Un ejercicio poco habitual, exigente y con una demanda técnica alta."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla asimétrico para completar la repetición."
+                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "De pie sobre la barra, un extremo al frente y otro atrás: bajas en diagonal. Un ejercicio raro, exigente y sorprendentemente bueno.",
+              "description": "De pie sobre la barra, un extremo al frente y otro atrás: bajas en diagonal. Un ejercicio poco habitual, exigente y con una demanda técnica alta.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Ejecuta «Sentadilla Jefferson» siguiendo el patrón dominante de rodilla asimétrico con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "De pie sobre la barra, un extremo al frente y otro atrás: bajas en diagonal. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Y Extensión Unilateral"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Principal: La rodilla de trabajo produce la subida y absorbe la mayor parte de la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión Y Control Frontal"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera mantiene la pelvis nivelada y evita que la pierna se desplace hacia dentro. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Equilibrio Y Dorsiflexión"
+                  ],
+                  "jointId": "tobillo",
+                  "note": "Secundaria: El tobillo ajusta el apoyo de una sola pierna y absorbe cambios pequeños de equilibrio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Transferencia Unilateral"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La pelvis transfiere la fuerza entre ambos lados mientras la pierna libre permanece disponible. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -41,15 +80,15 @@
               "muscleNotes": [
                 {
                   "muscleId": "quadriceps",
-                  "note": "Principal: el cuádriceps extiende la rodilla y concentra la fuerza del movimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: Los cuádriceps extiende la rodilla y absorbe la carga al descender. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "adductors",
-                  "note": "Secundario: los aductores asisten la estabilización de la pierna y el control de la rodilla; por eso suman 0.5."
+                  "note": "Secundaria: Los aductores aproxima el muslo y estabiliza la cadera frente a fuerzas laterales. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "gluteus_maximus",
-                  "note": "Secundario: el glúteo mayor asiste la extensión de cadera y completa el movimiento; por eso suma 0.5."
+                  "note": "Secundaria: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "quads_sentadilla_jefferson__barbell__sentadilla_jefferson",
@@ -62,7 +101,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "knee_dominant_asymmetric"
+                    "Flexión Y Extensión Unilateral",
+                    "Extensión Y Control Frontal",
+                    "Equilibrio Y Dorsiflexión",
+                    "Transferencia Unilateral"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Y Extensión Unilateral"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Principal: La rodilla de trabajo produce la subida y absorbe la mayor parte de la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión Y Control Frontal"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera mantiene la pelvis nivelada y evita que la pierna se desplace hacia dentro. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Equilibrio Y Dorsiflexión"
+                      ],
+                      "jointId": "tobillo",
+                      "note": "Secundaria: El tobillo ajusta el apoyo de una sola pierna y absorbe cambios pequeños de equilibrio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Transferencia Unilateral"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La pelvis transfiere la fuerza entre ambos lados mientras la pierna libre permanece disponible. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -88,46 +164,58 @@
                   "movementPatternId": "knee_dominant_asymmetric",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "rodilla",
+                    "cadera",
+                    "tobillo",
+                    "sacroiliaca"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales",
+                    "tendon-iliopsoas",
+                    "tendon-aquiles"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla asimétrico para completar la repetición."
+                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "De pie sobre la barra, un extremo al frente y otro atrás: bajas en diagonal. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Ejecuta «Sentadilla Jefferson» siguiendo el patrón dominante de rodilla asimétrico con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "De pie sobre la barra, un extremo al frente y otro atrás: bajas en diagonal. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de rodilla según tolerancia y rango disponible.",
+                    "Movilidad de cadera según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura barra y adopta la posición específica de «Sentadilla Jefferson» antes de iniciar; conserva una base estable."
+                    "Preparación: De pie sobre la barra, un extremo al frente y otro atrás: bajas en diagonal."
                   ]
                 },
                 "display": {
                   "displayName": "Sentadilla Jefferson",
                   "displaySummary": "Barra",
                   "selectedOptions": {}
+                },
+                "editorial": {
+                  "benefits": [
+                    "De pie sobre la barra, un extremo al frente y otro atrás: bajas en diagonal.",
+                    "Un ejercicio poco habitual, exigente y con una demanda técnica alta."
+                  ],
+                  "description": "De pie sobre la barra, un extremo al frente y otro atrás: bajas en diagonal. Un ejercicio poco habitual, exigente y con una demanda técnica alta.",
+                  "technique": "De pie sobre la barra, un extremo al frente y otro atrás: bajas en diagonal. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "De pie sobre la barra, un extremo al frente y otro atrás: bajas en diagonal. Un ejercicio poco habitual, exigente y con una demanda técnica alta."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -140,7 +228,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Jefferson",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "quads_sentadilla_jefferson__default",
                   "definitionId": "quads_sentadilla_jefferson",
                   "familyId": "lower_knee_dominant_asymmetric",
@@ -158,8 +246,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar quadriceps dentro del patrón knee_dominant_asymmetric.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar los cuádriceps mediante Sentadilla Jefferson en la variante Barra.",
+                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -181,7 +269,8 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón knee_dominant_asymmetric y el objetivo quadriceps."
+                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
+                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
@@ -201,25 +290,27 @@
                 "gluteus_maximus"
               ],
               "setupCues": [
-                "Configura barra y adopta la posición específica de «Sentadilla Jefferson» antes de iniciar; conserva una base estable."
+                "Preparación: De pie sobre la barra, un extremo al frente y otro atrás: bajas en diagonal."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.2,
-              "ttc": 2.0
+              "techniqueSummary": "De pie sobre la barra, un extremo al frente y otro atrás: bajas en diagonal. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 2.0,
+              "variantRationale": "De pie sobre la barra, un extremo al frente y otro atrás: bajas en diagonal. Un ejercicio poco habitual, exigente y con una demanda técnica alta."
             },
             "selectedOptions": {}
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_jefferson__default",
-        "description": "Sentadilla Jefferson: de pie sobre la barra, agarras un extremo por delante y otro por detrás y bajas en diagonal. Un ejercicio raro, exigente y sorprendentemente bueno.",
+        "description": "De pie sobre la barra, agarras un extremo por delante y otro por detrás y bajas en diagonal. Un ejercicio poco habitual, exigente y con una demanda técnica alta.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:quads_sentadilla_jefferson"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_knee_dominant_asymmetric",
@@ -236,9 +327,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:lower_knee_dominant_asymmetric"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_knee_dominant_asymmetric",
@@ -247,6 +338,6 @@
       "knee_dominant_asymmetric"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

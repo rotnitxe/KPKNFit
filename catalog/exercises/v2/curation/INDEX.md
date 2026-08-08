@@ -1,8 +1,8 @@
 # Índice del catálogo de ejercicios v2
 
-Revisión: `v2-approved-2026-08-02-c` · Ontología: `wikilab-v2-2026-08-02`
+Revisión: `v2-approved-2026-08-08-c` · Ontología: `wikilab-v3-2026-08-08`
 96 familias · 196 definiciones · 518 configuraciones
-Hash canónico: `aaf7111597ccdcca…`
+Hash canónico: `dbd6f7a475907398…`
 
 Artefacto informativo generado por `scripts/merge_catalog_v2_families.py`.
 No editar a mano: se regenera en cada merge.

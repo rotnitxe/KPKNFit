@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Core · abdominals · trunk rotation",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#core_lenador_polea",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "core_lenador_polea__default",
@@ -22,18 +22,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Polea alta y movimiento de leñador: tiras en diagonal cruzando el cuerpo de arriba abajo.",
+                "Oblicuos y abdomen completo rotando con potencia en cada repetición."
+              ],
               "bodyRegion": "CORE",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón rotación tronco para completar la repetición."
+                "Girar solo desde la zona lumbar, lanzar la carga o perder la base de apoyo."
               ],
               "description": "Polea alta y movimiento de leñador: tiras en diagonal cruzando el cuerpo de arriba abajo. Oblicuos y abdomen completo rotando con potencia en cada repetición.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
-                "Ejecuta «Lenador en Polea» siguiendo el patrón rotación tronco con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Polea alta y movimiento de leñador: tiras en diagonal cruzando el cuerpo de arriba abajo. El torso rota alrededor de la pelvis con la carga cerca; la dirección diagonal decide qué lado inicia y cuál frena el gesto."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Rotación"
+                  ],
+                  "jointId": "columna-toracica",
+                  "note": "Principal: La columna torácica aporta la mayor parte del giro útil del tronco. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Limitación De Rotación"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar limita el giro accesorio y protege la transferencia de fuerza. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Acompañamiento"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Secundaria: La cadera acompaña la rotación para que el tronco no gire aislado sobre la pelvis. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "SECONDARY"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
@@ -41,7 +72,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "abdominals",
-                  "note": "Principal: el abdomen flexiona o fija el tronco y concentra la fuerza del movimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El recto abdominal acerca costillas y pelvis o resiste la extensión del tronco. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "core_lenador_polea__cable__lenador_en_polea",
@@ -54,7 +85,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "trunk_rotation"
+                    "Rotación",
+                    "Limitación De Rotación",
+                    "Acompañamiento"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Rotación"
+                      ],
+                      "jointId": "columna-toracica",
+                      "note": "Principal: La columna torácica aporta la mayor parte del giro útil del tronco. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Limitación De Rotación"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar limita el giro accesorio y protege la transferencia de fuerza. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Acompañamiento"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Secundaria: La cadera acompaña la rotación para que el tronco no gire aislado sobre la pelvis. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "SECONDARY"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -77,44 +136,53 @@
                   "movementPatternId": "trunk_rotation",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "spine",
-                    "hip"
+                    "columna-toracica",
+                    "columna-lumbar",
+                    "cadera"
                   ],
                   "relevantTendons": [
-                    "spine_tendon",
-                    "hip_tendon"
+                    "tendon-iliopsoas"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón rotación tronco para completar la repetición."
+                    "Girar solo desde la zona lumbar, lanzar la carga o perder la base de apoyo."
                   ],
                   "cues": [
-                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                    "Polea alta y movimiento de leñador: tiras en diagonal cruzando el cuerpo de arriba abajo. El torso rota alrededor de la pelvis con la carga cerca; la dirección diagonal decide qué lado inicia y cuál frena el gesto."
                   ],
                   "execution": [
-                    "Ejecuta «Lenador en Polea» siguiendo el patrón rotación tronco con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Polea alta y movimiento de leñador: tiras en diagonal cruzando el cuerpo de arriba abajo. El torso rota alrededor de la pelvis con la carga cerca; la dirección diagonal decide qué lado inicia y cuál frena el gesto."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar la producción y el control de fuerza al girar siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar giro controlado del tronco como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de spine según tolerancia y rango disponible.",
-                    "Movilidad de hip según tolerancia y rango disponible."
+                    "Movilidad de columna torácica según tolerancia y rango disponible.",
+                    "Movilidad de columna lumbar según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura polea y adopta la posición específica de «Lenador en Polea» antes de iniciar; conserva una base estable."
+                    "Preparación: Polea alta y movimiento de leñador: tiras en diagonal cruzando el cuerpo de arriba abajo."
                   ]
                 },
                 "display": {
                   "displayName": "Leñador en Polea",
                   "displaySummary": "Polea",
                   "selectedOptions": {}
+                },
+                "editorial": {
+                  "benefits": [
+                    "Polea alta y movimiento de leñador: tiras en diagonal cruzando el cuerpo de arriba abajo.",
+                    "Oblicuos y abdomen completo rotando con potencia en cada repetición."
+                  ],
+                  "description": "Polea alta y movimiento de leñador: tiras en diagonal cruzando el cuerpo de arriba abajo. Oblicuos y abdomen completo rotando con potencia en cada repetición.",
+                  "technique": "Polea alta y movimiento de leñador: tiras en diagonal cruzando el cuerpo de arriba abajo. El torso rota alrededor de la pelvis con la carga cerca; la dirección diagonal decide qué lado inicia y cuál frena el gesto.",
+                  "variantRationale": "Polea alta y movimiento de leñador: tiras en diagonal cruzando el cuerpo de arriba abajo. Oblicuos y abdomen completo rotando con potencia en cada repetición."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -127,7 +195,7 @@
                 },
                 "identity": {
                   "canonicalName": "Leñador en Polea",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "core_lenador_polea__default",
                   "definitionId": "core_lenador_polea",
                   "familyId": "core_trunk_rotation",
@@ -147,8 +215,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar abdominals dentro del patrón trunk_rotation.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el recto abdominal mediante Leñador en Polea en la variante Polea.",
+                    "Priorizar mejorar la producción y el control de fuerza al girar con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -170,7 +238,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón trunk_rotation y el objetivo abdominals."
+                    "Conserva giro controlado del tronco y el objetivo de el recto abdominal.",
+                    "La sustitución debe respetar las articulaciones relevantes: columna torácica, columna lumbar, cadera."
                   ],
                   "replacementGroup": "core_woodchop_high_to_low",
                   "replacementPriority": 2
@@ -185,25 +254,27 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Configura polea y adopta la posición específica de «Lenador en Polea» antes de iniciar; conserva una base estable."
+                "Preparación: Polea alta y movimiento de leñador: tiras en diagonal cruzando el cuerpo de arriba abajo."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "techniqueSummary": "Polea alta y movimiento de leñador: tiras en diagonal cruzando el cuerpo de arriba abajo. El torso rota alrededor de la pelvis con la carga cerca; la dirección diagonal decide qué lado inicia y cuál frena el gesto.",
+              "ttc": 1.5,
+              "variantRationale": "Polea alta y movimiento de leñador: tiras en diagonal cruzando el cuerpo de arriba abajo. Oblicuos y abdomen completo rotando con potencia en cada repetición."
             },
             "selectedOptions": {}
           }
         ],
         "defaultConfigurationId": "core_lenador_polea__default",
-        "description": "Leñador en polea: como partir leña, llevas la cuerda en diagonal de arriba abajo cruzando el cuerpo. Oblicuos y abdomen completo rotando con potencia.",
+        "description": "Como partir leña, llevas la cuerda en diagonal de arriba abajo cruzando el cuerpo. Oblicuos y abdomen completo rotando con potencia.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:core_lenador_polea"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "core_trunk_rotation",
@@ -222,9 +293,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:core_trunk_rotation"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "core_trunk_rotation",
@@ -233,6 +304,6 @@
       "trunk_rotation"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

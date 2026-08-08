@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Tate press",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#triceps_tate_press_mancuernas",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "tate_press__dumbbells",
@@ -22,18 +22,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Mancuernas acostado juntando los codos: bajas y subes apretando las pesas.",
+                "Este press de tríceps tradicional, con el tríceps concentrado."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.8,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
+                "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
               ],
-              "description": "Mancuernas acostado juntando los codos: bajas y subes apretando las pesas. El Tate press clásico, con el tríceps aislado.",
+              "description": "Mancuernas acostado juntando los codos: bajas y subes apretando las pesas. Este press de tríceps tradicional, con el tríceps concentrado.",
               "efc": 2.2,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Ejecuta «Tate Press con Mancuernas» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Mancuernas acostado juntando los codos: bajas y subes apretando las pesas. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Principal: El codo abre el brazo y concentra el trabajo mecánico del tríceps. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Posición Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro fija el brazo o lo coloca detrás de la cabeza según la variante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca transmite la presión sin doblarse bajo el implemento. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "FULL",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -41,7 +72,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "triceps",
-                  "note": "Principal: el tríceps extiende el codo y concentra la fuerza del movimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El tríceps extiende el codo y completa la fase de empuje. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "tate_press__dumbbells__tate_press",
@@ -54,7 +85,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "elbow_extension"
+                    "Extensión",
+                    "Posición Del Hombro",
+                    "Alineación"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Principal: El codo abre el brazo y concentra el trabajo mecánico del tríceps. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Posición Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro fija el brazo o lo coloca detrás de la cabeza según la variante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca transmite la presión sin doblarse bajo el implemento. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -77,39 +136,44 @@
                   "movementPatternId": "elbow_extension",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "codo",
+                    "glenohumeral",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
+                    "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
                   ],
                   "cues": [
-                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                    "Mancuernas acostado juntando los codos: bajas y subes apretando las pesas. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
                   ],
                   "execution": [
-                    "Ejecuta «Tate Press con Mancuernas» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Mancuernas acostado juntando los codos: bajas y subes apretando las pesas. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando cargar el tríceps de forma directa y ajustar la dificultad con precisión siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar extensión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de codo según tolerancia y rango disponible.",
+                    "Movilidad de hombro según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura mancuerna y adopta la posición específica de «Tate Press con Mancuernas» antes de iniciar; conserva una base estable."
+                    "Preparación: Mancuernas acostado juntando los codos: bajas y subes apretando las pesas."
                   ]
                 },
                 "display": {
@@ -118,6 +182,15 @@
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Mancuernas acostado juntando los codos: bajas y subes apretando las pesas.",
+                    "Este press de tríceps tradicional, con el tríceps concentrado."
+                  ],
+                  "description": "Mancuernas acostado juntando los codos: bajas y subes apretando las pesas. Este press de tríceps tradicional, con el tríceps concentrado.",
+                  "technique": "Mancuernas acostado juntando los codos: bajas y subes apretando las pesas. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
+                  "variantRationale": "Mancuernas acostado juntando los codos: bajas y subes apretando las pesas. Este press de tríceps tradicional, con el tríceps concentrado."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -130,7 +203,7 @@
                 },
                 "identity": {
                   "canonicalName": "Tate Press",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "tate_press__dumbbells",
                   "definitionId": "tate_press",
                   "familyId": "triceps_tate_press",
@@ -149,8 +222,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar triceps dentro del patrón elbow_extension.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el tríceps mediante Tate Press en la variante Mancuernas.",
+                    "Priorizar cargar el tríceps de forma directa y ajustar la dificultad con precisión con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -172,7 +245,8 @@
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón elbow_extension y el objetivo triceps."
+                    "Conserva extensión del codo y el objetivo de el tríceps.",
+                    "La sustitución debe respetar las articulaciones relevantes: codo, hombro, muñeca."
                   ],
                   "replacementGroup": "triceps_niche",
                   "replacementPriority": 999
@@ -187,13 +261,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Configura mancuerna y adopta la posición específica de «Tate Press con Mancuernas» antes de iniciar; conserva una base estable."
+                "Preparación: Mancuernas acostado juntando los codos: bajas y subes apretando las pesas."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "techniqueSummary": "Mancuernas acostado juntando los codos: bajas y subes apretando las pesas. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
+              "ttc": 1.6,
+              "variantRationale": "Mancuernas acostado juntando los codos: bajas y subes apretando las pesas. Este press de tríceps tradicional, con el tríceps concentrado."
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -205,9 +281,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#triceps_tate_press_polea",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "tate_press__cable",
@@ -215,18 +291,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Polea acostado con los codos cerrándose hacia dentro: la tensión continua mantiene al tríceps activo en el tramo final.",
+                "La resistencia ajustable permite buscar contracción sin depender de una carga libre sobre la cara."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.8,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
+                "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
               ],
-              "description": "Polea acostado juntando los codos: la tensión constante hace el movimiento más exigente. La versión fina del Tate press.",
+              "description": "Polea acostado con los codos cerrándose hacia dentro: la tensión continua mantiene al tríceps activo en el tramo final. La resistencia ajustable permite buscar contracción sin depender de una carga libre sobre la cara.",
               "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
-                "Ejecuta «Tate Press en Polea» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Polea acostado con los codos cerrándose hacia dentro: la tensión continua mantiene al tríceps activo en el tramo final. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Principal: El codo abre el brazo y concentra el trabajo mecánico del tríceps. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Posición Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro fija el brazo o lo coloca detrás de la cabeza según la variante. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca transmite la presión sin doblarse bajo el implemento. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "FULL",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -234,7 +341,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "triceps",
-                  "note": "Principal: el tríceps extiende el codo y concentra la fuerza del movimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El tríceps extiende el codo y completa la fase de empuje. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "tate_press__cable__tate_press",
@@ -247,7 +354,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "elbow_extension"
+                    "Extensión",
+                    "Posición Del Hombro",
+                    "Alineación"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Principal: El codo abre el brazo y concentra el trabajo mecánico del tríceps. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Posición Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro fija el brazo o lo coloca detrás de la cabeza según la variante. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca transmite la presión sin doblarse bajo el implemento. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -270,39 +405,44 @@
                   "movementPatternId": "elbow_extension",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "codo",
+                    "glenohumeral",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
+                    "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
                   ],
                   "cues": [
-                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                    "Polea acostado con los codos cerrándose hacia dentro: la tensión continua mantiene al tríceps activo en el tramo final. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
                   ],
                   "execution": [
-                    "Ejecuta «Tate Press en Polea» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Polea acostado con los codos cerrándose hacia dentro: la tensión continua mantiene al tríceps activo en el tramo final. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando cargar el tríceps de forma directa y ajustar la dificultad con precisión siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar extensión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de codo según tolerancia y rango disponible.",
+                    "Movilidad de hombro según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura polea y adopta la posición específica de «Tate Press en Polea» antes de iniciar; conserva una base estable."
+                    "Preparación: Polea acostado con los codos cerrándose hacia dentro: la tensión continua mantiene al tríceps activo en el tramo final."
                   ]
                 },
                 "display": {
@@ -311,6 +451,15 @@
                   "selectedOptions": {
                     "implement": "cable"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Polea acostado con los codos cerrándose hacia dentro: la tensión continua mantiene al tríceps activo en el tramo final.",
+                    "La resistencia ajustable permite buscar contracción sin depender de una carga libre sobre la cara."
+                  ],
+                  "description": "Polea acostado con los codos cerrándose hacia dentro: la tensión continua mantiene al tríceps activo en el tramo final. La resistencia ajustable permite buscar contracción sin depender de una carga libre sobre la cara.",
+                  "technique": "Polea acostado con los codos cerrándose hacia dentro: la tensión continua mantiene al tríceps activo en el tramo final. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
+                  "variantRationale": "Polea acostado con los codos cerrándose hacia dentro: la tensión continua mantiene al tríceps activo en el tramo final. La resistencia ajustable permite buscar contracción sin depender de una carga libre sobre la cara."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -323,7 +472,7 @@
                 },
                 "identity": {
                   "canonicalName": "Tate Press",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "tate_press__cable",
                   "definitionId": "tate_press",
                   "familyId": "triceps_tate_press",
@@ -342,8 +491,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar triceps dentro del patrón elbow_extension.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el tríceps mediante Tate Press en la variante Polea.",
+                    "Priorizar cargar el tríceps de forma directa y ajustar la dificultad con precisión con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -365,7 +514,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón elbow_extension y el objetivo triceps."
+                    "Conserva extensión del codo y el objetivo de el tríceps.",
+                    "La sustitución debe respetar las articulaciones relevantes: codo, hombro, muñeca."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -380,13 +530,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Configura polea y adopta la posición específica de «Tate Press en Polea» antes de iniciar; conserva una base estable."
+                "Preparación: Polea acostado con los codos cerrándose hacia dentro: la tensión continua mantiene al tríceps activo en el tramo final."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "techniqueSummary": "Polea acostado con los codos cerrándose hacia dentro: la tensión continua mantiene al tríceps activo en el tramo final. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
+              "ttc": 1.6,
+              "variantRationale": "Polea acostado con los codos cerrándose hacia dentro: la tensión continua mantiene al tríceps activo en el tramo final. La resistencia ajustable permite buscar contracción sin depender de una carga libre sobre la cara."
             },
             "selectedOptions": {
               "implement": "cable"
@@ -394,13 +546,13 @@
           }
         ],
         "defaultConfigurationId": "tate_press__dumbbells",
-        "description": "Tate press: acostado con mancuernas, las bajas juntando los codos hacia el pecho. Un movimiento poco común que aísla el tríceps con una sensación única.",
+        "description": "Este press de tríceps: acostado con mancuernas, las bajas juntando los codos hacia el pecho. Un movimiento poco común que concentra el tríceps con una sensación única.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:tate_press"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "triceps_tate_press",
@@ -420,9 +572,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:triceps_tate_press"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "triceps_tate_press",
@@ -432,6 +584,6 @@
       "tate_press"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

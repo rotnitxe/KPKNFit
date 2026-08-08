@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Pull Over",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_pullover",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "lying_pullover__dumbbells",
@@ -22,18 +22,57 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Mancuerna acostado llevándola detrás de la cabeza: el dorsal se estira a fondo.",
+                "La versión más utilizada del pullover; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+                "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Mancuerna acostado llevándola detrás de la cabeza: el dorsal se estira a fondo. La versión más popular del pullover.",
+              "description": "Mancuerna acostado llevándola detrás de la cabeza: el dorsal se estira a fondo. La versión más utilizada del pullover.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Mancuerna acostado llevándola detrás de la cabeza: el dorsal se estira a fondo. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Aducción Y Extensión"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro acerca el brazo al costado y dirige el cuerpo o la carga hacia la barra. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Depresión Y Rotación"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula desciende y se organiza para que el hombro tenga una base de tirón. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo cierra el ángulo y transfiere la tracción desde la mano hacia la espalda. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene la posición de la mano ante el peso corporal o la polea. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -41,19 +80,19 @@
               "muscleNotes": [
                 {
                   "muscleId": "pectoralis",
-                  "note": "Principal: el pectoral mayor extiende el brazo tumbado y concentra la fase de tracción; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Secundario: el dorsal asiste la tracción del brazo por encima de la cabeza en el arco; por eso suma 0.5."
+                  "note": "Secundaria: El dorsal extiende o aproxima el brazo al tronco desde la espalda. La combinación de agarre y anchura elegida cambia cuánto se acerca el codo al cuerpo. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "triceps",
-                  "note": "Secundario: el tríceps estabiliza el codo durante el arco completo; por eso suma 0.5."
+                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco estable y evita el arqueo lumbar; por eso suma 0.4."
+                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "lying_pullover__dumbbells__pullover_banca",
@@ -66,7 +105,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "vertical_pull"
+                    "Aducción Y Extensión",
+                    "Depresión Y Rotación",
+                    "Flexión",
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Aducción Y Extensión"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro acerca el brazo al costado y dirige el cuerpo o la carga hacia la barra. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Depresión Y Rotación"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula desciende y se organiza para que el hombro tenga una base de tirón. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo cierra el ángulo y transfiere la tracción desde la mano hacia la espalda. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Del Agarre"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene la posición de la mano ante el peso corporal o la polea. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -94,39 +170,45 @@
                   "movementPatternId": "vertical_pull",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+                    "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
                   ],
                   "cues": [
-                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                    "Mancuerna acostado llevándola detrás de la cabeza: el dorsal se estira a fondo. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
                   ],
                   "execution": [
-                    "Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Mancuerna acostado llevándola detrás de la cabeza: el dorsal se estira a fondo. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer dorsales y espalda alta con una resistencia fácil de ajustar siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar tirón hacia abajo y flexión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura mancuernas y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."
+                    "Preparación: Mancuerna acostado llevándola detrás de la cabeza: el dorsal se estira a fondo."
                   ]
                 },
                 "display": {
@@ -135,6 +217,15 @@
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Mancuerna acostado llevándola detrás de la cabeza: el dorsal se estira a fondo.",
+                    "La versión más utilizada del pullover; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Mancuerna acostado llevándola detrás de la cabeza: el dorsal se estira a fondo. La versión más utilizada del pullover.",
+                  "technique": "Mancuerna acostado llevándola detrás de la cabeza: el dorsal se estira a fondo. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
+                  "variantRationale": "Mancuerna acostado llevándola detrás de la cabeza: el dorsal se estira a fondo. La versión más utilizada del pullover."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -147,7 +238,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull Over en Banca",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "lying_pullover__dumbbells",
                   "definitionId": "lying_pullover",
                   "familyId": "upper_vertical_pull_pullover",
@@ -167,8 +258,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón vertical_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el pectoral mediante Pull Over en Banca en la variante Mancuernas.",
+                    "Priorizar fortalecer dorsales y espalda alta con una resistencia fácil de ajustar con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -190,7 +281,8 @@
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón vertical_pull y el objetivo latissimus_dorsi."
+                    "Conserva tirón hacia abajo y flexión del codo y el objetivo de el pectoral.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -208,7 +300,7 @@
                 "triceps"
               ],
               "setupCues": [
-                "Configura mancuernas y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."
+                "Preparación: Mancuerna acostado llevándola detrás de la cabeza: el dorsal se estira a fondo."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.4,
@@ -216,7 +308,9 @@
                 "core"
               ],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Mancuerna acostado llevándola detrás de la cabeza: el dorsal se estira a fondo. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
+              "ttc": 1.8,
+              "variantRationale": "Mancuerna acostado llevándola detrás de la cabeza: el dorsal se estira a fondo. La versión más utilizada del pullover."
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -228,9 +322,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_pullover",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "lying_pullover__barbell",
@@ -238,18 +332,57 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Barra acostado detrás de la cabeza: el arco largo con carga completa.",
+                "El pullover tradicional con barra; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+                "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Barra acostado detrás de la cabeza: el arco largo con carga completa. El pullover clásico con barra.",
+              "description": "Barra acostado detrás de la cabeza: el arco largo con carga completa. El pullover tradicional con barra.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
-                "Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Barra acostado detrás de la cabeza: el arco largo con carga completa. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Aducción Y Extensión"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro acerca el brazo al costado y dirige el cuerpo o la carga hacia la barra. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Depresión Y Rotación"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula desciende y se organiza para que el hombro tenga una base de tirón. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo cierra el ángulo y transfiere la tracción desde la mano hacia la espalda. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene la posición de la mano ante el peso corporal o la polea. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -257,19 +390,19 @@
               "muscleNotes": [
                 {
                   "muscleId": "pectoralis",
-                  "note": "Principal: el pectoral mayor extiende el brazo tumbado y concentra la fase de tracción; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Secundario: el dorsal asiste la tracción del brazo por encima de la cabeza en el arco; por eso suma 0.5."
+                  "note": "Secundaria: El dorsal extiende o aproxima el brazo al tronco desde la espalda. La combinación de agarre y anchura elegida cambia cuánto se acerca el codo al cuerpo. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "triceps",
-                  "note": "Secundario: el tríceps estabiliza el codo durante el arco completo; por eso suma 0.5."
+                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco estable y evita el arqueo lumbar; por eso suma 0.4."
+                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "lying_pullover__barbell__pullover_banca",
@@ -282,7 +415,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "vertical_pull"
+                    "Aducción Y Extensión",
+                    "Depresión Y Rotación",
+                    "Flexión",
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Aducción Y Extensión"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro acerca el brazo al costado y dirige el cuerpo o la carga hacia la barra. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Depresión Y Rotación"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula desciende y se organiza para que el hombro tenga una base de tirón. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo cierra el ángulo y transfiere la tracción desde la mano hacia la espalda. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Del Agarre"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene la posición de la mano ante el peso corporal o la polea. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -310,39 +480,45 @@
                   "movementPatternId": "vertical_pull",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+                    "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
                   ],
                   "cues": [
-                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                    "Barra acostado detrás de la cabeza: el arco largo con carga completa. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
                   ],
                   "execution": [
-                    "Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Barra acostado detrás de la cabeza: el arco largo con carga completa. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer dorsales y espalda alta con una resistencia fácil de ajustar siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar tirón hacia abajo y flexión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura barra y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."
+                    "Preparación: Barra acostado detrás de la cabeza: el arco largo con carga completa."
                   ]
                 },
                 "display": {
@@ -351,6 +527,15 @@
                   "selectedOptions": {
                     "implement": "barbell"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Barra acostado detrás de la cabeza: el arco largo con carga completa.",
+                    "El pullover tradicional con barra; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Barra acostado detrás de la cabeza: el arco largo con carga completa. El pullover tradicional con barra.",
+                  "technique": "Barra acostado detrás de la cabeza: el arco largo con carga completa. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
+                  "variantRationale": "Barra acostado detrás de la cabeza: el arco largo con carga completa. El pullover tradicional con barra."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -363,7 +548,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull Over en Banca",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "lying_pullover__barbell",
                   "definitionId": "lying_pullover",
                   "familyId": "upper_vertical_pull_pullover",
@@ -383,8 +568,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón vertical_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el pectoral mediante Pull Over en Banca en la variante Barra.",
+                    "Priorizar fortalecer dorsales y espalda alta con una resistencia fácil de ajustar con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -406,7 +591,8 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón vertical_pull y el objetivo latissimus_dorsi."
+                    "Conserva tirón hacia abajo y flexión del codo y el objetivo de el pectoral.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -424,7 +610,7 @@
                 "triceps"
               ],
               "setupCues": [
-                "Configura barra y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."
+                "Preparación: Barra acostado detrás de la cabeza: el arco largo con carga completa."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.4,
@@ -432,7 +618,9 @@
                 "core"
               ],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Barra acostado detrás de la cabeza: el arco largo con carga completa. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
+              "ttc": 1.8,
+              "variantRationale": "Barra acostado detrás de la cabeza: el arco largo con carga completa. El pullover tradicional con barra."
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -444,9 +632,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_pullover",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "lying_pullover__kettlebell",
@@ -454,18 +642,57 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Kettlebell acostado detrás de la cabeza: la campana se perciben distinta en el arco.",
+                "Variante alternativa del pullover; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+                "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Kettlebell acostado detrás de la cabeza: la campana se siente distinta en el arco. Variante original del pullover.",
+              "description": "Kettlebell acostado detrás de la cabeza: la campana se perciben distinta en el arco. Variante alternativa del pullover.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
-                "Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Kettlebell acostado detrás de la cabeza: la campana se perciben distinta en el arco. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Aducción Y Extensión"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro acerca el brazo al costado y dirige el cuerpo o la carga hacia la barra. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Depresión Y Rotación"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula desciende y se organiza para que el hombro tenga una base de tirón. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo cierra el ángulo y transfiere la tracción desde la mano hacia la espalda. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene la posición de la mano ante el peso corporal o la polea. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -473,19 +700,19 @@
               "muscleNotes": [
                 {
                   "muscleId": "pectoralis",
-                  "note": "Principal: el pectoral mayor extiende el brazo tumbado y concentra la fase de tracción; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. En la configuración Kettlebell, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Secundario: el dorsal asiste la tracción del brazo por encima de la cabeza en el arco; por eso suma 0.5."
+                  "note": "Secundaria: El dorsal extiende o aproxima el brazo al tronco desde la espalda. La combinación de agarre y anchura elegida cambia cuánto se acerca el codo al cuerpo. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "triceps",
-                  "note": "Secundario: el tríceps estabiliza el codo durante el arco completo; por eso suma 0.5."
+                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. En la configuración Kettlebell, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco estable y evita el arqueo lumbar; por eso suma 0.4."
+                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. En la configuración Kettlebell, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "lying_pullover__kettlebell__pullover_banca",
@@ -498,7 +725,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "vertical_pull"
+                    "Aducción Y Extensión",
+                    "Depresión Y Rotación",
+                    "Flexión",
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Aducción Y Extensión"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro acerca el brazo al costado y dirige el cuerpo o la carga hacia la barra. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Depresión Y Rotación"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula desciende y se organiza para que el hombro tenga una base de tirón. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo cierra el ángulo y transfiere la tracción desde la mano hacia la espalda. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Del Agarre"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene la posición de la mano ante el peso corporal o la polea. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -526,39 +790,45 @@
                   "movementPatternId": "vertical_pull",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+                    "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
                   ],
                   "cues": [
-                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                    "Kettlebell acostado detrás de la cabeza: la campana se perciben distinta en el arco. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
                   ],
                   "execution": [
-                    "Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Kettlebell acostado detrás de la cabeza: la campana se perciben distinta en el arco. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer dorsales y espalda alta con una resistencia fácil de ajustar siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar tirón hacia abajo y flexión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura kettlebell y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."
+                    "Preparación: Kettlebell acostado detrás de la cabeza: la campana se perciben distinta en el arco."
                   ]
                 },
                 "display": {
@@ -567,6 +837,15 @@
                   "selectedOptions": {
                     "implement": "kettlebell"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Kettlebell acostado detrás de la cabeza: la campana se perciben distinta en el arco.",
+                    "Variante alternativa del pullover; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Kettlebell acostado detrás de la cabeza: la campana se perciben distinta en el arco. Variante alternativa del pullover.",
+                  "technique": "Kettlebell acostado detrás de la cabeza: la campana se perciben distinta en el arco. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
+                  "variantRationale": "Kettlebell acostado detrás de la cabeza: la campana se perciben distinta en el arco. Variante alternativa del pullover."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -579,7 +858,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull Over en Banca",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "lying_pullover__kettlebell",
                   "definitionId": "lying_pullover",
                   "familyId": "upper_vertical_pull_pullover",
@@ -599,8 +878,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón vertical_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el pectoral mediante Pull Over en Banca en la variante Kettlebell.",
+                    "Priorizar fortalecer dorsales y espalda alta con una resistencia fácil de ajustar con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -622,7 +901,8 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón vertical_pull y el objetivo latissimus_dorsi."
+                    "Conserva tirón hacia abajo y flexión del codo y el objetivo de el pectoral.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -640,7 +920,7 @@
                 "triceps"
               ],
               "setupCues": [
-                "Configura kettlebell y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."
+                "Preparación: Kettlebell acostado detrás de la cabeza: la campana se perciben distinta en el arco."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.4,
@@ -648,7 +928,9 @@
                 "core"
               ],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Kettlebell acostado detrás de la cabeza: la campana se perciben distinta en el arco. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
+              "ttc": 1.8,
+              "variantRationale": "Kettlebell acostado detrás de la cabeza: la campana se perciben distinta en el arco. Variante alternativa del pullover."
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -661,9 +943,9 @@
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_pullover",
                 "editorial:configuration:back_pullover__cable",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "lying_pullover__cable",
@@ -671,18 +953,57 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Polea acostado: la tensión constante estira el dorsal en todo el recorrido.",
+                "La versión precisa del pullover; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+                "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Polea acostado: la tensión constante estira el dorsal en todo el recorrido. La versión fina del pullover.",
+              "description": "Polea acostado: la tensión constante estira el dorsal en todo el recorrido. La versión precisa del pullover.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
-                "Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Polea acostado: la tensión constante estira el dorsal en todo el recorrido. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Aducción Y Extensión"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro acerca el brazo al costado y dirige el cuerpo o la carga hacia la barra. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Depresión Y Rotación"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula desciende y se organiza para que el hombro tenga una base de tirón. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo cierra el ángulo y transfiere la tracción desde la mano hacia la espalda. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene la posición de la mano ante el peso corporal o la polea. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -690,19 +1011,19 @@
               "muscleNotes": [
                 {
                   "muscleId": "pectoralis",
-                  "note": "Principal: el pectoral mayor extiende el brazo tumbado y concentra la fase de tracción; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Secundario: el dorsal asiste la tracción del brazo por encima de la cabeza en el arco; por eso suma 0.5."
+                  "note": "Secundaria: El dorsal extiende o aproxima el brazo al tronco desde la espalda. La combinación de agarre y anchura elegida cambia cuánto se acerca el codo al cuerpo. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "triceps",
-                  "note": "Secundario: el tríceps estabiliza el codo durante el arco completo; por eso suma 0.5."
+                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco estable y evita el arqueo lumbar; por eso suma 0.4."
+                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "lying_pullover__cable__pullover_banca",
@@ -715,7 +1036,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "vertical_pull"
+                    "Aducción Y Extensión",
+                    "Depresión Y Rotación",
+                    "Flexión",
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Aducción Y Extensión"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro acerca el brazo al costado y dirige el cuerpo o la carga hacia la barra. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Depresión Y Rotación"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula desciende y se organiza para que el hombro tenga una base de tirón. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo cierra el ángulo y transfiere la tracción desde la mano hacia la espalda. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Del Agarre"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene la posición de la mano ante el peso corporal o la polea. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -743,39 +1101,45 @@
                   "movementPatternId": "vertical_pull",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+                    "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
                   ],
                   "cues": [
-                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                    "Polea acostado: la tensión constante estira el dorsal en todo el recorrido. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
                   ],
                   "execution": [
-                    "Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Polea acostado: la tensión constante estira el dorsal en todo el recorrido. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer dorsales y espalda alta con una resistencia fácil de ajustar siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar tirón hacia abajo y flexión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura la polea y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."
+                    "Preparación: Polea acostado: la tensión constante estira el dorsal en todo el recorrido."
                   ]
                 },
                 "display": {
@@ -784,6 +1148,15 @@
                   "selectedOptions": {
                     "implement": "cable"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Polea acostado: la tensión constante estira el dorsal en todo el recorrido.",
+                    "La versión precisa del pullover; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Polea acostado: la tensión constante estira el dorsal en todo el recorrido. La versión precisa del pullover.",
+                  "technique": "Polea acostado: la tensión constante estira el dorsal en todo el recorrido. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
+                  "variantRationale": "Polea acostado: la tensión constante estira el dorsal en todo el recorrido. La versión precisa del pullover."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -796,7 +1169,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull Over en Banca",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "lying_pullover__cable",
                   "definitionId": "lying_pullover",
                   "familyId": "upper_vertical_pull_pullover",
@@ -816,8 +1189,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón vertical_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el pectoral mediante Pull Over en Banca en la variante Polea.",
+                    "Priorizar fortalecer dorsales y espalda alta con una resistencia fácil de ajustar con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -839,7 +1212,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón vertical_pull y el objetivo latissimus_dorsi."
+                    "Conserva tirón hacia abajo y flexión del codo y el objetivo de el pectoral.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -857,7 +1231,7 @@
                 "triceps"
               ],
               "setupCues": [
-                "Configura la polea y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."
+                "Preparación: Polea acostado: la tensión constante estira el dorsal en todo el recorrido."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.4,
@@ -865,7 +1239,9 @@
                 "core"
               ],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Polea acostado: la tensión constante estira el dorsal en todo el recorrido. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
+              "ttc": 1.8,
+              "variantRationale": "Polea acostado: la tensión constante estira el dorsal en todo el recorrido. La versión precisa del pullover."
             },
             "selectedOptions": {
               "implement": "cable"
@@ -878,9 +1254,9 @@
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_pullover",
                 "editorial:configuration:back_pullover__machine",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "lying_pullover__machine",
@@ -888,18 +1264,57 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Máquina de pullover: el guiado acompaña el arco detrás de la cabeza.",
+                "La opción cómoda y estable del ejercicio."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+                "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Máquina de pullover: el guiado acompaña el arco detrás de la cabeza. La opción cómoda y segura del ejercicio.",
+              "description": "Máquina de pullover: el guiado acompaña el arco detrás de la cabeza. La opción cómoda y estable del ejercicio.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
-                "Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Máquina de pullover: el guiado acompaña el arco detrás de la cabeza. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Aducción Y Extensión"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro acerca el brazo al costado y dirige el cuerpo o la carga hacia la barra. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Depresión Y Rotación"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula desciende y se organiza para que el hombro tenga una base de tirón. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo cierra el ángulo y transfiere la tracción desde la mano hacia la espalda. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene la posición de la mano ante el peso corporal o la polea. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -907,19 +1322,19 @@
               "muscleNotes": [
                 {
                   "muscleId": "pectoralis",
-                  "note": "Principal: el pectoral mayor extiende el brazo tumbado y concentra la fase de tracción; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. En la configuración Máquina, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Secundario: el dorsal asiste la tracción del brazo por encima de la cabeza en el arco; por eso suma 0.5."
+                  "note": "Secundaria: El dorsal extiende o aproxima el brazo al tronco desde la espalda. La combinación de agarre y anchura elegida cambia cuánto se acerca el codo al cuerpo. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "triceps",
-                  "note": "Secundario: el tríceps estabiliza el codo durante el arco completo; por eso suma 0.5."
+                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. En la configuración Máquina, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco estable y evita el arqueo lumbar; por eso suma 0.4."
+                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. El guiado externo reduce la demanda de estabilización y concentra su papel en mantener la posición. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "lying_pullover__machine__pullover_banca",
@@ -932,7 +1347,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "vertical_pull"
+                    "Aducción Y Extensión",
+                    "Depresión Y Rotación",
+                    "Flexión",
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Aducción Y Extensión"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro acerca el brazo al costado y dirige el cuerpo o la carga hacia la barra. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Depresión Y Rotación"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula desciende y se organiza para que el hombro tenga una base de tirón. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo cierra el ángulo y transfiere la tracción desde la mano hacia la espalda. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Del Agarre"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene la posición de la mano ante el peso corporal o la polea. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -960,39 +1412,45 @@
                   "movementPatternId": "vertical_pull",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+                    "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
                   ],
                   "cues": [
-                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                    "Máquina de pullover: el guiado acompaña el arco detrás de la cabeza. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
                   ],
                   "execution": [
-                    "Ejecuta «Pull Over en Banca» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Máquina de pullover: el guiado acompaña el arco detrás de la cabeza. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer dorsales y espalda alta con una resistencia fácil de ajustar siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar tirón hacia abajo y flexión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura la máquina y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."
+                    "Preparación: Máquina de pullover: el guiado acompaña el arco detrás de la cabeza."
                   ]
                 },
                 "display": {
@@ -1001,6 +1459,15 @@
                   "selectedOptions": {
                     "implement": "machine"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Máquina de pullover: el guiado acompaña el arco detrás de la cabeza.",
+                    "La opción cómoda y estable del ejercicio."
+                  ],
+                  "description": "Máquina de pullover: el guiado acompaña el arco detrás de la cabeza. La opción cómoda y estable del ejercicio.",
+                  "technique": "Máquina de pullover: el guiado acompaña el arco detrás de la cabeza. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
+                  "variantRationale": "Máquina de pullover: el guiado acompaña el arco detrás de la cabeza. La opción cómoda y estable del ejercicio."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1013,7 +1480,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull Over en Banca",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "lying_pullover__machine",
                   "definitionId": "lying_pullover",
                   "familyId": "upper_vertical_pull_pullover",
@@ -1033,8 +1500,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón vertical_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el pectoral mediante Pull Over en Banca en la variante Máquina.",
+                    "Priorizar fortalecer dorsales y espalda alta con una resistencia fácil de ajustar con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1056,7 +1523,8 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón vertical_pull y el objetivo latissimus_dorsi."
+                    "Conserva tirón hacia abajo y flexión del codo y el objetivo de el pectoral.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -1074,7 +1542,7 @@
                 "triceps"
               ],
               "setupCues": [
-                "Configura la máquina y adopta la posición específica de «Pull Over en Banca» antes de iniciar; conserva una base estable."
+                "Preparación: Máquina de pullover: el guiado acompaña el arco detrás de la cabeza."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.4,
@@ -1082,7 +1550,9 @@
                 "core"
               ],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Máquina de pullover: el guiado acompaña el arco detrás de la cabeza. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
+              "ttc": 1.8,
+              "variantRationale": "Máquina de pullover: el guiado acompaña el arco detrás de la cabeza. La opción cómoda y estable del ejercicio."
             },
             "selectedOptions": {
               "implement": "machine"
@@ -1090,13 +1560,13 @@
           }
         ],
         "defaultConfigurationId": "lying_pullover__dumbbells",
-        "description": "Pullover en banca: acostado, llevas el peso por detrás de la cabeza y lo vuelves sobre el pecho. El dorsal se estira a fondo: el ejercicio clásico de la espalda ancha.",
+        "description": "Pullover en banca: acostado, llevas el peso por detrás de la cabeza y lo vuelves sobre el pecho. El dorsal se estira a fondo: el ejercicio tradicional de la espalda ancha.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:lying_pullover"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "upper_vertical_pull_pullover",
@@ -1122,9 +1592,9 @@
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_pullover",
                 "editorial:configuration:back_pullover__cable",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "pullover__bilateral__cable",
@@ -1132,18 +1602,57 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Polea alta con ambas manos: el arco largo deja el dorsal estirado a fondo.",
+                "El pullover de polea tradicional; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+                "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Polea alta con ambas manos: el arco largo deja el dorsal estirado a fondo. El pullover de polea clásico.",
+              "description": "Polea alta con ambas manos: el arco largo deja el dorsal estirado a fondo. El pullover de polea tradicional.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
-                "Ejecuta «Pull Over» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Polea alta con ambas manos: el arco largo deja el dorsal estirado a fondo. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Aducción Y Extensión"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro acerca el brazo al costado y dirige el cuerpo o la carga hacia la barra. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Depresión Y Rotación"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula desciende y se organiza para que el hombro tenga una base de tirón. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo cierra el ángulo y transfiere la tracción desde la mano hacia la espalda. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene la posición de la mano ante el peso corporal o la polea. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -1151,19 +1660,19 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal extiende y aduce el brazo por encima de la cabeza en el recorrido; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El dorsal extiende o aproxima el brazo al tronco desde la espalda. La combinación de agarre y anchura elegida cambia cuánto se acerca el codo al cuerpo. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "pectoralis",
-                  "note": "Secundario: el pectoral mayor asiste la fase de descenso del brazo y comparte la tracción; por eso suma 0.5."
+                  "note": "Secundaria: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "triceps",
-                  "note": "Secundario: el tríceps estabiliza el codo durante el arco del pullover; por eso suma 0.5."
+                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core fija el tronco al banco y evita el arqueo lumbar; por eso suma 0.4."
+                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "pullover__cable__pullover",
@@ -1176,7 +1685,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "vertical_pull"
+                    "Aducción Y Extensión",
+                    "Depresión Y Rotación",
+                    "Flexión",
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Aducción Y Extensión"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro acerca el brazo al costado y dirige el cuerpo o la carga hacia la barra. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Depresión Y Rotación"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula desciende y se organiza para que el hombro tenga una base de tirón. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo cierra el ángulo y transfiere la tracción desde la mano hacia la espalda. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Del Agarre"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene la posición de la mano ante el peso corporal o la polea. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -1204,39 +1750,45 @@
                   "movementPatternId": "vertical_pull",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+                    "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
                   ],
                   "cues": [
-                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                    "Polea alta con ambas manos: el arco largo deja el dorsal estirado a fondo. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
                   ],
                   "execution": [
-                    "Ejecuta «Pull Over» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Polea alta con ambas manos: el arco largo deja el dorsal estirado a fondo. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer dorsales y espalda alta con una resistencia fácil de ajustar siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar tirón hacia abajo y flexión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura la polea y adopta la posición específica de «Pull Over» antes de iniciar; conserva una base estable."
+                    "Preparación: Polea alta con ambas manos: el arco largo deja el dorsal estirado a fondo."
                   ]
                 },
                 "display": {
@@ -1246,6 +1798,15 @@
                     "implement": "cable",
                     "laterality": "bilateral"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Polea alta con ambas manos: el arco largo deja el dorsal estirado a fondo.",
+                    "El pullover de polea tradicional; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Polea alta con ambas manos: el arco largo deja el dorsal estirado a fondo. El pullover de polea tradicional.",
+                  "technique": "Polea alta con ambas manos: el arco largo deja el dorsal estirado a fondo. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
+                  "variantRationale": "Polea alta con ambas manos: el arco largo deja el dorsal estirado a fondo. El pullover de polea tradicional."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1258,7 +1819,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull Over",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "pullover__bilateral__cable",
                   "definitionId": "pullover",
                   "familyId": "upper_vertical_pull_pullover",
@@ -1277,8 +1838,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón vertical_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el dorsal mediante Pull Over en la variante Polea · Trabajo Bilateral.",
+                    "Priorizar fortalecer dorsales y espalda alta con una resistencia fácil de ajustar con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1300,7 +1861,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón vertical_pull y el objetivo latissimus_dorsi."
+                    "Conserva tirón hacia abajo y flexión del codo y el objetivo de el dorsal.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -1318,7 +1880,7 @@
                 "triceps"
               ],
               "setupCues": [
-                "Configura la polea y adopta la posición específica de «Pull Over» antes de iniciar; conserva una base estable."
+                "Preparación: Polea alta con ambas manos: el arco largo deja el dorsal estirado a fondo."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.4,
@@ -1326,7 +1888,9 @@
                 "core"
               ],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Polea alta con ambas manos: el arco largo deja el dorsal estirado a fondo. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
+              "ttc": 1.8,
+              "variantRationale": "Polea alta con ambas manos: el arco largo deja el dorsal estirado a fondo. El pullover de polea tradicional."
             },
             "selectedOptions": {
               "implement": "cable",
@@ -1340,9 +1904,9 @@
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_pullover",
                 "editorial:configuration:back_pullover__cable",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "pullover__unilateral__cable",
@@ -1350,18 +1914,57 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Polea con una mano: cada dorsal trabaja por separado con tensión constante.",
+                "Útil para corregir desequilibrios; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+                "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Polea con una mano: cada dorsal trabaja por separado con tensión constante. Ideal para corregir desequilibrios.",
+              "description": "Polea con una mano: cada dorsal trabaja por separado con tensión constante. Útil para corregir desequilibrios.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
-                "Ejecuta «Pull Over» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Polea con una mano: cada dorsal trabaja por separado con tensión constante. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Aducción Y Extensión"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro acerca el brazo al costado y dirige el cuerpo o la carga hacia la barra. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Depresión Y Rotación"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula desciende y se organiza para que el hombro tenga una base de tirón. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo cierra el ángulo y transfiere la tracción desde la mano hacia la espalda. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene la posición de la mano ante el peso corporal o la polea. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
@@ -1369,19 +1972,19 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal extiende y aduce el brazo por encima de la cabeza en el recorrido; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El dorsal extiende o aproxima el brazo al tronco desde la espalda. La combinación de agarre y anchura elegida cambia cuánto se acerca el codo al cuerpo. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "pectoralis",
-                  "note": "Secundario: el pectoral mayor asiste la fase de descenso del brazo y comparte la tracción; por eso suma 0.5."
+                  "note": "Secundaria: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "triceps",
-                  "note": "Secundario: el tríceps estabiliza el codo durante el arco del pullover; por eso suma 0.5."
+                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core fija el tronco al banco y evita el arqueo lumbar; por eso suma 0.4."
+                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "pullover__cable__pullover",
@@ -1394,7 +1997,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "vertical_pull"
+                    "Aducción Y Extensión",
+                    "Depresión Y Rotación",
+                    "Flexión",
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Aducción Y Extensión"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro acerca el brazo al costado y dirige el cuerpo o la carga hacia la barra. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Depresión Y Rotación"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula desciende y se organiza para que el hombro tenga una base de tirón. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo cierra el ángulo y transfiere la tracción desde la mano hacia la espalda. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Del Agarre"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene la posición de la mano ante el peso corporal o la polea. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -1422,39 +2062,45 @@
                   "movementPatternId": "vertical_pull",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+                    "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
                   ],
                   "cues": [
-                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                    "Polea con una mano: cada dorsal trabaja por separado con tensión constante. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
                   ],
                   "execution": [
-                    "Ejecuta «Pull Over» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Polea con una mano: cada dorsal trabaja por separado con tensión constante. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer dorsales y espalda alta con una resistencia fácil de ajustar siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar tirón hacia abajo y flexión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura la polea y adopta la posición específica de «Pull Over» antes de iniciar; conserva una base estable."
+                    "Preparación: Polea con una mano: cada dorsal trabaja por separado con tensión constante."
                   ]
                 },
                 "display": {
@@ -1464,6 +2110,15 @@
                     "implement": "cable",
                     "laterality": "unilateral"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Polea con una mano: cada dorsal trabaja por separado con tensión constante.",
+                    "Útil para corregir desequilibrios; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Polea con una mano: cada dorsal trabaja por separado con tensión constante. Útil para corregir desequilibrios.",
+                  "technique": "Polea con una mano: cada dorsal trabaja por separado con tensión constante. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
+                  "variantRationale": "Polea con una mano: cada dorsal trabaja por separado con tensión constante. Útil para corregir desequilibrios."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1476,7 +2131,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull Over",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "pullover__unilateral__cable",
                   "definitionId": "pullover",
                   "familyId": "upper_vertical_pull_pullover",
@@ -1495,8 +2150,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón vertical_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el dorsal mediante Pull Over en la variante Polea · Trabajo Unilateral.",
+                    "Priorizar fortalecer dorsales y espalda alta con una resistencia fácil de ajustar con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1518,7 +2173,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón vertical_pull y el objetivo latissimus_dorsi."
+                    "Conserva tirón hacia abajo y flexión del codo y el objetivo de el dorsal.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -1536,7 +2192,7 @@
                 "triceps"
               ],
               "setupCues": [
-                "Configura la polea y adopta la posición específica de «Pull Over» antes de iniciar; conserva una base estable."
+                "Preparación: Polea con una mano: cada dorsal trabaja por separado con tensión constante."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.4,
@@ -1544,7 +2200,9 @@
                 "core"
               ],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Polea con una mano: cada dorsal trabaja por separado con tensión constante. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
+              "ttc": 1.8,
+              "variantRationale": "Polea con una mano: cada dorsal trabaja por separado con tensión constante. Útil para corregir desequilibrios."
             },
             "selectedOptions": {
               "implement": "cable",
@@ -1558,9 +2216,9 @@
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_pullover",
                 "editorial:configuration:back_pullover__machine",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "pullover__bilateral__machine",
@@ -1568,18 +2226,57 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Máquina con ambas manos: el guiado hace el arco estable y estable.",
+                "La opción cómoda del pullover; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+                "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Máquina con ambas manos: el guiado hace el arco estable y seguro. La opción cómoda del pullover.",
+              "description": "Máquina con ambas manos: el guiado hace el arco estable y estable. La opción cómoda del pullover.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
-                "Ejecuta «Pull Over» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Máquina con ambas manos: el guiado hace el arco estable y estable. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Aducción Y Extensión"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro acerca el brazo al costado y dirige el cuerpo o la carga hacia la barra. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Depresión Y Rotación"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula desciende y se organiza para que el hombro tenga una base de tirón. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo cierra el ángulo y transfiere la tracción desde la mano hacia la espalda. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene la posición de la mano ante el peso corporal o la polea. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -1587,19 +2284,19 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal extiende y aduce el brazo por encima de la cabeza en el recorrido; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El dorsal extiende o aproxima el brazo al tronco desde la espalda. La combinación de agarre y anchura elegida cambia cuánto se acerca el codo al cuerpo. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "pectoralis",
-                  "note": "Secundario: el pectoral mayor asiste la fase de descenso del brazo y comparte la tracción; por eso suma 0.5."
+                  "note": "Secundaria: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. En la configuración Máquina · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "triceps",
-                  "note": "Secundario: el tríceps estabiliza el codo durante el arco del pullover; por eso suma 0.5."
+                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. En la configuración Máquina · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core fija el tronco al banco y evita el arqueo lumbar; por eso suma 0.4."
+                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. El guiado externo reduce la demanda de estabilización y concentra su papel en mantener la posición. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "pullover__machine__pullover",
@@ -1612,7 +2309,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "vertical_pull"
+                    "Aducción Y Extensión",
+                    "Depresión Y Rotación",
+                    "Flexión",
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Aducción Y Extensión"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro acerca el brazo al costado y dirige el cuerpo o la carga hacia la barra. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Depresión Y Rotación"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula desciende y se organiza para que el hombro tenga una base de tirón. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo cierra el ángulo y transfiere la tracción desde la mano hacia la espalda. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Del Agarre"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene la posición de la mano ante el peso corporal o la polea. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -1640,39 +2374,45 @@
                   "movementPatternId": "vertical_pull",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+                    "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
                   ],
                   "cues": [
-                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                    "Máquina con ambas manos: el guiado hace el arco estable y estable. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
                   ],
                   "execution": [
-                    "Ejecuta «Pull Over» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Máquina con ambas manos: el guiado hace el arco estable y estable. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer dorsales y espalda alta con una resistencia fácil de ajustar siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar tirón hacia abajo y flexión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura la máquina y adopta la posición específica de «Pull Over» antes de iniciar; conserva una base estable."
+                    "Preparación: Máquina con ambas manos: el guiado hace el arco estable y estable."
                   ]
                 },
                 "display": {
@@ -1682,6 +2422,15 @@
                     "implement": "machine",
                     "laterality": "bilateral"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Máquina con ambas manos: el guiado hace el arco estable y estable.",
+                    "La opción cómoda del pullover; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Máquina con ambas manos: el guiado hace el arco estable y estable. La opción cómoda del pullover.",
+                  "technique": "Máquina con ambas manos: el guiado hace el arco estable y estable. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
+                  "variantRationale": "Máquina con ambas manos: el guiado hace el arco estable y estable. La opción cómoda del pullover."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1694,7 +2443,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull Over",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "pullover__bilateral__machine",
                   "definitionId": "pullover",
                   "familyId": "upper_vertical_pull_pullover",
@@ -1713,8 +2462,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón vertical_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el dorsal mediante Pull Over en la variante Máquina · Trabajo Bilateral.",
+                    "Priorizar fortalecer dorsales y espalda alta con una resistencia fácil de ajustar con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1736,7 +2485,8 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón vertical_pull y el objetivo latissimus_dorsi."
+                    "Conserva tirón hacia abajo y flexión del codo y el objetivo de el dorsal.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -1754,7 +2504,7 @@
                 "triceps"
               ],
               "setupCues": [
-                "Configura la máquina y adopta la posición específica de «Pull Over» antes de iniciar; conserva una base estable."
+                "Preparación: Máquina con ambas manos: el guiado hace el arco estable y estable."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.4,
@@ -1762,7 +2512,9 @@
                 "core"
               ],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Máquina con ambas manos: el guiado hace el arco estable y estable. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
+              "ttc": 1.8,
+              "variantRationale": "Máquina con ambas manos: el guiado hace el arco estable y estable. La opción cómoda del pullover."
             },
             "selectedOptions": {
               "implement": "machine",
@@ -1776,9 +2528,9 @@
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_pullover",
                 "editorial:configuration:back_pullover__machine",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "pullover__unilateral__machine",
@@ -1786,18 +2538,57 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Máquina con un brazo: el hombro recorre su arco por separado y el aparato conserva una línea estable.",
+                "La variante ayuda a encontrar diferencias de movilidad y control entre ambos dorsales."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+                "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Máquina con una mano: un dorsal a la vez con el guiado. Perfecto para centrarse en cada lado.",
+              "description": "Máquina con un brazo: el hombro recorre su arco por separado y el aparato conserva una línea estable. La variante ayuda a encontrar diferencias de movilidad y control entre ambos dorsales.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
-                "Ejecuta «Pull Over» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Máquina con un brazo: el hombro recorre su arco por separado y el aparato conserva una línea estable. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Aducción Y Extensión"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro acerca el brazo al costado y dirige el cuerpo o la carga hacia la barra. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Depresión Y Rotación"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula desciende y se organiza para que el hombro tenga una base de tirón. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo cierra el ángulo y transfiere la tracción desde la mano hacia la espalda. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene la posición de la mano ante el peso corporal o la polea. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
@@ -1805,19 +2596,19 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal extiende y aduce el brazo por encima de la cabeza en el recorrido; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El dorsal extiende o aproxima el brazo al tronco desde la espalda. La combinación de agarre y anchura elegida cambia cuánto se acerca el codo al cuerpo. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "pectoralis",
-                  "note": "Secundario: el pectoral mayor asiste la fase de descenso del brazo y comparte la tracción; por eso suma 0.5."
+                  "note": "Secundaria: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "triceps",
-                  "note": "Secundario: el tríceps estabiliza el codo durante el arco del pullover; por eso suma 0.5."
+                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core fija el tronco al banco y evita el arqueo lumbar; por eso suma 0.4."
+                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "pullover__machine__pullover",
@@ -1830,7 +2621,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "vertical_pull"
+                    "Aducción Y Extensión",
+                    "Depresión Y Rotación",
+                    "Flexión",
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Aducción Y Extensión"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro acerca el brazo al costado y dirige el cuerpo o la carga hacia la barra. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Depresión Y Rotación"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula desciende y se organiza para que el hombro tenga una base de tirón. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo cierra el ángulo y transfiere la tracción desde la mano hacia la espalda. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Del Agarre"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene la posición de la mano ante el peso corporal o la polea. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -1858,39 +2686,45 @@
                   "movementPatternId": "vertical_pull",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso del cuerpo, encorvar la espalda o bajar la barra por detrás de la nuca para completar la repetición."
+                    "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
                   ],
                   "cues": [
-                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                    "Máquina con un brazo: el hombro recorre su arco por separado y el aparato conserva una línea estable. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
                   ],
                   "execution": [
-                    "Ejecuta «Pull Over» siguiendo el patrón tirón vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Máquina con un brazo: el hombro recorre su arco por separado y el aparato conserva una línea estable. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer dorsales y espalda alta con una resistencia fácil de ajustar siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar tirón hacia abajo y flexión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura la máquina y adopta la posición específica de «Pull Over» antes de iniciar; conserva una base estable."
+                    "Preparación: Máquina con un brazo: el hombro recorre su arco por separado y el aparato conserva una línea estable."
                   ]
                 },
                 "display": {
@@ -1900,6 +2734,15 @@
                     "implement": "machine",
                     "laterality": "unilateral"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Máquina con un brazo: el hombro recorre su arco por separado y el aparato conserva una línea estable.",
+                    "La variante ayuda a encontrar diferencias de movilidad y control entre ambos dorsales."
+                  ],
+                  "description": "Máquina con un brazo: el hombro recorre su arco por separado y el aparato conserva una línea estable. La variante ayuda a encontrar diferencias de movilidad y control entre ambos dorsales.",
+                  "technique": "Máquina con un brazo: el hombro recorre su arco por separado y el aparato conserva una línea estable. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
+                  "variantRationale": "Máquina con un brazo: el hombro recorre su arco por separado y el aparato conserva una línea estable. La variante ayuda a encontrar diferencias de movilidad y control entre ambos dorsales."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1912,7 +2755,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull Over",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "pullover__unilateral__machine",
                   "definitionId": "pullover",
                   "familyId": "upper_vertical_pull_pullover",
@@ -1931,8 +2774,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón vertical_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el dorsal mediante Pull Over en la variante Máquina · Trabajo Unilateral.",
+                    "Priorizar fortalecer dorsales y espalda alta con una resistencia fácil de ajustar con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1954,7 +2797,8 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón vertical_pull y el objetivo latissimus_dorsi."
+                    "Conserva tirón hacia abajo y flexión del codo y el objetivo de el dorsal.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -1972,7 +2816,7 @@
                 "triceps"
               ],
               "setupCues": [
-                "Configura la máquina y adopta la posición específica de «Pull Over» antes de iniciar; conserva una base estable."
+                "Preparación: Máquina con un brazo: el hombro recorre su arco por separado y el aparato conserva una línea estable."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.4,
@@ -1980,7 +2824,9 @@
                 "core"
               ],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Máquina con un brazo: el hombro recorre su arco por separado y el aparato conserva una línea estable. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
+              "ttc": 1.8,
+              "variantRationale": "Máquina con un brazo: el hombro recorre su arco por separado y el aparato conserva una línea estable. La variante ayuda a encontrar diferencias de movilidad y control entre ambos dorsales."
             },
             "selectedOptions": {
               "implement": "machine",
@@ -1989,13 +2835,13 @@
           }
         ],
         "defaultConfigurationId": "pullover__bilateral__cable",
-        "description": "Pull over: acostado o de pie en polea, llevas el brazo por detrás de la cabeza y vuelves. Dorsales y pecho trabajando en un arco largo y profundo.",
+        "description": "Acostado o de pie en polea, llevas el brazo por detrás de la cabeza y vuelves. Dorsales y pecho trabajando en un arco largo y profundo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:pullover"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "upper_vertical_pull_pullover",
@@ -2016,9 +2862,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:upper_vertical_pull_pullover"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "upper_vertical_pull_pullover",
@@ -2028,6 +2874,6 @@
       "pullover"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

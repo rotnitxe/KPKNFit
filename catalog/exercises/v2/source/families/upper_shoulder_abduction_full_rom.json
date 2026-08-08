@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Tren superior · deltoid · shoulder abduction full rom",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_lu_raises",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "deltoides_lu_raises__default",
@@ -22,18 +22,57 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento.",
+                "Un ejercicio poco común que cuida y fortalece el hombro."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.8,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón abducción completa para completar la repetición."
+                "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
               ],
               "description": "Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento. Un ejercicio poco común que cuida y fortalece el hombro.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Ejecuta «LU-Raises» siguiendo el patrón abducción completa con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Abducción O Flexión"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro eleva el brazo y determina el plano de la variante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Rotación Superior"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula acompaña la elevación para repartir el movimiento y la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Ajuste Escapular"
+                  ],
+                  "jointId": "acromioclavicular",
+                  "note": "Secundaria: La articulación acromioclavicular permite que la escápula cambie de orientación durante la elevación. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Extensión Relativa"
+                  ],
+                  "jointId": "codo",
+                  "note": "Estabilizadora: El codo mantiene una posición consistente para que el hombro sea quien defina el gesto. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -41,11 +80,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "deltoid",
-                  "note": "Principal: el deltoides mueve el brazo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Secundario: el trapecio asiste el movimiento escapular y la postura del hombro; por eso suma 0.5."
+                  "note": "Secundaria: El trapecio coordina la posición de la escápula y reparte la fuerza en la cintura escapular. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "deltoides_lu_raises__dumbbells__lu_raises",
@@ -58,7 +97,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "shoulder_abduction_full_rom"
+                    "Abducción O Flexión",
+                    "Rotación Superior",
+                    "Ajuste Escapular",
+                    "Extensión Relativa"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Abducción O Flexión"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro eleva el brazo y determina el plano de la variante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Rotación Superior"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula acompaña la elevación para repartir el movimiento y la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Ajuste Escapular"
+                      ],
+                      "jointId": "acromioclavicular",
+                      "note": "Secundaria: La articulación acromioclavicular permite que la escápula cambie de orientación durante la elevación. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión Relativa"
+                      ],
+                      "jointId": "codo",
+                      "note": "Estabilizadora: El codo mantiene una posición consistente para que el hombro sea quien defina el gesto. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -83,45 +159,58 @@
                   "movementPatternId": "shoulder_abduction_full_rom",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "acromioclavicular",
+                    "codo"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón abducción completa para completar la repetición."
+                    "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
                   ],
                   "cues": [
-                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                    "Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Ejecuta «LU-Raises» siguiendo el patrón abducción completa con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando dirigir el trabajo a una parte del hombro con una carga moderada y controlable siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar elevación del brazo y acompañamiento de la escápula como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura mancuerna y adopta la posición específica de «LU-Raises» antes de iniciar; conserva una base estable."
+                    "Preparación: Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento."
                   ]
                 },
                 "display": {
                   "displayName": "LU-Raises",
                   "displaySummary": "Mancuerna",
                   "selectedOptions": {}
+                },
+                "editorial": {
+                  "benefits": [
+                    "Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento.",
+                    "Un ejercicio poco común que cuida y fortalece el hombro."
+                  ],
+                  "description": "Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento. Un ejercicio poco común que cuida y fortalece el hombro.",
+                  "technique": "Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento. Un ejercicio poco común que cuida y fortalece el hombro."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -134,7 +223,7 @@
                 },
                 "identity": {
                   "canonicalName": "LU-Raises",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "deltoides_lu_raises__default",
                   "definitionId": "deltoides_lu_raises",
                   "familyId": "upper_shoulder_abduction_full_rom",
@@ -152,8 +241,8 @@
                     "min": 45
                   },
                   "objectives": [
-                    "Desarrollar deltoid dentro del patrón shoulder_abduction_full_rom.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el deltoides mediante LU-Raises en la variante Mancuernas.",
+                    "Priorizar dirigir el trabajo a una parte del hombro con una carga moderada y controlable con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -175,7 +264,8 @@
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón shoulder_abduction_full_rom y el objetivo deltoid."
+                    "Conserva elevación del brazo y acompañamiento de la escápula y el objetivo de el deltoides.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, articulación acromioclavicular."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
@@ -192,25 +282,27 @@
                 "trapezius"
               ],
               "setupCues": [
-                "Configura mancuerna y adopta la posición específica de «LU-Raises» antes de iniciar; conserva una base estable."
+                "Preparación: Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "techniqueSummary": "Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 1.6,
+              "variantRationale": "Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento. Un ejercicio poco común que cuida y fortalece el hombro."
             },
             "selectedOptions": {}
           }
         ],
         "defaultConfigurationId": "deltoides_lu_raises__default",
-        "description": "LU-raises: subes los brazos con los codos doblados en forma de L y U. Un movimiento poco común que trabaja el manguito rotador y el hombro.",
+        "description": "Subes los brazos con los codos doblados en forma de L y U. Un movimiento poco común que trabaja el manguito rotador y el hombro.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:deltoides_lu_raises"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "upper_shoulder_abduction_full_rom",
@@ -227,9 +319,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:upper_shoulder_abduction_full_rom"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "upper_shoulder_abduction_full_rom",
@@ -238,6 +330,6 @@
       "shoulder_abduction_full_rom"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

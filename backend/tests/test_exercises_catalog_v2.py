@@ -54,7 +54,7 @@ class ExerciseCatalogV2BackendTest(unittest.TestCase):
 
     def test_runtime_loader_accepts_only_the_approved_catalog_and_preserves_rich_metadata(self) -> None:
         runtime = load_catalog(SOURCE)
-        self.assertEqual(runtime["catalogRevision"], "v2-approved-2026-08-02-c")
+        self.assertEqual(runtime["catalogRevision"], "v2-approved-2026-08-08-c")
         definition = runtime["families"][0]["definitions"][0]
         configuration = definition["configurations"][0]
         self.assertTrue(configuration["profile"]["automationEligible"])
@@ -66,7 +66,7 @@ class ExerciseCatalogV2BackendTest(unittest.TestCase):
     def test_editorial_android_ios_artifacts_have_one_hash_and_revision(self) -> None:
         self.assertEqual(
             verify_shared_catalog_artifacts(),
-            "aaf7111597ccdccaebc8b1948cce672496c702a6b4b3be72df1fa7a4e89772e2",
+            "dbd6f7a475907398aa7bfb0bacaa9d8619bff9d641aa7a160dc2deea9ff3bf16",
         )
 
     def test_reverse_fly_is_one_parent_with_explicit_machine_and_cable_configs(self) -> None:

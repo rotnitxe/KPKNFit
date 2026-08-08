@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Remo Seal",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_seal_barra_recta",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "seal_row__barbell",
@@ -22,18 +22,58 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Barra bajo el banco alto: el pecho queda completamente apoyado y ambos brazos tiran con una referencia común.",
+                "La carga bilateral simplifica la progresión, mientras la altura del banco impide usar la cadera para iniciar el remo."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."
+                "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Con barra acostado en el banco: aislamiento total de la espalda y cero trampas. De los remos más honestos que existen, con una contracción que se siente clarísima.",
+              "description": "Barra bajo el banco alto: el pecho queda completamente apoyado y ambos brazos tiran con una referencia común. La carga bilateral simplifica la progresión, mientras la altura del banco impide usar la cadera para iniciar el remo.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
-                "Ejecuta «Remo Seal con Barra Recta» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Barra bajo el banco alto: el pecho queda completamente apoyado y ambos brazos tiran con una referencia común. El pecho queda completamente apoyado y los brazos cuelgan libres; la espalda inicia el tirón sin ayuda de la cadera."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión",
+                    "Aducción Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro lleva el brazo hacia el tronco y concentra la dirección del tirón. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Retracción Escapular"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se acerca y se fija sobre el tórax para sostener la tracción. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo acerca la mano y comparte la fuerza sin sustituir al movimiento de espalda. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca mantiene el contacto con el implemento para que la fuerza llegue al codo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -41,23 +81,23 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tracciona el brazo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El dorsal extiende o aproxima el brazo al tronco desde la espalda. El agarre medio equilibra el recorrido del hombro y la facilidad para cargar el tirón. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Secundario: el trapecio asiste el movimiento escapular y la postura del hombro; por eso suma 0.5."
+                  "note": "Secundaria: El trapecio coordina la posición de la escápula y reparte la fuerza en la cintura escapular. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."
+                  "note": "Secundaria: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "biceps",
-                  "note": "Secundario: el bíceps asiste la tracción o flexión con contribución real al movimiento; por eso suma 0.5."
+                  "note": "Secundaria: El bíceps flexiona el codo y, con agarre supino, ayuda a supinar el antebrazo. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "erector_spinae",
-                  "note": "Secundario: los erectores asisten la extensión y el control de la columna; por eso suman 0.5."
+                  "note": "Secundaria: Los erectores espinales sostiene la columna frente a la flexión y transmite fuerza entre pelvis y tronco. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "seal_row__barbell__remo_seal",
@@ -70,7 +110,46 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "horizontal_pull"
+                    "Extensión",
+                    "Aducción Del Hombro",
+                    "Retracción Escapular",
+                    "Flexión",
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión",
+                        "Aducción Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro lleva el brazo hacia el tronco y concentra la dirección del tirón. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Retracción Escapular"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se acerca y se fija sobre el tórax para sostener la tracción. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo acerca la mano y comparte la fuerza sin sustituir al movimiento de espalda. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Del Agarre"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca mantiene el contacto con el implemento para que la fuerza llegue al codo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -98,39 +177,45 @@
                   "movementPatternId": "horizontal_pull",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."
+                    "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Barra bajo el banco alto: el pecho queda completamente apoyado y ambos brazos tiran con una referencia común. El pecho queda completamente apoyado y los brazos cuelgan libres; la espalda inicia el tirón sin ayuda de la cadera."
                   ],
                   "execution": [
-                    "Ejecuta «Remo Seal con Barra Recta» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Barra bajo el banco alto: el pecho queda completamente apoyado y ambos brazos tiran con una referencia común. El pecho queda completamente apoyado y los brazos cuelgan libres; la espalda inicia el tirón sin ayuda de la cadera."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando dar grosor a la espalda y mantener un movimiento fácil de repetir siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar tirón del brazo y flexión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura barra y adopta la posición específica de «Remo Seal con Barra Recta» antes de iniciar; conserva una base estable."
+                    "Preparación: Barra bajo el banco alto: el pecho queda completamente apoyado y ambos brazos tiran con una referencia común."
                   ]
                 },
                 "display": {
@@ -139,6 +224,15 @@
                   "selectedOptions": {
                     "implement": "barbell"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Barra bajo el banco alto: el pecho queda completamente apoyado y ambos brazos tiran con una referencia común.",
+                    "La carga bilateral simplifica la progresión, mientras la altura del banco impide usar la cadera para iniciar el remo."
+                  ],
+                  "description": "Barra bajo el banco alto: el pecho queda completamente apoyado y ambos brazos tiran con una referencia común. La carga bilateral simplifica la progresión, mientras la altura del banco impide usar la cadera para iniciar el remo.",
+                  "technique": "Barra bajo el banco alto: el pecho queda completamente apoyado y ambos brazos tiran con una referencia común. El pecho queda completamente apoyado y los brazos cuelgan libres; la espalda inicia el tirón sin ayuda de la cadera.",
+                  "variantRationale": "Barra bajo el banco alto: el pecho queda completamente apoyado y ambos brazos tiran con una referencia común. La carga bilateral simplifica la progresión, mientras la altura del banco impide usar la cadera para iniciar el remo."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -151,7 +245,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Seal",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "seal_row__barbell",
                   "definitionId": "seal_row",
                   "familyId": "back_seal_row",
@@ -170,8 +264,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el dorsal mediante Remo Seal en la variante Barra.",
+                    "Priorizar dar grosor a la espalda y mantener un movimiento fácil de repetir con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -193,7 +287,8 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."
+                    "Conserva tirón del brazo y flexión del codo y el objetivo de el dorsal.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": "back_row_seal",
                   "replacementPriority": null
@@ -215,13 +310,15 @@
                 "erector_spinae"
               ],
               "setupCues": [
-                "Configura barra y adopta la posición específica de «Remo Seal con Barra Recta» antes de iniciar; conserva una base estable."
+                "Preparación: Barra bajo el banco alto: el pecho queda completamente apoyado y ambos brazos tiran con una referencia común."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.0,
-              "ttc": 1.8
+              "techniqueSummary": "Barra bajo el banco alto: el pecho queda completamente apoyado y ambos brazos tiran con una referencia común. El pecho queda completamente apoyado y los brazos cuelgan libres; la espalda inicia el tirón sin ayuda de la cadera.",
+              "ttc": 1.8,
+              "variantRationale": "Barra bajo el banco alto: el pecho queda completamente apoyado y ambos brazos tiran con una referencia común. La carga bilateral simplifica la progresión, mientras la altura del banco impide usar la cadera para iniciar el remo."
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -233,9 +330,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_seal_mancuernas",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "seal_row__dumbbells",
@@ -243,18 +340,58 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Mancuernas bajo el banco alto: cada brazo sale desde una posición suspendida y vuelve a extenderse sin que el tronco se mueva.",
+                "La trayectoria independiente permite ajustar el codo a cada hombro y revela diferencias que una barra puede ocultar."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."
+                "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Con mancuernas acostado en el banco: cada brazo trabaja solo y el dorsal se estira a fondo. Perfecto para sentir la espalda de verdad y corregir desequilibrios.",
+              "description": "Mancuernas bajo el banco alto: cada brazo sale desde una posición suspendida y vuelve a extenderse sin que el tronco se mueva. La trayectoria independiente permite ajustar el codo a cada hombro y revela diferencias que una barra puede ocultar.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Ejecuta «Remo Seal con Mancuernas» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Mancuernas bajo el banco alto: cada brazo sale desde una posición suspendida y vuelve a extenderse sin que el tronco se mueva. El pecho queda completamente apoyado y los brazos cuelgan libres; la espalda inicia el tirón sin ayuda de la cadera."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión",
+                    "Aducción Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro lleva el brazo hacia el tronco y concentra la dirección del tirón. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Retracción Escapular"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se acerca y se fija sobre el tórax para sostener la tracción. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo acerca la mano y comparte la fuerza sin sustituir al movimiento de espalda. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca mantiene el contacto con el implemento para que la fuerza llegue al codo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -262,23 +399,23 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tracciona el brazo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El dorsal extiende o aproxima el brazo al tronco desde la espalda. El agarre medio equilibra el recorrido del hombro y la facilidad para cargar el tirón. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Secundario: el trapecio asiste el movimiento escapular y la postura del hombro; por eso suma 0.5."
+                  "note": "Secundaria: El trapecio coordina la posición de la escápula y reparte la fuerza en la cintura escapular. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."
+                  "note": "Secundaria: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "biceps",
-                  "note": "Secundario: el bíceps asiste la tracción o flexión con contribución real al movimiento; por eso suma 0.5."
+                  "note": "Secundaria: El bíceps flexiona el codo y, con agarre supino, ayuda a supinar el antebrazo. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "erector_spinae",
-                  "note": "Secundario: los erectores asisten la extensión y el control de la columna; por eso suman 0.5."
+                  "note": "Secundaria: Los erectores espinales sostiene la columna frente a la flexión y transmite fuerza entre pelvis y tronco. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "seal_row__dumbbells__remo_seal",
@@ -291,7 +428,46 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "horizontal_pull"
+                    "Extensión",
+                    "Aducción Del Hombro",
+                    "Retracción Escapular",
+                    "Flexión",
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión",
+                        "Aducción Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro lleva el brazo hacia el tronco y concentra la dirección del tirón. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Retracción Escapular"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se acerca y se fija sobre el tórax para sostener la tracción. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo acerca la mano y comparte la fuerza sin sustituir al movimiento de espalda. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Del Agarre"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca mantiene el contacto con el implemento para que la fuerza llegue al codo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -319,39 +495,45 @@
                   "movementPatternId": "horizontal_pull",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón tirón horizontal para completar la repetición."
+                    "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
                   ],
                   "cues": [
-                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                    "Mancuernas bajo el banco alto: cada brazo sale desde una posición suspendida y vuelve a extenderse sin que el tronco se mueva. El pecho queda completamente apoyado y los brazos cuelgan libres; la espalda inicia el tirón sin ayuda de la cadera."
                   ],
                   "execution": [
-                    "Ejecuta «Remo Seal con Mancuernas» siguiendo el patrón tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Mancuernas bajo el banco alto: cada brazo sale desde una posición suspendida y vuelve a extenderse sin que el tronco se mueva. El pecho queda completamente apoyado y los brazos cuelgan libres; la espalda inicia el tirón sin ayuda de la cadera."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando dar grosor a la espalda y mantener un movimiento fácil de repetir siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar tirón del brazo y flexión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura mancuerna y adopta la posición específica de «Remo Seal con Mancuernas» antes de iniciar; conserva una base estable."
+                    "Preparación: Mancuernas bajo el banco alto: cada brazo sale desde una posición suspendida y vuelve a extenderse sin que el tronco se mueva."
                   ]
                 },
                 "display": {
@@ -360,6 +542,15 @@
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Mancuernas bajo el banco alto: cada brazo sale desde una posición suspendida y vuelve a extenderse sin que el tronco se mueva.",
+                    "La trayectoria independiente permite ajustar el codo a cada hombro y revela diferencias que una barra puede ocultar."
+                  ],
+                  "description": "Mancuernas bajo el banco alto: cada brazo sale desde una posición suspendida y vuelve a extenderse sin que el tronco se mueva. La trayectoria independiente permite ajustar el codo a cada hombro y revela diferencias que una barra puede ocultar.",
+                  "technique": "Mancuernas bajo el banco alto: cada brazo sale desde una posición suspendida y vuelve a extenderse sin que el tronco se mueva. El pecho queda completamente apoyado y los brazos cuelgan libres; la espalda inicia el tirón sin ayuda de la cadera.",
+                  "variantRationale": "Mancuernas bajo el banco alto: cada brazo sale desde una posición suspendida y vuelve a extenderse sin que el tronco se mueva. La trayectoria independiente permite ajustar el codo a cada hombro y revela diferencias que una barra puede ocultar."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -372,7 +563,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Seal",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "seal_row__dumbbells",
                   "definitionId": "seal_row",
                   "familyId": "back_seal_row",
@@ -391,8 +582,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón horizontal_pull.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el dorsal mediante Remo Seal en la variante Mancuernas.",
+                    "Priorizar dar grosor a la espalda y mantener un movimiento fácil de repetir con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -414,7 +605,8 @@
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_pull y el objetivo latissimus_dorsi."
+                    "Conserva tirón del brazo y flexión del codo y el objetivo de el dorsal.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": "back_row_seal",
                   "replacementPriority": null
@@ -436,13 +628,15 @@
                 "erector_spinae"
               ],
               "setupCues": [
-                "Configura mancuerna y adopta la posición específica de «Remo Seal con Mancuernas» antes de iniciar; conserva una base estable."
+                "Preparación: Mancuernas bajo el banco alto: cada brazo sale desde una posición suspendida y vuelve a extenderse sin que el tronco se mueva."
               ],
               "setupTimeSeconds": 30,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.0,
-              "ttc": 1.8
+              "techniqueSummary": "Mancuernas bajo el banco alto: cada brazo sale desde una posición suspendida y vuelve a extenderse sin que el tronco se mueva. El pecho queda completamente apoyado y los brazos cuelgan libres; la espalda inicia el tirón sin ayuda de la cadera.",
+              "ttc": 1.8,
+              "variantRationale": "Mancuernas bajo el banco alto: cada brazo sale desde una posición suspendida y vuelve a extenderse sin que el tronco se mueva. La trayectoria independiente permite ajustar el codo a cada hombro y revela diferencias que una barra puede ocultar."
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -450,13 +644,13 @@
           }
         ],
         "defaultConfigurationId": "seal_row__barbell",
-        "description": "Remo acostado boca abajo sobre el banco, con los brazos colgando hacia el suelo. Aisla la espalda al máximo y es de los pocos remos donde no puedes hacer trampa con el cuerpo.",
+        "description": "El pecho descansa sobre un banco alto y los brazos quedan suspendidos hacia el suelo antes de cada tirón. Al desaparecer la ayuda de la cadera, la espalda debe producir y frenar el movimiento con una ejecución especialmente limpia.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:seal_row"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "back_seal_row",
@@ -476,9 +670,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:back_seal_row"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "back_seal_row",
@@ -488,6 +682,6 @@
       "seal_row"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

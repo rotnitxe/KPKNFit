@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Curl de muñeca sentado",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_curl_muneca_de_pie_tras_espalda_barra",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "forearms_curl_muneca_de_pie_tras_espalda_barra__default",
@@ -22,18 +22,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
+              "benefits": [
+                "Barra tras la espalda con los antebrazos extendidos: flexionas la muñeca contra la barra.",
+                "Estiramiento y trabajo profundo del antebrazo."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón flexión muñeca para completar la repetición."
+                "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
               ],
               "description": "Barra tras la espalda con los antebrazos extendidos: flexionas la muñeca contra la barra. Estiramiento y trabajo profundo del antebrazo.",
               "efc": 2.0,
               "equipmentId": "barbell",
               "executionCues": [
-                "Ejecuta «Curl de Muñeca de Pie Tras Espalda con Barra» siguiendo el patrón flexión muñeca con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Barra tras la espalda con los antebrazos extendidos: flexionas la muñeca contra la barra. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión O Extensión"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Principal: La muñeca genera el movimiento y concentra la resistencia en el antebrazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo fija la longitud de la posición para que la mano no arrastre el brazo entero. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Orientación Del Antebrazo"
+                  ],
+                  "jointId": "radiocubital-proximal",
+                  "note": "Estabilizadora: La del antebrazo proximal orienta el antebrazo y permite que la muñeca trabaje en su plano. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -41,11 +72,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "forearm",
-                  "note": "Principal: el antebrazo concentra la fuerza del agarre o de la muñeca del ejercicio; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El antebrazo transmite el agarre y mantiene la muñeca alineada con la resistencia. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "biceps",
-                  "note": "Secundario: el bíceps asiste la tracción o flexión con contribución real al movimiento; por eso suma 0.5."
+                  "note": "Secundaria: El bíceps flexiona el codo y, con agarre supino, ayuda a supinar el antebrazo. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "forearms_curl_muneca_de_pie_tras_espalda_barra__barbell__curl_de_muneca_de_pie_tras_espalda_con_barra",
@@ -58,7 +89,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "wrist_flexion"
+                    "Flexión O Extensión",
+                    "Estabilidad",
+                    "Orientación Del Antebrazo"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión O Extensión"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Principal: La muñeca genera el movimiento y concentra la resistencia en el antebrazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo fija la longitud de la posición para que la mano no arrastre el brazo entero. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Orientación Del Antebrazo"
+                      ],
+                      "jointId": "radiocubital-proximal",
+                      "note": "Estabilizadora: La del antebrazo proximal orienta el antebrazo y permite que la muñeca trabaje en su plano. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -83,46 +142,56 @@
                   "movementPatternId": "wrist_flexion",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "muñeca",
+                    "codo",
+                    "radiocubital-proximal"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca",
+                    "tendon-bíceps",
+                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón flexión muñeca para completar la repetición."
+                    "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Barra tras la espalda con los antebrazos extendidos: flexionas la muñeca contra la barra. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
                   ],
                   "execution": [
-                    "Ejecuta «Curl de Muñeca de Pie Tras Espalda con Barra» siguiendo el patrón flexión muñeca con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Barra tras la espalda con los antebrazos extendidos: flexionas la muñeca contra la barra. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando desarrollar el antebrazo y la tolerancia de la muñeca con una carga localizada siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar flexión o extensión de la muñeca como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de muñeca según tolerancia y rango disponible.",
+                    "Movilidad de codo según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura barra y adopta la posición específica de «Curl de Muñeca de Pie Tras Espalda con Barra» antes de iniciar; conserva una base estable."
+                    "Preparación: Barra tras la espalda con los antebrazos extendidos: flexionas la muñeca contra la barra."
                   ]
                 },
                 "display": {
                   "displayName": "Curl de Muñeca de Pie Tras Espalda con Barra",
                   "displaySummary": "Barra",
                   "selectedOptions": {}
+                },
+                "editorial": {
+                  "benefits": [
+                    "Barra tras la espalda con los antebrazos extendidos: flexionas la muñeca contra la barra.",
+                    "Estiramiento y trabajo profundo del antebrazo."
+                  ],
+                  "description": "Barra tras la espalda con los antebrazos extendidos: flexionas la muñeca contra la barra. Estiramiento y trabajo profundo del antebrazo.",
+                  "technique": "Barra tras la espalda con los antebrazos extendidos: flexionas la muñeca contra la barra. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor.",
+                  "variantRationale": "Barra tras la espalda con los antebrazos extendidos: flexionas la muñeca contra la barra. Estiramiento y trabajo profundo del antebrazo."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -135,7 +204,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Muñeca de Pie Tras Espalda con Barra",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "forearms_curl_muneca_de_pie_tras_espalda_barra__default",
                   "definitionId": "forearms_curl_muneca_de_pie_tras_espalda_barra",
                   "familyId": "lower_wrist_flexion",
@@ -152,8 +221,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar forearm dentro del patrón wrist_flexion.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el antebrazo mediante Curl de Muñeca de Pie Tras Espalda con Barra en la variante Barra.",
+                    "Priorizar desarrollar el antebrazo y la tolerancia de la muñeca con una carga localizada con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -175,7 +244,8 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón wrist_flexion y el objetivo forearm."
+                    "Conserva flexión o extensión de la muñeca y el objetivo de el antebrazo.",
+                    "La sustitución debe respetar las articulaciones relevantes: muñeca, codo, radiocubital proximal."
                   ],
                   "replacementGroup": "forearm_wrist_curl",
                   "replacementPriority": 4
@@ -192,25 +262,27 @@
                 "biceps"
               ],
               "setupCues": [
-                "Configura barra y adopta la posición específica de «Curl de Muñeca de Pie Tras Espalda con Barra» antes de iniciar; conserva una base estable."
+                "Preparación: Barra tras la espalda con los antebrazos extendidos: flexionas la muñeca contra la barra."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "techniqueSummary": "Barra tras la espalda con los antebrazos extendidos: flexionas la muñeca contra la barra. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor.",
+              "ttc": 1.5,
+              "variantRationale": "Barra tras la espalda con los antebrazos extendidos: flexionas la muñeca contra la barra. Estiramiento y trabajo profundo del antebrazo."
             },
             "selectedOptions": {}
           }
         ],
         "defaultConfigurationId": "forearms_curl_muneca_de_pie_tras_espalda_barra__default",
-        "description": "Curl de muñeca de pie con la barra tras la espalda: los antebrazos están extendidos y la muñeca flexiona contra la barra. Variante clásica que estira y trabaja el antebrazo a fondo.",
+        "description": "Curl de muñeca de pie con la barra tras la espalda: los antebrazos están extendidos y la muñeca flexiona contra la barra. Variante tradicional que estira y trabaja el antebrazo a fondo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:forearms_curl_muneca_de_pie_tras_espalda_barra"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_wrist_flexion",
@@ -230,9 +302,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_curl_muneca_sentado",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "forearms_curl_muneca_sentado__dumbbells",
@@ -240,18 +312,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Mancuernas con los antebrazos apoyados: cada muñeca flexiona por separado y el peso no permite que el codo fabrique impulso.",
+                "La opción ofrece control preciso para corregir diferencias entre manos."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Levantar los antebrazos del banco para ganar recorrido."
+                "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
               ],
-              "description": "Mancuernas con los antebrazos apoyados: subes la muñeca con la palma arriba. La versión más cómoda y popular del curl de muñeca.",
+              "description": "Mancuernas con los antebrazos apoyados: cada muñeca flexiona por separado y el peso no permite que el codo fabrique impulso. La opción ofrece control preciso para corregir diferencias entre manos.",
               "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Flexiona la muñeca hacia arriba con control y baja sin soltar la tensión."
+                "Mancuernas con los antebrazos apoyados: cada muñeca flexiona por separado y el peso no permite que el codo fabrique impulso. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión O Extensión"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Principal: La muñeca genera el movimiento y concentra la resistencia en el antebrazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo fija la longitud de la posición para que la mano no arrastre el brazo entero. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Orientación Del Antebrazo"
+                  ],
+                  "jointId": "radiocubital-proximal",
+                  "note": "Estabilizadora: La del antebrazo proximal orienta el antebrazo y permite que la muñeca trabaje en su plano. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -259,7 +362,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "forearm",
-                  "note": "Principal: los flexores del antebrazo flexionan la muñeca y concentran el trabajo; por eso suman la serie completa (1.0)."
+                  "note": "Principal: El antebrazo transmite el agarre y mantiene la muñeca alineada con la resistencia. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "forearms_curl_muneca__dumbbells",
@@ -272,7 +375,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "wrist_flexion"
+                    "Flexión O Extensión",
+                    "Estabilidad",
+                    "Orientación Del Antebrazo"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión O Extensión"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Principal: La muñeca genera el movimiento y concentra la resistencia en el antebrazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo fija la longitud de la posición para que la mano no arrastre el brazo entero. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Orientación Del Antebrazo"
+                      ],
+                      "jointId": "radiocubital-proximal",
+                      "note": "Estabilizadora: La del antebrazo proximal orienta el antebrazo y permite que la muñeca trabaje en su plano. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -295,40 +426,41 @@
                   "movementPatternId": "wrist_flexion",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "muñeca",
+                    "codo",
+                    "radiocubital-proximal"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca",
+                    "tendon-bíceps",
+                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Levantar los antebrazos del banco para ganar recorrido."
+                    "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Mancuernas con los antebrazos apoyados: cada muñeca flexiona por separado y el peso no permite que el codo fabrique impulso. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
                   ],
                   "execution": [
-                    "Flexiona la muñeca hacia arriba con control y baja sin soltar la tensión."
+                    "Mancuernas con los antebrazos apoyados: cada muñeca flexiona por separado y el peso no permite que el codo fabrique impulso. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando desarrollar el antebrazo y la tolerancia de la muñeca con una carga localizada siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar flexión o extensión de la muñeca como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de muñeca según tolerancia y rango disponible.",
+                    "Movilidad de codo según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Apoya los antebrazos sobre el banco con las muñecas fuera del borde."
+                    "Preparación: Mancuernas con los antebrazos apoyados: cada muñeca flexiona por separado y el peso no permite que el codo fabrique impulso."
                   ]
                 },
                 "display": {
@@ -337,6 +469,15 @@
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Mancuernas con los antebrazos apoyados: cada muñeca flexiona por separado y el peso no permite que el codo fabrique impulso.",
+                    "La opción ofrece control preciso para corregir diferencias entre manos."
+                  ],
+                  "description": "Mancuernas con los antebrazos apoyados: cada muñeca flexiona por separado y el peso no permite que el codo fabrique impulso. La opción ofrece control preciso para corregir diferencias entre manos.",
+                  "technique": "Mancuernas con los antebrazos apoyados: cada muñeca flexiona por separado y el peso no permite que el codo fabrique impulso. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor.",
+                  "variantRationale": "Mancuernas con los antebrazos apoyados: cada muñeca flexiona por separado y el peso no permite que el codo fabrique impulso. La opción ofrece control preciso para corregir diferencias entre manos."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -349,7 +490,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Muñeca",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "forearms_curl_muneca_sentado__dumbbells",
                   "definitionId": "forearms_curl_muneca_sentado",
                   "familyId": "lower_wrist_flexion",
@@ -368,7 +509,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar los flexores de muñeca en flexión de muñeca."
+                    "Desarrollar el antebrazo mediante Curl de Muñeca en la variante Mancuernas.",
+                    "Priorizar desarrollar el antebrazo y la tolerancia de la muñeca con una carga localizada con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -393,7 +535,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva la flexión de muñeca y el objetivo de antebrazo."
+                    "Conserva flexión o extensión de la muñeca y el objetivo de el antebrazo.",
+                    "La sustitución debe respetar las articulaciones relevantes: muñeca, codo, radiocubital proximal."
                   ],
                   "replacementGroup": "forearm_wrist_curl",
                   "replacementPriority": 1
@@ -408,13 +551,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Apoya los antebrazos sobre el banco con las muñecas fuera del borde."
+                "Preparación: Mancuernas con los antebrazos apoyados: cada muñeca flexiona por separado y el peso no permite que el codo fabrique impulso."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "techniqueSummary": "Mancuernas con los antebrazos apoyados: cada muñeca flexiona por separado y el peso no permite que el codo fabrique impulso. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor.",
+              "ttc": 1.5,
+              "variantRationale": "Mancuernas con los antebrazos apoyados: cada muñeca flexiona por separado y el peso no permite que el codo fabrique impulso. La opción ofrece control preciso para corregir diferencias entre manos."
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -426,9 +571,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_curl_muneca_sentado",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "forearms_curl_muneca_sentado__barbell",
@@ -436,18 +581,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Barra con los antebrazos apoyados: las dos muñecas suben juntas contra la barra.",
+                "Este trabajo de muñeca tradicional del gimnasio."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Levantar los antebrazos del banco para ganar recorrido."
+                "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
               ],
-              "description": "Barra con los antebrazos apoyados: las dos muñecas suben juntas contra la barra. El curl de muñeca clásico del gimnasio.",
+              "description": "Barra con los antebrazos apoyados: las dos muñecas suben juntas contra la barra. Este trabajo de muñeca tradicional del gimnasio.",
               "efc": 2.0,
               "equipmentId": "barbell",
               "executionCues": [
-                "Flexiona la muñeca hacia arriba con control y baja sin soltar la tensión."
+                "Barra con los antebrazos apoyados: las dos muñecas suben juntas contra la barra. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión O Extensión"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Principal: La muñeca genera el movimiento y concentra la resistencia en el antebrazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo fija la longitud de la posición para que la mano no arrastre el brazo entero. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Orientación Del Antebrazo"
+                  ],
+                  "jointId": "radiocubital-proximal",
+                  "note": "Estabilizadora: La del antebrazo proximal orienta el antebrazo y permite que la muñeca trabaje en su plano. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -455,7 +631,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "forearm",
-                  "note": "Principal: los flexores del antebrazo flexionan la muñeca y concentran el trabajo; por eso suman la serie completa (1.0)."
+                  "note": "Principal: El antebrazo transmite el agarre y mantiene la muñeca alineada con la resistencia. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "forearms_curl_muneca__barbell",
@@ -468,7 +644,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "wrist_flexion"
+                    "Flexión O Extensión",
+                    "Estabilidad",
+                    "Orientación Del Antebrazo"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión O Extensión"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Principal: La muñeca genera el movimiento y concentra la resistencia en el antebrazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo fija la longitud de la posición para que la mano no arrastre el brazo entero. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Orientación Del Antebrazo"
+                      ],
+                      "jointId": "radiocubital-proximal",
+                      "note": "Estabilizadora: La del antebrazo proximal orienta el antebrazo y permite que la muñeca trabaje en su plano. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -491,40 +695,41 @@
                   "movementPatternId": "wrist_flexion",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "muñeca",
+                    "codo",
+                    "radiocubital-proximal"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca",
+                    "tendon-bíceps",
+                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Levantar los antebrazos del banco para ganar recorrido."
+                    "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Barra con los antebrazos apoyados: las dos muñecas suben juntas contra la barra. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
                   ],
                   "execution": [
-                    "Flexiona la muñeca hacia arriba con control y baja sin soltar la tensión."
+                    "Barra con los antebrazos apoyados: las dos muñecas suben juntas contra la barra. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando desarrollar el antebrazo y la tolerancia de la muñeca con una carga localizada siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar flexión o extensión de la muñeca como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de muñeca según tolerancia y rango disponible.",
+                    "Movilidad de codo según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Apoya los antebrazos sobre el banco con las muñecas fuera del borde."
+                    "Preparación: Barra con los antebrazos apoyados: las dos muñecas suben juntas contra la barra."
                   ]
                 },
                 "display": {
@@ -533,6 +738,15 @@
                   "selectedOptions": {
                     "implement": "barbell"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Barra con los antebrazos apoyados: las dos muñecas suben juntas contra la barra.",
+                    "Este trabajo de muñeca tradicional del gimnasio."
+                  ],
+                  "description": "Barra con los antebrazos apoyados: las dos muñecas suben juntas contra la barra. Este trabajo de muñeca tradicional del gimnasio.",
+                  "technique": "Barra con los antebrazos apoyados: las dos muñecas suben juntas contra la barra. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor.",
+                  "variantRationale": "Barra con los antebrazos apoyados: las dos muñecas suben juntas contra la barra. Este trabajo de muñeca tradicional del gimnasio."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -545,7 +759,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Muñeca",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "forearms_curl_muneca_sentado__barbell",
                   "definitionId": "forearms_curl_muneca_sentado",
                   "familyId": "lower_wrist_flexion",
@@ -564,7 +778,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar los flexores de muñeca en flexión de muñeca."
+                    "Desarrollar el antebrazo mediante Curl de Muñeca en la variante Barra.",
+                    "Priorizar desarrollar el antebrazo y la tolerancia de la muñeca con una carga localizada con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -589,7 +804,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva la flexión de muñeca y el objetivo de antebrazo."
+                    "Conserva flexión o extensión de la muñeca y el objetivo de el antebrazo.",
+                    "La sustitución debe respetar las articulaciones relevantes: muñeca, codo, radiocubital proximal."
                   ],
                   "replacementGroup": "forearm_wrist_curl",
                   "replacementPriority": 1
@@ -604,13 +820,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Apoya los antebrazos sobre el banco con las muñecas fuera del borde."
+                "Preparación: Barra con los antebrazos apoyados: las dos muñecas suben juntas contra la barra."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "techniqueSummary": "Barra con los antebrazos apoyados: las dos muñecas suben juntas contra la barra. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor.",
+              "ttc": 1.5,
+              "variantRationale": "Barra con los antebrazos apoyados: las dos muñecas suben juntas contra la barra. Este trabajo de muñeca tradicional del gimnasio."
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -622,9 +840,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_curl_muneca_sentado",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "forearms_curl_muneca_sentado__ez_bar",
@@ -632,18 +850,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Barra EZ con los antebrazos apoyados: el agarre girado alivia la muñeca y el trabajo permanece total.",
+                "La opción cómoda; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Levantar los antebrazos del banco para ganar recorrido."
+                "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
               ],
               "description": "Barra EZ con los antebrazos apoyados: el agarre girado alivia la muñeca y el trabajo permanece total. La opción cómoda.",
               "efc": 2.0,
               "equipmentId": "ez_bar",
               "executionCues": [
-                "Flexiona la muñeca hacia arriba con control y baja sin soltar la tensión."
+                "Barra EZ con los antebrazos apoyados: el agarre girado alivia la muñeca y el trabajo permanece total. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión O Extensión"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Principal: La muñeca genera el movimiento y concentra la resistencia en el antebrazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo fija la longitud de la posición para que la mano no arrastre el brazo entero. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Orientación Del Antebrazo"
+                  ],
+                  "jointId": "radiocubital-proximal",
+                  "note": "Estabilizadora: La del antebrazo proximal orienta el antebrazo y permite que la muñeca trabaje en su plano. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -651,7 +900,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "forearm",
-                  "note": "Principal: los flexores del antebrazo flexionan la muñeca y concentran el trabajo; por eso suman la serie completa (1.0)."
+                  "note": "Principal: El antebrazo transmite el agarre y mantiene la muñeca alineada con la resistencia. En la configuración Barra EZ, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "forearms_curl_muneca__ez_bar",
@@ -664,7 +913,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "wrist_flexion"
+                    "Flexión O Extensión",
+                    "Estabilidad",
+                    "Orientación Del Antebrazo"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión O Extensión"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Principal: La muñeca genera el movimiento y concentra la resistencia en el antebrazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo fija la longitud de la posición para que la mano no arrastre el brazo entero. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Orientación Del Antebrazo"
+                      ],
+                      "jointId": "radiocubital-proximal",
+                      "note": "Estabilizadora: La del antebrazo proximal orienta el antebrazo y permite que la muñeca trabaje en su plano. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -687,40 +964,41 @@
                   "movementPatternId": "wrist_flexion",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "muñeca",
+                    "codo",
+                    "radiocubital-proximal"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca",
+                    "tendon-bíceps",
+                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Levantar los antebrazos del banco para ganar recorrido."
+                    "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Barra EZ con los antebrazos apoyados: el agarre girado alivia la muñeca y el trabajo permanece total. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
                   ],
                   "execution": [
-                    "Flexiona la muñeca hacia arriba con control y baja sin soltar la tensión."
+                    "Barra EZ con los antebrazos apoyados: el agarre girado alivia la muñeca y el trabajo permanece total. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando desarrollar el antebrazo y la tolerancia de la muñeca con una carga localizada siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar flexión o extensión de la muñeca como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de muñeca según tolerancia y rango disponible.",
+                    "Movilidad de codo según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Apoya los antebrazos sobre el banco con las muñecas fuera del borde."
+                    "Preparación: Barra EZ con los antebrazos apoyados: el agarre girado alivia la muñeca y el trabajo permanece total."
                   ]
                 },
                 "display": {
@@ -729,6 +1007,15 @@
                   "selectedOptions": {
                     "implement": "ez_bar"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Barra EZ con los antebrazos apoyados: el agarre girado alivia la muñeca y el trabajo permanece total.",
+                    "La opción cómoda; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Barra EZ con los antebrazos apoyados: el agarre girado alivia la muñeca y el trabajo permanece total. La opción cómoda.",
+                  "technique": "Barra EZ con los antebrazos apoyados: el agarre girado alivia la muñeca y el trabajo permanece total. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor.",
+                  "variantRationale": "Barra EZ con los antebrazos apoyados: el agarre girado alivia la muñeca y el trabajo permanece total. La opción cómoda."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -741,7 +1028,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Muñeca",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "forearms_curl_muneca_sentado__ez_bar",
                   "definitionId": "forearms_curl_muneca_sentado",
                   "familyId": "lower_wrist_flexion",
@@ -760,7 +1047,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar los flexores de muñeca en flexión de muñeca."
+                    "Desarrollar el antebrazo mediante Curl de Muñeca en la variante Barra EZ.",
+                    "Priorizar desarrollar el antebrazo y la tolerancia de la muñeca con una carga localizada con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -785,7 +1073,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva la flexión de muñeca y el objetivo de antebrazo."
+                    "Conserva flexión o extensión de la muñeca y el objetivo de el antebrazo.",
+                    "La sustitución debe respetar las articulaciones relevantes: muñeca, codo, radiocubital proximal."
                   ],
                   "replacementGroup": "forearm_wrist_curl",
                   "replacementPriority": 1
@@ -800,13 +1089,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Apoya los antebrazos sobre el banco con las muñecas fuera del borde."
+                "Preparación: Barra EZ con los antebrazos apoyados: el agarre girado alivia la muñeca y el trabajo permanece total."
               ],
               "setupTimeSeconds": 30,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "techniqueSummary": "Barra EZ con los antebrazos apoyados: el agarre girado alivia la muñeca y el trabajo permanece total. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor.",
+              "ttc": 1.5,
+              "variantRationale": "Barra EZ con los antebrazos apoyados: el agarre girado alivia la muñeca y el trabajo permanece total. La opción cómoda."
             },
             "selectedOptions": {
               "implement": "ez_bar"
@@ -818,9 +1109,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_curl_muneca_sentado",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "forearms_curl_muneca_sentado__cable",
@@ -828,18 +1119,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Polea con los antebrazos apoyados: la tensión constante mantiene la muñeca cargada en todo el recorrido.",
+                "Variante precisa y efectiva; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Levantar los antebrazos del banco para ganar recorrido."
+                "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
               ],
-              "description": "Polea con los antebrazos apoyados: la tensión constante mantiene la muñeca cargada en todo el recorrido. Variante fina y efectiva.",
+              "description": "Polea con los antebrazos apoyados: la tensión constante mantiene la muñeca cargada en todo el recorrido. Variante precisa y efectiva.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
-                "Flexiona la muñeca hacia arriba con control y baja sin soltar la tensión."
+                "Polea con los antebrazos apoyados: la tensión constante mantiene la muñeca cargada en todo el recorrido. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión O Extensión"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Principal: La muñeca genera el movimiento y concentra la resistencia en el antebrazo. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo fija la longitud de la posición para que la mano no arrastre el brazo entero. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Orientación Del Antebrazo"
+                  ],
+                  "jointId": "radiocubital-proximal",
+                  "note": "Estabilizadora: La del antebrazo proximal orienta el antebrazo y permite que la muñeca trabaje en su plano. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
@@ -847,7 +1169,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "forearm",
-                  "note": "Principal: los flexores del antebrazo flexionan la muñeca y concentran el trabajo; por eso suman la serie completa (1.0)."
+                  "note": "Principal: El antebrazo transmite el agarre y mantiene la muñeca alineada con la resistencia. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "forearms_curl_muneca__cable",
@@ -860,7 +1182,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "wrist_flexion"
+                    "Flexión O Extensión",
+                    "Estabilidad",
+                    "Orientación Del Antebrazo"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión O Extensión"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Principal: La muñeca genera el movimiento y concentra la resistencia en el antebrazo. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo fija la longitud de la posición para que la mano no arrastre el brazo entero. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Orientación Del Antebrazo"
+                      ],
+                      "jointId": "radiocubital-proximal",
+                      "note": "Estabilizadora: La del antebrazo proximal orienta el antebrazo y permite que la muñeca trabaje en su plano. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -883,40 +1233,41 @@
                   "movementPatternId": "wrist_flexion",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "muñeca",
+                    "codo",
+                    "radiocubital-proximal"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca",
+                    "tendon-bíceps",
+                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Levantar los antebrazos del banco para ganar recorrido."
+                    "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Polea con los antebrazos apoyados: la tensión constante mantiene la muñeca cargada en todo el recorrido. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
                   ],
                   "execution": [
-                    "Flexiona la muñeca hacia arriba con control y baja sin soltar la tensión."
+                    "Polea con los antebrazos apoyados: la tensión constante mantiene la muñeca cargada en todo el recorrido. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando desarrollar el antebrazo y la tolerancia de la muñeca con una carga localizada siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar flexión o extensión de la muñeca como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de muñeca según tolerancia y rango disponible.",
+                    "Movilidad de codo según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Apoya los antebrazos sobre el banco con las muñecas fuera del borde."
+                    "Preparación: Polea con los antebrazos apoyados: la tensión constante mantiene la muñeca cargada en todo el recorrido."
                   ]
                 },
                 "display": {
@@ -925,6 +1276,15 @@
                   "selectedOptions": {
                     "implement": "cable"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Polea con los antebrazos apoyados: la tensión constante mantiene la muñeca cargada en todo el recorrido.",
+                    "Variante precisa y efectiva; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Polea con los antebrazos apoyados: la tensión constante mantiene la muñeca cargada en todo el recorrido. Variante precisa y efectiva.",
+                  "technique": "Polea con los antebrazos apoyados: la tensión constante mantiene la muñeca cargada en todo el recorrido. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor.",
+                  "variantRationale": "Polea con los antebrazos apoyados: la tensión constante mantiene la muñeca cargada en todo el recorrido. Variante precisa y efectiva."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -937,7 +1297,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Muñeca",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "forearms_curl_muneca_sentado__cable",
                   "definitionId": "forearms_curl_muneca_sentado",
                   "familyId": "lower_wrist_flexion",
@@ -956,7 +1316,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar los flexores de muñeca en flexión de muñeca."
+                    "Desarrollar el antebrazo mediante Curl de Muñeca en la variante Polea.",
+                    "Priorizar desarrollar el antebrazo y la tolerancia de la muñeca con una carga localizada con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -981,7 +1342,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva la flexión de muñeca y el objetivo de antebrazo."
+                    "Conserva flexión o extensión de la muñeca y el objetivo de el antebrazo.",
+                    "La sustitución debe respetar las articulaciones relevantes: muñeca, codo, radiocubital proximal."
                   ],
                   "replacementGroup": "forearm_wrist_curl",
                   "replacementPriority": 1
@@ -996,13 +1358,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Apoya los antebrazos sobre el banco con las muñecas fuera del borde."
+                "Preparación: Polea con los antebrazos apoyados: la tensión constante mantiene la muñeca cargada en todo el recorrido."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "techniqueSummary": "Polea con los antebrazos apoyados: la tensión constante mantiene la muñeca cargada en todo el recorrido. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor.",
+              "ttc": 1.5,
+              "variantRationale": "Polea con los antebrazos apoyados: la tensión constante mantiene la muñeca cargada en todo el recorrido. Variante precisa y efectiva."
             },
             "selectedOptions": {
               "implement": "cable"
@@ -1010,13 +1374,13 @@
           }
         ],
         "defaultConfigurationId": "forearms_curl_muneca_sentado__dumbbells",
-        "description": "Curl de muñeca: con los antebrazos apoyados, subes y bajas la muñeca con la palma hacia arriba. El ejercicio base para unos antebrazos fuertes y un agarre de acero.",
+        "description": "Este trabajo de muñeca: con los antebrazos apoyados, subes y bajas la muñeca con la palma hacia arriba. El ejercicio base para unos antebrazos fuertes y un agarre de acero.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:forearms_curl_muneca_sentado"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_wrist_flexion",
@@ -1036,9 +1400,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:lower_wrist_flexion"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_wrist_flexion",
@@ -1047,6 +1411,6 @@
       "wrist_flexion"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

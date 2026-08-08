@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Abducciones de Pierna",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_abduccion_cadera_sentado_maquina",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "hip_abduction__seated__machine__bilateral",
@@ -22,18 +22,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Máquina sentado con ambas piernas: abres y cierras contra las almohadillas con el glúteo medio concentrado.",
+                "El tradicional de las máquinas de cadera."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Usar impulso o un recorrido demasiado corto que evita el rango completo de la abducción."
+                "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
               ],
-              "description": "Máquina sentado con ambas piernas: abres y cierras contra las almohadillas con el glúteo medio aislado. El clásico de las máquinas de cadera.",
+              "description": "Máquina sentado con ambas piernas: abres y cierras contra las almohadillas con el glúteo medio concentrado. El tradicional de las máquinas de cadera.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
-                "Abre y cierra las piernas con recorrido controlado sin despegar la espalda del respaldo."
+                "Máquina sentado con ambas piernas: abres y cierras contra las almohadillas con el glúteo medio concentrado. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Abducción"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. El apoyo sentado reduce la demanda de equilibrio y cambia el papel de esta articulación hacia la transmisión.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Pélvica"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. El apoyo sentado reduce la demanda de equilibrio y cambia el papel de esta articulación hacia la transmisión.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación Del Miembro Inferior"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -41,11 +72,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "gluteus_medius",
-                  "note": "Principal: el glúteo medio abduce el muslo y estabiliza la pelvis durante el movimiento lateral; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El glúteo medio separa el muslo y evita que la pelvis caiga durante el apoyo. En la configuración Máquina · Trabajo Bilateral · Posición Sentada, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "tensor_fasciae_latae",
-                  "note": "Secundario: el tensor asiste la abducción y la estabilización lateral de la cadera; por eso suma 0.5."
+                  "note": "Secundaria: El tensor de la fascia lata asiste la abducción y ayuda a estabilizar la cadera en el plano frontal. En la configuración Máquina · Trabajo Bilateral · Posición Sentada, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "hip_abduction__machine__abduccion_de_cadera",
@@ -58,7 +89,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_abduction"
+                    "Abducción",
+                    "Estabilidad Pélvica",
+                    "Alineación Del Miembro Inferior"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Abducción"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. El apoyo sentado reduce la demanda de equilibrio y cambia el papel de esta articulación hacia la transmisión.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Pélvica"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. El apoyo sentado reduce la demanda de equilibrio y cambia el papel de esta articulación hacia la transmisión.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación Del Miembro Inferior"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -83,40 +142,41 @@
                   "movementPatternId": "hip_abduction",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "sacroiliaca",
+                    "rodilla"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso o un recorrido demasiado corto que evita el rango completo de la abducción."
+                    "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
                   ],
                   "cues": [
-                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                    "Máquina sentado con ambas piernas: abres y cierras contra las almohadillas con el glúteo medio concentrado. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera."
                   ],
                   "execution": [
-                    "Abre y cierra las piernas con recorrido controlado sin despegar la espalda del respaldo."
+                    "Máquina sentado con ambas piernas: abres y cierras contra las almohadillas con el glúteo medio concentrado. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadera lateral y mejorar el control de la pelvis siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar separación de la pierna y estabilidad pélvica como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Ajusta el asiento y las almohadillas a tu altura antes de iniciar."
+                    "Preparación: Máquina sentado con ambas piernas: abres y cierras contra las almohadillas con el glúteo medio concentrado."
                   ]
                 },
                 "display": {
@@ -127,6 +187,15 @@
                     "laterality": "bilateral",
                     "station": "seated"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Máquina sentado con ambas piernas: abres y cierras contra las almohadillas con el glúteo medio concentrado.",
+                    "El tradicional de las máquinas de cadera."
+                  ],
+                  "description": "Máquina sentado con ambas piernas: abres y cierras contra las almohadillas con el glúteo medio concentrado. El tradicional de las máquinas de cadera.",
+                  "technique": "Máquina sentado con ambas piernas: abres y cierras contra las almohadillas con el glúteo medio concentrado. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera.",
+                  "variantRationale": "Máquina sentado con ambas piernas: abres y cierras contra las almohadillas con el glúteo medio concentrado. El tradicional de las máquinas de cadera."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -139,7 +208,7 @@
                 },
                 "identity": {
                   "canonicalName": "Abducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "hip_abduction__seated__machine__bilateral",
                   "definitionId": "hip_abduction",
                   "familyId": "hip_abduction",
@@ -159,7 +228,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar gluteus_medius dentro del patrón hip_abduction."
+                    "Desarrollar el glúteo medio mediante Abducciones de Pierna en la variante Máquina · Trabajo Bilateral · Posición Sentada.",
+                    "Priorizar fortalecer la cadera lateral y mejorar el control de la pelvis con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -183,7 +253,8 @@
                     "band"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón hip_abduction y el objetivo gluteus_medius."
+                    "Conserva separación de la pierna y estabilidad pélvica y el objetivo de el glúteo medio.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, articulación sacroilíaca, rodilla."
                   ],
                   "replacementGroup": "glute_med_abduction",
                   "replacementPriority": 1
@@ -200,13 +271,15 @@
                 "tensor_fasciae_latae"
               ],
               "setupCues": [
-                "Ajusta el asiento y las almohadillas a tu altura antes de iniciar."
+                "Preparación: Máquina sentado con ambas piernas: abres y cierras contra las almohadillas con el glúteo medio concentrado."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "techniqueSummary": "Máquina sentado con ambas piernas: abres y cierras contra las almohadillas con el glúteo medio concentrado. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera.",
+              "ttc": 2.0,
+              "variantRationale": "Máquina sentado con ambas piernas: abres y cierras contra las almohadillas con el glúteo medio concentrado. El tradicional de las máquinas de cadera."
             },
             "selectedOptions": {
               "implement": "machine",
@@ -220,9 +293,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_abduccion_cadera_sentado_maquina",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "hip_abduction__seated__machine__unilateral",
@@ -230,18 +303,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Máquina sentado de un lado a la vez: concentra cada glúteo medio y corrige desequilibrios entre caderas.",
+                "Muy útil para quien entrena asimétrico; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Usar impulso o apoyarte en el respaldo para compensar el lado trabajado."
+                "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
               ],
-              "description": "Máquina sentado de un lado a la vez: aísla cada glúteo medio y corrige desequilibrios entre caderas. Muy útil para quien entrena asimétrico.",
+              "description": "Máquina sentado de un lado a la vez: concentra cada glúteo medio y corrige desequilibrios entre caderas. Muy útil para quien entrena asimétrico.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
-                "Abduce una pierna con recorrido controlado, termina la serie completa y cambia de lado."
+                "Máquina sentado de un lado a la vez: concentra cada glúteo medio y corrige desequilibrios entre caderas. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Abducción"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Pélvica"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación Del Miembro Inferior"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
@@ -249,11 +353,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "gluteus_medius",
-                  "note": "Principal: el glúteo medio abduce el muslo y estabiliza la pelvis durante el movimiento lateral; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El glúteo medio separa el muslo y evita que la pelvis caiga durante el apoyo. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "tensor_fasciae_latae",
-                  "note": "Secundario: el tensor asiste la abducción y la estabilización lateral de la cadera; por eso suma 0.5."
+                  "note": "Secundaria: El tensor de la fascia lata asiste la abducción y ayuda a estabilizar la cadera en el plano frontal. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "hip_abduction__machine__abduccion_de_cadera_unilateral",
@@ -266,7 +370,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_abduction"
+                    "Abducción",
+                    "Estabilidad Pélvica",
+                    "Alineación Del Miembro Inferior"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Abducción"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Pélvica"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación Del Miembro Inferior"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -291,40 +423,41 @@
                   "movementPatternId": "hip_abduction",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "sacroiliaca",
+                    "rodilla"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso o apoyarte en el respaldo para compensar el lado trabajado."
+                    "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
                   ],
                   "cues": [
-                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                    "Máquina sentado de un lado a la vez: concentra cada glúteo medio y corrige desequilibrios entre caderas. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera."
                   ],
                   "execution": [
-                    "Abduce una pierna con recorrido controlado, termina la serie completa y cambia de lado."
+                    "Máquina sentado de un lado a la vez: concentra cada glúteo medio y corrige desequilibrios entre caderas. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadera lateral y mejorar el control de la pelvis siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar separación de la pierna y estabilidad pélvica como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Ajusta el asiento y las almohadillas a tu altura antes de iniciar."
+                    "Preparación: Máquina sentado de un lado a la vez: concentra cada glúteo medio y corrige desequilibrios entre caderas."
                   ]
                 },
                 "display": {
@@ -335,6 +468,15 @@
                     "laterality": "unilateral",
                     "station": "seated"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Máquina sentado de un lado a la vez: concentra cada glúteo medio y corrige desequilibrios entre caderas.",
+                    "Muy útil para quien entrena asimétrico; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Máquina sentado de un lado a la vez: concentra cada glúteo medio y corrige desequilibrios entre caderas. Muy útil para quien entrena asimétrico.",
+                  "technique": "Máquina sentado de un lado a la vez: concentra cada glúteo medio y corrige desequilibrios entre caderas. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera.",
+                  "variantRationale": "Máquina sentado de un lado a la vez: concentra cada glúteo medio y corrige desequilibrios entre caderas. Muy útil para quien entrena asimétrico."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -347,7 +489,7 @@
                 },
                 "identity": {
                   "canonicalName": "Abducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "hip_abduction__seated__machine__unilateral",
                   "definitionId": "hip_abduction",
                   "familyId": "hip_abduction",
@@ -367,7 +509,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar gluteus_medius dentro del patrón hip_abduction con foco unilateral."
+                    "Desarrollar el glúteo medio mediante Abducciones de Pierna en la variante Máquina · Trabajo Unilateral · Posición Sentada.",
+                    "Priorizar fortalecer la cadera lateral y mejorar el control de la pelvis con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -391,7 +534,8 @@
                     "band"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón hip_abduction y el objetivo gluteus_medius."
+                    "Conserva separación de la pierna y estabilidad pélvica y el objetivo de el glúteo medio.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, articulación sacroilíaca, rodilla."
                   ],
                   "replacementGroup": "glute_med_abduction",
                   "replacementPriority": 1
@@ -408,13 +552,15 @@
                 "tensor_fasciae_latae"
               ],
               "setupCues": [
-                "Ajusta el asiento y las almohadillas a tu altura antes de iniciar."
+                "Preparación: Máquina sentado de un lado a la vez: concentra cada glúteo medio y corrige desequilibrios entre caderas."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "techniqueSummary": "Máquina sentado de un lado a la vez: concentra cada glúteo medio y corrige desequilibrios entre caderas. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera.",
+              "ttc": 2.0,
+              "variantRationale": "Máquina sentado de un lado a la vez: concentra cada glúteo medio y corrige desequilibrios entre caderas. Muy útil para quien entrena asimétrico."
             },
             "selectedOptions": {
               "implement": "machine",
@@ -428,9 +574,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_abduccion_cadera",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "hip_abduction__standing__cable__bilateral",
@@ -438,18 +584,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Polea de pie con ambas piernas: la tensión constante acompaña la apertura y el glúteo medio trabaja todo el recorrido.",
+                "Variante precisa y efectiva; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Balancear el tronco para mover la pierna en lugar de aislar la abducción de cadera."
+                "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
               ],
-              "description": "Polea de pie con ambas piernas: la tensión constante acompaña la apertura y el glúteo medio trabaja todo el recorrido. Variante fina y efectiva.",
+              "description": "Polea de pie con ambas piernas: la tensión constante acompaña la apertura y el glúteo medio trabaja todo el recorrido. Variante precisa y efectiva.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
-                "Abduce la pierna contra la polea con movimiento controlado en ambos sentidos."
+                "Polea de pie con ambas piernas: la tensión constante acompaña la apertura y el glúteo medio trabaja todo el recorrido. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Abducción"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Pélvica"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación Del Miembro Inferior"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -457,11 +634,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "gluteus_medius",
-                  "note": "Principal: el glúteo medio abduce el muslo y estabiliza la pelvis durante el movimiento lateral; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El glúteo medio separa el muslo y evita que la pelvis caiga durante el apoyo. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "tensor_fasciae_latae",
-                  "note": "Secundario: el tensor asiste la abducción y la estabilización lateral de la cadera; por eso suma 0.5."
+                  "note": "Secundaria: El tensor de la fascia lata asiste la abducción y ayuda a estabilizar la cadera en el plano frontal. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "hip_abduction__cable__abduccion_de_cadera",
@@ -474,7 +651,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_abduction"
+                    "Abducción",
+                    "Estabilidad Pélvica",
+                    "Alineación Del Miembro Inferior"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Abducción"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Pélvica"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación Del Miembro Inferior"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -499,40 +704,41 @@
                   "movementPatternId": "hip_abduction",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "sacroiliaca",
+                    "rodilla"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Balancear el tronco para mover la pierna en lugar de aislar la abducción de cadera."
+                    "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
                   ],
                   "cues": [
-                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                    "Polea de pie con ambas piernas: la tensión constante acompaña la apertura y el glúteo medio trabaja todo el recorrido. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera."
                   ],
                   "execution": [
-                    "Abduce la pierna contra la polea con movimiento controlado en ambos sentidos."
+                    "Polea de pie con ambas piernas: la tensión constante acompaña la apertura y el glúteo medio trabaja todo el recorrido. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadera lateral y mejorar el control de la pelvis siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar separación de la pierna y estabilidad pélvica como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca el tobilloera en la polea baja y busca un apoyo firme y estable."
+                    "Preparación: Polea de pie con ambas piernas: la tensión constante acompaña la apertura y el glúteo medio trabaja todo el recorrido."
                   ]
                 },
                 "display": {
@@ -543,6 +749,15 @@
                     "laterality": "bilateral",
                     "station": "standing"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Polea de pie con ambas piernas: la tensión constante acompaña la apertura y el glúteo medio trabaja todo el recorrido.",
+                    "Variante precisa y efectiva; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Polea de pie con ambas piernas: la tensión constante acompaña la apertura y el glúteo medio trabaja todo el recorrido. Variante precisa y efectiva.",
+                  "technique": "Polea de pie con ambas piernas: la tensión constante acompaña la apertura y el glúteo medio trabaja todo el recorrido. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera.",
+                  "variantRationale": "Polea de pie con ambas piernas: la tensión constante acompaña la apertura y el glúteo medio trabaja todo el recorrido. Variante precisa y efectiva."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -555,7 +770,7 @@
                 },
                 "identity": {
                   "canonicalName": "Abducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "hip_abduction__standing__cable__bilateral",
                   "definitionId": "hip_abduction",
                   "familyId": "hip_abduction",
@@ -575,7 +790,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar gluteus_medius dentro del patrón hip_abduction con polea."
+                    "Desarrollar el glúteo medio mediante Abducciones de Pierna en la variante Polea · Trabajo Bilateral · Posición De Pie.",
+                    "Priorizar fortalecer la cadera lateral y mejorar el control de la pelvis con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -599,7 +815,8 @@
                     "band"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón hip_abduction y el objetivo gluteus_medius."
+                    "Conserva separación de la pierna y estabilidad pélvica y el objetivo de el glúteo medio.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, articulación sacroilíaca, rodilla."
                   ],
                   "replacementGroup": "glute_med_abduction",
                   "replacementPriority": 2
@@ -616,13 +833,15 @@
                 "tensor_fasciae_latae"
               ],
               "setupCues": [
-                "Coloca el tobilloera en la polea baja y busca un apoyo firme y estable."
+                "Preparación: Polea de pie con ambas piernas: la tensión constante acompaña la apertura y el glúteo medio trabaja todo el recorrido."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "techniqueSummary": "Polea de pie con ambas piernas: la tensión constante acompaña la apertura y el glúteo medio trabaja todo el recorrido. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera.",
+              "ttc": 2.0,
+              "variantRationale": "Polea de pie con ambas piernas: la tensión constante acompaña la apertura y el glúteo medio trabaja todo el recorrido. Variante precisa y efectiva."
             },
             "selectedOptions": {
               "implement": "cable",
@@ -636,9 +855,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_abduccion_cadera",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "hip_abduction__standing__cable__unilateral",
@@ -646,18 +865,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Polea de pie con una pierna: el glúteo medio trabaja concentrado con tensión continua.",
+                "Útil para igualar ambos lados de la cadera."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Perder el control de la pelvis y compensar con inclinación del tronco."
+                "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
               ],
-              "description": "Polea de pie con una pierna: el glúteo medio trabaja aislado con tensión continua. Ideal para igualar ambos lados de la cadera.",
+              "description": "Polea de pie con una pierna: el glúteo medio trabaja concentrado con tensión continua. Útil para igualar ambos lados de la cadera.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
-                "Abduce una pierna con tensión continua, completa la serie y cambia de lado."
+                "Polea de pie con una pierna: el glúteo medio trabaja concentrado con tensión continua. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Abducción"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Pélvica"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación Del Miembro Inferior"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
@@ -665,11 +915,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "gluteus_medius",
-                  "note": "Principal: el glúteo medio abduce el muslo y estabiliza la pelvis durante el movimiento lateral; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El glúteo medio separa el muslo y evita que la pelvis caiga durante el apoyo. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "tensor_fasciae_latae",
-                  "note": "Secundario: el tensor asiste la abducción y la estabilización lateral de la cadera; por eso suma 0.5."
+                  "note": "Secundaria: El tensor de la fascia lata asiste la abducción y ayuda a estabilizar la cadera en el plano frontal. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "hip_abduction__cable__abduccion_de_cadera_unilateral",
@@ -682,7 +932,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_abduction"
+                    "Abducción",
+                    "Estabilidad Pélvica",
+                    "Alineación Del Miembro Inferior"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Abducción"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Pélvica"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación Del Miembro Inferior"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -707,40 +985,41 @@
                   "movementPatternId": "hip_abduction",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "sacroiliaca",
+                    "rodilla"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Perder el control de la pelvis y compensar con inclinación del tronco."
+                    "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
                   ],
                   "cues": [
-                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                    "Polea de pie con una pierna: el glúteo medio trabaja concentrado con tensión continua. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera."
                   ],
                   "execution": [
-                    "Abduce una pierna con tensión continua, completa la serie y cambia de lado."
+                    "Polea de pie con una pierna: el glúteo medio trabaja concentrado con tensión continua. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadera lateral y mejorar el control de la pelvis siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar separación de la pierna y estabilidad pélvica como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca el tobilloera en la polea baja y busca un apoyo firme y estable."
+                    "Preparación: Polea de pie con una pierna: el glúteo medio trabaja concentrado con tensión continua."
                   ]
                 },
                 "display": {
@@ -751,6 +1030,15 @@
                     "laterality": "unilateral",
                     "station": "standing"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Polea de pie con una pierna: el glúteo medio trabaja concentrado con tensión continua.",
+                    "Útil para igualar ambos lados de la cadera."
+                  ],
+                  "description": "Polea de pie con una pierna: el glúteo medio trabaja concentrado con tensión continua. Útil para igualar ambos lados de la cadera.",
+                  "technique": "Polea de pie con una pierna: el glúteo medio trabaja concentrado con tensión continua. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera.",
+                  "variantRationale": "Polea de pie con una pierna: el glúteo medio trabaja concentrado con tensión continua. Útil para igualar ambos lados de la cadera."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -763,7 +1051,7 @@
                 },
                 "identity": {
                   "canonicalName": "Abducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "hip_abduction__standing__cable__unilateral",
                   "definitionId": "hip_abduction",
                   "familyId": "hip_abduction",
@@ -783,7 +1071,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar gluteus_medius dentro del patrón hip_abduction con foco unilateral en polea."
+                    "Desarrollar el glúteo medio mediante Abducciones de Pierna en la variante Polea · Trabajo Unilateral · Posición De Pie.",
+                    "Priorizar fortalecer la cadera lateral y mejorar el control de la pelvis con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -807,7 +1096,8 @@
                     "band"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón hip_abduction y el objetivo gluteus_medius."
+                    "Conserva separación de la pierna y estabilidad pélvica y el objetivo de el glúteo medio.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, articulación sacroilíaca, rodilla."
                   ],
                   "replacementGroup": "glute_med_abduction",
                   "replacementPriority": 2
@@ -824,13 +1114,15 @@
                 "tensor_fasciae_latae"
               ],
               "setupCues": [
-                "Coloca el tobilloera en la polea baja y busca un apoyo firme y estable."
+                "Preparación: Polea de pie con una pierna: el glúteo medio trabaja concentrado con tensión continua."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "techniqueSummary": "Polea de pie con una pierna: el glúteo medio trabaja concentrado con tensión continua. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera.",
+              "ttc": 2.0,
+              "variantRationale": "Polea de pie con una pierna: el glúteo medio trabaja concentrado con tensión continua. Útil para igualar ambos lados de la cadera."
             },
             "selectedOptions": {
               "implement": "cable",
@@ -844,9 +1136,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_abduccion_cadera",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "hip_abduction__standing__band__bilateral",
@@ -854,18 +1146,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Banda de pie con ambas piernas: la resistencia elástica aumenta en el punto más amplio.",
+                "Sencilla de montar y útil para acumular trabajo para calentar o rematar."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Reducir el rango al final del movimiento, donde la banda ofrece mayor resistencia."
+                "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
               ],
-              "description": "Banda de pie con ambas piernas: la resistencia elástica aumenta en el punto más amplio. Sencilla de montar y muy efectiva para calentar o rematar.",
+              "description": "Banda de pie con ambas piernas: la resistencia elástica aumenta en el punto más amplio. Sencilla de montar y útil para acumular trabajo para calentar o rematar.",
               "efc": 2.8,
               "equipmentId": "band",
               "executionCues": [
-                "Abduce las piernas contra la banda con control en el retorno."
+                "Banda de pie con ambas piernas: la resistencia elástica aumenta en el punto más amplio. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Abducción"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Pélvica"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación Del Miembro Inferior"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
@@ -873,11 +1196,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "gluteus_medius",
-                  "note": "Principal: el glúteo medio abduce el muslo y estabiliza la pelvis durante el movimiento lateral; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El glúteo medio separa el muslo y evita que la pelvis caiga durante el apoyo. La banda se vuelve más exigente al final y hace más visible su participación en ese tramo. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "tensor_fasciae_latae",
-                  "note": "Secundario: el tensor asiste la abducción y la estabilización lateral de la cadera; por eso suma 0.5."
+                  "note": "Secundaria: El tensor de la fascia lata asiste la abducción y ayuda a estabilizar la cadera en el plano frontal. La banda se vuelve más exigente al final y hace más visible su participación en ese tramo. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "hip_abduction__band__abduccion_de_cadera",
@@ -890,7 +1213,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_abduction"
+                    "Abducción",
+                    "Estabilidad Pélvica",
+                    "Alineación Del Miembro Inferior"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Abducción"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Pélvica"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación Del Miembro Inferior"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -915,40 +1266,41 @@
                   "movementPatternId": "hip_abduction",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "sacroiliaca",
+                    "rodilla"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "variable_band",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Reducir el rango al final del movimiento, donde la banda ofrece mayor resistencia."
+                    "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
                   ],
                   "cues": [
-                    "Mantén el equipo band alineado con el patrón y controla la fase excéntrica."
+                    "Banda de pie con ambas piernas: la resistencia elástica aumenta en el punto más amplio. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera."
                   ],
                   "execution": [
-                    "Abduce las piernas contra la banda con control en el retorno."
+                    "Banda de pie con ambas piernas: la resistencia elástica aumenta en el punto más amplio. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadera lateral y mejorar el control de la pelvis siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar separación de la pierna y estabilidad pélvica como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca la banda alrededor de los tobillos y separa los pies al ancho de la cadera."
+                    "Preparación: Banda de pie con ambas piernas: la resistencia elástica aumenta en el punto más amplio."
                   ]
                 },
                 "display": {
@@ -959,6 +1311,15 @@
                     "laterality": "bilateral",
                     "station": "standing"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Banda de pie con ambas piernas: la resistencia elástica aumenta en el punto más amplio.",
+                    "Sencilla de montar y útil para acumular trabajo para calentar o rematar."
+                  ],
+                  "description": "Banda de pie con ambas piernas: la resistencia elástica aumenta en el punto más amplio. Sencilla de montar y útil para acumular trabajo para calentar o rematar.",
+                  "technique": "Banda de pie con ambas piernas: la resistencia elástica aumenta en el punto más amplio. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera.",
+                  "variantRationale": "Banda de pie con ambas piernas: la resistencia elástica aumenta en el punto más amplio. Sencilla de montar y útil para acumular trabajo para calentar o rematar."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -971,7 +1332,7 @@
                 },
                 "identity": {
                   "canonicalName": "Abducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "hip_abduction__standing__band__bilateral",
                   "definitionId": "hip_abduction",
                   "familyId": "hip_abduction",
@@ -991,7 +1352,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar gluteus_medius dentro del patrón hip_abduction con banda."
+                    "Desarrollar el glúteo medio mediante Abducciones de Pierna en la variante Banda Elástica · Trabajo Bilateral · Posición De Pie.",
+                    "Priorizar fortalecer la cadera lateral y mejorar el control de la pelvis con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1015,7 +1377,8 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón hip_abduction y el objetivo gluteus_medius."
+                    "Conserva separación de la pierna y estabilidad pélvica y el objetivo de el glúteo medio.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, articulación sacroilíaca, rodilla."
                   ],
                   "replacementGroup": "glute_med_abduction",
                   "replacementPriority": 2
@@ -1032,13 +1395,15 @@
                 "tensor_fasciae_latae"
               ],
               "setupCues": [
-                "Coloca la banda alrededor de los tobillos y separa los pies al ancho de la cadera."
+                "Preparación: Banda de pie con ambas piernas: la resistencia elástica aumenta en el punto más amplio."
               ],
               "setupTimeSeconds": 10,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "techniqueSummary": "Banda de pie con ambas piernas: la resistencia elástica aumenta en el punto más amplio. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera.",
+              "ttc": 2.0,
+              "variantRationale": "Banda de pie con ambas piernas: la resistencia elástica aumenta en el punto más amplio. Sencilla de montar y útil para acumular trabajo para calentar o rematar."
             },
             "selectedOptions": {
               "implement": "band",
@@ -1052,9 +1417,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_abduccion_cadera",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "hip_abduction__standing__band__unilateral",
@@ -1062,18 +1427,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Banda en una pierna: aperturas contra la resistencia elástica lado a lado.",
+                "Útil para activar el glúteo medio antes de entrenar."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Compensar con la cadera en vez de aislar la abducción con la pierna de trabajo."
+                "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
               ],
-              "description": "Banda en una pierna: aperturas contra la resistencia elástica lado a lado. Perfecta para activar el glúteo medio antes de entrenar.",
+              "description": "Banda en una pierna: aperturas contra la resistencia elástica lado a lado. Útil para activar el glúteo medio antes de entrenar.",
               "efc": 2.8,
               "equipmentId": "band",
               "executionCues": [
-                "Abduce la pierna contra la banda, completa la serie y cambia de lado."
+                "Banda en una pierna: aperturas contra la resistencia elástica lado a lado. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Abducción"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Pélvica"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación Del Miembro Inferior"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "variable_band_resistance",
@@ -1081,11 +1477,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "gluteus_medius",
-                  "note": "Principal: el glúteo medio abduce el muslo y estabiliza la pelvis durante el movimiento lateral; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El glúteo medio separa el muslo y evita que la pelvis caiga durante el apoyo. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "tensor_fasciae_latae",
-                  "note": "Secundario: el tensor asiste la abducción y la estabilización lateral de la cadera; por eso suma 0.5."
+                  "note": "Secundaria: El tensor de la fascia lata asiste la abducción y ayuda a estabilizar la cadera en el plano frontal. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "hip_abduction__band__abduccion_de_cadera_unilateral",
@@ -1098,7 +1494,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_abduction"
+                    "Abducción",
+                    "Estabilidad Pélvica",
+                    "Alineación Del Miembro Inferior"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Abducción"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Pélvica"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación Del Miembro Inferior"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -1123,40 +1547,41 @@
                   "movementPatternId": "hip_abduction",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "sacroiliaca",
+                    "rodilla"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "variable_band",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Compensar con la cadera en vez de aislar la abducción con la pierna de trabajo."
+                    "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
                   ],
                   "cues": [
-                    "Mantén el equipo band alineado con el patrón y controla la fase excéntrica."
+                    "Banda en una pierna: aperturas contra la resistencia elástica lado a lado. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera."
                   ],
                   "execution": [
-                    "Abduce la pierna contra la banda, completa la serie y cambia de lado."
+                    "Banda en una pierna: aperturas contra la resistencia elástica lado a lado. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadera lateral y mejorar el control de la pelvis siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar separación de la pierna y estabilidad pélvica como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Ancla la banda en un punto fijo y coloca el otro extremo en el tobillo."
+                    "Preparación: Banda en una pierna: aperturas contra la resistencia elástica lado a lado."
                   ]
                 },
                 "display": {
@@ -1167,6 +1592,15 @@
                     "laterality": "unilateral",
                     "station": "standing"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Banda en una pierna: aperturas contra la resistencia elástica lado a lado.",
+                    "Útil para activar el glúteo medio antes de entrenar."
+                  ],
+                  "description": "Banda en una pierna: aperturas contra la resistencia elástica lado a lado. Útil para activar el glúteo medio antes de entrenar.",
+                  "technique": "Banda en una pierna: aperturas contra la resistencia elástica lado a lado. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera.",
+                  "variantRationale": "Banda en una pierna: aperturas contra la resistencia elástica lado a lado. Útil para activar el glúteo medio antes de entrenar."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1179,7 +1613,7 @@
                 },
                 "identity": {
                   "canonicalName": "Abducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "hip_abduction__standing__band__unilateral",
                   "definitionId": "hip_abduction",
                   "familyId": "hip_abduction",
@@ -1199,7 +1633,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar gluteus_medius dentro del patrón hip_abduction con foco unilateral en banda."
+                    "Desarrollar el glúteo medio mediante Abducciones de Pierna en la variante Banda Elástica · Trabajo Unilateral · Posición De Pie.",
+                    "Priorizar fortalecer la cadera lateral y mejorar el control de la pelvis con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1223,7 +1658,8 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón hip_abduction y el objetivo gluteus_medius."
+                    "Conserva separación de la pierna y estabilidad pélvica y el objetivo de el glúteo medio.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, articulación sacroilíaca, rodilla."
                   ],
                   "replacementGroup": "glute_med_abduction",
                   "replacementPriority": 2
@@ -1240,13 +1676,15 @@
                 "tensor_fasciae_latae"
               ],
               "setupCues": [
-                "Ancla la banda en un punto fijo y coloca el otro extremo en el tobillo."
+                "Preparación: Banda en una pierna: aperturas contra la resistencia elástica lado a lado."
               ],
               "setupTimeSeconds": 10,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "techniqueSummary": "Banda en una pierna: aperturas contra la resistencia elástica lado a lado. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera.",
+              "ttc": 2.0,
+              "variantRationale": "Banda en una pierna: aperturas contra la resistencia elástica lado a lado. Útil para activar el glúteo medio antes de entrenar."
             },
             "selectedOptions": {
               "implement": "band",
@@ -1256,13 +1694,13 @@
           }
         ],
         "defaultConfigurationId": "hip_abduction__seated__machine__bilateral",
-        "description": "Abducciones de pierna: separas la pierna hacia el lado contra resistencia y el glúteo medio hace el trabajo. El ejercicio que da forma a la cadera, protege las rodillas y mejora tu estabilidad.",
+        "description": "Separas la pierna hacia el lado contra resistencia y el glúteo medio hace el trabajo. El ejercicio que da forma a la cadera, protege las rodillas y mejora tu estabilidad.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:hip_abduction"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "hip_abduction",
@@ -1285,9 +1723,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:hip_abduction"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "hip_abduction",
@@ -1296,6 +1734,6 @@
       "hip_abduction"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

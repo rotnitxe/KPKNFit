@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Rotaciones de Antebrazo",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_curl_muneca_sentado",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "supination__dumbbells",
@@ -22,18 +22,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Mancuerna ligera para girar la palma hacia arriba: el codo queda fijo y la mano recorre un arco corto y controlado.",
+                "Permite trabajar cada antebrazo por separado y comparar la movilidad de ambos lados."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Mover el codo o el hombro para ayudar a girar el peso."
+                "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
               ],
-              "description": "Con mancuerna, el codo apoyado y la palma girando arriba: sientes el trabajo profundo en el antebrazo y el bíceps ayuda a girar.",
+              "description": "Mancuerna ligera para girar la palma hacia arriba: el codo queda fijo y la mano recorre un arco corto y controlado. Permite trabajar cada antebrazo por separado y comparar la movilidad de ambos lados.",
               "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Gira la palma hacia arriba rotando solo el antebrazo, con el codo quieto."
+                "Mancuerna ligera para girar la palma hacia arriba: el codo queda fijo y la mano recorre un arco corto y controlado. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión O Extensión"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Principal: La muñeca genera el movimiento y concentra la resistencia en el antebrazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo fija la longitud de la posición para que la mano no arrastre el brazo entero. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Orientación Del Antebrazo"
+                  ],
+                  "jointId": "radiocubital-proximal",
+                  "note": "Estabilizadora: La del antebrazo proximal orienta el antebrazo y permite que la muñeca trabaje en su plano. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -41,11 +72,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "forearm",
-                  "note": "Principal: los músculos supinadores giran el antebrazo contra la resistencia; por eso suman la serie completa (1.0)."
+                  "note": "Principal: El antebrazo transmite el agarre y mantiene la muñeca alineada con la resistencia. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "biceps",
-                  "note": "Secundario: el bíceps asiste la rotación externa del antebrazo; por eso suma 0.5."
+                  "note": "Secundaria: El bíceps flexiona el codo y, con agarre supino, ayuda a supinar el antebrazo. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "supination__dumbbells",
@@ -58,7 +89,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "wrist_flexion"
+                    "Flexión O Extensión",
+                    "Estabilidad",
+                    "Orientación Del Antebrazo"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión O Extensión"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Principal: La muñeca genera el movimiento y concentra la resistencia en el antebrazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo fija la longitud de la posición para que la mano no arrastre el brazo entero. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Orientación Del Antebrazo"
+                      ],
+                      "jointId": "radiocubital-proximal",
+                      "note": "Estabilizadora: La del antebrazo proximal orienta el antebrazo y permite que la muñeca trabaje en su plano. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -83,40 +142,41 @@
                   "movementPatternId": "wrist_flexion",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "muñeca",
+                    "codo",
+                    "radiocubital-proximal"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca",
+                    "tendon-bíceps",
+                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Mover el codo o el hombro para ayudar a girar el peso."
+                    "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Mancuerna ligera para girar la palma hacia arriba: el codo queda fijo y la mano recorre un arco corto y controlado. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
                   ],
                   "execution": [
-                    "Gira la palma hacia arriba rotando solo el antebrazo, con el codo quieto."
+                    "Mancuerna ligera para girar la palma hacia arriba: el codo queda fijo y la mano recorre un arco corto y controlado. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando desarrollar el antebrazo y la tolerancia de la muñeca con una carga localizada siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar flexión o extensión de la muñeca como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de muñeca según tolerancia y rango disponible.",
+                    "Movilidad de codo según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Sujeta el peso con la palma hacia abajo y el codo apoyado y fijo."
+                    "Preparación: Mancuerna ligera para girar la palma hacia arriba: el codo queda fijo y la mano recorre un arco corto y controlado."
                   ]
                 },
                 "display": {
@@ -125,6 +185,15 @@
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Mancuerna ligera para girar la palma hacia arriba: el codo queda fijo y la mano recorre un arco corto y controlado.",
+                    "Permite trabajar cada antebrazo por separado y comparar la movilidad de ambos lados."
+                  ],
+                  "description": "Mancuerna ligera para girar la palma hacia arriba: el codo queda fijo y la mano recorre un arco corto y controlado. Permite trabajar cada antebrazo por separado y comparar la movilidad de ambos lados.",
+                  "technique": "Mancuerna ligera para girar la palma hacia arriba: el codo queda fijo y la mano recorre un arco corto y controlado. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor.",
+                  "variantRationale": "Mancuerna ligera para girar la palma hacia arriba: el codo queda fijo y la mano recorre un arco corto y controlado. Permite trabajar cada antebrazo por separado y comparar la movilidad de ambos lados."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -137,7 +206,7 @@
                 },
                 "identity": {
                   "canonicalName": "Supinaciones",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "supination__dumbbells",
                   "definitionId": "supination",
                   "familyId": "lower_wrist_rotation",
@@ -157,7 +226,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar forearm con supinaciones en dumbbells."
+                    "Desarrollar el antebrazo mediante Supinaciones en la variante Mancuernas.",
+                    "Priorizar desarrollar el antebrazo y la tolerancia de la muñeca con una carga localizada con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -180,7 +250,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva la rotación externa del antebrazo y el objetivo forearm."
+                    "Conserva flexión o extensión de la muñeca y el objetivo de el antebrazo.",
+                    "La sustitución debe respetar las articulaciones relevantes: muñeca, codo, radiocubital proximal."
                   ],
                   "replacementGroup": "forearm_wrist_curl",
                   "replacementPriority": 1
@@ -197,13 +268,15 @@
                 "biceps"
               ],
               "setupCues": [
-                "Sujeta el peso con la palma hacia abajo y el codo apoyado y fijo."
+                "Preparación: Mancuerna ligera para girar la palma hacia arriba: el codo queda fijo y la mano recorre un arco corto y controlado."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "techniqueSummary": "Mancuerna ligera para girar la palma hacia arriba: el codo queda fijo y la mano recorre un arco corto y controlado. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor.",
+              "ttc": 1.5,
+              "variantRationale": "Mancuerna ligera para girar la palma hacia arriba: el codo queda fijo y la mano recorre un arco corto y controlado. Permite trabajar cada antebrazo por separado y comparar la movilidad de ambos lados."
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -215,9 +288,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_curl_muneca_sentado",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "supination__cable",
@@ -225,18 +298,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Polea baja para girar la palma hacia arriba: la tensión acompaña el recorrido y impide que la mano quede sin resistencia al final.",
+                "La estación facilita ajustes pequeños cuando el objetivo es precisión más que carga absoluta."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Mover el codo o el hombro para ayudar a girar el peso."
+                "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
               ],
-              "description": "En polea, la tensión se mantiene todo el recorrido y el giro se siente lleno de principio a fin. Una forma muy pulida de fortalecer la muñeca.",
+              "description": "Polea baja para girar la palma hacia arriba: la tensión acompaña el recorrido y impide que la mano quede sin resistencia al final. La estación facilita ajustes pequeños cuando el objetivo es precisión más que carga absoluta.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
-                "Gira la palma hacia arriba rotando solo el antebrazo, con el codo quieto."
+                "Polea baja para girar la palma hacia arriba: la tensión acompaña el recorrido y impide que la mano quede sin resistencia al final. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión O Extensión"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Principal: La muñeca genera el movimiento y concentra la resistencia en el antebrazo. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo fija la longitud de la posición para que la mano no arrastre el brazo entero. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Orientación Del Antebrazo"
+                  ],
+                  "jointId": "radiocubital-proximal",
+                  "note": "Estabilizadora: La del antebrazo proximal orienta el antebrazo y permite que la muñeca trabaje en su plano. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
@@ -244,11 +348,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "forearm",
-                  "note": "Principal: los músculos supinadores giran el antebrazo contra la resistencia; por eso suman la serie completa (1.0)."
+                  "note": "Principal: El antebrazo transmite el agarre y mantiene la muñeca alineada con la resistencia. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "biceps",
-                  "note": "Secundario: el bíceps asiste la rotación externa del antebrazo; por eso suma 0.5."
+                  "note": "Secundaria: El bíceps flexiona el codo y, con agarre supino, ayuda a supinar el antebrazo. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "supination__cable",
@@ -261,7 +365,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "wrist_flexion"
+                    "Flexión O Extensión",
+                    "Estabilidad",
+                    "Orientación Del Antebrazo"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión O Extensión"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Principal: La muñeca genera el movimiento y concentra la resistencia en el antebrazo. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo fija la longitud de la posición para que la mano no arrastre el brazo entero. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Orientación Del Antebrazo"
+                      ],
+                      "jointId": "radiocubital-proximal",
+                      "note": "Estabilizadora: La del antebrazo proximal orienta el antebrazo y permite que la muñeca trabaje en su plano. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -286,40 +418,41 @@
                   "movementPatternId": "wrist_flexion",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "muñeca",
+                    "codo",
+                    "radiocubital-proximal"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca",
+                    "tendon-bíceps",
+                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Mover el codo o el hombro para ayudar a girar el peso."
+                    "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Polea baja para girar la palma hacia arriba: la tensión acompaña el recorrido y impide que la mano quede sin resistencia al final. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
                   ],
                   "execution": [
-                    "Gira la palma hacia arriba rotando solo el antebrazo, con el codo quieto."
+                    "Polea baja para girar la palma hacia arriba: la tensión acompaña el recorrido y impide que la mano quede sin resistencia al final. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando desarrollar el antebrazo y la tolerancia de la muñeca con una carga localizada siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar flexión o extensión de la muñeca como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de muñeca según tolerancia y rango disponible.",
+                    "Movilidad de codo según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Sujeta el peso con la palma hacia abajo y el codo apoyado y fijo."
+                    "Preparación: Polea baja para girar la palma hacia arriba: la tensión acompaña el recorrido y impide que la mano quede sin resistencia al final."
                   ]
                 },
                 "display": {
@@ -328,6 +461,15 @@
                   "selectedOptions": {
                     "implement": "cable"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Polea baja para girar la palma hacia arriba: la tensión acompaña el recorrido y impide que la mano quede sin resistencia al final.",
+                    "La estación facilita ajustes pequeños cuando el objetivo es precisión más que carga absoluta."
+                  ],
+                  "description": "Polea baja para girar la palma hacia arriba: la tensión acompaña el recorrido y impide que la mano quede sin resistencia al final. La estación facilita ajustes pequeños cuando el objetivo es precisión más que carga absoluta.",
+                  "technique": "Polea baja para girar la palma hacia arriba: la tensión acompaña el recorrido y impide que la mano quede sin resistencia al final. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor.",
+                  "variantRationale": "Polea baja para girar la palma hacia arriba: la tensión acompaña el recorrido y impide que la mano quede sin resistencia al final. La estación facilita ajustes pequeños cuando el objetivo es precisión más que carga absoluta."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -340,7 +482,7 @@
                 },
                 "identity": {
                   "canonicalName": "Supinaciones",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "supination__cable",
                   "definitionId": "supination",
                   "familyId": "lower_wrist_rotation",
@@ -360,7 +502,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar forearm con supinaciones en cable."
+                    "Desarrollar el antebrazo mediante Supinaciones en la variante Polea.",
+                    "Priorizar desarrollar el antebrazo y la tolerancia de la muñeca con una carga localizada con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -383,7 +526,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva la rotación externa del antebrazo y el objetivo forearm."
+                    "Conserva flexión o extensión de la muñeca y el objetivo de el antebrazo.",
+                    "La sustitución debe respetar las articulaciones relevantes: muñeca, codo, radiocubital proximal."
                   ],
                   "replacementGroup": "forearm_wrist_curl",
                   "replacementPriority": 1
@@ -400,13 +544,15 @@
                 "biceps"
               ],
               "setupCues": [
-                "Sujeta el peso con la palma hacia abajo y el codo apoyado y fijo."
+                "Preparación: Polea baja para girar la palma hacia arriba: la tensión acompaña el recorrido y impide que la mano quede sin resistencia al final."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "techniqueSummary": "Polea baja para girar la palma hacia arriba: la tensión acompaña el recorrido y impide que la mano quede sin resistencia al final. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor.",
+              "ttc": 1.5,
+              "variantRationale": "Polea baja para girar la palma hacia arriba: la tensión acompaña el recorrido y impide que la mano quede sin resistencia al final. La estación facilita ajustes pequeños cuando el objetivo es precisión más que carga absoluta."
             },
             "selectedOptions": {
               "implement": "cable"
@@ -414,13 +560,13 @@
           }
         ],
         "defaultConfigurationId": "supination__dumbbells",
-        "description": "Gira la palma de la mano hacia arriba contra la resistencia: un movimiento pequeño que trabaja de verdad los músculos que supinan el antebrazo. Clave para la salud de la muñeca, el codo y un agarre más fuerte en todo lo que hagas.",
+        "description": "La rotación hacia palma arriba trabaja el control preciso del antebrazo mientras el codo permanece como punto estable. Es un ejercicio pequeño y preciso para mejorar la resistencia de los músculos que orientan la mano.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v3-2026-08-02"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Aprobado por decisión explícita de catálogo v3; la configuración está materializada y no depende de inferencia runtime.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_wrist_rotation",
@@ -445,9 +591,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_curl_muneca_sentado",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "pronation__dumbbells",
@@ -455,18 +601,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Mancuerna ligera para girar la palma hacia abajo: el codo actúa como ancla y el antebrazo organiza todo el movimiento.",
+                "El trabajo unilateral deja claro qué lado necesita más control o resistencia."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Levantar el codo o usar el hombro para facilitar la rotación."
+                "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
               ],
-              "description": "Con mancuerna, el codo apoyado y la palma girando abajo: el antebrazo trabaja solo y el movimiento se siente muy controlado.",
+              "description": "Mancuerna ligera para girar la palma hacia abajo: el codo actúa como ancla y el antebrazo organiza todo el movimiento. El trabajo unilateral deja claro qué lado necesita más control o resistencia.",
               "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Gira la palma hacia abajo rotando solo el antebrazo, con el codo quieto."
+                "Mancuerna ligera para girar la palma hacia abajo: el codo actúa como ancla y el antebrazo organiza todo el movimiento. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión O Extensión"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Principal: La muñeca genera el movimiento y concentra la resistencia en el antebrazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo fija la longitud de la posición para que la mano no arrastre el brazo entero. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Orientación Del Antebrazo"
+                  ],
+                  "jointId": "radiocubital-proximal",
+                  "note": "Estabilizadora: La del antebrazo proximal orienta el antebrazo y permite que la muñeca trabaje en su plano. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -474,7 +651,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "forearm",
-                  "note": "Principal: los músculos pronadores rotan el antebrazo contra la resistencia; por eso suman la serie completa (1.0)."
+                  "note": "Principal: El antebrazo transmite el agarre y mantiene la muñeca alineada con la resistencia. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "pronation__dumbbells",
@@ -487,7 +664,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "wrist_flexion"
+                    "Flexión O Extensión",
+                    "Estabilidad",
+                    "Orientación Del Antebrazo"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión O Extensión"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Principal: La muñeca genera el movimiento y concentra la resistencia en el antebrazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo fija la longitud de la posición para que la mano no arrastre el brazo entero. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Orientación Del Antebrazo"
+                      ],
+                      "jointId": "radiocubital-proximal",
+                      "note": "Estabilizadora: La del antebrazo proximal orienta el antebrazo y permite que la muñeca trabaje en su plano. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -510,40 +715,41 @@
                   "movementPatternId": "wrist_flexion",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "muñeca",
+                    "codo",
+                    "radiocubital-proximal"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca",
+                    "tendon-bíceps",
+                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Levantar el codo o usar el hombro para facilitar la rotación."
+                    "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Mancuerna ligera para girar la palma hacia abajo: el codo actúa como ancla y el antebrazo organiza todo el movimiento. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
                   ],
                   "execution": [
-                    "Gira la palma hacia abajo rotando solo el antebrazo, con el codo quieto."
+                    "Mancuerna ligera para girar la palma hacia abajo: el codo actúa como ancla y el antebrazo organiza todo el movimiento. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando desarrollar el antebrazo y la tolerancia de la muñeca con una carga localizada siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar flexión o extensión de la muñeca como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de muñeca según tolerancia y rango disponible.",
+                    "Movilidad de codo según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Sujeta el peso con la palma hacia arriba y el codo apoyado y fijo."
+                    "Preparación: Mancuerna ligera para girar la palma hacia abajo: el codo actúa como ancla y el antebrazo organiza todo el movimiento."
                   ]
                 },
                 "display": {
@@ -552,6 +758,15 @@
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Mancuerna ligera para girar la palma hacia abajo: el codo actúa como ancla y el antebrazo organiza todo el movimiento.",
+                    "El trabajo unilateral deja claro qué lado necesita más control o resistencia."
+                  ],
+                  "description": "Mancuerna ligera para girar la palma hacia abajo: el codo actúa como ancla y el antebrazo organiza todo el movimiento. El trabajo unilateral deja claro qué lado necesita más control o resistencia.",
+                  "technique": "Mancuerna ligera para girar la palma hacia abajo: el codo actúa como ancla y el antebrazo organiza todo el movimiento. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor.",
+                  "variantRationale": "Mancuerna ligera para girar la palma hacia abajo: el codo actúa como ancla y el antebrazo organiza todo el movimiento. El trabajo unilateral deja claro qué lado necesita más control o resistencia."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -564,7 +779,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pronaciones",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "pronation__dumbbells",
                   "definitionId": "pronation",
                   "familyId": "lower_wrist_rotation",
@@ -584,7 +799,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar forearm con pronaciones en dumbbells."
+                    "Desarrollar el antebrazo mediante Pronaciones en la variante Mancuernas.",
+                    "Priorizar desarrollar el antebrazo y la tolerancia de la muñeca con una carga localizada con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -607,7 +823,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva la rotación interna del antebrazo y el objetivo forearm."
+                    "Conserva flexión o extensión de la muñeca y el objetivo de el antebrazo.",
+                    "La sustitución debe respetar las articulaciones relevantes: muñeca, codo, radiocubital proximal."
                   ],
                   "replacementGroup": "forearm_wrist_curl",
                   "replacementPriority": 1
@@ -622,13 +839,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Sujeta el peso con la palma hacia arriba y el codo apoyado y fijo."
+                "Preparación: Mancuerna ligera para girar la palma hacia abajo: el codo actúa como ancla y el antebrazo organiza todo el movimiento."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "techniqueSummary": "Mancuerna ligera para girar la palma hacia abajo: el codo actúa como ancla y el antebrazo organiza todo el movimiento. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor.",
+              "ttc": 1.5,
+              "variantRationale": "Mancuerna ligera para girar la palma hacia abajo: el codo actúa como ancla y el antebrazo organiza todo el movimiento. El trabajo unilateral deja claro qué lado necesita más control o resistencia."
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -640,9 +859,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_curl_muneca_sentado",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "pronation__cable",
@@ -650,18 +869,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Polea baja para girar la palma hacia abajo: la resistencia acompaña a la mano durante la rotación y se regula con mucha precisión.",
+                "Una opción cómoda para practicar el gesto sin convertirlo en un movimiento de hombro."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Levantar el codo o usar el hombro para facilitar la rotación."
+                "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
               ],
-              "description": "En polea, la tensión constante hace que el giro hacia abajo cargue todo el recorrido. Ideal para igualar la fuerza de las rotaciones.",
+              "description": "Polea baja para girar la palma hacia abajo: la resistencia acompaña a la mano durante la rotación y se regula con mucha precisión. Una opción cómoda para practicar el gesto sin convertirlo en un movimiento de hombro.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
-                "Gira la palma hacia abajo rotando solo el antebrazo, con el codo quieto."
+                "Polea baja para girar la palma hacia abajo: la resistencia acompaña a la mano durante la rotación y se regula con mucha precisión. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión O Extensión"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Principal: La muñeca genera el movimiento y concentra la resistencia en el antebrazo. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo fija la longitud de la posición para que la mano no arrastre el brazo entero. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Orientación Del Antebrazo"
+                  ],
+                  "jointId": "radiocubital-proximal",
+                  "note": "Estabilizadora: La del antebrazo proximal orienta el antebrazo y permite que la muñeca trabaje en su plano. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
@@ -669,7 +919,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "forearm",
-                  "note": "Principal: los músculos pronadores rotan el antebrazo contra la resistencia; por eso suman la serie completa (1.0)."
+                  "note": "Principal: El antebrazo transmite el agarre y mantiene la muñeca alineada con la resistencia. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "pronation__cable",
@@ -682,7 +932,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "wrist_flexion"
+                    "Flexión O Extensión",
+                    "Estabilidad",
+                    "Orientación Del Antebrazo"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión O Extensión"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Principal: La muñeca genera el movimiento y concentra la resistencia en el antebrazo. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo fija la longitud de la posición para que la mano no arrastre el brazo entero. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Orientación Del Antebrazo"
+                      ],
+                      "jointId": "radiocubital-proximal",
+                      "note": "Estabilizadora: La del antebrazo proximal orienta el antebrazo y permite que la muñeca trabaje en su plano. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -705,40 +983,41 @@
                   "movementPatternId": "wrist_flexion",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "muñeca",
+                    "codo",
+                    "radiocubital-proximal"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca",
+                    "tendon-bíceps",
+                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Levantar el codo o usar el hombro para facilitar la rotación."
+                    "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Polea baja para girar la palma hacia abajo: la resistencia acompaña a la mano durante la rotación y se regula con mucha precisión. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
                   ],
                   "execution": [
-                    "Gira la palma hacia abajo rotando solo el antebrazo, con el codo quieto."
+                    "Polea baja para girar la palma hacia abajo: la resistencia acompaña a la mano durante la rotación y se regula con mucha precisión. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando desarrollar el antebrazo y la tolerancia de la muñeca con una carga localizada siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar flexión o extensión de la muñeca como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de muñeca según tolerancia y rango disponible.",
+                    "Movilidad de codo según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Sujeta el peso con la palma hacia arriba y el codo apoyado y fijo."
+                    "Preparación: Polea baja para girar la palma hacia abajo: la resistencia acompaña a la mano durante la rotación y se regula con mucha precisión."
                   ]
                 },
                 "display": {
@@ -747,6 +1026,15 @@
                   "selectedOptions": {
                     "implement": "cable"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Polea baja para girar la palma hacia abajo: la resistencia acompaña a la mano durante la rotación y se regula con mucha precisión.",
+                    "Una opción cómoda para practicar el gesto sin convertirlo en un movimiento de hombro."
+                  ],
+                  "description": "Polea baja para girar la palma hacia abajo: la resistencia acompaña a la mano durante la rotación y se regula con mucha precisión. Una opción cómoda para practicar el gesto sin convertirlo en un movimiento de hombro.",
+                  "technique": "Polea baja para girar la palma hacia abajo: la resistencia acompaña a la mano durante la rotación y se regula con mucha precisión. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor.",
+                  "variantRationale": "Polea baja para girar la palma hacia abajo: la resistencia acompaña a la mano durante la rotación y se regula con mucha precisión. Una opción cómoda para practicar el gesto sin convertirlo en un movimiento de hombro."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -759,7 +1047,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pronaciones",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "pronation__cable",
                   "definitionId": "pronation",
                   "familyId": "lower_wrist_rotation",
@@ -779,7 +1067,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar forearm con pronaciones en cable."
+                    "Desarrollar el antebrazo mediante Pronaciones en la variante Polea.",
+                    "Priorizar desarrollar el antebrazo y la tolerancia de la muñeca con una carga localizada con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -802,7 +1091,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva la rotación interna del antebrazo y el objetivo forearm."
+                    "Conserva flexión o extensión de la muñeca y el objetivo de el antebrazo.",
+                    "La sustitución debe respetar las articulaciones relevantes: muñeca, codo, radiocubital proximal."
                   ],
                   "replacementGroup": "forearm_wrist_curl",
                   "replacementPriority": 1
@@ -817,13 +1107,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Sujeta el peso con la palma hacia arriba y el codo apoyado y fijo."
+                "Preparación: Polea baja para girar la palma hacia abajo: la resistencia acompaña a la mano durante la rotación y se regula con mucha precisión."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "techniqueSummary": "Polea baja para girar la palma hacia abajo: la resistencia acompaña a la mano durante la rotación y se regula con mucha precisión. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor.",
+              "ttc": 1.5,
+              "variantRationale": "Polea baja para girar la palma hacia abajo: la resistencia acompaña a la mano durante la rotación y se regula con mucha precisión. Una opción cómoda para practicar el gesto sin convertirlo en un movimiento de hombro."
             },
             "selectedOptions": {
               "implement": "cable"
@@ -831,13 +1123,13 @@
           }
         ],
         "defaultConfigurationId": "pronation__dumbbells",
-        "description": "Gira la palma de la mano hacia abajo contra la resistencia: el gesto complementario a la supinación que fortalece los pronadores del antebrazo. Pequeño en tamaño, grande en beneficios para el codo y el agarre.",
+        "description": "La rotación hacia palma abajo exige que el antebrazo dirija la mano sin que el hombro compense el gesto. Su recorrido corto permite entrenar la pronación con una carga muy dosificable.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v3-2026-08-02"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Aprobado por decisión explícita de catálogo v3; la configuración está materializada y no depende de inferencia runtime.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_wrist_rotation",
@@ -858,9 +1150,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:lower_wrist_flexion"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_wrist_rotation",
@@ -869,6 +1161,6 @@
       "wrist_rotation"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Core · abdominals · lateral trunk flexion",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#core_inclinacion_lateral",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "core_inclinacion_lateral__default",
@@ -22,18 +22,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "De pie o sentado, te inclinas hacia el lado cargando el oblicuo.",
+                "Movimiento corto, sensación larga: útil para terminar el día de abdomen."
+              ],
               "bodyRegion": "CORE",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón flexión lateral tronco para completar la repetición."
+                "Girar en vez de inclinar, desplazar la pelvis o acelerar la vuelta."
               ],
-              "description": "De pie o sentado, te inclinas hacia el lado cargando el oblicuo. Movimiento corto, sensación larga: ideal para terminar el día de abdomen.",
+              "description": "De pie o sentado, te inclinas hacia el lado cargando el oblicuo. Movimiento corto, sensación larga: útil para terminar el día de abdomen.",
               "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Ejecuta «Inclinación Lateral» siguiendo el patrón flexión lateral tronco con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "De pie o sentado, te inclinas hacia el lado cargando el oblicuo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Lateral"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Principal: La columna lumbar aproxima el costado al tiempo que resiste el exceso de inclinación. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Pélvica"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis mantiene la base y evita que la inclinación salga de todo el cuerpo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación"
+                  ],
+                  "jointId": "columna-toracica",
+                  "note": "Estabilizadora: La columna torácica acompaña el arco sin convertirlo en una rotación. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -41,7 +72,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "abdominals",
-                  "note": "Principal: el abdomen flexiona o fija el tronco y concentra la fuerza del movimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El recto abdominal acerca costillas y pelvis o resiste la extensión del tronco. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "core_inclinacion_lateral__dumbbells__inclinacion_lateral",
@@ -54,7 +85,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "lateral_trunk_flexion"
+                    "Flexión Lateral",
+                    "Estabilidad Pélvica",
+                    "Alineación"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Lateral"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Principal: La columna lumbar aproxima el costado al tiempo que resiste el exceso de inclinación. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Pélvica"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis mantiene la base y evita que la inclinación salga de todo el cuerpo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación"
+                      ],
+                      "jointId": "columna-toracica",
+                      "note": "Estabilizadora: La columna torácica acompaña el arco sin convertirlo en una rotación. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -77,44 +136,51 @@
                   "movementPatternId": "lateral_trunk_flexion",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "spine",
-                    "hip"
+                    "columna-lumbar",
+                    "sacroiliaca",
+                    "columna-toracica"
                   ],
-                  "relevantTendons": [
-                    "spine_tendon",
-                    "hip_tendon"
-                  ],
+                  "relevantTendons": [],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón flexión lateral tronco para completar la repetición."
+                    "Girar en vez de inclinar, desplazar la pelvis o acelerar la vuelta."
                   ],
                   "cues": [
-                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                    "De pie o sentado, te inclinas hacia el lado cargando el oblicuo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Ejecuta «Inclinación Lateral» siguiendo el patrón flexión lateral tronco con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "De pie o sentado, te inclinas hacia el lado cargando el oblicuo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer la resistencia lateral del tronco y la estabilidad de la pelvis siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar inclinación lateral controlada del tronco como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de spine según tolerancia y rango disponible.",
-                    "Movilidad de hip según tolerancia y rango disponible."
+                    "Movilidad de columna lumbar según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura mancuerna y adopta la posición específica de «Inclinación Lateral» antes de iniciar; conserva una base estable."
+                    "Preparación: De pie o sentado, te inclinas hacia el lado cargando el oblicuo."
                   ]
                 },
                 "display": {
                   "displayName": "Inclinación Lateral",
                   "displaySummary": "Mancuerna",
                   "selectedOptions": {}
+                },
+                "editorial": {
+                  "benefits": [
+                    "De pie o sentado, te inclinas hacia el lado cargando el oblicuo.",
+                    "Movimiento corto, sensación larga: útil para terminar el día de abdomen."
+                  ],
+                  "description": "De pie o sentado, te inclinas hacia el lado cargando el oblicuo. Movimiento corto, sensación larga: útil para terminar el día de abdomen.",
+                  "technique": "De pie o sentado, te inclinas hacia el lado cargando el oblicuo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "De pie o sentado, te inclinas hacia el lado cargando el oblicuo. Movimiento corto, sensación larga: útil para terminar el día de abdomen."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -127,7 +193,7 @@
                 },
                 "identity": {
                   "canonicalName": "Inclinación Lateral",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "core_inclinacion_lateral__default",
                   "definitionId": "core_inclinacion_lateral",
                   "familyId": "core_lateral_trunk_flexion",
@@ -145,8 +211,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar abdominals dentro del patrón lateral_trunk_flexion.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el recto abdominal mediante Inclinación Lateral en la variante Mancuernas.",
+                    "Priorizar fortalecer la resistencia lateral del tronco y la estabilidad de la pelvis con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -168,7 +234,8 @@
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón lateral_trunk_flexion y el objetivo abdominals."
+                    "Conserva inclinación lateral controlada del tronco y el objetivo de el recto abdominal.",
+                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar, articulación sacroilíaca, columna torácica."
                   ],
                   "replacementGroup": "core_side_bend",
                   "replacementPriority": 2
@@ -183,25 +250,27 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Configura mancuerna y adopta la posición específica de «Inclinación Lateral» antes de iniciar; conserva una base estable."
+                "Preparación: De pie o sentado, te inclinas hacia el lado cargando el oblicuo."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "techniqueSummary": "De pie o sentado, te inclinas hacia el lado cargando el oblicuo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 1.5,
+              "variantRationale": "De pie o sentado, te inclinas hacia el lado cargando el oblicuo. Movimiento corto, sensación larga: útil para terminar el día de abdomen."
             },
             "selectedOptions": {}
           }
         ],
         "defaultConfigurationId": "core_inclinacion_lateral__default",
-        "description": "Inclinación lateral: te doblas hacia un lado y vuelves, trabajando los oblicuos de forma aislada. El movimiento pequeño que define la cintura cuando se hace con paciencia.",
+        "description": "Inclinación del tronco: te doblas hacia un lado y vuelves, trabajando los oblicuos de forma aislada. El movimiento pequeño que define la cintura cuando se hace con paciencia.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:core_inclinacion_lateral"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "core_lateral_trunk_flexion",
@@ -218,9 +287,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:core_lateral_trunk_flexion"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "core_lateral_trunk_flexion",
@@ -229,6 +298,6 @@
       "lateral_trunk_flexion"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

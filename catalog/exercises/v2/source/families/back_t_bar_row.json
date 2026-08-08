@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Remo en Barra T",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_barra_t",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "t_bar_row__machine__wide",
@@ -22,18 +22,58 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Máquina T con agarre amplio: las asas separan los codos y llevan el trabajo hacia romboides y trapecio medio.",
+                "El guiado limita la deriva, pero la amplitud elegida determina la posición del hombro durante el tirón."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+                "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Máquina de barra T con agarre amplio: el guiado te permite cargar peso sin pensar en equilibrio. La vía más cómoda hacia una espalda alta potente.",
+              "description": "Máquina T con agarre amplio: las asas separan los codos y llevan el trabajo hacia romboides y trapecio medio. El guiado limita la deriva, pero la amplitud elegida determina la posición del hombro durante el tirón.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
-                "Ejecuta «Remo en Barra T» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Máquina T con agarre amplio: las asas separan los codos y llevan el trabajo hacia romboides y trapecio medio. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión",
+                    "Aducción Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro lleva el brazo hacia el tronco y concentra la dirección del tirón. La amplitud abierta coloca el brazo más separado del tronco y cambia el recorrido escapular.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Retracción Escapular"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se acerca y se fija sobre el tórax para sostener la tracción. La amplitud abierta coloca el brazo más separado del tronco y cambia el recorrido escapular.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo acerca la mano y comparte la fuerza sin sustituir al movimiento de espalda. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca mantiene el contacto con el implemento para que la fuerza llegue al codo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -41,23 +81,23 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal dirige el tirón y concentra el trabajo en todo el ancho de la espalda; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El dorsal extiende o aproxima el brazo al tronco desde la espalda. El agarre amplio lleva el codo hacia fuera y deja que la espalda alta comparta más el trabajo. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Secundario: con el agarre amplio, el trapecio y la espalda alta participan más al llevar los codos hacia atrás; por eso suman 0.5."
+                  "note": "Secundaria: El trapecio coordina la posición de la escápula y reparte la fuerza en la cintura escapular. El agarre amplio deja los codos más abiertos y aumenta su participación al llevarlos hacia atrás. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal de los brazos en el agarre amplio; por eso suma 0.5."
+                  "note": "Secundaria: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. El agarre amplio deja los codos más abiertos y aumenta su participación al llevarlos hacia atrás. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Estabilizador: los romboides juntan las escápulas al final del tirón; por eso suman 0.4."
+                  "note": "Estabilizadora: Los romboides acerca y fija las escápulas para que el brazo tenga una base estable. El agarre amplio deja los codos más abiertos y aumenta su participación al llevarlos hacia atrás. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "biceps",
-                  "note": "Estabilizador: el bíceps flexiona el codo con un brazo de palanca más corto en el agarre amplio; por eso suma 0.4."
+                  "note": "Estabilizadora: El bíceps flexiona el codo y, con agarre supino, ayuda a supinar el antebrazo. En la configuración Máquina · Agarre Amplio, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "t_bar_row__machine__wide__remo_barra_t",
@@ -70,7 +110,46 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "horizontal_pull"
+                    "Extensión",
+                    "Aducción Del Hombro",
+                    "Retracción Escapular",
+                    "Flexión",
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión",
+                        "Aducción Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro lleva el brazo hacia el tronco y concentra la dirección del tirón. La amplitud abierta coloca el brazo más separado del tronco y cambia el recorrido escapular.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Retracción Escapular"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se acerca y se fija sobre el tórax para sostener la tracción. La amplitud abierta coloca el brazo más separado del tronco y cambia el recorrido escapular.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo acerca la mano y comparte la fuerza sin sustituir al movimiento de espalda. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Del Agarre"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca mantiene el contacto con el implemento para que la fuerza llegue al codo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -99,39 +178,45 @@
                   "movementPatternId": "horizontal_pull",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+                    "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
                   ],
                   "cues": [
-                    "Mantén el equipo t_bar alineado con el patrón y controla la fase excéntrica."
+                    "Máquina T con agarre amplio: las asas separan los codos y llevan el trabajo hacia romboides y trapecio medio. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
                   ],
                   "execution": [
-                    "Ejecuta «Remo en Barra T» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Máquina T con agarre amplio: las asas separan los codos y llevan el trabajo hacia romboides y trapecio medio. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando dar grosor a la espalda y mantener un movimiento fácil de repetir siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar tirón del brazo y flexión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura la máquina y adopta la posición específica de «Remo en Barra T» antes de iniciar; conserva una base estable."
+                    "Preparación: Máquina T con agarre amplio: las asas separan los codos y llevan el trabajo hacia romboides y trapecio medio."
                   ]
                 },
                 "display": {
@@ -141,6 +226,15 @@
                     "grip_width": "wide",
                     "implement": "machine"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Máquina T con agarre amplio: las asas separan los codos y llevan el trabajo hacia romboides y trapecio medio.",
+                    "El guiado limita la deriva, pero la amplitud elegida determina la posición del hombro durante el tirón."
+                  ],
+                  "description": "Máquina T con agarre amplio: las asas separan los codos y llevan el trabajo hacia romboides y trapecio medio. El guiado limita la deriva, pero la amplitud elegida determina la posición del hombro durante el tirón.",
+                  "technique": "Máquina T con agarre amplio: las asas separan los codos y llevan el trabajo hacia romboides y trapecio medio. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido.",
+                  "variantRationale": "Máquina T con agarre amplio: las asas separan los codos y llevan el trabajo hacia romboides y trapecio medio. El guiado limita la deriva, pero la amplitud elegida determina la posición del hombro durante el tirón."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -153,7 +247,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo en Barra T",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "t_bar_row__machine__wide",
                   "definitionId": "t_bar_row",
                   "familyId": "back_t_bar_row",
@@ -173,7 +267,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
+                    "Desarrollar el dorsal mediante Remo en Barra T en la variante Máquina · Agarre Amplio.",
+                    "Priorizar dar grosor a la espalda y mantener un movimiento fácil de repetir con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -195,7 +290,8 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón y el objetivo latissimus_dorsi."
+                    "Conserva tirón del brazo y flexión del codo y el objetivo de el dorsal.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": "back_row_tbar",
                   "replacementPriority": null
@@ -213,7 +309,7 @@
                 "deltoid"
               ],
               "setupCues": [
-                "Configura la máquina y adopta la posición específica de «Remo en Barra T» antes de iniciar; conserva una base estable."
+                "Preparación: Máquina T con agarre amplio: las asas separan los codos y llevan el trabajo hacia romboides y trapecio medio."
               ],
               "setupTimeSeconds": 55,
               "ssc": 0.4,
@@ -222,7 +318,9 @@
                 "biceps"
               ],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Máquina T con agarre amplio: las asas separan los codos y llevan el trabajo hacia romboides y trapecio medio. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido.",
+              "ttc": 1.8,
+              "variantRationale": "Máquina T con agarre amplio: las asas separan los codos y llevan el trabajo hacia romboides y trapecio medio. El guiado limita la deriva, pero la amplitud elegida determina la posición del hombro durante el tirón."
             },
             "selectedOptions": {
               "grip_width": "wide",
@@ -235,9 +333,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_barra_t",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "t_bar_row__t_bar__wide",
@@ -245,18 +343,58 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Barra T con agarre amplio: las manos abiertas separan los codos y orientan el tirón hacia la espalda alta.",
+                "El anclaje permite cargar de forma estable, pero el torso debe permanecer firme para que la apertura no se convierta en impulso."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+                "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Barra T con agarre amplio: la carga anclada y las manos abiertas reparten el trabajo a la espalda alta. El remo de gimnasio serio con el que se construye grosor.",
+              "description": "Barra T con agarre amplio: las manos abiertas separan los codos y orientan el tirón hacia la espalda alta. El anclaje permite cargar de forma estable, pero el torso debe permanecer firme para que la apertura no se convierta en impulso.",
               "efc": 2.5,
               "equipmentId": "t_bar",
               "executionCues": [
-                "Ejecuta «Remo en Barra T» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Barra T con agarre amplio: las manos abiertas separan los codos y orientan el tirón hacia la espalda alta. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión",
+                    "Aducción Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro lleva el brazo hacia el tronco y concentra la dirección del tirón. La amplitud abierta coloca el brazo más separado del tronco y cambia el recorrido escapular.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Retracción Escapular"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se acerca y se fija sobre el tórax para sostener la tracción. La amplitud abierta coloca el brazo más separado del tronco y cambia el recorrido escapular.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo acerca la mano y comparte la fuerza sin sustituir al movimiento de espalda. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca mantiene el contacto con el implemento para que la fuerza llegue al codo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -264,23 +402,23 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal dirige el tirón y concentra el trabajo en todo el ancho de la espalda; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El dorsal extiende o aproxima el brazo al tronco desde la espalda. El agarre amplio lleva el codo hacia fuera y deja que la espalda alta comparta más el trabajo. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Secundario: con el agarre amplio, el trapecio y la espalda alta participan más al llevar los codos hacia atrás; por eso suman 0.5."
+                  "note": "Secundaria: El trapecio coordina la posición de la escápula y reparte la fuerza en la cintura escapular. El agarre amplio deja los codos más abiertos y aumenta su participación al llevarlos hacia atrás. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides posterior asiste la abducción horizontal de los brazos en el agarre amplio; por eso suma 0.5."
+                  "note": "Secundaria: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. El agarre amplio deja los codos más abiertos y aumenta su participación al llevarlos hacia atrás. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Estabilizador: los romboides juntan las escápulas al final del tirón; por eso suman 0.4."
+                  "note": "Estabilizadora: Los romboides acerca y fija las escápulas para que el brazo tenga una base estable. El agarre amplio deja los codos más abiertos y aumenta su participación al llevarlos hacia atrás. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "biceps",
-                  "note": "Estabilizador: el bíceps flexiona el codo con un brazo de palanca más corto en el agarre amplio; por eso suma 0.4."
+                  "note": "Estabilizadora: El bíceps flexiona el codo y, con agarre supino, ayuda a supinar el antebrazo. En la configuración Barra T · Agarre Amplio, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "t_bar_row__t_bar__wide__remo_barra_t",
@@ -293,7 +431,46 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "horizontal_pull"
+                    "Extensión",
+                    "Aducción Del Hombro",
+                    "Retracción Escapular",
+                    "Flexión",
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión",
+                        "Aducción Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro lleva el brazo hacia el tronco y concentra la dirección del tirón. La amplitud abierta coloca el brazo más separado del tronco y cambia el recorrido escapular.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Retracción Escapular"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se acerca y se fija sobre el tórax para sostener la tracción. La amplitud abierta coloca el brazo más separado del tronco y cambia el recorrido escapular.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo acerca la mano y comparte la fuerza sin sustituir al movimiento de espalda. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Del Agarre"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca mantiene el contacto con el implemento para que la fuerza llegue al codo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -322,39 +499,45 @@
                   "movementPatternId": "horizontal_pull",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+                    "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
                   ],
                   "cues": [
-                    "Mantén el equipo t_bar alineado con el patrón y controla la fase excéntrica."
+                    "Barra T con agarre amplio: las manos abiertas separan los codos y orientan el tirón hacia la espalda alta. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
                   ],
                   "execution": [
-                    "Ejecuta «Remo en Barra T» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Barra T con agarre amplio: las manos abiertas separan los codos y orientan el tirón hacia la espalda alta. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando dar grosor a la espalda y mantener un movimiento fácil de repetir siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar tirón del brazo y flexión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura la barra T y adopta la posición específica de «Remo en Barra T» antes de iniciar; conserva una base estable."
+                    "Preparación: Barra T con agarre amplio: las manos abiertas separan los codos y orientan el tirón hacia la espalda alta."
                   ]
                 },
                 "display": {
@@ -364,6 +547,15 @@
                     "grip_width": "wide",
                     "implement": "t_bar"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Barra T con agarre amplio: las manos abiertas separan los codos y orientan el tirón hacia la espalda alta.",
+                    "El anclaje permite cargar de forma estable, pero el torso debe permanecer firme para que la apertura no se convierta en impulso."
+                  ],
+                  "description": "Barra T con agarre amplio: las manos abiertas separan los codos y orientan el tirón hacia la espalda alta. El anclaje permite cargar de forma estable, pero el torso debe permanecer firme para que la apertura no se convierta en impulso.",
+                  "technique": "Barra T con agarre amplio: las manos abiertas separan los codos y orientan el tirón hacia la espalda alta. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido.",
+                  "variantRationale": "Barra T con agarre amplio: las manos abiertas separan los codos y orientan el tirón hacia la espalda alta. El anclaje permite cargar de forma estable, pero el torso debe permanecer firme para que la apertura no se convierta en impulso."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -376,7 +568,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo en Barra T",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "t_bar_row__t_bar__wide",
                   "definitionId": "t_bar_row",
                   "familyId": "back_t_bar_row",
@@ -396,7 +588,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
+                    "Desarrollar el dorsal mediante Remo en Barra T en la variante Barra T · Agarre Amplio.",
+                    "Priorizar dar grosor a la espalda y mantener un movimiento fácil de repetir con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -418,7 +611,8 @@
                     "t_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón y el objetivo latissimus_dorsi."
+                    "Conserva tirón del brazo y flexión del codo y el objetivo de el dorsal.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": "back_row_tbar",
                   "replacementPriority": null
@@ -436,7 +630,7 @@
                 "deltoid"
               ],
               "setupCues": [
-                "Configura la barra T y adopta la posición específica de «Remo en Barra T» antes de iniciar; conserva una base estable."
+                "Preparación: Barra T con agarre amplio: las manos abiertas separan los codos y orientan el tirón hacia la espalda alta."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.4,
@@ -445,7 +639,9 @@
                 "biceps"
               ],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Barra T con agarre amplio: las manos abiertas separan los codos y orientan el tirón hacia la espalda alta. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido.",
+              "ttc": 1.8,
+              "variantRationale": "Barra T con agarre amplio: las manos abiertas separan los codos y orientan el tirón hacia la espalda alta. El anclaje permite cargar de forma estable, pero el torso debe permanecer firme para que la apertura no se convierta en impulso."
             },
             "selectedOptions": {
               "grip_width": "wide",
@@ -458,9 +654,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_barra_t",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "t_bar_row__machine__medium",
@@ -468,18 +664,58 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Máquina T con agarre medio: el recorrido guiado coloca los codos en una diagonal intermedia entre dorsal y espalda alta.",
+                "La estación permite graduar la carga y repetir el ángulo sin que la barra se desplace lateralmente."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+                "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Máquina de barra T con agarre medio: recorrido guiado y tensión constante en la espalda media. Rápida de montar y muy productiva para volumen.",
+              "description": "Máquina T con agarre medio: el recorrido guiado coloca los codos en una diagonal intermedia entre dorsal y espalda alta. La estación permite graduar la carga y repetir el ángulo sin que la barra se desplace lateralmente.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
-                "Ejecuta «Remo en Barra T» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Máquina T con agarre medio: el recorrido guiado coloca los codos en una diagonal intermedia entre dorsal y espalda alta. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión",
+                    "Aducción Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro lleva el brazo hacia el tronco y concentra la dirección del tirón. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Retracción Escapular"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se acerca y se fija sobre el tórax para sostener la tracción. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo acerca la mano y comparte la fuerza sin sustituir al movimiento de espalda. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca mantiene el contacto con el implemento para que la fuerza llegue al codo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -487,23 +723,23 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal dirige el tirón y concentra el trabajo en todo el ancho de la espalda; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El dorsal extiende o aproxima el brazo al tronco desde la espalda. El agarre medio equilibra el recorrido del hombro y la facilidad para cargar el tirón. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Secundario: el trapecio ayuda a retraer las escápulas al llevar los codos atrás; por eso suma 0.5."
+                  "note": "Secundaria: El trapecio coordina la posición de la escápula y reparte la fuerza en la cintura escapular. En la configuración Máquina · Agarre Medio, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides juntan las escápulas al final del tirón; por eso suman 0.5."
+                  "note": "Secundaria: Los romboides acerca y fija las escápulas para que el brazo tenga una base estable. En la configuración Máquina · Agarre Medio, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo con el agarre medio y reparte el trabajo del brazo; por eso suma 0.5."
+                  "note": "Secundaria: El bíceps flexiona el codo y, con agarre supino, ayuda a supinar el antebrazo. En la configuración Máquina · Agarre Medio, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Estabilizador: el deltoides posterior mantiene el hombro estable durante el tirón; por eso suma 0.4."
+                  "note": "Estabilizadora: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Máquina · Agarre Medio, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "t_bar_row__machine__medium__remo_barra_t",
@@ -516,7 +752,46 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "horizontal_pull"
+                    "Extensión",
+                    "Aducción Del Hombro",
+                    "Retracción Escapular",
+                    "Flexión",
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión",
+                        "Aducción Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro lleva el brazo hacia el tronco y concentra la dirección del tirón. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Retracción Escapular"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se acerca y se fija sobre el tórax para sostener la tracción. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo acerca la mano y comparte la fuerza sin sustituir al movimiento de espalda. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Del Agarre"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca mantiene el contacto con el implemento para que la fuerza llegue al codo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -545,39 +820,45 @@
                   "movementPatternId": "horizontal_pull",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+                    "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
                   ],
                   "cues": [
-                    "Mantén el equipo t_bar alineado con el patrón y controla la fase excéntrica."
+                    "Máquina T con agarre medio: el recorrido guiado coloca los codos en una diagonal intermedia entre dorsal y espalda alta. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
                   ],
                   "execution": [
-                    "Ejecuta «Remo en Barra T» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Máquina T con agarre medio: el recorrido guiado coloca los codos en una diagonal intermedia entre dorsal y espalda alta. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando dar grosor a la espalda y mantener un movimiento fácil de repetir siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar tirón del brazo y flexión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura la máquina y adopta la posición específica de «Remo en Barra T» antes de iniciar; conserva una base estable."
+                    "Preparación: Máquina T con agarre medio: el recorrido guiado coloca los codos en una diagonal intermedia entre dorsal y espalda alta."
                   ]
                 },
                 "display": {
@@ -587,6 +868,15 @@
                     "grip_width": "medium",
                     "implement": "machine"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Máquina T con agarre medio: el recorrido guiado coloca los codos en una diagonal intermedia entre dorsal y espalda alta.",
+                    "La estación permite graduar la carga y repetir el ángulo sin que la barra se desplace lateralmente."
+                  ],
+                  "description": "Máquina T con agarre medio: el recorrido guiado coloca los codos en una diagonal intermedia entre dorsal y espalda alta. La estación permite graduar la carga y repetir el ángulo sin que la barra se desplace lateralmente.",
+                  "technique": "Máquina T con agarre medio: el recorrido guiado coloca los codos en una diagonal intermedia entre dorsal y espalda alta. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido.",
+                  "variantRationale": "Máquina T con agarre medio: el recorrido guiado coloca los codos en una diagonal intermedia entre dorsal y espalda alta. La estación permite graduar la carga y repetir el ángulo sin que la barra se desplace lateralmente."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -599,7 +889,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo en Barra T",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "t_bar_row__machine__medium",
                   "definitionId": "t_bar_row",
                   "familyId": "back_t_bar_row",
@@ -619,7 +909,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
+                    "Desarrollar el dorsal mediante Remo en Barra T en la variante Máquina · Agarre Medio.",
+                    "Priorizar dar grosor a la espalda y mantener un movimiento fácil de repetir con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -641,7 +932,8 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón y el objetivo latissimus_dorsi."
+                    "Conserva tirón del brazo y flexión del codo y el objetivo de el dorsal.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": "back_row_tbar",
                   "replacementPriority": null
@@ -660,7 +952,7 @@
                 "biceps"
               ],
               "setupCues": [
-                "Configura la máquina y adopta la posición específica de «Remo en Barra T» antes de iniciar; conserva una base estable."
+                "Preparación: Máquina T con agarre medio: el recorrido guiado coloca los codos en una diagonal intermedia entre dorsal y espalda alta."
               ],
               "setupTimeSeconds": 55,
               "ssc": 0.4,
@@ -668,7 +960,9 @@
                 "deltoid"
               ],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Máquina T con agarre medio: el recorrido guiado coloca los codos en una diagonal intermedia entre dorsal y espalda alta. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido.",
+              "ttc": 1.8,
+              "variantRationale": "Máquina T con agarre medio: el recorrido guiado coloca los codos en una diagonal intermedia entre dorsal y espalda alta. La estación permite graduar la carga y repetir el ángulo sin que la barra se desplace lateralmente."
             },
             "selectedOptions": {
               "grip_width": "medium",
@@ -681,9 +975,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_barra_t",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "t_bar_row__t_bar__medium",
@@ -691,18 +985,58 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Barra T con agarre medio: el anclaje ofrece una línea diagonal y el codo queda entre el costado y la apertura de la espalda alta.",
+                "Es una posición intermedia para repartir el trabajo sin perder la estabilidad que aporta la carga guiada por el pivote."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+                "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Barra T con agarre medio: dorsal y espalda media reparten el trabajo en el tirón clásico. El agarre de siempre, el ejercicio de siempre, la espalda de siempre.",
+              "description": "Barra T con agarre medio: el anclaje ofrece una línea diagonal y el codo queda entre el costado y la apertura de la espalda alta. Es una posición intermedia para repartir el trabajo sin perder la estabilidad que aporta la carga guiada por el pivote.",
               "efc": 2.5,
               "equipmentId": "t_bar",
               "executionCues": [
-                "Ejecuta «Remo en Barra T» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Barra T con agarre medio: el anclaje ofrece una línea diagonal y el codo queda entre el costado y la apertura de la espalda alta. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión",
+                    "Aducción Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro lleva el brazo hacia el tronco y concentra la dirección del tirón. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Retracción Escapular"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se acerca y se fija sobre el tórax para sostener la tracción. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo acerca la mano y comparte la fuerza sin sustituir al movimiento de espalda. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca mantiene el contacto con el implemento para que la fuerza llegue al codo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -710,23 +1044,23 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal dirige el tirón y concentra el trabajo en todo el ancho de la espalda; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El dorsal extiende o aproxima el brazo al tronco desde la espalda. El agarre medio equilibra el recorrido del hombro y la facilidad para cargar el tirón. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Secundario: el trapecio ayuda a retraer las escápulas al llevar los codos atrás; por eso suma 0.5."
+                  "note": "Secundaria: El trapecio coordina la posición de la escápula y reparte la fuerza en la cintura escapular. En la configuración Barra T · Agarre Medio, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides juntan las escápulas al final del tirón; por eso suman 0.5."
+                  "note": "Secundaria: Los romboides acerca y fija las escápulas para que el brazo tenga una base estable. En la configuración Barra T · Agarre Medio, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "biceps",
-                  "note": "Secundario: el bíceps flexiona el codo con el agarre medio y reparte el trabajo del brazo; por eso suma 0.5."
+                  "note": "Secundaria: El bíceps flexiona el codo y, con agarre supino, ayuda a supinar el antebrazo. En la configuración Barra T · Agarre Medio, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Estabilizador: el deltoides posterior mantiene el hombro estable durante el tirón; por eso suma 0.4."
+                  "note": "Estabilizadora: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Barra T · Agarre Medio, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "t_bar_row__t_bar__medium__remo_barra_t",
@@ -739,7 +1073,46 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "horizontal_pull"
+                    "Extensión",
+                    "Aducción Del Hombro",
+                    "Retracción Escapular",
+                    "Flexión",
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión",
+                        "Aducción Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro lleva el brazo hacia el tronco y concentra la dirección del tirón. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Retracción Escapular"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se acerca y se fija sobre el tórax para sostener la tracción. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo acerca la mano y comparte la fuerza sin sustituir al movimiento de espalda. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Del Agarre"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca mantiene el contacto con el implemento para que la fuerza llegue al codo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -768,39 +1141,45 @@
                   "movementPatternId": "horizontal_pull",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+                    "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
                   ],
                   "cues": [
-                    "Mantén el equipo t_bar alineado con el patrón y controla la fase excéntrica."
+                    "Barra T con agarre medio: el anclaje ofrece una línea diagonal y el codo queda entre el costado y la apertura de la espalda alta. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
                   ],
                   "execution": [
-                    "Ejecuta «Remo en Barra T» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Barra T con agarre medio: el anclaje ofrece una línea diagonal y el codo queda entre el costado y la apertura de la espalda alta. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando dar grosor a la espalda y mantener un movimiento fácil de repetir siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar tirón del brazo y flexión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura la barra T y adopta la posición específica de «Remo en Barra T» antes de iniciar; conserva una base estable."
+                    "Preparación: Barra T con agarre medio: el anclaje ofrece una línea diagonal y el codo queda entre el costado y la apertura de la espalda alta."
                   ]
                 },
                 "display": {
@@ -810,6 +1189,15 @@
                     "grip_width": "medium",
                     "implement": "t_bar"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Barra T con agarre medio: el anclaje ofrece una línea diagonal y el codo queda entre el costado y la apertura de la espalda alta.",
+                    "Es una posición intermedia para repartir el trabajo sin perder la estabilidad que aporta la carga guiada por el pivote."
+                  ],
+                  "description": "Barra T con agarre medio: el anclaje ofrece una línea diagonal y el codo queda entre el costado y la apertura de la espalda alta. Es una posición intermedia para repartir el trabajo sin perder la estabilidad que aporta la carga guiada por el pivote.",
+                  "technique": "Barra T con agarre medio: el anclaje ofrece una línea diagonal y el codo queda entre el costado y la apertura de la espalda alta. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido.",
+                  "variantRationale": "Barra T con agarre medio: el anclaje ofrece una línea diagonal y el codo queda entre el costado y la apertura de la espalda alta. Es una posición intermedia para repartir el trabajo sin perder la estabilidad que aporta la carga guiada por el pivote."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -822,7 +1210,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo en Barra T",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "t_bar_row__t_bar__medium",
                   "definitionId": "t_bar_row",
                   "familyId": "back_t_bar_row",
@@ -842,7 +1230,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
+                    "Desarrollar el dorsal mediante Remo en Barra T en la variante Barra T · Agarre Medio.",
+                    "Priorizar dar grosor a la espalda y mantener un movimiento fácil de repetir con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -864,7 +1253,8 @@
                     "t_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón y el objetivo latissimus_dorsi."
+                    "Conserva tirón del brazo y flexión del codo y el objetivo de el dorsal.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": "back_row_tbar",
                   "replacementPriority": null
@@ -883,7 +1273,7 @@
                 "biceps"
               ],
               "setupCues": [
-                "Configura la barra T y adopta la posición específica de «Remo en Barra T» antes de iniciar; conserva una base estable."
+                "Preparación: Barra T con agarre medio: el anclaje ofrece una línea diagonal y el codo queda entre el costado y la apertura de la espalda alta."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.4,
@@ -891,7 +1281,9 @@
                 "deltoid"
               ],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Barra T con agarre medio: el anclaje ofrece una línea diagonal y el codo queda entre el costado y la apertura de la espalda alta. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido.",
+              "ttc": 1.8,
+              "variantRationale": "Barra T con agarre medio: el anclaje ofrece una línea diagonal y el codo queda entre el costado y la apertura de la espalda alta. Es una posición intermedia para repartir el trabajo sin perder la estabilidad que aporta la carga guiada por el pivote."
             },
             "selectedOptions": {
               "grip_width": "medium",
@@ -904,9 +1296,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_barra_t",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "t_bar_row__machine__close",
@@ -914,18 +1306,58 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Máquina T con agarre cerrado: las asas acercan los codos al cuerpo y la guía mantiene la carga en una línea repetible.",
+                "La posición favorece una tracción más dirigida al dorsal sin exigir que el torso equilibre el aparato."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+                "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Máquina de barra T con agarre cerrado: el dorsal trabaja aislado y el banco sujeta el pecho. Cómoda, segura y muy efectiva para la espalda media.",
+              "description": "Máquina T con agarre cerrado: las asas acercan los codos al cuerpo y la guía mantiene la carga en una línea repetible. La posición favorece una tracción más dirigida al dorsal sin exigir que el torso equilibre el aparato.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
-                "Ejecuta «Remo en Barra T» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Máquina T con agarre cerrado: las asas acercan los codos al cuerpo y la guía mantiene la carga en una línea repetible. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión",
+                    "Aducción Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro lleva el brazo hacia el tronco y concentra la dirección del tirón. La amplitud cerrada acerca el codo al cuerpo y reduce la apertura del hombro.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Retracción Escapular"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se acerca y se fija sobre el tórax para sostener la tracción. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo acerca la mano y comparte la fuerza sin sustituir al movimiento de espalda. La amplitud cerrada acerca el codo al cuerpo y reduce la apertura del hombro.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca mantiene el contacto con el implemento para que la fuerza llegue al codo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -933,19 +1365,19 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal dirige el tirón y se estira más con los codos pegados al cuerpo; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El dorsal extiende o aproxima el brazo al tronco desde la espalda. El agarre cerrado acerca el codo al cuerpo y favorece un recorrido más largo junto al costado. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: con el agarre cerrado, los romboides retraen las escápulas con más recorrido; por eso suman 0.5."
+                  "note": "Secundaria: Los romboides acerca y fija las escápulas para que el brazo tenga una base estable. En la configuración Máquina · Agarre Cerrado, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "biceps",
-                  "note": "Secundario: el bíceps trabaja más con los codos cerca del cuerpo flexionando en posición de palanca larga; por eso suma 0.5."
+                  "note": "Secundaria: El bíceps flexiona el codo y, con agarre supino, ayuda a supinar el antebrazo. El agarre cerrado acerca el codo al cuerpo y favorece un recorrido más largo junto al costado. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Estabilizador: el deltoides posterior mantiene el hombro estable durante el tirón; por eso suma 0.4."
+                  "note": "Estabilizadora: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Máquina · Agarre Cerrado, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "t_bar_row__machine__close__remo_barra_t",
@@ -958,7 +1390,46 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "horizontal_pull"
+                    "Extensión",
+                    "Aducción Del Hombro",
+                    "Retracción Escapular",
+                    "Flexión",
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión",
+                        "Aducción Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro lleva el brazo hacia el tronco y concentra la dirección del tirón. La amplitud cerrada acerca el codo al cuerpo y reduce la apertura del hombro.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Retracción Escapular"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se acerca y se fija sobre el tórax para sostener la tracción. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo acerca la mano y comparte la fuerza sin sustituir al movimiento de espalda. La amplitud cerrada acerca el codo al cuerpo y reduce la apertura del hombro.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Del Agarre"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca mantiene el contacto con el implemento para que la fuerza llegue al codo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -986,39 +1457,45 @@
                   "movementPatternId": "horizontal_pull",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+                    "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
                   ],
                   "cues": [
-                    "Mantén el equipo t_bar alineado con el patrón y controla la fase excéntrica."
+                    "Máquina T con agarre cerrado: las asas acercan los codos al cuerpo y la guía mantiene la carga en una línea repetible. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
                   ],
                   "execution": [
-                    "Ejecuta «Remo en Barra T» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Máquina T con agarre cerrado: las asas acercan los codos al cuerpo y la guía mantiene la carga en una línea repetible. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando dar grosor a la espalda y mantener un movimiento fácil de repetir siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar tirón del brazo y flexión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura la máquina y adopta la posición específica de «Remo en Barra T» antes de iniciar; conserva una base estable."
+                    "Preparación: Máquina T con agarre cerrado: las asas acercan los codos al cuerpo y la guía mantiene la carga en una línea repetible."
                   ]
                 },
                 "display": {
@@ -1028,6 +1505,15 @@
                     "grip_width": "close",
                     "implement": "machine"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Máquina T con agarre cerrado: las asas acercan los codos al cuerpo y la guía mantiene la carga en una línea repetible.",
+                    "La posición favorece una tracción más dirigida al dorsal sin exigir que el torso equilibre el aparato."
+                  ],
+                  "description": "Máquina T con agarre cerrado: las asas acercan los codos al cuerpo y la guía mantiene la carga en una línea repetible. La posición favorece una tracción más dirigida al dorsal sin exigir que el torso equilibre el aparato.",
+                  "technique": "Máquina T con agarre cerrado: las asas acercan los codos al cuerpo y la guía mantiene la carga en una línea repetible. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido.",
+                  "variantRationale": "Máquina T con agarre cerrado: las asas acercan los codos al cuerpo y la guía mantiene la carga en una línea repetible. La posición favorece una tracción más dirigida al dorsal sin exigir que el torso equilibre el aparato."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1040,7 +1526,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo en Barra T",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "t_bar_row__machine__close",
                   "definitionId": "t_bar_row",
                   "familyId": "back_t_bar_row",
@@ -1060,7 +1546,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
+                    "Desarrollar el dorsal mediante Remo en Barra T en la variante Máquina · Agarre Cerrado.",
+                    "Priorizar dar grosor a la espalda y mantener un movimiento fácil de repetir con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1082,7 +1569,8 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón y el objetivo latissimus_dorsi."
+                    "Conserva tirón del brazo y flexión del codo y el objetivo de el dorsal.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": "back_row_tbar",
                   "replacementPriority": null
@@ -1100,7 +1588,7 @@
                 "biceps"
               ],
               "setupCues": [
-                "Configura la máquina y adopta la posición específica de «Remo en Barra T» antes de iniciar; conserva una base estable."
+                "Preparación: Máquina T con agarre cerrado: las asas acercan los codos al cuerpo y la guía mantiene la carga en una línea repetible."
               ],
               "setupTimeSeconds": 55,
               "ssc": 0.4,
@@ -1108,7 +1596,9 @@
                 "deltoid"
               ],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Máquina T con agarre cerrado: las asas acercan los codos al cuerpo y la guía mantiene la carga en una línea repetible. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido.",
+              "ttc": 1.8,
+              "variantRationale": "Máquina T con agarre cerrado: las asas acercan los codos al cuerpo y la guía mantiene la carga en una línea repetible. La posición favorece una tracción más dirigida al dorsal sin exigir que el torso equilibre el aparato."
             },
             "selectedOptions": {
               "grip_width": "close",
@@ -1121,9 +1611,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_barra_t",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "t_bar_row__t_bar__close",
@@ -1131,18 +1621,58 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Barra T con agarre cerrado: el anclaje mantiene una trayectoria estable mientras los codos avanzan cerca del costado.",
+                "La carga libre del extremo permite progresar con fuerza, aunque exige que el torso sostenga la base sin desplazarse."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+                "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Barra T con agarre cerrado: los codos pegados llevan el foco al dorsal con más recorrido. La variante que más profundo se siente en la espalda.",
+              "description": "Barra T con agarre cerrado: el anclaje mantiene una trayectoria estable mientras los codos avanzan cerca del costado. La carga libre del extremo permite progresar con fuerza, aunque exige que el torso sostenga la base sin desplazarse.",
               "efc": 2.5,
               "equipmentId": "t_bar",
               "executionCues": [
-                "Ejecuta «Remo en Barra T» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Barra T con agarre cerrado: el anclaje mantiene una trayectoria estable mientras los codos avanzan cerca del costado. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión",
+                    "Aducción Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro lleva el brazo hacia el tronco y concentra la dirección del tirón. La amplitud cerrada acerca el codo al cuerpo y reduce la apertura del hombro.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Retracción Escapular"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se acerca y se fija sobre el tórax para sostener la tracción. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo acerca la mano y comparte la fuerza sin sustituir al movimiento de espalda. La amplitud cerrada acerca el codo al cuerpo y reduce la apertura del hombro.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca mantiene el contacto con el implemento para que la fuerza llegue al codo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -1150,19 +1680,19 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal dirige el tirón y se estira más con los codos pegados al cuerpo; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El dorsal extiende o aproxima el brazo al tronco desde la espalda. El agarre cerrado acerca el codo al cuerpo y favorece un recorrido más largo junto al costado. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: con el agarre cerrado, los romboides retraen las escápulas con más recorrido; por eso suman 0.5."
+                  "note": "Secundaria: Los romboides acerca y fija las escápulas para que el brazo tenga una base estable. En la configuración Barra T · Agarre Cerrado, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "biceps",
-                  "note": "Secundario: el bíceps trabaja más con los codos cerca del cuerpo flexionando en posición de palanca larga; por eso suma 0.5."
+                  "note": "Secundaria: El bíceps flexiona el codo y, con agarre supino, ayuda a supinar el antebrazo. El agarre cerrado acerca el codo al cuerpo y favorece un recorrido más largo junto al costado. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Estabilizador: el deltoides posterior mantiene el hombro estable durante el tirón; por eso suma 0.4."
+                  "note": "Estabilizadora: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Barra T · Agarre Cerrado, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "t_bar_row__t_bar__close__remo_barra_t",
@@ -1175,7 +1705,46 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "horizontal_pull"
+                    "Extensión",
+                    "Aducción Del Hombro",
+                    "Retracción Escapular",
+                    "Flexión",
+                    "Estabilidad Del Agarre"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión",
+                        "Aducción Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro lleva el brazo hacia el tronco y concentra la dirección del tirón. La amplitud cerrada acerca el codo al cuerpo y reduce la apertura del hombro.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Retracción Escapular"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se acerca y se fija sobre el tórax para sostener la tracción. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo acerca la mano y comparte la fuerza sin sustituir al movimiento de espalda. La amplitud cerrada acerca el codo al cuerpo y reduce la apertura del hombro.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Del Agarre"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca mantiene el contacto con el implemento para que la fuerza llegue al codo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -1203,39 +1772,45 @@
                   "movementPatternId": "horizontal_pull",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso del tronco, encorvar la espalda o reducir el recorrido de la escápula para completar la repetición."
+                    "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
                   ],
                   "cues": [
-                    "Mantén el equipo t_bar alineado con el patrón y controla la fase excéntrica."
+                    "Barra T con agarre cerrado: el anclaje mantiene una trayectoria estable mientras los codos avanzan cerca del costado. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
                   ],
                   "execution": [
-                    "Ejecuta «Remo en Barra T» siguiendo el patrón de tirón horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Barra T con agarre cerrado: el anclaje mantiene una trayectoria estable mientras los codos avanzan cerca del costado. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando dar grosor a la espalda y mantener un movimiento fácil de repetir siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar tirón del brazo y flexión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura la barra T y adopta la posición específica de «Remo en Barra T» antes de iniciar; conserva una base estable."
+                    "Preparación: Barra T con agarre cerrado: el anclaje mantiene una trayectoria estable mientras los codos avanzan cerca del costado."
                   ]
                 },
                 "display": {
@@ -1245,6 +1820,15 @@
                     "grip_width": "close",
                     "implement": "t_bar"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Barra T con agarre cerrado: el anclaje mantiene una trayectoria estable mientras los codos avanzan cerca del costado.",
+                    "La carga libre del extremo permite progresar con fuerza, aunque exige que el torso sostenga la base sin desplazarse."
+                  ],
+                  "description": "Barra T con agarre cerrado: el anclaje mantiene una trayectoria estable mientras los codos avanzan cerca del costado. La carga libre del extremo permite progresar con fuerza, aunque exige que el torso sostenga la base sin desplazarse.",
+                  "technique": "Barra T con agarre cerrado: el anclaje mantiene una trayectoria estable mientras los codos avanzan cerca del costado. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido.",
+                  "variantRationale": "Barra T con agarre cerrado: el anclaje mantiene una trayectoria estable mientras los codos avanzan cerca del costado. La carga libre del extremo permite progresar con fuerza, aunque exige que el torso sostenga la base sin desplazarse."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1257,7 +1841,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo en Barra T",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "t_bar_row__t_bar__close",
                   "definitionId": "t_bar_row",
                   "familyId": "back_t_bar_row",
@@ -1277,7 +1861,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi en la configuración seleccionada."
+                    "Desarrollar el dorsal mediante Remo en Barra T en la variante Barra T · Agarre Cerrado.",
+                    "Priorizar dar grosor a la espalda y mantener un movimiento fácil de repetir con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1299,7 +1884,8 @@
                     "t_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón y el objetivo latissimus_dorsi."
+                    "Conserva tirón del brazo y flexión del codo y el objetivo de el dorsal.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": "back_row_tbar",
                   "replacementPriority": null
@@ -1317,7 +1903,7 @@
                 "biceps"
               ],
               "setupCues": [
-                "Configura la barra T y adopta la posición específica de «Remo en Barra T» antes de iniciar; conserva una base estable."
+                "Preparación: Barra T con agarre cerrado: el anclaje mantiene una trayectoria estable mientras los codos avanzan cerca del costado."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.4,
@@ -1325,7 +1911,9 @@
                 "deltoid"
               ],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Barra T con agarre cerrado: el anclaje mantiene una trayectoria estable mientras los codos avanzan cerca del costado. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido.",
+              "ttc": 1.8,
+              "variantRationale": "Barra T con agarre cerrado: el anclaje mantiene una trayectoria estable mientras los codos avanzan cerca del costado. La carga libre del extremo permite progresar con fuerza, aunque exige que el torso sostenga la base sin desplazarse."
             },
             "selectedOptions": {
               "grip_width": "close",
@@ -1334,13 +1922,13 @@
           }
         ],
         "defaultConfigurationId": "t_bar_row__t_bar__medium",
-        "description": "Remo en barra T: la carga va anclada al suelo y tú haces el trabajo de subirla con la espalda. Un clásico de los gimnasios serios para darle grosor a la espalda media.",
+        "description": "La carga gira alrededor de un anclaje mientras el torso ofrece una base firme para llevar los codos hacia atrás. El agarre elegido cambia cuánto se comparte el esfuerzo entre dorsal, trapecio y espalda media.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:t_bar_row"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "back_t_bar_row",
@@ -1362,9 +1950,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:back_t_bar_row"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "back_t_bar_row",
@@ -1374,6 +1962,6 @@
       "t_bar_row"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

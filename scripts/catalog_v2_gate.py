@@ -14,8 +14,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "catalog" / "exercises" / "v2" / "source" / "catalog_v2.json"
+BRIEFS = ROOT / "catalog" / "exercises" / "v2" / "curation" / "editorial_briefs.json"
 INVENTORY = ROOT / "catalog" / "exercises" / "v2" / "curation" / "candidate_inventory.json"
 ANDROID = ROOT / "android-native" / "app" / "src" / "main"
+JOINT_ROLES = {"PRIMARY", "SECONDARY", "STABILIZER"}
 
 # Editorial hierarchy is deliberately duplicated in the gate as a review
 # contract.  If a generator change silently alphabetizes or flattens these
@@ -316,12 +318,92 @@ EXPECTED_AXIS_ORDER = {
 }
 
 
+def _normalized_first_sentence(value: str) -> str:
+    first = re.split(r"(?<=[.!?])\s+", value.strip())[0]
+    return re.sub(r"\s+", " ", re.sub(r"[^a-záéíóúüñ0-9 ]", " ", first.casefold())).strip()
+
+
+def editorial_brief_gate(source: dict, definitions: list[dict], configurations: list[dict]) -> list[str]:
+    failures: list[str] = []
+    if not BRIEFS.exists():
+        return ["editorial_briefs_missing"]
+    try:
+        brief_source = json.loads(BRIEFS.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return [f"editorial_briefs_invalid_json:{exc.lineno}:{exc.colno}"]
+    if brief_source.get("schemaVersion") != 1:
+        failures.append("editorial_briefs_schema_version")
+    if brief_source.get("catalogRevision") != source.get("catalogRevision"):
+        failures.append("editorial_briefs_revision_mismatch")
+    brief_definitions = brief_source.get("definitions")
+    if not isinstance(brief_definitions, dict):
+        return failures + ["editorial_briefs_definitions_invalid"]
+    definition_ids = {definition["id"] for definition in definitions}
+    configuration_ids = {configuration["id"] for configuration in configurations}
+    if set(brief_definitions) != definition_ids:
+        missing = sorted(definition_ids - set(brief_definitions))
+        extra = sorted(set(brief_definitions) - definition_ids)
+        if missing:
+            failures.append(f"editorial_brief_definitions_missing:{','.join(missing)}")
+        if extra:
+            failures.append(f"editorial_brief_definitions_extra:{','.join(extra)}")
+    profile_fields = ("description", "benefits", "techniqueSummary", "variantRationale", "setupCues", "executionCues")
+    for definition in definitions:
+        brief = brief_definitions.get(definition["id"])
+        if not isinstance(brief, dict):
+            continue
+        if brief.get("description") != definition.get("description"):
+            failures.append(f"editorial_definition_mismatch:{definition['id']}")
+        configurations_brief = brief.get("configurations")
+        if not isinstance(configurations_brief, dict):
+            failures.append(f"editorial_configurations_invalid:{definition['id']}")
+            continue
+        actual_ids = {configuration["id"] for configuration in definition["configurations"]}
+        if set(configurations_brief) != actual_ids:
+            failures.append(f"editorial_configuration_inventory_mismatch:{definition['id']}")
+        for configuration in definition["configurations"]:
+            copy = configurations_brief.get(configuration["id"])
+            if not isinstance(copy, dict):
+                continue
+            profile = configuration.get("profile", {})
+            for field in profile_fields:
+                if copy.get(field) != profile.get(field):
+                    failures.append(f"editorial_field_mismatch:{configuration['id']}:{field}")
+    if set(configuration_ids) != {configuration_id for brief in brief_definitions.values() for configuration_id in (brief.get("configurations", {}) if isinstance(brief, dict) else {})}:
+        failures.append("editorial_configuration_inventory_global_mismatch")
+    forbidden = (
+        "llevas las manos hacia el cuerpo",
+        "esta configuración aporta",
+        "puedes elegir entre",
+        "es un ejercicio dentro de un patrón",
+    )
+    for definition in definitions:
+        if any(marker in definition.get("description", "").casefold() for marker in forbidden):
+            failures.append(f"editorial_boilerplate_definition:{definition['id']}")
+        for configuration in definition["configurations"]:
+            description = configuration.get("profile", {}).get("description", "")
+            if any(marker in description.casefold() for marker in forbidden):
+                failures.append(f"editorial_boilerplate_configuration:{configuration['id']}")
+    for label, entries in (
+        ("definition", [(definition["id"], definition.get("description", "")) for definition in definitions]),
+        ("configuration", [(configuration["id"], configuration.get("profile", {}).get("description", "")) for configuration in configurations]),
+    ):
+        first_sentences: dict[str, list[str]] = {}
+        for identifier, description in entries:
+            first_sentences.setdefault(_normalized_first_sentence(description), []).append(identifier)
+        for sentence, identifiers in first_sentences.items():
+            if sentence and len(identifiers) > 1:
+                failures.append(f"duplicate_editorial_opening:{label}:{'|'.join(identifiers)}")
+    return failures
+
+
 
 def source_gate() -> list[str]:
     failures: list[str] = []
     source = json.loads(SOURCE.read_text(encoding="utf-8"))
     definitions = [d for family in source["families"] for d in family["definitions"]]
     configurations = [c for definition in definitions for c in definition["configurations"]]
+    failures.extend(editorial_brief_gate(source, definitions, configurations))
     generic_markers = (
         "configuración specialty",
         "configuración parent",
@@ -346,6 +428,10 @@ def source_gate() -> list[str]:
                 failures.append(f"generic_description:{definition['id']}")
             if placeholder_pattern.search(definition["description"]):
                 failures.append(f"placeholder_description:{definition['id']}")
+            if re.search(rf"(?i)(?<!\w){re.escape(definition['canonicalName'])}(?!\w)", definition["description"]):
+                failures.append(f"canonical_name_repeated_in_definition_description:{definition['id']}")
+            if definition["description"].strip() and not definition["description"].strip()[0].isupper():
+                failures.append(f"definition_description_not_capitalized:{definition['id']}")
             axes = definition["optionAxes"]
             if len(axes) != len(dict.fromkeys(axes)):
                 failures.append(f"duplicate_axis:{definition['id']}")
@@ -389,8 +475,14 @@ def source_gate() -> list[str]:
                 configuration_descriptions.add(profile_description.strip())
                 if len(profile_description.strip()) < 40:
                     failures.append(f"configuration_description_too_short:{configuration['id']}")
+                if re.search(rf"(?i)(?<!\w){re.escape(definition['canonicalName'])}(?!\w)", profile_description):
+                    failures.append(f"canonical_name_repeated_in_configuration_description:{configuration['id']}")
+                if profile_description.strip() and not profile_description.strip()[0].isupper():
+                    failures.append(f"configuration_description_not_capitalized:{configuration['id']}")
                 if re.search(r"(?i)\b(?:ejecuta|mantén|mantener|configura|adopta|controla|asegura|evita|sigue|selecciona)\b", profile_description):
                     failures.append(f"instructional_configuration_description:{configuration['id']}")
+                if profile.get("catalogRevision") != source.get("catalogRevision"):
+                    failures.append(f"profile_revision_mismatch:{configuration['id']}")
                 listed = set(profile.get("primaryMuscles", [])) | set(profile.get("secondaryMuscles", [])) | set(profile.get("stabilizerMuscles", []))
                 notes = profile.get("muscleNotes") or []
                 note_ids = {note.get("muscleId") for note in notes if isinstance(note, dict)}
@@ -401,8 +493,50 @@ def source_gate() -> list[str]:
                 if len(note_ids) != len(notes):
                     failures.append(f"duplicate_muscle_note:{configuration['id']}")
                 for note in notes:
-                    if isinstance(note, dict) and len(str(note.get("note") or "").strip()) < 40:
-                        failures.append(f"short_muscle_note:{configuration['id']}:{note.get('muscleId')}")
+                    if isinstance(note, dict):
+                        note_text = str(note.get("note") or "").strip()
+                        if len(note_text) < 40:
+                            failures.append(f"short_muscle_note:{configuration['id']}:{note.get('muscleId')}")
+                        if note_text and not note_text[0].isupper():
+                            failures.append(f"muscle_note_not_capitalized:{configuration['id']}:{note.get('muscleId')}")
+                benefits = profile.get("benefits")
+                if not isinstance(benefits, list) or len(benefits) < 2:
+                    failures.append(f"missing_configuration_benefits:{configuration['id']}")
+                elif any(not isinstance(benefit, str) or len(benefit.strip()) < 40 for benefit in benefits):
+                    failures.append(f"short_configuration_benefit:{configuration['id']}")
+                elif any(benefit.strip() and not benefit.strip()[0].isupper() for benefit in benefits):
+                    failures.append(f"configuration_benefit_not_capitalized:{configuration['id']}")
+                for field in ("techniqueSummary", "variantRationale"):
+                    if not isinstance(profile.get(field), str) or len(profile[field].strip()) < 40:
+                        failures.append(f"short_configuration_{field}:{configuration['id']}")
+                    elif profile[field].strip() and not profile[field].strip()[0].isupper():
+                        failures.append(f"configuration_{field}_not_capitalized:{configuration['id']}")
+                joints = profile.get("jointInvolvement")
+                if not isinstance(joints, list) or not joints:
+                    failures.append(f"missing_joint_involvement:{configuration['id']}")
+                    joints = []
+                joint_ids: list[str] = []
+                for joint in joints:
+                    if not isinstance(joint, dict):
+                        failures.append(f"invalid_joint_involvement:{configuration['id']}")
+                        continue
+                    joint_id = joint.get("jointId")
+                    joint_ids.append(str(joint_id))
+                    if not isinstance(joint_id, str) or not joint_id.strip():
+                        failures.append(f"blank_joint_id:{configuration['id']}")
+                    if joint.get("role") not in JOINT_ROLES:
+                        failures.append(f"invalid_joint_role:{configuration['id']}:{joint_id}")
+                    actions = joint.get("actions")
+                    if not isinstance(actions, list) or not actions or any(not isinstance(action, str) or not action.strip() for action in actions):
+                        failures.append(f"invalid_joint_actions:{configuration['id']}:{joint_id}")
+                    elif any(action.strip() and not action.strip()[0].isupper() for action in actions):
+                        failures.append(f"joint_action_not_capitalized:{configuration['id']}:{joint_id}")
+                    if not isinstance(joint.get("note"), str) or len(joint["note"].strip()) < 40:
+                        failures.append(f"short_joint_note:{configuration['id']}:{joint_id}")
+                    elif joint["note"].strip() and not joint["note"].strip()[0].isupper():
+                        failures.append(f"joint_note_not_capitalized:{configuration['id']}:{joint_id}")
+                if len(joint_ids) != len(set(joint_ids)):
+                    failures.append(f"duplicate_joint_involvement:{configuration['id']}")
                 serialized = json.dumps(configuration, ensure_ascii=False)
                 if placeholder_pattern.search(serialized):
                     failures.append(f"placeholder_metadata:{configuration['id']}")
@@ -413,6 +547,25 @@ def source_gate() -> list[str]:
                     failures.append(f"rich_metadata_missing:{configuration['id']}")
                 elif rich.get("evidenceConfidence") not in {"MEDIUM", "HIGH"}:
                     failures.append(f"rich_metadata_low_confidence:{configuration['id']}")
+                elif not isinstance(rich.get("editorial"), dict):
+                    failures.append(f"rich_editorial_missing:{configuration['id']}")
+                else:
+                    editorial = rich["editorial"]
+                    if editorial.get("description") != profile_description:
+                        failures.append(f"rich_editorial_description_mismatch:{configuration['id']}")
+                    if editorial.get("benefits") != benefits:
+                        failures.append(f"rich_editorial_benefits_mismatch:{configuration['id']}")
+                    if editorial.get("technique") != profile.get("techniqueSummary"):
+                        failures.append(f"rich_editorial_technique_mismatch:{configuration['id']}")
+                    if editorial.get("variantRationale") != profile.get("variantRationale"):
+                        failures.append(f"rich_editorial_variant_mismatch:{configuration['id']}")
+                    anatomy = rich.get("anatomy")
+                    if not isinstance(anatomy, dict) or anatomy.get("jointInvolvement") != joints:
+                        failures.append(f"rich_anatomy_joint_mismatch:{configuration['id']}")
+                    biomechanics = rich.get("biomechanics")
+                    relevant_joints = biomechanics.get("relevantJoints") if isinstance(biomechanics, dict) else None
+                    if not isinstance(relevant_joints, list) or set(relevant_joints) != set(joint_ids):
+                        failures.append(f"rich_biomechanics_joint_mismatch:{configuration['id']}")
             if len(definition["configurations"]) > 1 and len(configuration_descriptions) != len(definition["configurations"]):
                 failures.append(f"non_distinct_configuration_descriptions:{definition['id']}")
     return failures

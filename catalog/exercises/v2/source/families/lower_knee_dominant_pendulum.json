@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Sentadilla péndulo",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_pendulo_maquina",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "pendulum_squat__bilateral",
@@ -22,18 +22,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Máquina pendular con ambas piernas: el balanceo guiado lleva el cuádriceps a fondo.",
+                "Exigente, profunda y exigente; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla para completar la repetición."
+                "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
               ],
-              "description": "Máquina pendular con ambas piernas: el balanceo guiado lleva el cuádriceps a fondo. Exigente, profunda y adictiva.",
+              "description": "Máquina pendular con ambas piernas: el balanceo guiado lleva el cuádriceps a fondo. Exigente, profunda y exigente.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
-                "Ejecuta «Sentadilla en Máquina Péndulo» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Máquina pendular con ambas piernas: el balanceo guiado lleva el cuádriceps a fondo. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Y Extensión"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Principal: La rodilla produce la mayor parte de la subida y recibe el carga dominante. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión Y Extensión"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Secundaria: La cadera acompaña la profundidad y ayuda a salir sin que la rodilla pierda su línea. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Dorsiflexión Y Control"
+                  ],
+                  "jointId": "tobillo",
+                  "note": "Estabilizadora: El tobillo permite que la tibia avance y mantiene el pie conectado al suelo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Del Tronco"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la flexión para que la carga no colapse el torso. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -41,11 +80,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "quadriceps",
-                  "note": "Principal: el cuádriceps extiende la rodilla y concentra la fuerza del movimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: Los cuádriceps extiende la rodilla y absorbe la carga al descender. En la configuración Máquina · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "gluteus_maximus",
-                  "note": "Secundario: el glúteo mayor asiste la extensión de cadera y completa el movimiento; por eso suma 0.5."
+                  "note": "Secundaria: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. En la configuración Máquina · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "pendulum_squat__machine__sentadilla_pendulo",
@@ -58,7 +97,43 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "knee_dominant"
+                    "Flexión Y Extensión",
+                    "Dorsiflexión Y Control",
+                    "Estabilidad Del Tronco"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Y Extensión"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Principal: La rodilla produce la mayor parte de la subida y recibe el carga dominante. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión Y Extensión"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Secundaria: La cadera acompaña la profundidad y ayuda a salir sin que la rodilla pierda su línea. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Dorsiflexión Y Control"
+                      ],
+                      "jointId": "tobillo",
+                      "note": "Estabilizadora: El tobillo permite que la tibia avance y mantiene el pie conectado al suelo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Del Tronco"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la flexión para que la carga no colapse el torso. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -83,40 +158,43 @@
                   "movementPatternId": "knee_dominant",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "rodilla",
+                    "cadera",
+                    "tobillo",
+                    "columna-lumbar"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales",
+                    "tendon-iliopsoas",
+                    "tendon-aquiles"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla para completar la repetición."
+                    "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
                   ],
                   "cues": [
-                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                    "Máquina pendular con ambas piernas: el balanceo guiado lleva el cuádriceps a fondo. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
                   ],
                   "execution": [
-                    "Ejecuta «Sentadilla en Máquina Péndulo» siguiendo el patrón dominante de rodilla con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Máquina pendular con ambas piernas: el balanceo guiado lleva el cuádriceps a fondo. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando acumular trabajo de cuádriceps graduando profundidad, apoyo y carga siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar flexión y extensión de la rodilla con ayuda de cadera y tobillo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de rodilla según tolerancia y rango disponible.",
+                    "Movilidad de cadera según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura máquina y adopta la posición específica de «Sentadilla en Máquina Péndulo» antes de iniciar; conserva una base estable."
+                    "Preparación: Máquina pendular con ambas piernas: el balanceo guiado lleva el cuádriceps a fondo."
                   ]
                 },
                 "display": {
@@ -125,6 +203,15 @@
                   "selectedOptions": {
                     "laterality": "bilateral"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Máquina pendular con ambas piernas: el balanceo guiado lleva el cuádriceps a fondo.",
+                    "Exigente, profunda y exigente; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Máquina pendular con ambas piernas: el balanceo guiado lleva el cuádriceps a fondo. Exigente, profunda y exigente.",
+                  "technique": "Máquina pendular con ambas piernas: el balanceo guiado lleva el cuádriceps a fondo. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve.",
+                  "variantRationale": "Máquina pendular con ambas piernas: el balanceo guiado lleva el cuádriceps a fondo. Exigente, profunda y exigente."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -137,7 +224,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla en Máquina Pendular",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "pendulum_squat__bilateral",
                   "definitionId": "pendulum_squat",
                   "familyId": "lower_knee_dominant_pendulum",
@@ -156,8 +243,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar quadriceps dentro del patrón knee_dominant.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar los cuádriceps mediante Sentadilla en Máquina Pendular en la variante Máquina · Trabajo Bilateral.",
+                    "Priorizar acumular trabajo de cuádriceps graduando profundidad, apoyo y carga con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -179,7 +266,8 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón knee_dominant y el objetivo quadriceps."
+                    "Conserva flexión y extensión de la rodilla con ayuda de cadera y tobillo y el objetivo de los cuádriceps.",
+                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
                   ],
                   "replacementGroup": "quad_machine_squat",
                   "replacementPriority": 1
@@ -196,13 +284,15 @@
                 "gluteus_maximus"
               ],
               "setupCues": [
-                "Configura máquina y adopta la posición específica de «Sentadilla en Máquina Péndulo» antes de iniciar; conserva una base estable."
+                "Preparación: Máquina pendular con ambas piernas: el balanceo guiado lleva el cuádriceps a fondo."
               ],
               "setupTimeSeconds": 55,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "techniqueSummary": "Máquina pendular con ambas piernas: el balanceo guiado lleva el cuádriceps a fondo. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve.",
+              "ttc": 2.0,
+              "variantRationale": "Máquina pendular con ambas piernas: el balanceo guiado lleva el cuádriceps a fondo. Exigente, profunda y exigente."
             },
             "selectedOptions": {
               "laterality": "bilateral"
@@ -214,9 +304,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_pendulo_unilateral_maquina",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "pendulum_squat__unilateral",
@@ -224,18 +314,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Pendular con una pierna: un lado a la vez con el guiado de la máquina.",
+                "La forma exigente de igualar ambas piernas."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral para completar la repetición."
+                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Pendular con una pierna: un lado a la vez con el guiado de la máquina. La forma más seria de igualar ambas piernas.",
+              "description": "Pendular con una pierna: un lado a la vez con el guiado de la máquina. La forma exigente de igualar ambas piernas.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
-                "Ejecuta «Sentadilla Unilateral en Máquina Péndulo» siguiendo el patrón dominante de rodilla unilateral con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Pendular con una pierna: un lado a la vez con el guiado de la máquina. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Y Extensión Unilateral"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Principal: La rodilla de trabajo produce la subida y absorbe la mayor parte de la carga. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión Y Control Frontal"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera mantiene la pelvis nivelada y evita que la pierna se desplace hacia dentro. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Equilibrio Y Dorsiflexión"
+                  ],
+                  "jointId": "tobillo",
+                  "note": "Secundaria: El tobillo ajusta el apoyo de una sola pierna y absorbe cambios pequeños de equilibrio. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Transferencia Unilateral"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La pelvis transfiere la fuerza entre ambos lados mientras la pierna libre permanece disponible. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
@@ -243,11 +372,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "quadriceps",
-                  "note": "Principal: el cuádriceps extiende la rodilla y concentra la fuerza del movimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: Los cuádriceps extiende la rodilla y absorbe la carga al descender. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "gluteus_maximus",
-                  "note": "Secundario: el glúteo mayor asiste la extensión de cadera y completa el movimiento; por eso suma 0.5."
+                  "note": "Secundaria: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "pendulum_squat__machine__sentadilla_pendulo",
@@ -260,7 +389,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "unilateral_knee_dominant"
+                    "Flexión Y Extensión Unilateral",
+                    "Extensión Y Control Frontal",
+                    "Equilibrio Y Dorsiflexión",
+                    "Transferencia Unilateral"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Y Extensión Unilateral"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Principal: La rodilla de trabajo produce la subida y absorbe la mayor parte de la carga. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión Y Control Frontal"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera mantiene la pelvis nivelada y evita que la pierna se desplace hacia dentro. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Equilibrio Y Dorsiflexión"
+                      ],
+                      "jointId": "tobillo",
+                      "note": "Secundaria: El tobillo ajusta el apoyo de una sola pierna y absorbe cambios pequeños de equilibrio. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Transferencia Unilateral"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La pelvis transfiere la fuerza entre ambos lados mientras la pierna libre permanece disponible. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -285,40 +451,43 @@
                   "movementPatternId": "unilateral_knee_dominant",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "rodilla",
+                    "cadera",
+                    "tobillo",
+                    "sacroiliaca"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales",
+                    "tendon-iliopsoas",
+                    "tendon-aquiles"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón dominante de rodilla unilateral para completar la repetición."
+                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
                   ],
                   "cues": [
-                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                    "Pendular con una pierna: un lado a la vez con el guiado de la máquina. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
                   ],
                   "execution": [
-                    "Ejecuta «Sentadilla Unilateral en Máquina Péndulo» siguiendo el patrón dominante de rodilla unilateral con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Pendular con una pierna: un lado a la vez con el guiado de la máquina. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de rodilla según tolerancia y rango disponible.",
+                    "Movilidad de cadera según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura máquina y adopta la posición específica de «Sentadilla Unilateral en Máquina Péndulo» antes de iniciar; conserva una base estable."
+                    "Preparación: Pendular con una pierna: un lado a la vez con el guiado de la máquina."
                   ]
                 },
                 "display": {
@@ -327,6 +496,15 @@
                   "selectedOptions": {
                     "laterality": "unilateral"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Pendular con una pierna: un lado a la vez con el guiado de la máquina.",
+                    "La forma exigente de igualar ambas piernas."
+                  ],
+                  "description": "Pendular con una pierna: un lado a la vez con el guiado de la máquina. La forma exigente de igualar ambas piernas.",
+                  "technique": "Pendular con una pierna: un lado a la vez con el guiado de la máquina. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
+                  "variantRationale": "Pendular con una pierna: un lado a la vez con el guiado de la máquina. La forma exigente de igualar ambas piernas."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -339,7 +517,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla en Máquina Pendular",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "pendulum_squat__unilateral",
                   "definitionId": "pendulum_squat",
                   "familyId": "lower_knee_dominant_pendulum",
@@ -358,8 +536,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar quadriceps dentro del patrón unilateral_knee_dominant.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar los cuádriceps mediante Sentadilla en Máquina Pendular en la variante Máquina · Trabajo Unilateral.",
+                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -381,7 +559,8 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón unilateral_knee_dominant y el objetivo quadriceps."
+                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
+                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
                   ],
                   "replacementGroup": "quad_machine_squat",
                   "replacementPriority": 1
@@ -398,13 +577,15 @@
                 "gluteus_maximus"
               ],
               "setupCues": [
-                "Configura máquina y adopta la posición específica de «Sentadilla Unilateral en Máquina Péndulo» antes de iniciar; conserva una base estable."
+                "Preparación: Pendular con una pierna: un lado a la vez con el guiado de la máquina."
               ],
               "setupTimeSeconds": 55,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "techniqueSummary": "Pendular con una pierna: un lado a la vez con el guiado de la máquina. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
+              "ttc": 2.0,
+              "variantRationale": "Pendular con una pierna: un lado a la vez con el guiado de la máquina. La forma exigente de igualar ambas piernas."
             },
             "selectedOptions": {
               "laterality": "unilateral"
@@ -412,13 +593,13 @@
           }
         ],
         "defaultConfigurationId": "pendulum_squat__bilateral",
-        "description": "Sentadilla en máquina pendular: la plataforma se balancea y el cuerpo baja casi en caída libre guiada. Una de las máquinas de cuádriceps más exigentes que existen.",
+        "description": "La plataforma se balancea y el cuerpo baja casi en caída libre guiada. Una de las máquinas de cuádriceps más exigentes que existen.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:pendulum_squat"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_knee_dominant_pendulum",
@@ -438,9 +619,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:lower_knee_dominant_pendulum"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_knee_dominant_pendulum",
@@ -450,6 +631,6 @@
       "pendulum_squat"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

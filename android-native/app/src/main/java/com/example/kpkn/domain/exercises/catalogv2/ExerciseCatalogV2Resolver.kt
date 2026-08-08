@@ -21,6 +21,8 @@ class ExerciseCatalogV2Resolver(
 
     private data class SearchIndex(
         val text: String,
+        val name: String,
+        val nameTokens: List<String>,
         val rawTokens: Set<String>,
         val keys: Set<String>,
         val familyName: String,
@@ -126,15 +128,23 @@ class ExerciseCatalogV2Resolver(
                         rawTerms.any { term -> term.length >= 4 && textMatchesTerm(configText, term) }
                     }
                 val phraseBonus =
-                    if (normalizedQuery.length >= 4 && index.text.contains(normalizedQuery)) 50 else 0
+                    if (normalizedQuery.length >= 4 && index.name.contains(normalizedQuery)) 60 else 0
                 val score = rawTerms.sumOf { term ->
+                    val name = index.name
+                    val nameTokens = index.nameTokens
+                    val stemmed = ExerciseMatchLexicon.stem(term)
                     when {
-                        ExerciseMatchLexicon.normalize(definition.canonicalName).contains(term) -> 100
-                        definition.searchTerms.any { ExerciseMatchLexicon.normalize(it).contains(term) } -> 50
-                        ExerciseMatchLexicon.normalize(index.familyName).contains(term) -> 40
-                        else -> 10
+                        name == term -> 100
+                        name.startsWith(term) -> 48
+                        nameTokens.any { it.startsWith(term) } -> 40
+                        name.contains(term) -> 30
+                        ExerciseMatchLexicon.synonymKey(term) in index.keys -> 26
+                        stemmed.length >= 2 && nameTokens.any { it == stemmed || it.startsWith(stemmed) } -> 22
+                        index.familyName.contains(term) -> 18
+                        index.text.contains(term) -> 12
+                        else -> 6
                     }
-                } + phraseBonus
+                } + phraseBonus + if (rawTerms.all { index.name.contains(it) }) 20 else 0
 
                 ExerciseSearchHitV2(
                     definitionId = definition.id,
@@ -143,7 +153,9 @@ class ExerciseCatalogV2Resolver(
                     score = score,
                 )
             }
-            .sortedWith(compareByDescending<ExerciseSearchHitV2> { it.score }.thenBy { it.definitionId })
+            .sortedWith(compareByDescending<ExerciseSearchHitV2> { it.score }
+                .thenBy { definitionsById.getValue(it.definitionId).canonicalName.length }
+                .thenBy(String.CASE_INSENSITIVE_ORDER) { definitionsById.getValue(it.definitionId).canonicalName })
     }
 
     private fun buildIndex(definition: ExerciseDefinitionV2, familyName: String): SearchIndex {
@@ -177,6 +189,9 @@ class ExerciseCatalogV2Resolver(
         val text = ExerciseMatchLexicon.normalize(raw.toString())
         return SearchIndex(
             text = text,
+            name = ExerciseMatchLexicon.normalize(definition.canonicalName),
+            nameTokens = ExerciseMatchLexicon.normalize(definition.canonicalName)
+                .split(' ').filter(String::isNotBlank),
             rawTokens = ExerciseMatchLexicon.stemTokens(text),
             keys = ExerciseMatchLexicon.tokenKeys(text),
             familyName = ExerciseMatchLexicon.normalize(familyName),

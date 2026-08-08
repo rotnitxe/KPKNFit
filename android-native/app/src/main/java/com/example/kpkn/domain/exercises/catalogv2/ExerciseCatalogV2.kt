@@ -67,6 +67,8 @@ data class ResolvedExerciseProfileV2(
     /** One editorial note per listed muscle; the single source for
      * biomechanical explanations shown in the picker. */
     val muscleNotes: List<MuscleNoteV2> = emptyList(),
+    /** One resolved entry per relevant joint for this exact configuration. */
+    val jointInvolvement: List<JointInvolvementV2> = emptyList(),
     val efc: Double,
     val cnc: Double,
     val ssc: Double,
@@ -85,6 +87,12 @@ data class ResolvedExerciseProfileV2(
     val automationEligible: Boolean = false,
     /** Factual prose for this exact materialized configuration; never a cue. */
     val description: String = "",
+    /** Variant-specific benefits shown separately from coaching cues. */
+    val benefits: List<String> = emptyList(),
+    /** Concise technique explanation for this exact materialized configuration. */
+    val techniqueSummary: String = "",
+    /** Editorial explanation of what the selected axes change. */
+    val variantRationale: String = "",
     /** Articulación del patrón: MULTIARTICULAR (compuesto) o AISLADO (una
      *  articulación). Alimenta las reglas del editor de sesiones. */
     val articulationType: ExerciseArticulationTypeV2? = null,
@@ -110,6 +118,21 @@ enum class ExerciseFatigueTierV2 {
 @Serializable
 data class MuscleNoteV2(
     val muscleId: String,
+    val note: String,
+)
+
+@Serializable
+enum class JointRoleV2 {
+    PRIMARY,
+    SECONDARY,
+    STABILIZER,
+}
+
+@Serializable
+data class JointInvolvementV2(
+    val jointId: String,
+    val role: JointRoleV2,
+    val actions: List<String>,
     val note: String,
 )
 

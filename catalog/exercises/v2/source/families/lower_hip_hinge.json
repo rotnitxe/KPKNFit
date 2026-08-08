@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Tren inferior · hamstrings · hip hinge",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_rumano_zercher",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "hams_peso_muerto_rumano_zercher__default",
@@ -22,18 +22,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
+              "benefits": [
+                "Barra en los codos bajando con las piernas casi rectas: el isquio se estira a fondo y el torso aguanta la carga al frente.",
+                "Exigente y con una demanda amplia; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón bisagra cadera para completar la repetición."
+                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Barra en los codos bajando con las piernas casi rectas: el isquio se estira a fondo y el torso aguanta la carga al frente. Exigente y muy completo.",
+              "description": "Barra en los codos bajando con las piernas casi rectas: el isquio se estira a fondo y el torso aguanta la carga al frente. Exigente y con una demanda amplia.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Ejecuta «Peso Muerto Rumano Zercher» siguiendo el patrón bisagra cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Barra en los codos bajando con las piernas casi rectas: el isquio se estira a fondo y el torso aguanta la carga al frente. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Y Extensión"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera recibe el carga principal y vuelve a extenderse para elevar el tronco y la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión Ligera Y Estabilidad"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla ajusta la altura de la cadera y comparte la salida sin dominar el gesto. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Resistencia A La Flexión"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar transmite la carga y resiste que el tronco se redondee. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Transferencia Pelvis-Tronco"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La articulación sacroilíaca enlaza la fuerza de piernas y tronco mientras la pelvis cambia de ángulo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -41,19 +80,19 @@
               "muscleNotes": [
                 {
                   "muscleId": "hamstrings",
-                  "note": "Principal: los isquiosurales flexionan la rodilla o extienden la cadera y concentran el trabajo; por eso suman la serie completa (1.0)."
+                  "note": "Principal: Los isquiosurales extiende la cadera y frena el descenso cuando la cadera se flexiona. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "gluteus_maximus",
-                  "note": "Secundario: el glúteo mayor asiste la extensión de cadera y completa el movimiento; por eso suma 0.5."
+                  "note": "Secundaria: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "erector_spinae",
-                  "note": "Secundario: los erectores asisten la extensión y el control de la columna; por eso suman 0.5."
+                  "note": "Secundaria: Los erectores espinales sostiene la columna frente a la flexión y transmite fuerza entre pelvis y tronco. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Secundario: el core asiste la transmisión de fuerza entre el tronco y las extremidades; por eso suma 0.5."
+                  "note": "Secundaria: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "hams_peso_muerto_rumano_zercher__barbell__peso_muerto_rumano_zercher",
@@ -66,7 +105,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_hinge"
+                    "Flexión Y Extensión",
+                    "Flexión Ligera Y Estabilidad",
+                    "Resistencia A La Flexión",
+                    "Transferencia Pelvis-Tronco"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Y Extensión"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera recibe el carga principal y vuelve a extenderse para elevar el tronco y la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión Ligera Y Estabilidad"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla ajusta la altura de la cadera y comparte la salida sin dominar el gesto. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Resistencia A La Flexión"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar transmite la carga y resiste que el tronco se redondee. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Transferencia Pelvis-Tronco"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La articulación sacroilíaca enlaza la fuerza de piernas y tronco mientras la pelvis cambia de ángulo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -93,46 +169,57 @@
                   "movementPatternId": "hip_hinge",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "rodilla",
+                    "columna-lumbar",
+                    "sacroiliaca"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón bisagra cadera para completar la repetición."
+                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Barra en los codos bajando con las piernas casi rectas: el isquio se estira a fondo y el torso aguanta la carga al frente. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Ejecuta «Peso Muerto Rumano Zercher» siguiendo el patrón bisagra cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Barra en los codos bajando con las piernas casi rectas: el isquio se estira a fondo y el torso aguanta la carga al frente. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de rodilla según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura barra y adopta la posición específica de «Peso Muerto Rumano Zercher» antes de iniciar; conserva una base estable."
+                    "Preparación: Barra en los codos bajando con las piernas casi rectas: el isquio se estira a fondo y el torso aguanta la carga al frente."
                   ]
                 },
                 "display": {
                   "displayName": "Peso Muerto Rumano Zercher",
                   "displaySummary": "Barra",
                   "selectedOptions": {}
+                },
+                "editorial": {
+                  "benefits": [
+                    "Barra en los codos bajando con las piernas casi rectas: el isquio se estira a fondo y el torso aguanta la carga al frente.",
+                    "Exigente y con una demanda amplia; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Barra en los codos bajando con las piernas casi rectas: el isquio se estira a fondo y el torso aguanta la carga al frente. Exigente y con una demanda amplia.",
+                  "technique": "Barra en los codos bajando con las piernas casi rectas: el isquio se estira a fondo y el torso aguanta la carga al frente. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Barra en los codos bajando con las piernas casi rectas: el isquio se estira a fondo y el torso aguanta la carga al frente. Exigente y con una demanda amplia."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -145,7 +232,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano Zercher",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "hams_peso_muerto_rumano_zercher__default",
                   "definitionId": "hams_peso_muerto_rumano_zercher",
                   "familyId": "lower_hip_hinge",
@@ -163,8 +250,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar hamstrings dentro del patrón hip_hinge.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar los isquiosurales mediante Peso Muerto Rumano Zercher en la variante Barra.",
+                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -186,7 +273,8 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón hip_hinge y el objetivo hamstrings."
+                    "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
                   ],
                   "replacementGroup": "hinge_niche",
                   "replacementPriority": 999
@@ -205,25 +293,27 @@
                 "core"
               ],
               "setupCues": [
-                "Configura barra y adopta la posición específica de «Peso Muerto Rumano Zercher» antes de iniciar; conserva una base estable."
+                "Preparación: Barra en los codos bajando con las piernas casi rectas: el isquio se estira a fondo y el torso aguanta la carga al frente."
               ],
               "setupTimeSeconds": 45,
               "ssc": 1.0,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "techniqueSummary": "Barra en los codos bajando con las piernas casi rectas: el isquio se estira a fondo y el torso aguanta la carga al frente. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 2.0,
+              "variantRationale": "Barra en los codos bajando con las piernas casi rectas: el isquio se estira a fondo y el torso aguanta la carga al frente. Exigente y con una demanda amplia."
             },
             "selectedOptions": {}
           }
         ],
         "defaultConfigurationId": "hams_peso_muerto_rumano_zercher__default",
-        "description": "Peso muerto rumano Zercher: la barra en los codos frente al pecho mientras bajas con las piernas casi rectas. El isquio se estira igual y el torso trabaja de extra.",
+        "description": "La barra en los codos frente al pecho mientras bajas con las piernas casi rectas. El isquio se estira igual y el torso trabaja de extra.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:hams_peso_muerto_rumano_zercher"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_hip_hinge",
@@ -244,9 +334,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_pull_through",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "hams_pull_through__default",
@@ -254,18 +344,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "De espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera empuja atrás y adelante.",
+                "El ejercicio que enseña la cadera a trabajar con los isquios."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón bisagra cadera para completar la repetición."
+                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
               "description": "De espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera empuja atrás y adelante. El ejercicio que enseña la cadera a trabajar con los isquios.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
-                "Ejecuta «Pull-Through» siguiendo el patrón bisagra cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "De espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera empuja atrás y adelante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Y Extensión"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera recibe el carga principal y vuelve a extenderse para elevar el tronco y la carga. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión Ligera Y Estabilidad"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla ajusta la altura de la cadera y comparte la salida sin dominar el gesto. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Resistencia A La Flexión"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar transmite la carga y resiste que el tronco se redondee. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Transferencia Pelvis-Tronco"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La articulación sacroilíaca enlaza la fuerza de piernas y tronco mientras la pelvis cambia de ángulo. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -273,7 +402,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "hamstrings",
-                  "note": "Principal: los isquiosurales flexionan la rodilla o extienden la cadera y concentran el trabajo; por eso suman la serie completa (1.0)."
+                  "note": "Principal: Los isquiosurales extiende la cadera y frena el descenso cuando la cadera se flexiona. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "hams_pull_through__cable__pull_through",
@@ -286,7 +415,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_hinge"
+                    "Flexión Y Extensión",
+                    "Flexión Ligera Y Estabilidad",
+                    "Resistencia A La Flexión",
+                    "Transferencia Pelvis-Tronco"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Y Extensión"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera recibe el carga principal y vuelve a extenderse para elevar el tronco y la carga. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión Ligera Y Estabilidad"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla ajusta la altura de la cadera y comparte la salida sin dominar el gesto. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Resistencia A La Flexión"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar transmite la carga y resiste que el tronco se redondee. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Transferencia Pelvis-Tronco"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La articulación sacroilíaca enlaza la fuerza de piernas y tronco mientras la pelvis cambia de ángulo. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -309,46 +475,57 @@
                   "movementPatternId": "hip_hinge",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "rodilla",
+                    "columna-lumbar",
+                    "sacroiliaca"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón bisagra cadera para completar la repetición."
+                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
                   ],
                   "cues": [
-                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                    "De espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera empuja atrás y adelante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Ejecuta «Pull-Through» siguiendo el patrón bisagra cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "De espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera empuja atrás y adelante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de rodilla según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura polea y adopta la posición específica de «Pull-Through» antes de iniciar; conserva una base estable."
+                    "Preparación: De espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera empuja atrás y adelante."
                   ]
                 },
                 "display": {
                   "displayName": "Pull-Through",
                   "displaySummary": "Polea",
                   "selectedOptions": {}
+                },
+                "editorial": {
+                  "benefits": [
+                    "De espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera empuja atrás y adelante.",
+                    "El ejercicio que enseña la cadera a trabajar con los isquios."
+                  ],
+                  "description": "De espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera empuja atrás y adelante. El ejercicio que enseña la cadera a trabajar con los isquios.",
+                  "technique": "De espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera empuja atrás y adelante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "De espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera empuja atrás y adelante. El ejercicio que enseña la cadera a trabajar con los isquios."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -361,7 +538,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull-Through",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "hams_pull_through__default",
                   "definitionId": "hams_pull_through",
                   "familyId": "lower_hip_hinge",
@@ -379,8 +556,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar hamstrings dentro del patrón hip_hinge.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar los isquiosurales mediante Pull-Through en la variante Polea.",
+                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -402,7 +579,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón hip_hinge y el objetivo hamstrings."
+                    "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -417,25 +595,27 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Configura polea y adopta la posición específica de «Pull-Through» antes de iniciar; conserva una base estable."
+                "Preparación: De espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera empuja atrás y adelante."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "techniqueSummary": "De espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera empuja atrás y adelante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 2.0,
+              "variantRationale": "De espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera empuja atrás y adelante. El ejercicio que enseña la cadera a trabajar con los isquios."
             },
             "selectedOptions": {}
           }
         ],
         "defaultConfigurationId": "hams_pull_through__default",
-        "description": "Pull-through: de espaldas a la polea baja, pasas la cuerda entre las piernas y empujas la cadera hacia atrás y adelante. El ejercicio que enseña a usar la cadera con los isquios de guía.",
+        "description": "De espaldas a la polea baja, pasas la cuerda entre las piernas y empujas la cadera hacia atrás y adelante. El ejercicio que enseña a usar la cadera con los isquios de guía.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:hams_pull_through"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_hip_hinge",
@@ -452,9 +632,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:lower_hip_hinge"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_hip_hinge",
@@ -463,6 +643,6 @@
       "hip_hinge"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

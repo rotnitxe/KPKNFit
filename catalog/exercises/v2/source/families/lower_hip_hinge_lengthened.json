@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Peso Muerto Piernas Rígidas",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_piernas_rigidas",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "stiff_leg_deadlift__bilateral__barbell",
@@ -22,18 +22,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.5,
+              "benefits": [
+                "Barra con ambas piernas casi rectas: el estiramiento de los isquios marca el recorrido.",
+                "El peso muerto de piernas rígidas tradicional."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Flexionar demasiado las rodillas o redondear la espalda para bajar más."
+                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Barra con ambas piernas casi rectas: el estiramiento de los isquios marca el recorrido. El peso muerto de piernas rígidas clásico.",
+              "description": "Barra con ambas piernas casi rectas: el estiramiento de los isquios marca el recorrido. El peso muerto de piernas rígidas tradicional.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Baja con las piernas casi rectas hasta sentir el estiramiento de isquios y sube con la cadera."
+                "Barra con ambas piernas casi rectas: el estiramiento de los isquios marca el recorrido. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Y Extensión"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera recibe el carga principal y vuelve a extenderse para elevar el tronco y la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión Ligera Y Estabilidad"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla ajusta la altura de la cadera y comparte la salida sin dominar el gesto. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Resistencia A La Flexión"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar transmite la carga y resiste que el tronco se redondee. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Transferencia Pelvis-Tronco"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La articulación sacroilíaca enlaza la fuerza de piernas y tronco mientras la pelvis cambia de ángulo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -41,19 +80,19 @@
               "muscleNotes": [
                 {
                   "muscleId": "hamstrings",
-                  "note": "Principal: los isquiosurales controlan el descenso de la bisagra y concentran el trabajo; por eso suman la serie completa (1.0)."
+                  "note": "Principal: Los isquiosurales extiende la cadera y frena el descenso cuando la cadera se flexiona. En la configuración Barra · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "gluteus_maximus",
-                  "note": "Principal: el glúteo mayor extiende la cadera y concentra la potencia del ascenso; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. En la configuración Barra · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "erector_spinae",
-                  "note": "Estabilizador: los erectores mantienen la columna neutra de forma isométrica durante la bisagra; por eso suman 0.4."
+                  "note": "Estabilizadora: Los erectores espinales sostiene la columna frente a la flexión y transmite fuerza entre pelvis y tronco. En la configuración Barra · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco firme y protege la zona lumbar; por eso suma 0.4."
+                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. En la configuración Barra · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "stiff_leg_deadlift__bilateral__barbell",
@@ -67,7 +106,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_hinge_lengthened"
+                    "Flexión Y Extensión",
+                    "Flexión Ligera Y Estabilidad",
+                    "Resistencia A La Flexión",
+                    "Transferencia Pelvis-Tronco"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Y Extensión"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera recibe el carga principal y vuelve a extenderse para elevar el tronco y la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión Ligera Y Estabilidad"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla ajusta la altura de la cadera y comparte la salida sin dominar el gesto. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Resistencia A La Flexión"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar transmite la carga y resiste que el tronco se redondee. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Transferencia Pelvis-Tronco"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La articulación sacroilíaca enlaza la fuerza de piernas y tronco mientras la pelvis cambia de ángulo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -95,40 +171,42 @@
                   "movementPatternId": "hip_hinge_lengthened",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "rodilla",
+                    "columna-lumbar",
+                    "sacroiliaca"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Flexionar demasiado las rodillas o redondear la espalda para bajar más."
+                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Barra con ambas piernas casi rectas: el estiramiento de los isquios marca el recorrido. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
                   ],
                   "execution": [
-                    "Baja con las piernas casi rectas hasta sentir el estiramiento de isquios y sube con la cadera."
+                    "Barra con ambas piernas casi rectas: el estiramiento de los isquios marca el recorrido. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de rodilla según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca la carga al frente y separa los pies al ancho de la cadera."
+                    "Preparación: Barra con ambas piernas casi rectas: el estiramiento de los isquios marca el recorrido."
                   ]
                 },
                 "display": {
@@ -138,6 +216,15 @@
                     "implement": "barbell",
                     "laterality": "bilateral"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Barra con ambas piernas casi rectas: el estiramiento de los isquios marca el recorrido.",
+                    "El peso muerto de piernas rígidas tradicional."
+                  ],
+                  "description": "Barra con ambas piernas casi rectas: el estiramiento de los isquios marca el recorrido. El peso muerto de piernas rígidas tradicional.",
+                  "technique": "Barra con ambas piernas casi rectas: el estiramiento de los isquios marca el recorrido. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda.",
+                  "variantRationale": "Barra con ambas piernas casi rectas: el estiramiento de los isquios marca el recorrido. El peso muerto de piernas rígidas tradicional."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -150,7 +237,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "stiff_leg_deadlift__bilateral__barbell",
                   "definitionId": "stiff_leg_deadlift",
                   "familyId": "lower_hip_hinge_lengthened",
@@ -169,7 +256,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar los isquiosurales en bisagra de cadera con piernas rígidas."
+                    "Desarrollar los isquiosurales mediante Peso Muerto Piernas Rígidas en la variante Barra · Trabajo Bilateral.",
+                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -194,7 +282,8 @@
                     "hex_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva la bisagra de cadera en longitud y el objetivo hamstrings."
+                    "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -209,7 +298,7 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Coloca la carga al frente y separa los pies al ancho de la cadera."
+                "Preparación: Barra con ambas piernas casi rectas: el estiramiento de los isquios marca el recorrido."
               ],
               "setupTimeSeconds": 45,
               "ssc": 1.0,
@@ -218,7 +307,9 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "techniqueSummary": "Barra con ambas piernas casi rectas: el estiramiento de los isquios marca el recorrido. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda.",
+              "ttc": 2.0,
+              "variantRationale": "Barra con ambas piernas casi rectas: el estiramiento de los isquios marca el recorrido. El peso muerto de piernas rígidas tradicional."
             },
             "selectedOptions": {
               "implement": "barbell",
@@ -231,9 +322,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_piernas_rigidas",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "stiff_leg_deadlift__unilateral__barbell",
@@ -241,18 +332,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.5,
+              "benefits": [
+                "Barra en una pierna casi recta: el isquio estirado a fondo y el equilibrio en cada repetición.",
+                "Avanzado y muy revelador; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Flexionar demasiado las rodillas o redondear la espalda para bajar más."
+                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
               "description": "Barra en una pierna casi recta: el isquio estirado a fondo y el equilibrio en cada repetición. Avanzado y muy revelador.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Baja con las piernas casi rectas hasta sentir el estiramiento de isquios y sube con la cadera."
+                "Barra en una pierna casi recta: el isquio estirado a fondo y el equilibrio en cada repetición. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Y Extensión"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera recibe el carga principal y vuelve a extenderse para elevar el tronco y la carga. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión Ligera Y Estabilidad"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla ajusta la altura de la cadera y comparte la salida sin dominar el gesto. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Resistencia A La Flexión"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar transmite la carga y resiste que el tronco se redondee. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Transferencia Pelvis-Tronco"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La articulación sacroilíaca enlaza la fuerza de piernas y tronco mientras la pelvis cambia de ángulo. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
@@ -260,19 +390,19 @@
               "muscleNotes": [
                 {
                   "muscleId": "hamstrings",
-                  "note": "Principal: los isquiosurales controlan el descenso de la bisagra y concentran el trabajo; por eso suman la serie completa (1.0)."
+                  "note": "Principal: Los isquiosurales extiende la cadera y frena el descenso cuando la cadera se flexiona. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "gluteus_maximus",
-                  "note": "Principal: el glúteo mayor extiende la cadera y concentra la potencia del ascenso; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "erector_spinae",
-                  "note": "Estabilizador: los erectores mantienen la columna neutra de forma isométrica durante la bisagra; por eso suman 0.4."
+                  "note": "Estabilizadora: Los erectores espinales sostiene la columna frente a la flexión y transmite fuerza entre pelvis y tronco. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco firme y protege la zona lumbar; por eso suma 0.4."
+                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "stiff_leg_deadlift__unilateral__barbell",
@@ -286,7 +416,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_hinge_lengthened"
+                    "Flexión Y Extensión",
+                    "Flexión Ligera Y Estabilidad",
+                    "Resistencia A La Flexión",
+                    "Transferencia Pelvis-Tronco"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Y Extensión"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera recibe el carga principal y vuelve a extenderse para elevar el tronco y la carga. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión Ligera Y Estabilidad"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla ajusta la altura de la cadera y comparte la salida sin dominar el gesto. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Resistencia A La Flexión"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar transmite la carga y resiste que el tronco se redondee. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Transferencia Pelvis-Tronco"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La articulación sacroilíaca enlaza la fuerza de piernas y tronco mientras la pelvis cambia de ángulo. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -314,40 +481,42 @@
                   "movementPatternId": "hip_hinge_lengthened",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "rodilla",
+                    "columna-lumbar",
+                    "sacroiliaca"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Flexionar demasiado las rodillas o redondear la espalda para bajar más."
+                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Barra en una pierna casi recta: el isquio estirado a fondo y el equilibrio en cada repetición. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
                   ],
                   "execution": [
-                    "Baja con las piernas casi rectas hasta sentir el estiramiento de isquios y sube con la cadera."
+                    "Barra en una pierna casi recta: el isquio estirado a fondo y el equilibrio en cada repetición. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de rodilla según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca la carga al frente y separa los pies al ancho de la cadera."
+                    "Preparación: Barra en una pierna casi recta: el isquio estirado a fondo y el equilibrio en cada repetición."
                   ]
                 },
                 "display": {
@@ -357,6 +526,15 @@
                     "implement": "barbell",
                     "laterality": "unilateral"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Barra en una pierna casi recta: el isquio estirado a fondo y el equilibrio en cada repetición.",
+                    "Avanzado y muy revelador; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Barra en una pierna casi recta: el isquio estirado a fondo y el equilibrio en cada repetición. Avanzado y muy revelador.",
+                  "technique": "Barra en una pierna casi recta: el isquio estirado a fondo y el equilibrio en cada repetición. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda.",
+                  "variantRationale": "Barra en una pierna casi recta: el isquio estirado a fondo y el equilibrio en cada repetición. Avanzado y muy revelador."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -369,7 +547,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "stiff_leg_deadlift__unilateral__barbell",
                   "definitionId": "stiff_leg_deadlift",
                   "familyId": "lower_hip_hinge_lengthened",
@@ -388,7 +566,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar los isquiosurales en bisagra de cadera con piernas rígidas."
+                    "Desarrollar los isquiosurales mediante Peso Muerto Piernas Rígidas en la variante Barra · Trabajo Unilateral.",
+                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -413,7 +592,8 @@
                     "hex_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva la bisagra de cadera en longitud y el objetivo hamstrings."
+                    "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -428,7 +608,7 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Coloca la carga al frente y separa los pies al ancho de la cadera."
+                "Preparación: Barra en una pierna casi recta: el isquio estirado a fondo y el equilibrio en cada repetición."
               ],
               "setupTimeSeconds": 45,
               "ssc": 1.0,
@@ -437,7 +617,9 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "techniqueSummary": "Barra en una pierna casi recta: el isquio estirado a fondo y el equilibrio en cada repetición. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda.",
+              "ttc": 2.0,
+              "variantRationale": "Barra en una pierna casi recta: el isquio estirado a fondo y el equilibrio en cada repetición. Avanzado y muy revelador."
             },
             "selectedOptions": {
               "implement": "barbell",
@@ -450,9 +632,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_piernas_rigidas",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "stiff_leg_deadlift__bilateral__smith_machine",
@@ -460,18 +642,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.5,
+              "benefits": [
+                "Smith con ambas piernas: el guiado te deja bajar hasta el estiramiento máximo con estabilidad.",
+                "Útil para series profundas; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Flexionar demasiado las rodillas o redondear la espalda para bajar más."
+                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Smith con ambas piernas: el guiado te deja bajar hasta el estiramiento máximo con seguridad. Ideal para series profundas.",
+              "description": "Smith con ambas piernas: el guiado te deja bajar hasta el estiramiento máximo con estabilidad. Útil para series profundas.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
-                "Baja con las piernas casi rectas hasta sentir el estiramiento de isquios y sube con la cadera."
+                "Smith con ambas piernas: el guiado te deja bajar hasta el estiramiento máximo con estabilidad. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Y Extensión"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera recibe el carga principal y vuelve a extenderse para elevar el tronco y la carga. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión Ligera Y Estabilidad"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla ajusta la altura de la cadera y comparte la salida sin dominar el gesto. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Resistencia A La Flexión"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar transmite la carga y resiste que el tronco se redondee. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Transferencia Pelvis-Tronco"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La articulación sacroilíaca enlaza la fuerza de piernas y tronco mientras la pelvis cambia de ángulo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -479,19 +700,19 @@
               "muscleNotes": [
                 {
                   "muscleId": "hamstrings",
-                  "note": "Principal: los isquiosurales controlan el descenso de la bisagra y concentran el trabajo; por eso suman la serie completa (1.0)."
+                  "note": "Principal: Los isquiosurales extiende la cadera y frena el descenso cuando la cadera se flexiona. En la configuración Máquina Smith · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "gluteus_maximus",
-                  "note": "Principal: el glúteo mayor extiende la cadera y concentra la potencia del ascenso; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. En la configuración Máquina Smith · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "erector_spinae",
-                  "note": "Estabilizador: los erectores mantienen la columna neutra de forma isométrica durante la bisagra; por eso suman 0.4."
+                  "note": "Estabilizadora: Los erectores espinales sostiene la columna frente a la flexión y transmite fuerza entre pelvis y tronco. El guiado externo reduce la demanda de estabilización y concentra su papel en mantener la posición. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco firme y protege la zona lumbar; por eso suma 0.4."
+                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. El guiado externo reduce la demanda de estabilización y concentra su papel en mantener la posición. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "stiff_leg_deadlift__bilateral__smith_machine",
@@ -505,7 +726,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_hinge_lengthened"
+                    "Flexión Y Extensión",
+                    "Flexión Ligera Y Estabilidad",
+                    "Resistencia A La Flexión",
+                    "Transferencia Pelvis-Tronco"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Y Extensión"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera recibe el carga principal y vuelve a extenderse para elevar el tronco y la carga. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión Ligera Y Estabilidad"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla ajusta la altura de la cadera y comparte la salida sin dominar el gesto. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Resistencia A La Flexión"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar transmite la carga y resiste que el tronco se redondee. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Transferencia Pelvis-Tronco"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La articulación sacroilíaca enlaza la fuerza de piernas y tronco mientras la pelvis cambia de ángulo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -533,40 +791,42 @@
                   "movementPatternId": "hip_hinge_lengthened",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "rodilla",
+                    "columna-lumbar",
+                    "sacroiliaca"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Flexionar demasiado las rodillas o redondear la espalda para bajar más."
+                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Smith con ambas piernas: el guiado te deja bajar hasta el estiramiento máximo con estabilidad. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
                   ],
                   "execution": [
-                    "Baja con las piernas casi rectas hasta sentir el estiramiento de isquios y sube con la cadera."
+                    "Smith con ambas piernas: el guiado te deja bajar hasta el estiramiento máximo con estabilidad. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de rodilla según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca la carga al frente y separa los pies al ancho de la cadera."
+                    "Preparación: Smith con ambas piernas: el guiado te deja bajar hasta el estiramiento máximo con estabilidad."
                   ]
                 },
                 "display": {
@@ -576,6 +836,15 @@
                     "implement": "smith_machine",
                     "laterality": "bilateral"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Smith con ambas piernas: el guiado te deja bajar hasta el estiramiento máximo con estabilidad.",
+                    "Útil para series profundas; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Smith con ambas piernas: el guiado te deja bajar hasta el estiramiento máximo con estabilidad. Útil para series profundas.",
+                  "technique": "Smith con ambas piernas: el guiado te deja bajar hasta el estiramiento máximo con estabilidad. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda.",
+                  "variantRationale": "Smith con ambas piernas: el guiado te deja bajar hasta el estiramiento máximo con estabilidad. Útil para series profundas."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -588,7 +857,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "stiff_leg_deadlift__bilateral__smith_machine",
                   "definitionId": "stiff_leg_deadlift",
                   "familyId": "lower_hip_hinge_lengthened",
@@ -607,7 +876,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar los isquiosurales en bisagra de cadera con piernas rígidas."
+                    "Desarrollar los isquiosurales mediante Peso Muerto Piernas Rígidas en la variante Máquina Smith · Trabajo Bilateral.",
+                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -632,7 +902,8 @@
                     "hex_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva la bisagra de cadera en longitud y el objetivo hamstrings."
+                    "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -647,7 +918,7 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Coloca la carga al frente y separa los pies al ancho de la cadera."
+                "Preparación: Smith con ambas piernas: el guiado te deja bajar hasta el estiramiento máximo con estabilidad."
               ],
               "setupTimeSeconds": 50,
               "ssc": 1.0,
@@ -656,7 +927,9 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "techniqueSummary": "Smith con ambas piernas: el guiado te deja bajar hasta el estiramiento máximo con estabilidad. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda.",
+              "ttc": 2.0,
+              "variantRationale": "Smith con ambas piernas: el guiado te deja bajar hasta el estiramiento máximo con estabilidad. Útil para series profundas."
             },
             "selectedOptions": {
               "implement": "smith_machine",
@@ -669,9 +942,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_piernas_rigidas",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "stiff_leg_deadlift__unilateral__smith_machine",
@@ -679,18 +952,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.5,
+              "benefits": [
+                "Smith en una pierna: estabilidad del guiado y estiramiento unilateral del isquio.",
+                "Útil para corregir desequilibrios; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Flexionar demasiado las rodillas o redondear la espalda para bajar más."
+                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Smith en una pierna: estabilidad del guiado y estiramiento unilateral del isquio. Perfecto para corregir desequilibrios.",
+              "description": "Smith en una pierna: estabilidad del guiado y estiramiento unilateral del isquio. Útil para corregir desequilibrios.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
-                "Baja con las piernas casi rectas hasta sentir el estiramiento de isquios y sube con la cadera."
+                "Smith en una pierna: estabilidad del guiado y estiramiento unilateral del isquio. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Y Extensión"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera recibe el carga principal y vuelve a extenderse para elevar el tronco y la carga. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión Ligera Y Estabilidad"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla ajusta la altura de la cadera y comparte la salida sin dominar el gesto. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Resistencia A La Flexión"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar transmite la carga y resiste que el tronco se redondee. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Transferencia Pelvis-Tronco"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La articulación sacroilíaca enlaza la fuerza de piernas y tronco mientras la pelvis cambia de ángulo. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
@@ -698,19 +1010,19 @@
               "muscleNotes": [
                 {
                   "muscleId": "hamstrings",
-                  "note": "Principal: los isquiosurales controlan el descenso de la bisagra y concentran el trabajo; por eso suman la serie completa (1.0)."
+                  "note": "Principal: Los isquiosurales extiende la cadera y frena el descenso cuando la cadera se flexiona. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "gluteus_maximus",
-                  "note": "Principal: el glúteo mayor extiende la cadera y concentra la potencia del ascenso; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "erector_spinae",
-                  "note": "Estabilizador: los erectores mantienen la columna neutra de forma isométrica durante la bisagra; por eso suman 0.4."
+                  "note": "Estabilizadora: Los erectores espinales sostiene la columna frente a la flexión y transmite fuerza entre pelvis y tronco. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco firme y protege la zona lumbar; por eso suma 0.4."
+                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "stiff_leg_deadlift__unilateral__smith_machine",
@@ -724,7 +1036,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_hinge_lengthened"
+                    "Flexión Y Extensión",
+                    "Flexión Ligera Y Estabilidad",
+                    "Resistencia A La Flexión",
+                    "Transferencia Pelvis-Tronco"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Y Extensión"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera recibe el carga principal y vuelve a extenderse para elevar el tronco y la carga. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión Ligera Y Estabilidad"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla ajusta la altura de la cadera y comparte la salida sin dominar el gesto. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Resistencia A La Flexión"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar transmite la carga y resiste que el tronco se redondee. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Transferencia Pelvis-Tronco"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La articulación sacroilíaca enlaza la fuerza de piernas y tronco mientras la pelvis cambia de ángulo. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -752,40 +1101,42 @@
                   "movementPatternId": "hip_hinge_lengthened",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "rodilla",
+                    "columna-lumbar",
+                    "sacroiliaca"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Flexionar demasiado las rodillas o redondear la espalda para bajar más."
+                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Smith en una pierna: estabilidad del guiado y estiramiento unilateral del isquio. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
                   ],
                   "execution": [
-                    "Baja con las piernas casi rectas hasta sentir el estiramiento de isquios y sube con la cadera."
+                    "Smith en una pierna: estabilidad del guiado y estiramiento unilateral del isquio. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de rodilla según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca la carga al frente y separa los pies al ancho de la cadera."
+                    "Preparación: Smith en una pierna: estabilidad del guiado y estiramiento unilateral del isquio."
                   ]
                 },
                 "display": {
@@ -795,6 +1146,15 @@
                     "implement": "smith_machine",
                     "laterality": "unilateral"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Smith en una pierna: estabilidad del guiado y estiramiento unilateral del isquio.",
+                    "Útil para corregir desequilibrios; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Smith en una pierna: estabilidad del guiado y estiramiento unilateral del isquio. Útil para corregir desequilibrios.",
+                  "technique": "Smith en una pierna: estabilidad del guiado y estiramiento unilateral del isquio. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda.",
+                  "variantRationale": "Smith en una pierna: estabilidad del guiado y estiramiento unilateral del isquio. Útil para corregir desequilibrios."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -807,7 +1167,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "stiff_leg_deadlift__unilateral__smith_machine",
                   "definitionId": "stiff_leg_deadlift",
                   "familyId": "lower_hip_hinge_lengthened",
@@ -826,7 +1186,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar los isquiosurales en bisagra de cadera con piernas rígidas."
+                    "Desarrollar los isquiosurales mediante Peso Muerto Piernas Rígidas en la variante Máquina Smith · Trabajo Unilateral.",
+                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -851,7 +1212,8 @@
                     "hex_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva la bisagra de cadera en longitud y el objetivo hamstrings."
+                    "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -866,7 +1228,7 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Coloca la carga al frente y separa los pies al ancho de la cadera."
+                "Preparación: Smith en una pierna: estabilidad del guiado y estiramiento unilateral del isquio."
               ],
               "setupTimeSeconds": 50,
               "ssc": 1.0,
@@ -875,7 +1237,9 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "techniqueSummary": "Smith en una pierna: estabilidad del guiado y estiramiento unilateral del isquio. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda.",
+              "ttc": 2.0,
+              "variantRationale": "Smith en una pierna: estabilidad del guiado y estiramiento unilateral del isquio. Útil para corregir desequilibrios."
             },
             "selectedOptions": {
               "implement": "smith_machine",
@@ -888,9 +1252,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_piernas_rigidas",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "stiff_leg_deadlift__bilateral__dumbbells",
@@ -898,18 +1262,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.5,
+              "benefits": [
+                "Mancuernas con ambas piernas: la carga a los costados con recorrido libre.",
+                "La versión accesible del peso muerto de piernas rígidas."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Flexionar demasiado las rodillas o redondear la espalda para bajar más."
+                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
               "description": "Mancuernas con ambas piernas: la carga a los costados con recorrido libre. La versión accesible del peso muerto de piernas rígidas.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Baja con las piernas casi rectas hasta sentir el estiramiento de isquios y sube con la cadera."
+                "Mancuernas con ambas piernas: la carga a los costados con recorrido libre. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Y Extensión"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera recibe el carga principal y vuelve a extenderse para elevar el tronco y la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión Ligera Y Estabilidad"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla ajusta la altura de la cadera y comparte la salida sin dominar el gesto. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Resistencia A La Flexión"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar transmite la carga y resiste que el tronco se redondee. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Transferencia Pelvis-Tronco"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La articulación sacroilíaca enlaza la fuerza de piernas y tronco mientras la pelvis cambia de ángulo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -917,19 +1320,19 @@
               "muscleNotes": [
                 {
                   "muscleId": "hamstrings",
-                  "note": "Principal: los isquiosurales controlan el descenso de la bisagra y concentran el trabajo; por eso suman la serie completa (1.0)."
+                  "note": "Principal: Los isquiosurales extiende la cadera y frena el descenso cuando la cadera se flexiona. En la configuración Mancuernas · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "gluteus_maximus",
-                  "note": "Principal: el glúteo mayor extiende la cadera y concentra la potencia del ascenso; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. En la configuración Mancuernas · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "erector_spinae",
-                  "note": "Estabilizador: los erectores mantienen la columna neutra de forma isométrica durante la bisagra; por eso suman 0.4."
+                  "note": "Estabilizadora: Los erectores espinales sostiene la columna frente a la flexión y transmite fuerza entre pelvis y tronco. En la configuración Mancuernas · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco firme y protege la zona lumbar; por eso suma 0.4."
+                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. En la configuración Mancuernas · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "stiff_leg_deadlift__bilateral__dumbbells",
@@ -943,7 +1346,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_hinge_lengthened"
+                    "Flexión Y Extensión",
+                    "Flexión Ligera Y Estabilidad",
+                    "Resistencia A La Flexión",
+                    "Transferencia Pelvis-Tronco"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Y Extensión"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera recibe el carga principal y vuelve a extenderse para elevar el tronco y la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión Ligera Y Estabilidad"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla ajusta la altura de la cadera y comparte la salida sin dominar el gesto. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Resistencia A La Flexión"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar transmite la carga y resiste que el tronco se redondee. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Transferencia Pelvis-Tronco"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La articulación sacroilíaca enlaza la fuerza de piernas y tronco mientras la pelvis cambia de ángulo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -971,40 +1411,42 @@
                   "movementPatternId": "hip_hinge_lengthened",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "rodilla",
+                    "columna-lumbar",
+                    "sacroiliaca"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Flexionar demasiado las rodillas o redondear la espalda para bajar más."
+                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Mancuernas con ambas piernas: la carga a los costados con recorrido libre. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
                   ],
                   "execution": [
-                    "Baja con las piernas casi rectas hasta sentir el estiramiento de isquios y sube con la cadera."
+                    "Mancuernas con ambas piernas: la carga a los costados con recorrido libre. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de rodilla según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca la carga al frente y separa los pies al ancho de la cadera."
+                    "Preparación: Mancuernas con ambas piernas: la carga a los costados con recorrido libre."
                   ]
                 },
                 "display": {
@@ -1014,6 +1456,15 @@
                     "implement": "dumbbells",
                     "laterality": "bilateral"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Mancuernas con ambas piernas: la carga a los costados con recorrido libre.",
+                    "La versión accesible del peso muerto de piernas rígidas."
+                  ],
+                  "description": "Mancuernas con ambas piernas: la carga a los costados con recorrido libre. La versión accesible del peso muerto de piernas rígidas.",
+                  "technique": "Mancuernas con ambas piernas: la carga a los costados con recorrido libre. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda.",
+                  "variantRationale": "Mancuernas con ambas piernas: la carga a los costados con recorrido libre. La versión accesible del peso muerto de piernas rígidas."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1026,7 +1477,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "stiff_leg_deadlift__bilateral__dumbbells",
                   "definitionId": "stiff_leg_deadlift",
                   "familyId": "lower_hip_hinge_lengthened",
@@ -1045,7 +1496,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar los isquiosurales en bisagra de cadera con piernas rígidas."
+                    "Desarrollar los isquiosurales mediante Peso Muerto Piernas Rígidas en la variante Mancuernas · Trabajo Bilateral.",
+                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1070,7 +1522,8 @@
                     "hex_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva la bisagra de cadera en longitud y el objetivo hamstrings."
+                    "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -1085,7 +1538,7 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Coloca la carga al frente y separa los pies al ancho de la cadera."
+                "Preparación: Mancuernas con ambas piernas: la carga a los costados con recorrido libre."
               ],
               "setupTimeSeconds": 30,
               "ssc": 1.0,
@@ -1094,7 +1547,9 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "techniqueSummary": "Mancuernas con ambas piernas: la carga a los costados con recorrido libre. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda.",
+              "ttc": 2.0,
+              "variantRationale": "Mancuernas con ambas piernas: la carga a los costados con recorrido libre. La versión accesible del peso muerto de piernas rígidas."
             },
             "selectedOptions": {
               "implement": "dumbbells",
@@ -1107,9 +1562,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_piernas_rigidas",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "stiff_leg_deadlift__unilateral__dumbbells",
@@ -1117,18 +1572,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.5,
+              "benefits": [
+                "Una mancuerna desciende junto a la pierna de apoyo mientras la pierna libre se aleja.",
+                "La versión unilateral hace más evidente el estiramiento de cada isquio y exige sostener la pelvis sin girarla."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Flexionar demasiado las rodillas o redondear la espalda para bajar más."
+                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Mancuerna en una pierna: el estiramiento del isquio se siente en cada bajada. El favorito para isquios y equilibrio.",
+              "description": "Una mancuerna desciende junto a la pierna de apoyo mientras la pierna libre se aleja. La versión unilateral hace más evidente el estiramiento de cada isquio y exige sostener la pelvis sin girarla.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Baja con las piernas casi rectas hasta sentir el estiramiento de isquios y sube con la cadera."
+                "Una mancuerna desciende junto a la pierna de apoyo mientras la pierna libre se aleja. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Y Extensión"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera recibe el carga principal y vuelve a extenderse para elevar el tronco y la carga. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión Ligera Y Estabilidad"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla ajusta la altura de la cadera y comparte la salida sin dominar el gesto. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Resistencia A La Flexión"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar transmite la carga y resiste que el tronco se redondee. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Transferencia Pelvis-Tronco"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La articulación sacroilíaca enlaza la fuerza de piernas y tronco mientras la pelvis cambia de ángulo. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
@@ -1136,19 +1630,19 @@
               "muscleNotes": [
                 {
                   "muscleId": "hamstrings",
-                  "note": "Principal: los isquiosurales controlan el descenso de la bisagra y concentran el trabajo; por eso suman la serie completa (1.0)."
+                  "note": "Principal: Los isquiosurales extiende la cadera y frena el descenso cuando la cadera se flexiona. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "gluteus_maximus",
-                  "note": "Principal: el glúteo mayor extiende la cadera y concentra la potencia del ascenso; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "erector_spinae",
-                  "note": "Estabilizador: los erectores mantienen la columna neutra de forma isométrica durante la bisagra; por eso suman 0.4."
+                  "note": "Estabilizadora: Los erectores espinales sostiene la columna frente a la flexión y transmite fuerza entre pelvis y tronco. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco firme y protege la zona lumbar; por eso suma 0.4."
+                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "stiff_leg_deadlift__unilateral__dumbbells",
@@ -1162,7 +1656,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_hinge_lengthened"
+                    "Flexión Y Extensión",
+                    "Flexión Ligera Y Estabilidad",
+                    "Resistencia A La Flexión",
+                    "Transferencia Pelvis-Tronco"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Y Extensión"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera recibe el carga principal y vuelve a extenderse para elevar el tronco y la carga. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión Ligera Y Estabilidad"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla ajusta la altura de la cadera y comparte la salida sin dominar el gesto. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Resistencia A La Flexión"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar transmite la carga y resiste que el tronco se redondee. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Transferencia Pelvis-Tronco"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La articulación sacroilíaca enlaza la fuerza de piernas y tronco mientras la pelvis cambia de ángulo. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -1190,40 +1721,42 @@
                   "movementPatternId": "hip_hinge_lengthened",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "rodilla",
+                    "columna-lumbar",
+                    "sacroiliaca"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Flexionar demasiado las rodillas o redondear la espalda para bajar más."
+                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Una mancuerna desciende junto a la pierna de apoyo mientras la pierna libre se aleja. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
                   ],
                   "execution": [
-                    "Baja con las piernas casi rectas hasta sentir el estiramiento de isquios y sube con la cadera."
+                    "Una mancuerna desciende junto a la pierna de apoyo mientras la pierna libre se aleja. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de rodilla según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca la carga al frente y separa los pies al ancho de la cadera."
+                    "Preparación: Una mancuerna desciende junto a la pierna de apoyo mientras la pierna libre se aleja."
                   ]
                 },
                 "display": {
@@ -1233,6 +1766,15 @@
                     "implement": "dumbbells",
                     "laterality": "unilateral"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Una mancuerna desciende junto a la pierna de apoyo mientras la pierna libre se aleja.",
+                    "La versión unilateral hace más evidente el estiramiento de cada isquio y exige sostener la pelvis sin girarla."
+                  ],
+                  "description": "Una mancuerna desciende junto a la pierna de apoyo mientras la pierna libre se aleja. La versión unilateral hace más evidente el estiramiento de cada isquio y exige sostener la pelvis sin girarla.",
+                  "technique": "Una mancuerna desciende junto a la pierna de apoyo mientras la pierna libre se aleja. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda.",
+                  "variantRationale": "Una mancuerna desciende junto a la pierna de apoyo mientras la pierna libre se aleja. La versión unilateral hace más evidente el estiramiento de cada isquio y exige sostener la pelvis sin girarla."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1245,7 +1787,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "stiff_leg_deadlift__unilateral__dumbbells",
                   "definitionId": "stiff_leg_deadlift",
                   "familyId": "lower_hip_hinge_lengthened",
@@ -1264,7 +1806,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar los isquiosurales en bisagra de cadera con piernas rígidas."
+                    "Desarrollar los isquiosurales mediante Peso Muerto Piernas Rígidas en la variante Mancuernas · Trabajo Unilateral.",
+                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1289,7 +1832,8 @@
                     "hex_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva la bisagra de cadera en longitud y el objetivo hamstrings."
+                    "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -1304,7 +1848,7 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Coloca la carga al frente y separa los pies al ancho de la cadera."
+                "Preparación: Una mancuerna desciende junto a la pierna de apoyo mientras la pierna libre se aleja."
               ],
               "setupTimeSeconds": 30,
               "ssc": 1.0,
@@ -1313,7 +1857,9 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "techniqueSummary": "Una mancuerna desciende junto a la pierna de apoyo mientras la pierna libre se aleja. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda.",
+              "ttc": 2.0,
+              "variantRationale": "Una mancuerna desciende junto a la pierna de apoyo mientras la pierna libre se aleja. La versión unilateral hace más evidente el estiramiento de cada isquio y exige sostener la pelvis sin girarla."
             },
             "selectedOptions": {
               "implement": "dumbbells",
@@ -1326,9 +1872,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_piernas_rigidas",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "stiff_leg_deadlift__bilateral__hex_bar",
@@ -1336,18 +1882,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.5,
+              "benefits": [
+                "Barra hexagonal con ambas piernas: carga estable y estiramiento profundo.",
+                "Cómoda, estable y útil para acumular trabajo para los isquios."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Flexionar demasiado las rodillas o redondear la espalda para bajar más."
+                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Barra hexagonal con ambas piernas: carga estable y estiramiento profundo. Cómoda, segura y muy efectiva para los isquios.",
+              "description": "Barra hexagonal con ambas piernas: carga estable y estiramiento profundo. Cómoda, estable y útil para acumular trabajo para los isquios.",
               "efc": 2.8,
               "equipmentId": "hex_bar",
               "executionCues": [
-                "Baja con las piernas casi rectas hasta sentir el estiramiento de isquios y sube con la cadera."
+                "Barra hexagonal con ambas piernas: carga estable y estiramiento profundo. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Y Extensión"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera recibe el carga principal y vuelve a extenderse para elevar el tronco y la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión Ligera Y Estabilidad"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla ajusta la altura de la cadera y comparte la salida sin dominar el gesto. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Resistencia A La Flexión"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar transmite la carga y resiste que el tronco se redondee. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Transferencia Pelvis-Tronco"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La articulación sacroilíaca enlaza la fuerza de piernas y tronco mientras la pelvis cambia de ángulo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -1355,19 +1940,19 @@
               "muscleNotes": [
                 {
                   "muscleId": "hamstrings",
-                  "note": "Principal: los isquiosurales controlan el descenso de la bisagra y concentran el trabajo; por eso suman la serie completa (1.0)."
+                  "note": "Principal: Los isquiosurales extiende la cadera y frena el descenso cuando la cadera se flexiona. En la configuración Barra Hexagonal · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "gluteus_maximus",
-                  "note": "Principal: el glúteo mayor extiende la cadera y concentra la potencia del ascenso; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. En la configuración Barra Hexagonal · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "erector_spinae",
-                  "note": "Estabilizador: los erectores mantienen la columna neutra de forma isométrica durante la bisagra; por eso suman 0.4."
+                  "note": "Estabilizadora: Los erectores espinales sostiene la columna frente a la flexión y transmite fuerza entre pelvis y tronco. En la configuración Barra Hexagonal · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco firme y protege la zona lumbar; por eso suma 0.4."
+                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. En la configuración Barra Hexagonal · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "stiff_leg_deadlift__bilateral__hex_bar",
@@ -1381,7 +1966,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_hinge_lengthened"
+                    "Flexión Y Extensión",
+                    "Flexión Ligera Y Estabilidad",
+                    "Resistencia A La Flexión",
+                    "Transferencia Pelvis-Tronco"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Y Extensión"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera recibe el carga principal y vuelve a extenderse para elevar el tronco y la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión Ligera Y Estabilidad"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla ajusta la altura de la cadera y comparte la salida sin dominar el gesto. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Resistencia A La Flexión"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar transmite la carga y resiste que el tronco se redondee. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Transferencia Pelvis-Tronco"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La articulación sacroilíaca enlaza la fuerza de piernas y tronco mientras la pelvis cambia de ángulo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -1409,40 +2031,42 @@
                   "movementPatternId": "hip_hinge_lengthened",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "rodilla",
+                    "columna-lumbar",
+                    "sacroiliaca"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Flexionar demasiado las rodillas o redondear la espalda para bajar más."
+                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Barra hexagonal con ambas piernas: carga estable y estiramiento profundo. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
                   ],
                   "execution": [
-                    "Baja con las piernas casi rectas hasta sentir el estiramiento de isquios y sube con la cadera."
+                    "Barra hexagonal con ambas piernas: carga estable y estiramiento profundo. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de rodilla según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca la carga al frente y separa los pies al ancho de la cadera."
+                    "Preparación: Barra hexagonal con ambas piernas: carga estable y estiramiento profundo."
                   ]
                 },
                 "display": {
@@ -1452,6 +2076,15 @@
                     "implement": "hex_bar",
                     "laterality": "bilateral"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Barra hexagonal con ambas piernas: carga estable y estiramiento profundo.",
+                    "Cómoda, estable y útil para acumular trabajo para los isquios."
+                  ],
+                  "description": "Barra hexagonal con ambas piernas: carga estable y estiramiento profundo. Cómoda, estable y útil para acumular trabajo para los isquios.",
+                  "technique": "Barra hexagonal con ambas piernas: carga estable y estiramiento profundo. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda.",
+                  "variantRationale": "Barra hexagonal con ambas piernas: carga estable y estiramiento profundo. Cómoda, estable y útil para acumular trabajo para los isquios."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1464,7 +2097,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "stiff_leg_deadlift__bilateral__hex_bar",
                   "definitionId": "stiff_leg_deadlift",
                   "familyId": "lower_hip_hinge_lengthened",
@@ -1483,7 +2116,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar los isquiosurales en bisagra de cadera con piernas rígidas."
+                    "Desarrollar los isquiosurales mediante Peso Muerto Piernas Rígidas en la variante Barra Hexagonal · Trabajo Bilateral.",
+                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1508,7 +2142,8 @@
                     "hex_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva la bisagra de cadera en longitud y el objetivo hamstrings."
+                    "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -1523,7 +2158,7 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Coloca la carga al frente y separa los pies al ancho de la cadera."
+                "Preparación: Barra hexagonal con ambas piernas: carga estable y estiramiento profundo."
               ],
               "setupTimeSeconds": 45,
               "ssc": 1.0,
@@ -1532,7 +2167,9 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "techniqueSummary": "Barra hexagonal con ambas piernas: carga estable y estiramiento profundo. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda.",
+              "ttc": 2.0,
+              "variantRationale": "Barra hexagonal con ambas piernas: carga estable y estiramiento profundo. Cómoda, estable y útil para acumular trabajo para los isquios."
             },
             "selectedOptions": {
               "implement": "hex_bar",
@@ -1545,9 +2182,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_piernas_rigidas",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "stiff_leg_deadlift__unilateral__hex_bar",
@@ -1555,18 +2192,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.5,
+              "benefits": [
+                "Barra hexagonal en una pierna: la carga estable más el reto del equilibrio.",
+                "Variante exigente para la parte trasera de la pierna."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Flexionar demasiado las rodillas o redondear la espalda para bajar más."
+                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
               "description": "Barra hexagonal en una pierna: la carga estable más el reto del equilibrio. Variante exigente para la parte trasera de la pierna.",
               "efc": 2.8,
               "equipmentId": "hex_bar",
               "executionCues": [
-                "Baja con las piernas casi rectas hasta sentir el estiramiento de isquios y sube con la cadera."
+                "Barra hexagonal en una pierna: la carga estable más el reto del equilibrio. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Y Extensión"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera recibe el carga principal y vuelve a extenderse para elevar el tronco y la carga. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión Ligera Y Estabilidad"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla ajusta la altura de la cadera y comparte la salida sin dominar el gesto. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Resistencia A La Flexión"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar transmite la carga y resiste que el tronco se redondee. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Transferencia Pelvis-Tronco"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La articulación sacroilíaca enlaza la fuerza de piernas y tronco mientras la pelvis cambia de ángulo. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
@@ -1574,19 +2250,19 @@
               "muscleNotes": [
                 {
                   "muscleId": "hamstrings",
-                  "note": "Principal: los isquiosurales controlan el descenso de la bisagra y concentran el trabajo; por eso suman la serie completa (1.0)."
+                  "note": "Principal: Los isquiosurales extiende la cadera y frena el descenso cuando la cadera se flexiona. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "gluteus_maximus",
-                  "note": "Principal: el glúteo mayor extiende la cadera y concentra la potencia del ascenso; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "erector_spinae",
-                  "note": "Estabilizador: los erectores mantienen la columna neutra de forma isométrica durante la bisagra; por eso suman 0.4."
+                  "note": "Estabilizadora: Los erectores espinales sostiene la columna frente a la flexión y transmite fuerza entre pelvis y tronco. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco firme y protege la zona lumbar; por eso suma 0.4."
+                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "stiff_leg_deadlift__unilateral__hex_bar",
@@ -1600,7 +2276,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_hinge_lengthened"
+                    "Flexión Y Extensión",
+                    "Flexión Ligera Y Estabilidad",
+                    "Resistencia A La Flexión",
+                    "Transferencia Pelvis-Tronco"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Y Extensión"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera recibe el carga principal y vuelve a extenderse para elevar el tronco y la carga. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión Ligera Y Estabilidad"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla ajusta la altura de la cadera y comparte la salida sin dominar el gesto. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Resistencia A La Flexión"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar transmite la carga y resiste que el tronco se redondee. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Transferencia Pelvis-Tronco"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La articulación sacroilíaca enlaza la fuerza de piernas y tronco mientras la pelvis cambia de ángulo. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -1628,40 +2341,42 @@
                   "movementPatternId": "hip_hinge_lengthened",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "rodilla",
+                    "columna-lumbar",
+                    "sacroiliaca"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Flexionar demasiado las rodillas o redondear la espalda para bajar más."
+                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Barra hexagonal en una pierna: la carga estable más el reto del equilibrio. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
                   ],
                   "execution": [
-                    "Baja con las piernas casi rectas hasta sentir el estiramiento de isquios y sube con la cadera."
+                    "Barra hexagonal en una pierna: la carga estable más el reto del equilibrio. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de rodilla según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca la carga al frente y separa los pies al ancho de la cadera."
+                    "Preparación: Barra hexagonal en una pierna: la carga estable más el reto del equilibrio."
                   ]
                 },
                 "display": {
@@ -1671,6 +2386,15 @@
                     "implement": "hex_bar",
                     "laterality": "unilateral"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Barra hexagonal en una pierna: la carga estable más el reto del equilibrio.",
+                    "Variante exigente para la parte trasera de la pierna."
+                  ],
+                  "description": "Barra hexagonal en una pierna: la carga estable más el reto del equilibrio. Variante exigente para la parte trasera de la pierna.",
+                  "technique": "Barra hexagonal en una pierna: la carga estable más el reto del equilibrio. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda.",
+                  "variantRationale": "Barra hexagonal en una pierna: la carga estable más el reto del equilibrio. Variante exigente para la parte trasera de la pierna."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1683,7 +2407,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "stiff_leg_deadlift__unilateral__hex_bar",
                   "definitionId": "stiff_leg_deadlift",
                   "familyId": "lower_hip_hinge_lengthened",
@@ -1702,7 +2426,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar los isquiosurales en bisagra de cadera con piernas rígidas."
+                    "Desarrollar los isquiosurales mediante Peso Muerto Piernas Rígidas en la variante Barra Hexagonal · Trabajo Unilateral.",
+                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1727,7 +2452,8 @@
                     "hex_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva la bisagra de cadera en longitud y el objetivo hamstrings."
+                    "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -1742,7 +2468,7 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Coloca la carga al frente y separa los pies al ancho de la cadera."
+                "Preparación: Barra hexagonal en una pierna: la carga estable más el reto del equilibrio."
               ],
               "setupTimeSeconds": 45,
               "ssc": 1.0,
@@ -1751,7 +2477,9 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "techniqueSummary": "Barra hexagonal en una pierna: la carga estable más el reto del equilibrio. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda.",
+              "ttc": 2.0,
+              "variantRationale": "Barra hexagonal en una pierna: la carga estable más el reto del equilibrio. Variante exigente para la parte trasera de la pierna."
             },
             "selectedOptions": {
               "implement": "hex_bar",
@@ -1760,13 +2488,13 @@
           }
         ],
         "defaultConfigurationId": "stiff_leg_deadlift__bilateral__barbell",
-        "description": "Peso muerto piernas rígidas: piernas casi rectas y la barra bajando hasta el estiramiento máximo de los isquios. El ejercicio más profundo para la parte trasera de la pierna.",
+        "description": "Piernas casi rectas y la barra bajando hasta el estiramiento máximo de los isquios. El ejercicio más profundo para la parte trasera de la pierna.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:stiff_leg_deadlift"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_hip_hinge_lengthened",
@@ -1787,9 +2515,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:lower_hip_hinge_lengthened"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_hip_hinge_lengthened",
@@ -1798,6 +2526,6 @@
       "hip_hinge_lengthened"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

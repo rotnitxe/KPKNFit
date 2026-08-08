@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Core · core · anti rotation trunk",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#core_press_pallof",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "core_press_pallof__default",
@@ -22,18 +22,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Polea a la altura del pecho y cuerpo firme: llevas la cuerda al frente resistiendo el giro.",
+                "El ejercicio que enseña a tu core a no girarse cuando no debe."
+              ],
               "bodyRegion": "CORE",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón anti-rotación tronco para completar la repetición."
+                "Arquear la espalda, girar con la carga o perder la tensión al final."
               ],
               "description": "Polea a la altura del pecho y cuerpo firme: llevas la cuerda al frente resistiendo el giro. El ejercicio que enseña a tu core a no girarse cuando no debe.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
-                "Ejecuta «Press Pallof» siguiendo el patrón anti-rotación tronco con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Polea a la altura del pecho y cuerpo firme: llevas la cuerda al frente resistiendo el giro. La carga intenta girar el torso y el abdomen responde manteniendo el pecho orientado; la distancia al anclaje define la dificultad."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Anti-Extensión O Anti-Rotación"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Principal: La columna lumbar resiste el movimiento que la carga intenta imponer. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Control De Pelvis"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis conecta las fuerzas del suelo y del tronco sin perder orientación. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Posición Torácica"
+                  ],
+                  "jointId": "columna-toracica",
+                  "note": "Estabilizadora: La columna torácica aporta una base rígida para la acción del core. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
@@ -41,11 +72,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "core",
-                  "note": "Principal: el core controla el tronco y concentra la demanda del patrón; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "abdominals",
-                  "note": "Secundario: el abdomen acompaña la estabilización del tronco durante el movimiento; por eso suma 0.5."
+                  "note": "Secundaria: El recto abdominal acerca costillas y pelvis o resiste la extensión del tronco. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "core_press_pallof__cable__press_pallof",
@@ -58,7 +89,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "anti_rotation_trunk"
+                    "Anti-Extensión O Anti-Rotación",
+                    "Control De Pelvis",
+                    "Posición Torácica"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Anti-Extensión O Anti-Rotación"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Principal: La columna lumbar resiste el movimiento que la carga intenta imponer. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Control De Pelvis"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis conecta las fuerzas del suelo y del tronco sin perder orientación. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Posición Torácica"
+                      ],
+                      "jointId": "columna-toracica",
+                      "note": "Estabilizadora: La columna torácica aporta una base rígida para la acción del core. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -83,44 +142,51 @@
                   "movementPatternId": "anti_rotation_trunk",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "spine",
-                    "hip"
+                    "columna-lumbar",
+                    "sacroiliaca",
+                    "columna-toracica"
                   ],
-                  "relevantTendons": [
-                    "spine_tendon",
-                    "hip_tendon"
-                  ],
+                  "relevantTendons": [],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón anti-rotación tronco para completar la repetición."
+                    "Arquear la espalda, girar con la carga o perder la tensión al final."
                   ],
                   "cues": [
-                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                    "Polea a la altura del pecho y cuerpo firme: llevas la cuerda al frente resistiendo el giro. La carga intenta girar el torso y el abdomen responde manteniendo el pecho orientado; la distancia al anclaje define la dificultad."
                   ],
                   "execution": [
-                    "Ejecuta «Press Pallof» siguiendo el patrón anti-rotación tronco con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Polea a la altura del pecho y cuerpo firme: llevas la cuerda al frente resistiendo el giro. La carga intenta girar el torso y el abdomen responde manteniendo el pecho orientado; la distancia al anclaje define la dificultad."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar la capacidad del core para transferir fuerza sin movimientos innecesarios siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar resistencia del tronco frente a extensión, giro o inclinación como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de spine según tolerancia y rango disponible.",
-                    "Movilidad de hip según tolerancia y rango disponible."
+                    "Movilidad de columna lumbar según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura polea y adopta la posición específica de «Press Pallof» antes de iniciar; conserva una base estable."
+                    "Preparación: Polea a la altura del pecho y cuerpo firme: llevas la cuerda al frente resistiendo el giro."
                   ]
                 },
                 "display": {
                   "displayName": "Press Pallof",
                   "displaySummary": "Polea",
                   "selectedOptions": {}
+                },
+                "editorial": {
+                  "benefits": [
+                    "Polea a la altura del pecho y cuerpo firme: llevas la cuerda al frente resistiendo el giro.",
+                    "El ejercicio que enseña a tu core a no girarse cuando no debe."
+                  ],
+                  "description": "Polea a la altura del pecho y cuerpo firme: llevas la cuerda al frente resistiendo el giro. El ejercicio que enseña a tu core a no girarse cuando no debe.",
+                  "technique": "Polea a la altura del pecho y cuerpo firme: llevas la cuerda al frente resistiendo el giro. La carga intenta girar el torso y el abdomen responde manteniendo el pecho orientado; la distancia al anclaje define la dificultad.",
+                  "variantRationale": "Polea a la altura del pecho y cuerpo firme: llevas la cuerda al frente resistiendo el giro. El ejercicio que enseña a tu core a no girarse cuando no debe."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -133,7 +199,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Pallof",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "core_press_pallof__default",
                   "definitionId": "core_press_pallof",
                   "familyId": "core_anti_rotation_trunk",
@@ -151,8 +217,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar core dentro del patrón anti_rotation_trunk.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el core mediante Press Pallof en la variante Polea.",
+                    "Priorizar mejorar la capacidad del core para transferir fuerza sin movimientos innecesarios con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -174,7 +240,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón anti_rotation_trunk y el objetivo core."
+                    "Conserva resistencia del tronco frente a extensión, giro o inclinación y el objetivo de el core.",
+                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar, articulación sacroilíaca, columna torácica."
                   ],
                   "replacementGroup": "core_pallof_press",
                   "replacementPriority": 1
@@ -191,25 +258,27 @@
                 "abdominals"
               ],
               "setupCues": [
-                "Configura polea y adopta la posición específica de «Press Pallof» antes de iniciar; conserva una base estable."
+                "Preparación: Polea a la altura del pecho y cuerpo firme: llevas la cuerda al frente resistiendo el giro."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.5,
-              "ttc": 1.5
+              "techniqueSummary": "Polea a la altura del pecho y cuerpo firme: llevas la cuerda al frente resistiendo el giro. La carga intenta girar el torso y el abdomen responde manteniendo el pecho orientado; la distancia al anclaje define la dificultad.",
+              "ttc": 1.5,
+              "variantRationale": "Polea a la altura del pecho y cuerpo firme: llevas la cuerda al frente resistiendo el giro. El ejercicio que enseña a tu core a no girarse cuando no debe."
             },
             "selectedOptions": {}
           }
         ],
         "defaultConfigurationId": "core_press_pallof__default",
-        "description": "Press Pallof: de pie frente a la polea, llevas la cuerda de un lado a otro del pecho resistiendo el giro. Enseña a tu abdomen a frenar rotaciones, algo que pagas con creces en sentadillas y pesos muertos.",
+        "description": "De pie frente a la polea, llevas la cuerda de un lado a otro del pecho resistiendo el giro. Enseña a tu abdomen a frenar rotaciones, algo que pagas con creces en sentadillas y pesos muertos.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:core_press_pallof"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "core_anti_rotation_trunk",
@@ -226,9 +295,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:core_anti_rotation_trunk"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "core_anti_rotation_trunk",
@@ -237,6 +306,6 @@
       "anti_rotation_trunk"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

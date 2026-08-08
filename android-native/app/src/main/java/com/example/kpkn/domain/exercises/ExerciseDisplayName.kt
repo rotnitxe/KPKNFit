@@ -27,7 +27,7 @@ fun exerciseDisplayParts(
     if (v2Chips.isNotEmpty()) {
         return ExerciseDisplayParts(
             parentName = exercise.name,
-            chips = dedupeChips(v2Chips),
+            chips = dedupeChips(v2Chips).filterNot(::isDisplayNoiseChip),
         )
     }
     val selected = exercise.selectedAspects.orEmpty()
@@ -42,8 +42,16 @@ fun exerciseDisplayParts(
         ?.takeUnless { value -> options.any { it.name.equals(value, ignoreCase = true) } }
     return ExerciseDisplayParts(
         parentName = exercise.name,
-        chips = dedupeChips(options.map { it.name } + listOfNotNull(legacyVariant)),
+        chips = dedupeChips(options.map { it.name } + listOfNotNull(legacyVariant))
+            .filterNot(::isDisplayNoiseChip),
     )
+}
+
+private fun isDisplayNoiseChip(chip: String): Boolean = when (chip.trim().lowercase()) {
+    "bilateral",
+    "sentado",
+    "de pie" -> true
+    else -> false
 }
 
 /**

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Tren inferior · forearm · isometric grip",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_suspension_isometrica_barra_fija",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "forearms_suspension_isometrica_barra_fija__default",
@@ -22,18 +22,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Cuélgate de la barra y aguanta el mayor tiempo posible.",
+                "Sin florituras: agarre, antebrazos y resistencia pura."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón fuerza agarre isométrica para completar la repetición."
+                "Arquear la espalda, girar con la carga o perder la tensión al final."
               ],
               "description": "Cuélgate de la barra y aguanta el mayor tiempo posible. Sin florituras: agarre, antebrazos y resistencia pura.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Ejecuta «Suspensión Isométrica en Barra Fija (Dead Hang)» siguiendo el patrón fuerza agarre isométrica con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Cuélgate de la barra y aguanta el mayor tiempo posible. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Anti-Extensión O Anti-Rotación"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Principal: La columna lumbar resiste el movimiento que la carga intenta imponer. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Control De Pelvis"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis conecta las fuerzas del suelo y del tronco sin perder orientación. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Posición Torácica"
+                  ],
+                  "jointId": "columna-toracica",
+                  "note": "Estabilizadora: La columna torácica aporta una base rígida para la acción del core. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
@@ -41,11 +72,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "forearm",
-                  "note": "Principal: el antebrazo concentra la fuerza del agarre o de la muñeca del ejercicio; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El antebrazo transmite el agarre y mantiene la muñeca alineada con la resistencia. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Secundario: el dorsal asiste la tracción del brazo y la estabilidad del hombro; por eso suma 0.5."
+                  "note": "Secundaria: El dorsal extiende o aproxima el brazo al tronco desde la espalda. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "forearms_suspension_isometrica_barra_fija__bodyweight__suspension_isometrica_en_barra_fija_dead_hang",
@@ -58,7 +89,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "isometric_grip"
+                    "Anti-Extensión O Anti-Rotación",
+                    "Control De Pelvis",
+                    "Posición Torácica"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Anti-Extensión O Anti-Rotación"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Principal: La columna lumbar resiste el movimiento que la carga intenta imponer. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Control De Pelvis"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis conecta las fuerzas del suelo y del tronco sin perder orientación. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Posición Torácica"
+                      ],
+                      "jointId": "columna-toracica",
+                      "note": "Estabilizadora: La columna torácica aporta una base rígida para la acción del core. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -83,46 +142,51 @@
                   "movementPatternId": "isometric_grip",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "columna-lumbar",
+                    "sacroiliaca",
+                    "columna-toracica"
                   ],
-                  "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
-                  ],
+                  "relevantTendons": [],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón fuerza agarre isométrica para completar la repetición."
+                    "Arquear la espalda, girar con la carga o perder la tensión al final."
                   ],
                   "cues": [
-                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                    "Cuélgate de la barra y aguanta el mayor tiempo posible. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Ejecuta «Suspensión Isométrica en Barra Fija (Dead Hang)» siguiendo el patrón fuerza agarre isométrica con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Cuélgate de la barra y aguanta el mayor tiempo posible. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar la capacidad del core para transferir fuerza sin movimientos innecesarios siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar resistencia del tronco frente a extensión, giro o inclinación como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de columna lumbar según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura peso corporal y adopta la posición específica de «Suspensión Isométrica en Barra Fija (Dead Hang)» antes de iniciar; conserva una base estable."
+                    "Preparación: Cuélgate de la barra y aguanta el mayor tiempo posible."
                   ]
                 },
                 "display": {
                   "displayName": "Suspensión Isométrica en Barra Fija (Dead Hang)",
                   "displaySummary": "Peso Corporal",
                   "selectedOptions": {}
+                },
+                "editorial": {
+                  "benefits": [
+                    "Cuélgate de la barra y aguanta el mayor tiempo posible.",
+                    "Sin florituras: agarre, antebrazos y resistencia pura."
+                  ],
+                  "description": "Cuélgate de la barra y aguanta el mayor tiempo posible. Sin florituras: agarre, antebrazos y resistencia pura.",
+                  "technique": "Cuélgate de la barra y aguanta el mayor tiempo posible. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Cuélgate de la barra y aguanta el mayor tiempo posible. Sin florituras: agarre, antebrazos y resistencia pura."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -135,7 +199,7 @@
                 },
                 "identity": {
                   "canonicalName": "Suspensión Isométrica en Barra Fija (Dead Hang)",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "forearms_suspension_isometrica_barra_fija__default",
                   "definitionId": "forearms_suspension_isometrica_barra_fija",
                   "familyId": "lower_isometric_grip",
@@ -152,8 +216,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar forearm dentro del patrón isometric_grip.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el antebrazo mediante Suspensión Isométrica en Barra Fija (Dead Hang) en la variante Peso Corporal.",
+                    "Priorizar mejorar la capacidad del core para transferir fuerza sin movimientos innecesarios con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -175,7 +239,8 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón isometric_grip y el objetivo forearm."
+                    "Conserva resistencia del tronco frente a extensión, giro o inclinación y el objetivo de el antebrazo.",
+                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar, articulación sacroilíaca, columna torácica."
                   ],
                   "replacementGroup": "forearm_grip_isometric",
                   "replacementPriority": 3
@@ -192,25 +257,27 @@
                 "latissimus_dorsi"
               ],
               "setupCues": [
-                "Configura peso corporal y adopta la posición específica de «Suspensión Isométrica en Barra Fija (Dead Hang)» antes de iniciar; conserva una base estable."
+                "Preparación: Cuélgate de la barra y aguanta el mayor tiempo posible."
               ],
               "setupTimeSeconds": 10,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "techniqueSummary": "Cuélgate de la barra y aguanta el mayor tiempo posible. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 1.5,
+              "variantRationale": "Cuélgate de la barra y aguanta el mayor tiempo posible. Sin florituras: agarre, antebrazos y resistencia pura."
             },
             "selectedOptions": {}
           }
         ],
         "defaultConfigurationId": "forearms_suspension_isometrica_barra_fija__default",
-        "description": "Suspensión isométrica en barra fija: te cuelgas de la barra el mayor tiempo posible. El ejercicio más simple y más honesto para el agarre.",
+        "description": "Suspensión isométrica en barra fija: te cuelgas de la barra el mayor tiempo posible. El ejercicio más simple y más directo para el agarre.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:forearms_suspension_isometrica_barra_fija"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_isometric_grip",
@@ -230,9 +297,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_paseo_del_granjero",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "forearms_paseo_del_granjero__dumbbells",
@@ -240,18 +307,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
+              "benefits": [
+                "Mancuernas pesadas en cada mano y a caminar: aguanta el paseo sin soltar.",
+                "El caminata con carga tradicional con mancuernas."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Inclinar el tronco o acortar la zancada perdiendo la postura erguida."
+                "Arquear la espalda, girar con la carga o perder la tensión al final."
               ],
-              "description": "Mancuernas pesadas en cada mano y a caminar: aguanta el paseo sin soltar. El paseo del granjero clásico con mancuernas.",
+              "description": "Mancuernas pesadas en cada mano y a caminar: aguanta el paseo sin soltar. El caminata con carga tradicional con mancuernas.",
               "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Camina con pasos cortos y estables manteniendo los hombros atrás."
+                "Mancuernas pesadas en cada mano y a caminar: aguanta el paseo sin soltar. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Anti-Extensión O Anti-Rotación"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Principal: La columna lumbar resiste el movimiento que la carga intenta imponer. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Control De Pelvis"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis conecta las fuerzas del suelo y del tronco sin perder orientación. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Posición Torácica"
+                  ],
+                  "jointId": "columna-toracica",
+                  "note": "Estabilizadora: La columna torácica aporta una base rígida para la acción del core. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -259,15 +357,15 @@
               "muscleNotes": [
                 {
                   "muscleId": "forearm",
-                  "note": "Principal: el antebrazo sostiene la carga de forma isométrica y concentra el trabajo del paseo; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El antebrazo transmite el agarre y mantiene la muñeca alineada con la resistencia. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Secundario: el trapecio estabiliza la cintura escapular con la carga colgando; por eso suma 0.5."
+                  "note": "Secundaria: El trapecio coordina la posición de la escápula y reparte la fuerza en la cintura escapular. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco firme y alineado durante la marcha; por eso suma 0.4."
+                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "forearms_paseo_del_granjero__dumbbells",
@@ -280,7 +378,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "isometric_grip"
+                    "Anti-Extensión O Anti-Rotación",
+                    "Control De Pelvis",
+                    "Posición Torácica"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Anti-Extensión O Anti-Rotación"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Principal: La columna lumbar resiste el movimiento que la carga intenta imponer. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Control De Pelvis"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis conecta las fuerzas del suelo y del tronco sin perder orientación. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Posición Torácica"
+                      ],
+                      "jointId": "columna-toracica",
+                      "note": "Estabilizadora: La columna torácica aporta una base rígida para la acción del core. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -307,40 +433,36 @@
                   "movementPatternId": "isometric_grip",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "columna-lumbar",
+                    "sacroiliaca",
+                    "columna-toracica"
                   ],
-                  "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
-                  ],
+                  "relevantTendons": [],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Inclinar el tronco o acortar la zancada perdiendo la postura erguida."
+                    "Arquear la espalda, girar con la carga o perder la tensión al final."
                   ],
                   "cues": [
-                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                    "Mancuernas pesadas en cada mano y a caminar: aguanta el paseo sin soltar. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Camina con pasos cortos y estables manteniendo los hombros atrás."
+                    "Mancuernas pesadas en cada mano y a caminar: aguanta el paseo sin soltar. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar la capacidad del core para transferir fuerza sin movimientos innecesarios siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar resistencia del tronco frente a extensión, giro o inclinación como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de columna lumbar según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Toma la carga con el agarre elegido y erguido el tronco."
+                    "Preparación: Mancuernas pesadas en cada mano y a caminar: aguanta el paseo sin soltar."
                   ]
                 },
                 "display": {
@@ -349,6 +471,15 @@
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Mancuernas pesadas en cada mano y a caminar: aguanta el paseo sin soltar.",
+                    "El caminata con carga tradicional con mancuernas."
+                  ],
+                  "description": "Mancuernas pesadas en cada mano y a caminar: aguanta el paseo sin soltar. El caminata con carga tradicional con mancuernas.",
+                  "technique": "Mancuernas pesadas en cada mano y a caminar: aguanta el paseo sin soltar. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Mancuernas pesadas en cada mano y a caminar: aguanta el paseo sin soltar. El caminata con carga tradicional con mancuernas."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -361,7 +492,7 @@
                 },
                 "identity": {
                   "canonicalName": "Paseo del Granjero",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "forearms_paseo_del_granjero__dumbbells",
                   "definitionId": "forearms_paseo_del_granjero",
                   "familyId": "lower_isometric_grip",
@@ -380,7 +511,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar la fuerza de agarre con el paseo del granjero."
+                    "Desarrollar el antebrazo mediante Paseo del Granjero en la variante Mancuernas.",
+                    "Priorizar mejorar la capacidad del core para transferir fuerza sin movimientos innecesarios con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -405,7 +537,8 @@
                     "hex_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva la marcha con carga y el objetivo forearm."
+                    "Conserva resistencia del tronco frente a extensión, giro o inclinación y el objetivo de el antebrazo.",
+                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar, articulación sacroilíaca, columna torácica."
                   ],
                   "replacementGroup": "forearm_loaded_carry",
                   "replacementPriority": 1
@@ -422,7 +555,7 @@
                 "trapezius"
               ],
               "setupCues": [
-                "Toma la carga con el agarre elegido y erguido el tronco."
+                "Preparación: Mancuernas pesadas en cada mano y a caminar: aguanta el paseo sin soltar."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.2,
@@ -430,7 +563,9 @@
                 "core"
               ],
               "technicalDifficulty": 4.5,
-              "ttc": 1.5
+              "techniqueSummary": "Mancuernas pesadas en cada mano y a caminar: aguanta el paseo sin soltar. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 1.5,
+              "variantRationale": "Mancuernas pesadas en cada mano y a caminar: aguanta el paseo sin soltar. El caminata con carga tradicional con mancuernas."
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -442,9 +577,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_paseo_del_granjero",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "forearms_paseo_del_granjero__kettlebell",
@@ -452,18 +587,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
+              "benefits": [
+                "Kettlebells en cada mano y a caminar: el agarre sufre un poco más.",
+                "Variante exigente del caminata con carga."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Inclinar el tronco o acortar la zancada perdiendo la postura erguida."
+                "Arquear la espalda, girar con la carga o perder la tensión al final."
               ],
-              "description": "Kettlebells en cada mano y a caminar: el agarre sufre un poco más. Variante exigente del paseo del granjero.",
+              "description": "Kettlebells en cada mano y a caminar: el agarre sufre un poco más. Variante exigente del caminata con carga.",
               "efc": 2.0,
               "equipmentId": "kettlebell",
               "executionCues": [
-                "Camina con pasos cortos y estables manteniendo los hombros atrás."
+                "Kettlebells en cada mano y a caminar: el agarre sufre un poco más. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Anti-Extensión O Anti-Rotación"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Principal: La columna lumbar resiste el movimiento que la carga intenta imponer. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Control De Pelvis"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis conecta las fuerzas del suelo y del tronco sin perder orientación. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Posición Torácica"
+                  ],
+                  "jointId": "columna-toracica",
+                  "note": "Estabilizadora: La columna torácica aporta una base rígida para la acción del core. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -471,15 +637,15 @@
               "muscleNotes": [
                 {
                   "muscleId": "forearm",
-                  "note": "Principal: el antebrazo sostiene la carga de forma isométrica y concentra el trabajo del paseo; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El antebrazo transmite el agarre y mantiene la muñeca alineada con la resistencia. En la configuración Kettlebell, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Secundario: el trapecio estabiliza la cintura escapular con la carga colgando; por eso suma 0.5."
+                  "note": "Secundaria: El trapecio coordina la posición de la escápula y reparte la fuerza en la cintura escapular. En la configuración Kettlebell, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco firme y alineado durante la marcha; por eso suma 0.4."
+                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. En la configuración Kettlebell, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "forearms_paseo_del_granjero__kettlebell",
@@ -492,7 +658,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "isometric_grip"
+                    "Anti-Extensión O Anti-Rotación",
+                    "Control De Pelvis",
+                    "Posición Torácica"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Anti-Extensión O Anti-Rotación"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Principal: La columna lumbar resiste el movimiento que la carga intenta imponer. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Control De Pelvis"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis conecta las fuerzas del suelo y del tronco sin perder orientación. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Posición Torácica"
+                      ],
+                      "jointId": "columna-toracica",
+                      "note": "Estabilizadora: La columna torácica aporta una base rígida para la acción del core. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -519,40 +713,36 @@
                   "movementPatternId": "isometric_grip",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "columna-lumbar",
+                    "sacroiliaca",
+                    "columna-toracica"
                   ],
-                  "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
-                  ],
+                  "relevantTendons": [],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Inclinar el tronco o acortar la zancada perdiendo la postura erguida."
+                    "Arquear la espalda, girar con la carga o perder la tensión al final."
                   ],
                   "cues": [
-                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                    "Kettlebells en cada mano y a caminar: el agarre sufre un poco más. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Camina con pasos cortos y estables manteniendo los hombros atrás."
+                    "Kettlebells en cada mano y a caminar: el agarre sufre un poco más. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar la capacidad del core para transferir fuerza sin movimientos innecesarios siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar resistencia del tronco frente a extensión, giro o inclinación como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de columna lumbar según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Toma la carga con el agarre elegido y erguido el tronco."
+                    "Preparación: Kettlebells en cada mano y a caminar: el agarre sufre un poco más."
                   ]
                 },
                 "display": {
@@ -561,6 +751,15 @@
                   "selectedOptions": {
                     "implement": "kettlebell"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Kettlebells en cada mano y a caminar: el agarre sufre un poco más.",
+                    "Variante exigente del caminata con carga."
+                  ],
+                  "description": "Kettlebells en cada mano y a caminar: el agarre sufre un poco más. Variante exigente del caminata con carga.",
+                  "technique": "Kettlebells en cada mano y a caminar: el agarre sufre un poco más. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Kettlebells en cada mano y a caminar: el agarre sufre un poco más. Variante exigente del caminata con carga."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -573,7 +772,7 @@
                 },
                 "identity": {
                   "canonicalName": "Paseo del Granjero",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "forearms_paseo_del_granjero__kettlebell",
                   "definitionId": "forearms_paseo_del_granjero",
                   "familyId": "lower_isometric_grip",
@@ -592,7 +791,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar la fuerza de agarre con el paseo del granjero."
+                    "Desarrollar el antebrazo mediante Paseo del Granjero en la variante Kettlebell.",
+                    "Priorizar mejorar la capacidad del core para transferir fuerza sin movimientos innecesarios con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -617,7 +817,8 @@
                     "hex_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva la marcha con carga y el objetivo forearm."
+                    "Conserva resistencia del tronco frente a extensión, giro o inclinación y el objetivo de el antebrazo.",
+                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar, articulación sacroilíaca, columna torácica."
                   ],
                   "replacementGroup": "forearm_loaded_carry",
                   "replacementPriority": 1
@@ -634,7 +835,7 @@
                 "trapezius"
               ],
               "setupCues": [
-                "Toma la carga con el agarre elegido y erguido el tronco."
+                "Preparación: Kettlebells en cada mano y a caminar: el agarre sufre un poco más."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.2,
@@ -642,7 +843,9 @@
                 "core"
               ],
               "technicalDifficulty": 4.5,
-              "ttc": 1.5
+              "techniqueSummary": "Kettlebells en cada mano y a caminar: el agarre sufre un poco más. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 1.5,
+              "variantRationale": "Kettlebells en cada mano y a caminar: el agarre sufre un poco más. Variante exigente del caminata con carga."
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -654,9 +857,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_paseo_del_granjero",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "forearms_paseo_del_granjero__plate",
@@ -664,18 +867,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
+              "benefits": [
+                "Discos en cada mano y a caminar: los discos lisos ponen el agarre a prueba.",
+                "El paseo que más trabaja los dedos; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Inclinar el tronco o acortar la zancada perdiendo la postura erguida."
+                "Arquear la espalda, girar con la carga o perder la tensión al final."
               ],
               "description": "Discos en cada mano y a caminar: los discos lisos ponen el agarre a prueba. El paseo que más trabaja los dedos.",
               "efc": 2.0,
               "equipmentId": "plate",
               "executionCues": [
-                "Camina con pasos cortos y estables manteniendo los hombros atrás."
+                "Discos en cada mano y a caminar: los discos lisos ponen el agarre a prueba. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Anti-Extensión O Anti-Rotación"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Principal: La columna lumbar resiste el movimiento que la carga intenta imponer. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Control De Pelvis"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis conecta las fuerzas del suelo y del tronco sin perder orientación. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Posición Torácica"
+                  ],
+                  "jointId": "columna-toracica",
+                  "note": "Estabilizadora: La columna torácica aporta una base rígida para la acción del core. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -683,15 +917,15 @@
               "muscleNotes": [
                 {
                   "muscleId": "forearm",
-                  "note": "Principal: el antebrazo sostiene la carga de forma isométrica y concentra el trabajo del paseo; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El antebrazo transmite el agarre y mantiene la muñeca alineada con la resistencia. En la configuración Disco, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Secundario: el trapecio estabiliza la cintura escapular con la carga colgando; por eso suma 0.5."
+                  "note": "Secundaria: El trapecio coordina la posición de la escápula y reparte la fuerza en la cintura escapular. En la configuración Disco, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco firme y alineado durante la marcha; por eso suma 0.4."
+                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. En la configuración Disco, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "forearms_paseo_del_granjero__plate",
@@ -704,7 +938,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "isometric_grip"
+                    "Anti-Extensión O Anti-Rotación",
+                    "Control De Pelvis",
+                    "Posición Torácica"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Anti-Extensión O Anti-Rotación"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Principal: La columna lumbar resiste el movimiento que la carga intenta imponer. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Control De Pelvis"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis conecta las fuerzas del suelo y del tronco sin perder orientación. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Posición Torácica"
+                      ],
+                      "jointId": "columna-toracica",
+                      "note": "Estabilizadora: La columna torácica aporta una base rígida para la acción del core. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -731,40 +993,36 @@
                   "movementPatternId": "isometric_grip",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "columna-lumbar",
+                    "sacroiliaca",
+                    "columna-toracica"
                   ],
-                  "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
-                  ],
+                  "relevantTendons": [],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Inclinar el tronco o acortar la zancada perdiendo la postura erguida."
+                    "Arquear la espalda, girar con la carga o perder la tensión al final."
                   ],
                   "cues": [
-                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                    "Discos en cada mano y a caminar: los discos lisos ponen el agarre a prueba. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Camina con pasos cortos y estables manteniendo los hombros atrás."
+                    "Discos en cada mano y a caminar: los discos lisos ponen el agarre a prueba. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar la capacidad del core para transferir fuerza sin movimientos innecesarios siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar resistencia del tronco frente a extensión, giro o inclinación como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de columna lumbar según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Toma la carga con el agarre elegido y erguido el tronco."
+                    "Preparación: Discos en cada mano y a caminar: los discos lisos ponen el agarre a prueba."
                   ]
                 },
                 "display": {
@@ -773,6 +1031,15 @@
                   "selectedOptions": {
                     "implement": "plate"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Discos en cada mano y a caminar: los discos lisos ponen el agarre a prueba.",
+                    "El paseo que más trabaja los dedos; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Discos en cada mano y a caminar: los discos lisos ponen el agarre a prueba. El paseo que más trabaja los dedos.",
+                  "technique": "Discos en cada mano y a caminar: los discos lisos ponen el agarre a prueba. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Discos en cada mano y a caminar: los discos lisos ponen el agarre a prueba. El paseo que más trabaja los dedos."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -785,7 +1052,7 @@
                 },
                 "identity": {
                   "canonicalName": "Paseo del Granjero",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "forearms_paseo_del_granjero__plate",
                   "definitionId": "forearms_paseo_del_granjero",
                   "familyId": "lower_isometric_grip",
@@ -804,7 +1071,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar la fuerza de agarre con el paseo del granjero."
+                    "Desarrollar el antebrazo mediante Paseo del Granjero en la variante Disco.",
+                    "Priorizar mejorar la capacidad del core para transferir fuerza sin movimientos innecesarios con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -829,7 +1097,8 @@
                     "hex_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva la marcha con carga y el objetivo forearm."
+                    "Conserva resistencia del tronco frente a extensión, giro o inclinación y el objetivo de el antebrazo.",
+                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar, articulación sacroilíaca, columna torácica."
                   ],
                   "replacementGroup": "forearm_loaded_carry",
                   "replacementPriority": 1
@@ -846,7 +1115,7 @@
                 "trapezius"
               ],
               "setupCues": [
-                "Toma la carga con el agarre elegido y erguido el tronco."
+                "Preparación: Discos en cada mano y a caminar: los discos lisos ponen el agarre a prueba."
               ],
               "setupTimeSeconds": 15,
               "ssc": 0.2,
@@ -854,7 +1123,9 @@
                 "core"
               ],
               "technicalDifficulty": 4.5,
-              "ttc": 1.5
+              "techniqueSummary": "Discos en cada mano y a caminar: los discos lisos ponen el agarre a prueba. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 1.5,
+              "variantRationale": "Discos en cada mano y a caminar: los discos lisos ponen el agarre a prueba. El paseo que más trabaja los dedos."
             },
             "selectedOptions": {
               "implement": "plate"
@@ -866,9 +1137,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_paseo_del_granjero",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "forearms_paseo_del_granjero__hex_bar",
@@ -876,18 +1147,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
+              "benefits": [
+                "Barra hexagonal cargada y a caminar: la barra en el centro reparte el peso.",
+                "El paseo más cómodo para cargas muy pesadas."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Inclinar el tronco o acortar la zancada perdiendo la postura erguida."
+                "Arquear la espalda, girar con la carga o perder la tensión al final."
               ],
               "description": "Barra hexagonal cargada y a caminar: la barra en el centro reparte el peso. El paseo más cómodo para cargas muy pesadas.",
               "efc": 2.0,
               "equipmentId": "hex_bar",
               "executionCues": [
-                "Camina con pasos cortos y estables manteniendo los hombros atrás."
+                "Barra hexagonal cargada y a caminar: la barra en el centro reparte el peso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Anti-Extensión O Anti-Rotación"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Principal: La columna lumbar resiste el movimiento que la carga intenta imponer. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Control De Pelvis"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis conecta las fuerzas del suelo y del tronco sin perder orientación. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Posición Torácica"
+                  ],
+                  "jointId": "columna-toracica",
+                  "note": "Estabilizadora: La columna torácica aporta una base rígida para la acción del core. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -895,15 +1197,15 @@
               "muscleNotes": [
                 {
                   "muscleId": "forearm",
-                  "note": "Principal: el antebrazo sostiene la carga de forma isométrica y concentra el trabajo del paseo; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El antebrazo transmite el agarre y mantiene la muñeca alineada con la resistencia. En la configuración Barra Hexagonal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Secundario: el trapecio estabiliza la cintura escapular con la carga colgando; por eso suma 0.5."
+                  "note": "Secundaria: El trapecio coordina la posición de la escápula y reparte la fuerza en la cintura escapular. En la configuración Barra Hexagonal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco firme y alineado durante la marcha; por eso suma 0.4."
+                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. En la configuración Barra Hexagonal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "forearms_paseo_del_granjero__hex_bar",
@@ -916,7 +1218,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "isometric_grip"
+                    "Anti-Extensión O Anti-Rotación",
+                    "Control De Pelvis",
+                    "Posición Torácica"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Anti-Extensión O Anti-Rotación"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Principal: La columna lumbar resiste el movimiento que la carga intenta imponer. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Control De Pelvis"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis conecta las fuerzas del suelo y del tronco sin perder orientación. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Posición Torácica"
+                      ],
+                      "jointId": "columna-toracica",
+                      "note": "Estabilizadora: La columna torácica aporta una base rígida para la acción del core. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -943,40 +1273,36 @@
                   "movementPatternId": "isometric_grip",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "columna-lumbar",
+                    "sacroiliaca",
+                    "columna-toracica"
                   ],
-                  "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
-                  ],
+                  "relevantTendons": [],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Inclinar el tronco o acortar la zancada perdiendo la postura erguida."
+                    "Arquear la espalda, girar con la carga o perder la tensión al final."
                   ],
                   "cues": [
-                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                    "Barra hexagonal cargada y a caminar: la barra en el centro reparte el peso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Camina con pasos cortos y estables manteniendo los hombros atrás."
+                    "Barra hexagonal cargada y a caminar: la barra en el centro reparte el peso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar la capacidad del core para transferir fuerza sin movimientos innecesarios siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar resistencia del tronco frente a extensión, giro o inclinación como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de columna lumbar según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Toma la carga con el agarre elegido y erguido el tronco."
+                    "Preparación: Barra hexagonal cargada y a caminar: la barra en el centro reparte el peso."
                   ]
                 },
                 "display": {
@@ -985,6 +1311,15 @@
                   "selectedOptions": {
                     "implement": "hex_bar"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Barra hexagonal cargada y a caminar: la barra en el centro reparte el peso.",
+                    "El paseo más cómodo para cargas muy pesadas."
+                  ],
+                  "description": "Barra hexagonal cargada y a caminar: la barra en el centro reparte el peso. El paseo más cómodo para cargas muy pesadas.",
+                  "technique": "Barra hexagonal cargada y a caminar: la barra en el centro reparte el peso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Barra hexagonal cargada y a caminar: la barra en el centro reparte el peso. El paseo más cómodo para cargas muy pesadas."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -997,7 +1332,7 @@
                 },
                 "identity": {
                   "canonicalName": "Paseo del Granjero",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "forearms_paseo_del_granjero__hex_bar",
                   "definitionId": "forearms_paseo_del_granjero",
                   "familyId": "lower_isometric_grip",
@@ -1016,7 +1351,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar la fuerza de agarre con el paseo del granjero."
+                    "Desarrollar el antebrazo mediante Paseo del Granjero en la variante Barra Hexagonal.",
+                    "Priorizar mejorar la capacidad del core para transferir fuerza sin movimientos innecesarios con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1041,7 +1377,8 @@
                     "hex_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva la marcha con carga y el objetivo forearm."
+                    "Conserva resistencia del tronco frente a extensión, giro o inclinación y el objetivo de el antebrazo.",
+                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar, articulación sacroilíaca, columna torácica."
                   ],
                   "replacementGroup": "forearm_loaded_carry",
                   "replacementPriority": 1
@@ -1058,7 +1395,7 @@
                 "trapezius"
               ],
               "setupCues": [
-                "Toma la carga con el agarre elegido y erguido el tronco."
+                "Preparación: Barra hexagonal cargada y a caminar: la barra en el centro reparte el peso."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.2,
@@ -1066,7 +1403,9 @@
                 "core"
               ],
               "technicalDifficulty": 4.5,
-              "ttc": 1.5
+              "techniqueSummary": "Barra hexagonal cargada y a caminar: la barra en el centro reparte el peso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 1.5,
+              "variantRationale": "Barra hexagonal cargada y a caminar: la barra en el centro reparte el peso. El paseo más cómodo para cargas muy pesadas."
             },
             "selectedOptions": {
               "implement": "hex_bar"
@@ -1074,13 +1413,13 @@
           }
         ],
         "defaultConfigurationId": "forearms_paseo_del_granjero__dumbbells",
-        "description": "Paseo del granjero: caminas con un peso pesado en cada mano el mayor tiempo posible. Agarre, hombros, core y resistencia mental en un solo paseo.",
+        "description": "Caminata con carga: caminas con un peso pesado en cada mano el mayor tiempo posible. Agarre, hombros, core y resistencia mental en un solo paseo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v3-2026-08-02"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Aprobado por decisión explícita de catálogo v3; la configuración está materializada y no depende de inferencia runtime.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_isometric_grip",
@@ -1100,9 +1439,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:lower_isometric_grip"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_isometric_grip",
@@ -1111,6 +1450,6 @@
       "isometric_grip"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

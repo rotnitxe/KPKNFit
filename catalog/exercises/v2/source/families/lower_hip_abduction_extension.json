@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Tren inferior · gluteus maximus · hip abduction extension",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_patada_gluteo_lateral",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "glutes_patada_gluteo_lateral__cable",
@@ -22,18 +22,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Polea lateral: abres la pierna hacia el lado con tensión constante en el glúteo medio.",
+                "La versión controlada de la patada lateral."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Girar el tronco para ganar altura en lugar de aislar la abducción de cadera."
+                "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
               ],
-              "description": "Polea lateral: abres la pierna hacia el lado con tensión constante en el glúteo medio. La versión pulida de la patada lateral.",
+              "description": "Polea lateral: abres la pierna hacia el lado con tensión constante en el glúteo medio. La versión controlada de la patada lateral.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
-                "Abduce la pierna hacia el costado con control y sin rotar el tronco."
+                "Polea lateral: abres la pierna hacia el lado con tensión constante en el glúteo medio. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Abducción"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Pélvica"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación Del Miembro Inferior"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
@@ -41,7 +72,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "gluteus_medius",
-                  "note": "Principal: el glúteo medio abduce la pierna hacia un lado y estabiliza la pelvis; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El glúteo medio separa el muslo y evita que la pelvis caiga durante el apoyo. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "glutes_patada_gluteo_lateral__cable",
@@ -54,7 +85,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_abduction_extension"
+                    "Abducción",
+                    "Estabilidad Pélvica",
+                    "Alineación Del Miembro Inferior"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Abducción"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Pélvica"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación Del Miembro Inferior"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -77,40 +136,41 @@
                   "movementPatternId": "hip_abduction_extension",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "sacroiliaca",
+                    "rodilla"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Girar el tronco para ganar altura en lugar de aislar la abducción de cadera."
+                    "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
                   ],
                   "cues": [
-                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                    "Polea lateral: abres la pierna hacia el lado con tensión constante en el glúteo medio. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Abduce la pierna hacia el costado con control y sin rotar el tronco."
+                    "Polea lateral: abres la pierna hacia el lado con tensión constante en el glúteo medio. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadera lateral y mejorar el control de la pelvis siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar separación de la pierna y estabilidad pélvica como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca la resistencia en el tobillo y mantén el tronco estable con el apoyo de una mano."
+                    "Preparación: Polea lateral: abres la pierna hacia el lado con tensión constante en el glúteo medio."
                   ]
                 },
                 "display": {
@@ -119,6 +179,15 @@
                   "selectedOptions": {
                     "implement": "cable"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Polea lateral: abres la pierna hacia el lado con tensión constante en el glúteo medio.",
+                    "La versión controlada de la patada lateral."
+                  ],
+                  "description": "Polea lateral: abres la pierna hacia el lado con tensión constante en el glúteo medio. La versión controlada de la patada lateral.",
+                  "technique": "Polea lateral: abres la pierna hacia el lado con tensión constante en el glúteo medio. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Polea lateral: abres la pierna hacia el lado con tensión constante en el glúteo medio. La versión controlada de la patada lateral."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -131,7 +200,7 @@
                 },
                 "identity": {
                   "canonicalName": "Patada de Glúteo Lateral",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "glutes_patada_gluteo_lateral__cable",
                   "definitionId": "glutes_patada_gluteo_lateral",
                   "familyId": "lower_hip_abduction_extension",
@@ -151,7 +220,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar gluteus_medius en abducción de cadera con patada lateral."
+                    "Desarrollar el glúteo medio mediante Patada de Glúteo Lateral en la variante Polea.",
+                    "Priorizar fortalecer la cadera lateral y mejorar el control de la pelvis con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -175,7 +245,8 @@
                     "band"
                   ],
                   "preservesIntent": [
-                    "Conserva la abducción de cadera y el objetivo gluteus_medius."
+                    "Conserva separación de la pierna y estabilidad pélvica y el objetivo de el glúteo medio.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, articulación sacroilíaca, rodilla."
                   ],
                   "replacementGroup": "glute_kickback",
                   "replacementPriority": 2
@@ -190,13 +261,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Coloca la resistencia en el tobillo y mantén el tronco estable con el apoyo de una mano."
+                "Preparación: Polea lateral: abres la pierna hacia el lado con tensión constante en el glúteo medio."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "techniqueSummary": "Polea lateral: abres la pierna hacia el lado con tensión constante en el glúteo medio. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 2.0,
+              "variantRationale": "Polea lateral: abres la pierna hacia el lado con tensión constante en el glúteo medio. La versión controlada de la patada lateral."
             },
             "selectedOptions": {
               "implement": "cable"
@@ -208,9 +281,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_patada_gluteo_lateral",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "glutes_patada_gluteo_lateral__dumbbells",
@@ -218,18 +291,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Mancuerna en la cadera o el tobillo: apertura lateral con carga libre.",
+                "Fácil de hacer en cualquier gimnasio y muy directa al glúteo."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Girar el tronco para ganar altura en lugar de aislar la abducción de cadera."
+                "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
               ],
               "description": "Mancuerna en la cadera o el tobillo: apertura lateral con carga libre. Fácil de hacer en cualquier gimnasio y muy directa al glúteo.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Abduce la pierna hacia el costado con control y sin rotar el tronco."
+                "Mancuerna en la cadera o el tobillo: apertura lateral con carga libre. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Abducción"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Pélvica"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación Del Miembro Inferior"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -237,7 +341,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "gluteus_medius",
-                  "note": "Principal: el glúteo medio abduce la pierna hacia un lado y estabiliza la pelvis; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El glúteo medio separa el muslo y evita que la pelvis caiga durante el apoyo. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "glutes_patada_gluteo_lateral__dumbbells",
@@ -250,7 +354,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_abduction_extension"
+                    "Abducción",
+                    "Estabilidad Pélvica",
+                    "Alineación Del Miembro Inferior"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Abducción"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Pélvica"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación Del Miembro Inferior"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -273,40 +405,41 @@
                   "movementPatternId": "hip_abduction_extension",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "sacroiliaca",
+                    "rodilla"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Girar el tronco para ganar altura en lugar de aislar la abducción de cadera."
+                    "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
                   ],
                   "cues": [
-                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                    "Mancuerna en la cadera o el tobillo: apertura lateral con carga libre. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Abduce la pierna hacia el costado con control y sin rotar el tronco."
+                    "Mancuerna en la cadera o el tobillo: apertura lateral con carga libre. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadera lateral y mejorar el control de la pelvis siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar separación de la pierna y estabilidad pélvica como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca la resistencia en el tobillo y mantén el tronco estable con el apoyo de una mano."
+                    "Preparación: Mancuerna en la cadera o el tobillo: apertura lateral con carga libre."
                   ]
                 },
                 "display": {
@@ -315,6 +448,15 @@
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Mancuerna en la cadera o el tobillo: apertura lateral con carga libre.",
+                    "Fácil de hacer en cualquier gimnasio y muy directa al glúteo."
+                  ],
+                  "description": "Mancuerna en la cadera o el tobillo: apertura lateral con carga libre. Fácil de hacer en cualquier gimnasio y muy directa al glúteo.",
+                  "technique": "Mancuerna en la cadera o el tobillo: apertura lateral con carga libre. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Mancuerna en la cadera o el tobillo: apertura lateral con carga libre. Fácil de hacer en cualquier gimnasio y muy directa al glúteo."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -327,7 +469,7 @@
                 },
                 "identity": {
                   "canonicalName": "Patada de Glúteo Lateral",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "glutes_patada_gluteo_lateral__dumbbells",
                   "definitionId": "glutes_patada_gluteo_lateral",
                   "familyId": "lower_hip_abduction_extension",
@@ -347,7 +489,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar gluteus_medius en abducción de cadera con patada lateral."
+                    "Desarrollar el glúteo medio mediante Patada de Glúteo Lateral en la variante Mancuernas.",
+                    "Priorizar fortalecer la cadera lateral y mejorar el control de la pelvis con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -371,7 +514,8 @@
                     "band"
                   ],
                   "preservesIntent": [
-                    "Conserva la abducción de cadera y el objetivo gluteus_medius."
+                    "Conserva separación de la pierna y estabilidad pélvica y el objetivo de el glúteo medio.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, articulación sacroilíaca, rodilla."
                   ],
                   "replacementGroup": "glute_kickback",
                   "replacementPriority": 2
@@ -386,13 +530,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Coloca la resistencia en el tobillo y mantén el tronco estable con el apoyo de una mano."
+                "Preparación: Mancuerna en la cadera o el tobillo: apertura lateral con carga libre."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "techniqueSummary": "Mancuerna en la cadera o el tobillo: apertura lateral con carga libre. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 2.0,
+              "variantRationale": "Mancuerna en la cadera o el tobillo: apertura lateral con carga libre. Fácil de hacer en cualquier gimnasio y muy directa al glúteo."
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -404,9 +550,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_patada_gluteo_lateral",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "glutes_patada_gluteo_lateral__band",
@@ -414,18 +560,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Banda alrededor de los tobillos: abres la pierna contra la resistencia elástica.",
+                "El tradicional de las rutinas de glúteo en casa."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Girar el tronco para ganar altura en lugar de aislar la abducción de cadera."
+                "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
               ],
-              "description": "Banda alrededor de los tobillos: abres la pierna contra la resistencia elástica. El clásico de las rutinas de glúteo en casa.",
+              "description": "Banda alrededor de los tobillos: abres la pierna contra la resistencia elástica. El tradicional de las rutinas de glúteo en casa.",
               "efc": 2.8,
               "equipmentId": "band",
               "executionCues": [
-                "Abduce la pierna hacia el costado con control y sin rotar el tronco."
+                "Banda alrededor de los tobillos: abres la pierna contra la resistencia elástica. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Abducción"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Pélvica"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación Del Miembro Inferior"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "variable_band_resistance",
@@ -433,7 +610,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "gluteus_medius",
-                  "note": "Principal: el glúteo medio abduce la pierna hacia un lado y estabiliza la pelvis; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El glúteo medio separa el muslo y evita que la pelvis caiga durante el apoyo. La banda se vuelve más exigente al final y hace más visible su participación en ese tramo. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "glutes_patada_gluteo_lateral__band",
@@ -446,7 +623,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_abduction_extension"
+                    "Abducción",
+                    "Estabilidad Pélvica",
+                    "Alineación Del Miembro Inferior"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Abducción"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Pélvica"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación Del Miembro Inferior"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -469,40 +674,41 @@
                   "movementPatternId": "hip_abduction_extension",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "sacroiliaca",
+                    "rodilla"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "variable_band",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Girar el tronco para ganar altura en lugar de aislar la abducción de cadera."
+                    "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
                   ],
                   "cues": [
-                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                    "Banda alrededor de los tobillos: abres la pierna contra la resistencia elástica. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Abduce la pierna hacia el costado con control y sin rotar el tronco."
+                    "Banda alrededor de los tobillos: abres la pierna contra la resistencia elástica. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadera lateral y mejorar el control de la pelvis siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar separación de la pierna y estabilidad pélvica como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca la resistencia en el tobillo y mantén el tronco estable con el apoyo de una mano."
+                    "Preparación: Banda alrededor de los tobillos: abres la pierna contra la resistencia elástica."
                   ]
                 },
                 "display": {
@@ -511,6 +717,15 @@
                   "selectedOptions": {
                     "implement": "band"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Banda alrededor de los tobillos: abres la pierna contra la resistencia elástica.",
+                    "El tradicional de las rutinas de glúteo en casa."
+                  ],
+                  "description": "Banda alrededor de los tobillos: abres la pierna contra la resistencia elástica. El tradicional de las rutinas de glúteo en casa.",
+                  "technique": "Banda alrededor de los tobillos: abres la pierna contra la resistencia elástica. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Banda alrededor de los tobillos: abres la pierna contra la resistencia elástica. El tradicional de las rutinas de glúteo en casa."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -523,7 +738,7 @@
                 },
                 "identity": {
                   "canonicalName": "Patada de Glúteo Lateral",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "glutes_patada_gluteo_lateral__band",
                   "definitionId": "glutes_patada_gluteo_lateral",
                   "familyId": "lower_hip_abduction_extension",
@@ -543,7 +758,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar gluteus_medius en abducción de cadera con patada lateral."
+                    "Desarrollar el glúteo medio mediante Patada de Glúteo Lateral en la variante Banda Elástica.",
+                    "Priorizar fortalecer la cadera lateral y mejorar el control de la pelvis con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -567,7 +783,8 @@
                     "band"
                   ],
                   "preservesIntent": [
-                    "Conserva la abducción de cadera y el objetivo gluteus_medius."
+                    "Conserva separación de la pierna y estabilidad pélvica y el objetivo de el glúteo medio.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, articulación sacroilíaca, rodilla."
                   ],
                   "replacementGroup": "glute_kickback",
                   "replacementPriority": 2
@@ -582,13 +799,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Coloca la resistencia en el tobillo y mantén el tronco estable con el apoyo de una mano."
+                "Preparación: Banda alrededor de los tobillos: abres la pierna contra la resistencia elástica."
               ],
               "setupTimeSeconds": 10,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "techniqueSummary": "Banda alrededor de los tobillos: abres la pierna contra la resistencia elástica. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 2.0,
+              "variantRationale": "Banda alrededor de los tobillos: abres la pierna contra la resistencia elástica. El tradicional de las rutinas de glúteo en casa."
             },
             "selectedOptions": {
               "implement": "band"
@@ -596,13 +815,13 @@
           }
         ],
         "defaultConfigurationId": "glutes_patada_gluteo_lateral__cable",
-        "description": "Patada de glúteo lateral: llevas la pierna hacia el lado contra resistencia, enfocando el glúteo medio y el lateral de la cadera. Ideal para redondear el glúteo completo.",
+        "description": "Llevas la pierna hacia el lado contra resistencia, enfocando el glúteo medio y el lateral de la cadera. Útil para redondear el glúteo completo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:glutes_patada_gluteo_lateral"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_hip_abduction_extension",
@@ -623,9 +842,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:lower_hip_abduction_extension"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_hip_abduction_extension",
@@ -634,6 +853,6 @@
       "hip_abduction_extension"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

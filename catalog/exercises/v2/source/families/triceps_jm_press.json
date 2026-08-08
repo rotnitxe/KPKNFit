@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "JM press",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#triceps_jm_press_barra_ez",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "jm_press__barbell",
@@ -22,18 +22,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
+              "benefits": [
+                "Barra hacia el mentón con los codos cerca: el tríceps inicia el empuje desde una posición intermedia entre press y extensión.",
+                "La barra permite comparar cargas, aunque exige precisión para que el hombro no robe el recorrido."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.8,
               "commonMistakes": [
-                "Separar los codos o usar el pecho en lugar del tríceps para empujar."
+                "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
               ],
-              "description": "Barra bajando hasta el mentón con codos pegados: el JM press original, cargado de tríceps. El híbrido de press y francés que construye fuerza.",
+              "description": "Barra hacia el mentón con los codos cerca: el tríceps inicia el empuje desde una posición intermedia entre press y extensión. La barra permite comparar cargas, aunque exige precisión para que el hombro no robe el recorrido.",
               "efc": 2.2,
               "equipmentId": "barbell",
               "executionCues": [
-                "Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."
+                "Barra hacia el mentón con los codos cerca: el tríceps inicia el empuje desde una posición intermedia entre press y extensión. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Principal: El codo abre el brazo y concentra el trabajo mecánico del tríceps. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Posición Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro fija el brazo o lo coloca detrás de la cabeza según la variante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca transmite la presión sin doblarse bajo el implemento. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "FULL",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -41,11 +72,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "triceps",
-                  "note": "Principal: el tríceps extiende el codo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El tríceps extiende el codo y completa la fase de empuje. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "pectoralis",
-                  "note": "Secundario: el pectoral asiste la fase inicial del press cerca del pecho; por eso suma 0.5."
+                  "note": "Secundaria: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "jm_press__barbell",
@@ -58,7 +89,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "elbow_extension"
+                    "Extensión",
+                    "Posición Del Hombro",
+                    "Alineación"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Principal: El codo abre el brazo y concentra el trabajo mecánico del tríceps. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Posición Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro fija el brazo o lo coloca detrás de la cabeza según la variante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca transmite la presión sin doblarse bajo el implemento. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -83,39 +142,44 @@
                   "movementPatternId": "elbow_extension",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "codo",
+                    "glenohumeral",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Separar los codos o usar el pecho en lugar del tríceps para empujar."
+                    "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
                   ],
                   "cues": [
-                    "Mantén el equipo ez_bar alineado con el patrón y controla la fase excéntrica."
+                    "Barra hacia el mentón con los codos cerca: el tríceps inicia el empuje desde una posición intermedia entre press y extensión. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
                   ],
                   "execution": [
-                    "Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."
+                    "Barra hacia el mentón con los codos cerca: el tríceps inicia el empuje desde una posición intermedia entre press y extensión. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando cargar el tríceps de forma directa y ajustar la dificultad con precisión siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar extensión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de codo según tolerancia y rango disponible.",
+                    "Movilidad de hombro según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca la barra sobre el pecho con los codos apuntando hacia delante."
+                    "Preparación: Barra hacia el mentón con los codos cerca: el tríceps inicia el empuje desde una posición intermedia entre press y extensión."
                   ]
                 },
                 "display": {
@@ -124,6 +188,15 @@
                   "selectedOptions": {
                     "implement": "barbell"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Barra hacia el mentón con los codos cerca: el tríceps inicia el empuje desde una posición intermedia entre press y extensión.",
+                    "La barra permite comparar cargas, aunque exige precisión para que el hombro no robe el recorrido."
+                  ],
+                  "description": "Barra hacia el mentón con los codos cerca: el tríceps inicia el empuje desde una posición intermedia entre press y extensión. La barra permite comparar cargas, aunque exige precisión para que el hombro no robe el recorrido.",
+                  "technique": "Barra hacia el mentón con los codos cerca: el tríceps inicia el empuje desde una posición intermedia entre press y extensión. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
+                  "variantRationale": "Barra hacia el mentón con los codos cerca: el tríceps inicia el empuje desde una posición intermedia entre press y extensión. La barra permite comparar cargas, aunque exige precisión para que el hombro no robe el recorrido."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -136,7 +209,7 @@
                 },
                 "identity": {
                   "canonicalName": "JM Press",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "jm_press__barbell",
                   "definitionId": "jm_press",
                   "familyId": "triceps_jm_press",
@@ -154,7 +227,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar triceps con el patrón del JM Press."
+                    "Desarrollar el tríceps mediante JM Press en la variante Barra.",
+                    "Priorizar cargar el tríceps de forma directa y ajustar la dificultad con precisión con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -180,7 +254,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón del JM Press y el objetivo triceps."
+                    "Conserva extensión del codo y el objetivo de el tríceps.",
+                    "La sustitución debe respetar las articulaciones relevantes: codo, hombro, muñeca."
                   ],
                   "replacementGroup": "triceps_niche",
                   "replacementPriority": 999
@@ -197,13 +272,15 @@
                 "pectoralis"
               ],
               "setupCues": [
-                "Coloca la barra sobre el pecho con los codos apuntando hacia delante."
+                "Preparación: Barra hacia el mentón con los codos cerca: el tríceps inicia el empuje desde una posición intermedia entre press y extensión."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "techniqueSummary": "Barra hacia el mentón con los codos cerca: el tríceps inicia el empuje desde una posición intermedia entre press y extensión. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
+              "ttc": 1.6,
+              "variantRationale": "Barra hacia el mentón con los codos cerca: el tríceps inicia el empuje desde una posición intermedia entre press y extensión. La barra permite comparar cargas, aunque exige precisión para que el hombro no robe el recorrido."
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -215,9 +292,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#triceps_jm_press_barra_ez",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "jm_press__ez_bar",
@@ -225,18 +302,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
+              "benefits": [
+                "Barra EZ hacia el mentón: el ángulo de las manos reduce la rotación exigida a la muñeca mientras el tríceps continúa guiando el gesto.",
+                "Es una variante cómoda para repetir el patrón con control."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.8,
               "commonMistakes": [
-                "Separar los codos o usar el pecho en lugar del tríceps para empujar."
+                "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
               ],
-              "description": "Barra EZ bajando al mentón: el agarre girado cuida los codos con el mismo estímulo. La variante cómoda del JM press.",
+              "description": "Barra EZ hacia el mentón: el ángulo de las manos reduce la rotación exigida a la muñeca mientras el tríceps continúa guiando el gesto. Es una variante cómoda para repetir el patrón con control.",
               "efc": 2.2,
               "equipmentId": "ez_bar",
               "executionCues": [
-                "Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."
+                "Barra EZ hacia el mentón: el ángulo de las manos reduce la rotación exigida a la muñeca mientras el tríceps continúa guiando el gesto. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Principal: El codo abre el brazo y concentra el trabajo mecánico del tríceps. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Posición Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro fija el brazo o lo coloca detrás de la cabeza según la variante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca transmite la presión sin doblarse bajo el implemento. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "FULL",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -244,11 +352,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "triceps",
-                  "note": "Principal: el tríceps extiende el codo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El tríceps extiende el codo y completa la fase de empuje. En la configuración Barra EZ, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "pectoralis",
-                  "note": "Secundario: el pectoral asiste la fase inicial del press cerca del pecho; por eso suma 0.5."
+                  "note": "Secundaria: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. En la configuración Barra EZ, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "jm_press__ez_bar",
@@ -261,7 +369,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "elbow_extension"
+                    "Extensión",
+                    "Posición Del Hombro",
+                    "Alineación"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Principal: El codo abre el brazo y concentra el trabajo mecánico del tríceps. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Posición Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro fija el brazo o lo coloca detrás de la cabeza según la variante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca transmite la presión sin doblarse bajo el implemento. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -286,39 +422,44 @@
                   "movementPatternId": "elbow_extension",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "codo",
+                    "glenohumeral",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Separar los codos o usar el pecho en lugar del tríceps para empujar."
+                    "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
                   ],
                   "cues": [
-                    "Mantén el equipo ez_bar alineado con el patrón y controla la fase excéntrica."
+                    "Barra EZ hacia el mentón: el ángulo de las manos reduce la rotación exigida a la muñeca mientras el tríceps continúa guiando el gesto. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
                   ],
                   "execution": [
-                    "Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."
+                    "Barra EZ hacia el mentón: el ángulo de las manos reduce la rotación exigida a la muñeca mientras el tríceps continúa guiando el gesto. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando cargar el tríceps de forma directa y ajustar la dificultad con precisión siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar extensión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de codo según tolerancia y rango disponible.",
+                    "Movilidad de hombro según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca la barra sobre el pecho con los codos apuntando hacia delante."
+                    "Preparación: Barra EZ hacia el mentón: el ángulo de las manos reduce la rotación exigida a la muñeca mientras el tríceps continúa guiando el gesto."
                   ]
                 },
                 "display": {
@@ -327,6 +468,15 @@
                   "selectedOptions": {
                     "implement": "ez_bar"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Barra EZ hacia el mentón: el ángulo de las manos reduce la rotación exigida a la muñeca mientras el tríceps continúa guiando el gesto.",
+                    "Es una variante cómoda para repetir el patrón con control."
+                  ],
+                  "description": "Barra EZ hacia el mentón: el ángulo de las manos reduce la rotación exigida a la muñeca mientras el tríceps continúa guiando el gesto. Es una variante cómoda para repetir el patrón con control.",
+                  "technique": "Barra EZ hacia el mentón: el ángulo de las manos reduce la rotación exigida a la muñeca mientras el tríceps continúa guiando el gesto. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
+                  "variantRationale": "Barra EZ hacia el mentón: el ángulo de las manos reduce la rotación exigida a la muñeca mientras el tríceps continúa guiando el gesto. Es una variante cómoda para repetir el patrón con control."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -339,7 +489,7 @@
                 },
                 "identity": {
                   "canonicalName": "JM Press",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "jm_press__ez_bar",
                   "definitionId": "jm_press",
                   "familyId": "triceps_jm_press",
@@ -357,7 +507,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar triceps con el patrón del JM Press."
+                    "Desarrollar el tríceps mediante JM Press en la variante Barra EZ.",
+                    "Priorizar cargar el tríceps de forma directa y ajustar la dificultad con precisión con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -383,7 +534,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón del JM Press y el objetivo triceps."
+                    "Conserva extensión del codo y el objetivo de el tríceps.",
+                    "La sustitución debe respetar las articulaciones relevantes: codo, hombro, muñeca."
                   ],
                   "replacementGroup": "triceps_niche",
                   "replacementPriority": 999
@@ -400,13 +552,15 @@
                 "pectoralis"
               ],
               "setupCues": [
-                "Coloca la barra sobre el pecho con los codos apuntando hacia delante."
+                "Preparación: Barra EZ hacia el mentón: el ángulo de las manos reduce la rotación exigida a la muñeca mientras el tríceps continúa guiando el gesto."
               ],
               "setupTimeSeconds": 30,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "techniqueSummary": "Barra EZ hacia el mentón: el ángulo de las manos reduce la rotación exigida a la muñeca mientras el tríceps continúa guiando el gesto. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
+              "ttc": 1.6,
+              "variantRationale": "Barra EZ hacia el mentón: el ángulo de las manos reduce la rotación exigida a la muñeca mientras el tríceps continúa guiando el gesto. Es una variante cómoda para repetir el patrón con control."
             },
             "selectedOptions": {
               "implement": "ez_bar"
@@ -418,9 +572,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#triceps_jm_press_barra_ez",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "jm_press__dumbbells",
@@ -428,18 +582,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
+              "benefits": [
+                "Mancuernas hacia el mentón: cada brazo encuentra su propia línea y el codo puede permanecer más cómodo.",
+                "La independencia de las cargas ayuda a detectar cuándo un lado pierde la trayectoria."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.8,
               "commonMistakes": [
-                "Separar los codos o usar el pecho en lugar del tríceps para empujar."
+                "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
               ],
-              "description": "Mancuernas bajando al mentón: cada brazo trabaja por separado. La versión equilibrada del JM press.",
+              "description": "Mancuernas hacia el mentón: cada brazo encuentra su propia línea y el codo puede permanecer más cómodo. La independencia de las cargas ayuda a detectar cuándo un lado pierde la trayectoria.",
               "efc": 2.2,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."
+                "Mancuernas hacia el mentón: cada brazo encuentra su propia línea y el codo puede permanecer más cómodo. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Principal: El codo abre el brazo y concentra el trabajo mecánico del tríceps. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Posición Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro fija el brazo o lo coloca detrás de la cabeza según la variante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca transmite la presión sin doblarse bajo el implemento. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "FULL",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -447,11 +632,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "triceps",
-                  "note": "Principal: el tríceps extiende el codo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El tríceps extiende el codo y completa la fase de empuje. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "pectoralis",
-                  "note": "Secundario: el pectoral asiste la fase inicial del press cerca del pecho; por eso suma 0.5."
+                  "note": "Secundaria: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "jm_press__dumbbells",
@@ -464,7 +649,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "elbow_extension"
+                    "Extensión",
+                    "Posición Del Hombro",
+                    "Alineación"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Principal: El codo abre el brazo y concentra el trabajo mecánico del tríceps. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Posición Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro fija el brazo o lo coloca detrás de la cabeza según la variante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca transmite la presión sin doblarse bajo el implemento. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -489,39 +702,44 @@
                   "movementPatternId": "elbow_extension",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "codo",
+                    "glenohumeral",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Separar los codos o usar el pecho en lugar del tríceps para empujar."
+                    "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
                   ],
                   "cues": [
-                    "Mantén el equipo ez_bar alineado con el patrón y controla la fase excéntrica."
+                    "Mancuernas hacia el mentón: cada brazo encuentra su propia línea y el codo puede permanecer más cómodo. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
                   ],
                   "execution": [
-                    "Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."
+                    "Mancuernas hacia el mentón: cada brazo encuentra su propia línea y el codo puede permanecer más cómodo. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando cargar el tríceps de forma directa y ajustar la dificultad con precisión siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar extensión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de codo según tolerancia y rango disponible.",
+                    "Movilidad de hombro según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca la barra sobre el pecho con los codos apuntando hacia delante."
+                    "Preparación: Mancuernas hacia el mentón: cada brazo encuentra su propia línea y el codo puede permanecer más cómodo."
                   ]
                 },
                 "display": {
@@ -530,6 +748,15 @@
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Mancuernas hacia el mentón: cada brazo encuentra su propia línea y el codo puede permanecer más cómodo.",
+                    "La independencia de las cargas ayuda a detectar cuándo un lado pierde la trayectoria."
+                  ],
+                  "description": "Mancuernas hacia el mentón: cada brazo encuentra su propia línea y el codo puede permanecer más cómodo. La independencia de las cargas ayuda a detectar cuándo un lado pierde la trayectoria.",
+                  "technique": "Mancuernas hacia el mentón: cada brazo encuentra su propia línea y el codo puede permanecer más cómodo. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
+                  "variantRationale": "Mancuernas hacia el mentón: cada brazo encuentra su propia línea y el codo puede permanecer más cómodo. La independencia de las cargas ayuda a detectar cuándo un lado pierde la trayectoria."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -542,7 +769,7 @@
                 },
                 "identity": {
                   "canonicalName": "JM Press",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "jm_press__dumbbells",
                   "definitionId": "jm_press",
                   "familyId": "triceps_jm_press",
@@ -560,7 +787,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar triceps con el patrón del JM Press."
+                    "Desarrollar el tríceps mediante JM Press en la variante Mancuernas.",
+                    "Priorizar cargar el tríceps de forma directa y ajustar la dificultad con precisión con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -586,7 +814,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón del JM Press y el objetivo triceps."
+                    "Conserva extensión del codo y el objetivo de el tríceps.",
+                    "La sustitución debe respetar las articulaciones relevantes: codo, hombro, muñeca."
                   ],
                   "replacementGroup": "triceps_niche",
                   "replacementPriority": 999
@@ -603,13 +832,15 @@
                 "pectoralis"
               ],
               "setupCues": [
-                "Coloca la barra sobre el pecho con los codos apuntando hacia delante."
+                "Preparación: Mancuernas hacia el mentón: cada brazo encuentra su propia línea y el codo puede permanecer más cómodo."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "techniqueSummary": "Mancuernas hacia el mentón: cada brazo encuentra su propia línea y el codo puede permanecer más cómodo. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
+              "ttc": 1.6,
+              "variantRationale": "Mancuernas hacia el mentón: cada brazo encuentra su propia línea y el codo puede permanecer más cómodo. La independencia de las cargas ayuda a detectar cuándo un lado pierde la trayectoria."
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -621,9 +852,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#triceps_jm_press_barra_ez",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "jm_press__smith_machine",
@@ -631,18 +862,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
+              "benefits": [
+                "Smith bajando al mentón: la barra guiada te permite cargar peso con estabilidad.",
+                "Este press de tríceps con el recorrido estable."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.8,
               "commonMistakes": [
-                "Separar los codos o usar el pecho en lugar del tríceps para empujar."
+                "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
               ],
-              "description": "Smith bajando al mentón: la barra guiada te permite cargar peso con seguridad. El JM press con el recorrido estable.",
+              "description": "Smith bajando al mentón: la barra guiada te permite cargar peso con estabilidad. Este press de tríceps con el recorrido estable.",
               "efc": 2.2,
               "equipmentId": "smith_machine",
               "executionCues": [
-                "Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."
+                "Smith bajando al mentón: la barra guiada te permite cargar peso con estabilidad. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Principal: El codo abre el brazo y concentra el trabajo mecánico del tríceps. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Posición Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro fija el brazo o lo coloca detrás de la cabeza según la variante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca transmite la presión sin doblarse bajo el implemento. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "FULL",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
@@ -650,11 +912,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "triceps",
-                  "note": "Principal: el tríceps extiende el codo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El tríceps extiende el codo y completa la fase de empuje. En la configuración Máquina Smith, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "pectoralis",
-                  "note": "Secundario: el pectoral asiste la fase inicial del press cerca del pecho; por eso suma 0.5."
+                  "note": "Secundaria: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. En la configuración Máquina Smith, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "jm_press__smith_machine",
@@ -667,7 +929,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "elbow_extension"
+                    "Extensión",
+                    "Posición Del Hombro",
+                    "Alineación"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Principal: El codo abre el brazo y concentra el trabajo mecánico del tríceps. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Posición Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro fija el brazo o lo coloca detrás de la cabeza según la variante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca transmite la presión sin doblarse bajo el implemento. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -692,39 +982,44 @@
                   "movementPatternId": "elbow_extension",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "codo",
+                    "glenohumeral",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Separar los codos o usar el pecho en lugar del tríceps para empujar."
+                    "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
                   ],
                   "cues": [
-                    "Mantén el equipo ez_bar alineado con el patrón y controla la fase excéntrica."
+                    "Smith bajando al mentón: la barra guiada te permite cargar peso con estabilidad. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
                   ],
                   "execution": [
-                    "Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."
+                    "Smith bajando al mentón: la barra guiada te permite cargar peso con estabilidad. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando cargar el tríceps de forma directa y ajustar la dificultad con precisión siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar extensión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de codo según tolerancia y rango disponible.",
+                    "Movilidad de hombro según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca la barra sobre el pecho con los codos apuntando hacia delante."
+                    "Preparación: Smith bajando al mentón: la barra guiada te permite cargar peso con estabilidad."
                   ]
                 },
                 "display": {
@@ -733,6 +1028,15 @@
                   "selectedOptions": {
                     "implement": "smith_machine"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Smith bajando al mentón: la barra guiada te permite cargar peso con estabilidad.",
+                    "Este press de tríceps con el recorrido estable."
+                  ],
+                  "description": "Smith bajando al mentón: la barra guiada te permite cargar peso con estabilidad. Este press de tríceps con el recorrido estable.",
+                  "technique": "Smith bajando al mentón: la barra guiada te permite cargar peso con estabilidad. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
+                  "variantRationale": "Smith bajando al mentón: la barra guiada te permite cargar peso con estabilidad. Este press de tríceps con el recorrido estable."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -745,7 +1049,7 @@
                 },
                 "identity": {
                   "canonicalName": "JM Press",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "jm_press__smith_machine",
                   "definitionId": "jm_press",
                   "familyId": "triceps_jm_press",
@@ -763,7 +1067,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar triceps con el patrón del JM Press."
+                    "Desarrollar el tríceps mediante JM Press en la variante Máquina Smith.",
+                    "Priorizar cargar el tríceps de forma directa y ajustar la dificultad con precisión con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -789,7 +1094,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón del JM Press y el objetivo triceps."
+                    "Conserva extensión del codo y el objetivo de el tríceps.",
+                    "La sustitución debe respetar las articulaciones relevantes: codo, hombro, muñeca."
                   ],
                   "replacementGroup": "triceps_niche",
                   "replacementPriority": 999
@@ -806,13 +1112,15 @@
                 "pectoralis"
               ],
               "setupCues": [
-                "Coloca la barra sobre el pecho con los codos apuntando hacia delante."
+                "Preparación: Smith bajando al mentón: la barra guiada te permite cargar peso con estabilidad."
               ],
               "setupTimeSeconds": 40,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "techniqueSummary": "Smith bajando al mentón: la barra guiada te permite cargar peso con estabilidad. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
+              "ttc": 1.6,
+              "variantRationale": "Smith bajando al mentón: la barra guiada te permite cargar peso con estabilidad. Este press de tríceps con el recorrido estable."
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -824,9 +1132,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#triceps_jm_press_barra_ez",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "jm_press__cable",
@@ -834,18 +1142,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
+              "benefits": [
+                "Polea hacia el mentón: la tensión acompaña el descenso y el ascenso sin depender de un punto muerto.",
+                "Es una opción útil para conservar el tríceps activo con menos inercia que una barra."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.8,
               "commonMistakes": [
-                "Separar los codos o usar el pecho en lugar del tríceps para empujar."
+                "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
               ],
-              "description": "Polea bajando al mentón: la tensión constante acompaña el movimiento. La versión fina del JM press.",
+              "description": "Polea hacia el mentón: la tensión acompaña el descenso y el ascenso sin depender de un punto muerto. Es una opción útil para conservar el tríceps activo con menos inercia que una barra.",
               "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
-                "Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."
+                "Polea hacia el mentón: la tensión acompaña el descenso y el ascenso sin depender de un punto muerto. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Principal: El codo abre el brazo y concentra el trabajo mecánico del tríceps. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Posición Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro fija el brazo o lo coloca detrás de la cabeza según la variante. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca transmite la presión sin doblarse bajo el implemento. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "FULL",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
@@ -853,11 +1192,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "triceps",
-                  "note": "Principal: el tríceps extiende el codo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El tríceps extiende el codo y completa la fase de empuje. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "pectoralis",
-                  "note": "Secundario: el pectoral asiste la fase inicial del press cerca del pecho; por eso suma 0.5."
+                  "note": "Secundaria: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "jm_press__cable",
@@ -870,7 +1209,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "elbow_extension"
+                    "Extensión",
+                    "Posición Del Hombro",
+                    "Alineación"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Principal: El codo abre el brazo y concentra el trabajo mecánico del tríceps. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Posición Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro fija el brazo o lo coloca detrás de la cabeza según la variante. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca transmite la presión sin doblarse bajo el implemento. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -895,39 +1262,44 @@
                   "movementPatternId": "elbow_extension",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "codo",
+                    "glenohumeral",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Separar los codos o usar el pecho en lugar del tríceps para empujar."
+                    "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
                   ],
                   "cues": [
-                    "Mantén el equipo ez_bar alineado con el patrón y controla la fase excéntrica."
+                    "Polea hacia el mentón: la tensión acompaña el descenso y el ascenso sin depender de un punto muerto. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
                   ],
                   "execution": [
-                    "Baja la barra hacia la garganta con los codos pegados y vuelve a extender con control."
+                    "Polea hacia el mentón: la tensión acompaña el descenso y el ascenso sin depender de un punto muerto. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando cargar el tríceps de forma directa y ajustar la dificultad con precisión siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar extensión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de codo según tolerancia y rango disponible.",
+                    "Movilidad de hombro según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca la barra sobre el pecho con los codos apuntando hacia delante."
+                    "Preparación: Polea hacia el mentón: la tensión acompaña el descenso y el ascenso sin depender de un punto muerto."
                   ]
                 },
                 "display": {
@@ -936,6 +1308,15 @@
                   "selectedOptions": {
                     "implement": "cable"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Polea hacia el mentón: la tensión acompaña el descenso y el ascenso sin depender de un punto muerto.",
+                    "Es una opción útil para conservar el tríceps activo con menos inercia que una barra."
+                  ],
+                  "description": "Polea hacia el mentón: la tensión acompaña el descenso y el ascenso sin depender de un punto muerto. Es una opción útil para conservar el tríceps activo con menos inercia que una barra.",
+                  "technique": "Polea hacia el mentón: la tensión acompaña el descenso y el ascenso sin depender de un punto muerto. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
+                  "variantRationale": "Polea hacia el mentón: la tensión acompaña el descenso y el ascenso sin depender de un punto muerto. Es una opción útil para conservar el tríceps activo con menos inercia que una barra."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -948,7 +1329,7 @@
                 },
                 "identity": {
                   "canonicalName": "JM Press",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "jm_press__cable",
                   "definitionId": "jm_press",
                   "familyId": "triceps_jm_press",
@@ -966,7 +1347,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar triceps con el patrón del JM Press."
+                    "Desarrollar el tríceps mediante JM Press en la variante Polea.",
+                    "Priorizar cargar el tríceps de forma directa y ajustar la dificultad con precisión con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -992,7 +1374,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón del JM Press y el objetivo triceps."
+                    "Conserva extensión del codo y el objetivo de el tríceps.",
+                    "La sustitución debe respetar las articulaciones relevantes: codo, hombro, muñeca."
                   ],
                   "replacementGroup": "triceps_niche",
                   "replacementPriority": 999
@@ -1009,13 +1392,15 @@
                 "pectoralis"
               ],
               "setupCues": [
-                "Coloca la barra sobre el pecho con los codos apuntando hacia delante."
+                "Preparación: Polea hacia el mentón: la tensión acompaña el descenso y el ascenso sin depender de un punto muerto."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "techniqueSummary": "Polea hacia el mentón: la tensión acompaña el descenso y el ascenso sin depender de un punto muerto. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
+              "ttc": 1.6,
+              "variantRationale": "Polea hacia el mentón: la tensión acompaña el descenso y el ascenso sin depender de un punto muerto. Es una opción útil para conservar el tríceps activo con menos inercia que una barra."
             },
             "selectedOptions": {
               "implement": "cable"
@@ -1023,13 +1408,13 @@
           }
         ],
         "defaultConfigurationId": "jm_press__ez_bar",
-        "description": "JM Press: acostado, bajas la barra hasta el mentón con los codos pegados y empujas. Un híbrido entre press y francés que carga el tríceps con fuerza bruta.",
+        "description": "Este press de tríceps: acostado, bajas la barra hasta el mentón con los codos pegados y empujas. Un híbrido entre press y francés que carga el tríceps con fuerza de tracción.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:jm_press"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "triceps_jm_press",
@@ -1048,9 +1433,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:triceps_jm_press"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "triceps_jm_press",
@@ -1060,6 +1445,6 @@
       "jm_press"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

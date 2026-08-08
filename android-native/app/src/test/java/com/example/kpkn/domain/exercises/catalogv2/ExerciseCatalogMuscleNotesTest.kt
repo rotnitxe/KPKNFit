@@ -223,6 +223,20 @@ class ExerciseCatalogMuscleNotesTest {
         secondaryMuscles = secondary,
         stabilizerMuscles = stabilizer,
         muscleNotes = notes,
+        jointInvolvement = listOf(
+            JointInvolvementV2(
+                jointId = "cadera",
+                role = JointRoleV2.PRIMARY,
+                actions = listOf("flexión y extensión"),
+                note = "Principal: la cadera recibe la carga de la bisagra y vuelve a extenderse para elevar el tronco sin que la zona lumbar origine el movimiento.",
+            ),
+            JointInvolvementV2(
+                jointId = "columna-lumbar",
+                role = JointRoleV2.STABILIZER,
+                actions = listOf("resistencia a la flexión"),
+                note = "Estabilizadora: la columna lumbar transmite la fuerza entre pelvis y tronco y resiste el redondeo mientras la cadera cambia de ángulo.",
+            ),
+        ),
         efc = 1.0,
         cnc = 1.0,
         ssc = 0.0,
@@ -238,6 +252,12 @@ class ExerciseCatalogMuscleNotesTest {
         replacementPriority = 1,
         automationEligible = true,
         description = "Bisagra de cadera de prueba con descripción suficientemente larga para el gate de aprobación del catálogo.",
+        benefits = listOf(
+            "Desarrollar la extensión de cadera con una resistencia fácil de comparar entre configuraciones.",
+            "Reforzar la transmisión de fuerza entre pelvis y tronco sin depender de una descripción genérica.",
+        ),
+        techniqueSummary = "La cadera se desplaza hacia atrás y vuelve a extenderse mientras la columna conserva una base estable y la carga permanece cercana al cuerpo.",
+        variantRationale = "La barra ofrece una carga bilateral estable y una progresión clara para comparar la bisagra entre sesiones.",
         richMetadata = ResolvedExerciseMetadataV2(
             identity = ExerciseIdentityMetadataV2(
                 catalogRevision = "muscle-notes-test",
@@ -255,6 +275,20 @@ class ExerciseCatalogMuscleNotesTest {
                 stabilizerMuscles = stabilizer,
                 targetRegions = listOf(primary.firstOrNull() ?: "muscle"),
                 jointActions = listOf("hip_hinge"),
+                jointInvolvement = listOf(
+                    JointInvolvementV2(
+                        jointId = "cadera",
+                        role = JointRoleV2.PRIMARY,
+                        actions = listOf("flexión y extensión"),
+                        note = "Principal: la cadera recibe la carga de la bisagra y vuelve a extenderse para elevar el tronco sin que la zona lumbar origine el movimiento.",
+                    ),
+                    JointInvolvementV2(
+                        jointId = "columna-lumbar",
+                        role = JointRoleV2.STABILIZER,
+                        actions = listOf("resistencia a la flexión"),
+                        note = "Estabilizadora: la columna lumbar transmite la fuerza entre pelvis y tronco y resiste el redondeo mientras la cadera cambia de ángulo.",
+                    ),
+                ),
                 muscleLengthBias = "mixed_controlled",
                 volumeContribution = "direct",
                 stabilizationDemand = "moderate",
@@ -269,8 +303,8 @@ class ExerciseCatalogMuscleNotesTest {
                 resistanceProfile = "test",
                 rangeOfMotion = "controlled_full_available",
                 stability = "self_stabilized",
-                relevantJoints = listOf("hip", "knee"),
-                relevantTendons = listOf("hip_tendon"),
+                relevantJoints = listOf("cadera", "columna-lumbar"),
+                relevantTendons = listOf("tendon-iliopsoas"),
             ),
             programming = ExerciseProgrammingMetadataV2(
                 role = "primary_compound",
@@ -311,6 +345,15 @@ class ExerciseCatalogMuscleNotesTest {
                 displayName = "Padre A",
                 displaySummary = "barbell",
                 selectedOptions = mapOf("implement" to "barbell"),
+            ),
+            editorial = ExerciseEditorialMetadataV2(
+                description = "Bisagra de cadera de prueba con descripción suficientemente larga para el gate de aprobación del catálogo.",
+                benefits = listOf(
+                    "Desarrollar la extensión de cadera con una resistencia fácil de comparar entre configuraciones.",
+                    "Reforzar la transmisión de fuerza entre pelvis y tronco sin depender de una descripción genérica.",
+                ),
+                technique = "La cadera se desplaza hacia atrás y vuelve a extenderse mientras la columna conserva una base estable y la carga permanece cercana al cuerpo.",
+                variantRationale = "La barra ofrece una carga bilateral estable y una progresión clara para comparar la bisagra entre sesiones.",
             ),
             evidenceConfidence = CatalogConfidenceV2.HIGH,
         ),

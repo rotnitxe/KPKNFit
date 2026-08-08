@@ -1,8 +1,49 @@
 # Estado de ejecución — catálogo de ejercicios
 
-Fecha de corte: 2026-08-02 (curaduría integral v3)
-Revisión: `v2-approved-2026-08-02-c`
-Hash canónico compartido: `02e0954512d23729ff15efe13bfd9cce00309769d1e8fb450e2344708f14b3cf`
+Fecha de corte: 2026-08-08 (curaduría editorial v6)
+Revisión: `v2-approved-2026-08-08-c`
+Hash canónico compartido: `dbd6f7a475907398aa7bfb0bacaa9d8619bff9d641aa7a160dc2deea9ff3bf16`
+
+## Curaduría v6 (2026-08-08): briefs dedicados por ejercicio y configuración
+
+- `editorial_briefs.json` es la fuente autoral de las 196 definiciones y 518
+  configuraciones. Cada opción tiene descripción, beneficios, técnica y
+  justificación propios; no se deriva texto visible desde un patrón global.
+- Se eliminó del flujo editorial la apertura repetida de los remos y de los
+  demás patrones. El gate comprueba cobertura exacta, igualdad con el perfil,
+  ausencia de boilerplate y unicidad de la primera frase.
+- La pasada solo reemplaza copy y cues editoriales; conserva las fichas
+  `muscleNotes` y `jointInvolvement` ya validadas.
+
+## Curaduría v5.1 (2026-08-08): lectura accesible y tarjeta ordenada
+
+- Se reescribieron las 196 descripciones de definición y las 518 fichas de
+  configuración con frases más directas, sin repetir el nombre canónico dentro
+  del cuerpo y sin presentar un simple cambio de implemento como una variante.
+- Se normalizó la capitalización de descripciones, beneficios, técnica,
+  músculos, articulaciones, acciones y etiquetas compactas.
+- La tarjeta expandida ahora coloca primero los chips de opciones. Descripción,
+  Técnica, Involucramiento Muscular e Involucramiento Articular son secciones
+  independientes, cerradas por defecto y abiertas solo al tocarlas.
+- El gate estricto bloquea nombres repetidos, textos visibles que comienzan en
+  minúscula y revisiones de perfil desincronizadas.
+
+## Curaduría v5 (2026-08-08): ficha específica por variante e involucramiento articular
+
+- Las 518 configuraciones tienen una descripción editorial propia que combina
+  el movimiento, el implemento, la posición o agarre seleccionado, el beneficio
+  de esa variante y una técnica breve; ya no se describe la opción como un mero
+  cambio de implemento.
+- Cada configuración incorpora `benefits`, `techniqueSummary` y
+  `variantRationale`, además de cues de preparación, ejecución y errores
+  frecuentes adaptados a sus ejes técnicos.
+- `muscleNotes` se reescribió con el rol, la acción muscular y la consecuencia
+  concreta de la variante. El nuevo `jointInvolvement` registra articulación,
+  rol (principal, secundaria o estabilizadora), acciones y explicación
+  biomecánica; usa los IDs canónicos de WikiLab y se replica en metadata rica.
+- La revisión v6 queda protegida por compilador, gate editorial, backend y
+  loader Android; el runtime Android y la copia de datos iOS comparten el hash
+  canónico indicado arriba.
 
 ## Curaduría v4 (2026-08-03): descripciones amigables, involucramiento adaptativo y ejercicios nuevos
 
@@ -60,8 +101,9 @@ catálogo que se empaqueta como runtime Android. El corte contiene:
   adaptativos por agarre y amplitud; eliminación de duplicados (curl inclinado,
   press de hombros de pie, plancha Copenhagen isométrica, hiperextensiones
   redundantes, Super ROM duplicada) y renombres Title Case sin relleno.
-- `muscleNotes` completas en las 518 configuraciones: una nota por músculo
-  listado (sin huérfanos ni faltantes), validada por compilador, gate y backend.
+- `muscleNotes` y `jointInvolvement` completas en las 518 configuraciones: una
+  explicación por músculo y articulación, sin huérfanos ni faltantes, validada
+  por compilador, gate, backend y loader Android.
 - Equivalencias fijas por rol: Principal 1.0 / Secundario 0.5 / Estabilizador
   0.4; no se guardan números en el JSON, UI y contadores derivan del rol.
 - Eje condicional `pulley_height` soportado en compilador, gate, backend y
@@ -80,13 +122,14 @@ catálogo que se empaqueta como runtime Android. El corte contiene:
 
 - Fuente agregada: `source/catalog_v2.json` (canónica, reconstruida por
   `scripts/merge_catalog_v2_families.py` desde `source/families/`).
-- Guía editorial: `curation/EDITORIAL_GUIDE.md` (reglas R1-R8 y L1-L8).
+- Guía editorial: `curation/EDITORIAL_GUIDE.md` (reglas R1-R11 y L1-L12).
 - Runtime Android: `android-native/app/src/main/assets/exercise_catalog_v2.json`.
 - Runtime iOS: `ios-native/KPKNFit/KPKNFit/exercise_catalog_v2.json` (copia de
   datos idéntica; la paridad de código iOS queda pendiente por falta de
   toolchain Apple en esta máquina).
 - Backend: `backend/exercises_catalog_v2.py` valida revisión, hash, estructura,
-  metadata, identidad exacta y `muscleNotes`.
+  metadata, identidad exacta, `muscleNotes`, `jointInvolvement` y la ficha
+  editorial.
 - El compilador y el verificador comparan los tres artefactos mediante el mismo
   hash canónico; cualquier divergencia hace fallar el proceso.
 
@@ -97,7 +140,7 @@ catálogo que se empaqueta como runtime Android. El corte contiene:
   518 configuraciones, hash canónico coincidente.
 - `python scripts/compile_exercise_catalog_v2_cli.py --write` → asset Android
   regenerado (y copia idéntica a iOS).
-- Backend: 7 pruebas Python → `OK`.
+- Backend: pruebas Python del catálogo → `OK`.
 - Android: `testBaseDebugUnitTest` y `testHealthDebugUnitTest` → 0 failures.
 
 ## Regla de mantenimiento
@@ -106,4 +149,5 @@ Toda modificación futura debe regenerar fuente, runtime y hash en un solo corte
 ejecutar el gate estricto, las pruebas Android/backend y la inspección del APK.
 No se admite reintroducir v1, aliases globales, resolución por nombre o chips
 implícitos. Una definición sin metadata completa, configuración por defecto,
-`muscleNotes` completas o decisión editorial explícita debe bloquear el build.
+`muscleNotes`, `jointInvolvement` y la ficha editorial completas o decisión
+editorial explícita debe bloquear el build.

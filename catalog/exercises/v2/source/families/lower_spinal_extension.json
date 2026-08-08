@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Tren inferior · erector spinae · spinal extension",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_extension_lumbar",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "back_extension_lumbar__default",
@@ -22,18 +22,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "En el banco de hiperextensiones: bajas el torso y subes con la espalda trabajando.",
+                "El ejercicio base para una espalda fuerte."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón extensión columna para completar la repetición."
+                "Buscar altura con hiperextensión, mover solo la zona lumbar o perder el apoyo."
               ],
               "description": "En el banco de hiperextensiones: bajas el torso y subes con la espalda trabajando. El ejercicio base para una espalda fuerte.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
-                "Ejecuta «Extensión Lumbar» siguiendo el patrón extensión columna con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "En el banco de hiperextensiones: bajas el torso y subes con la espalda trabajando. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Principal: La columna lumbar vuelve a extenderse con una carga progresiva sobre la cadena posterior. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Secundaria: La cadera ayuda a enderezar el tronco y reparte la salida con los glúteos. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Control Pélvico"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La pelvis regula la transición entre flexión y extensión sin perder la base. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -41,11 +72,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "erector_spinae",
-                  "note": "Principal: los erectores extienden la columna y concentran la fuerza del movimiento; por eso suman la serie completa (1.0)."
+                  "note": "Principal: Los erectores espinales sostiene la columna frente a la flexión y transmite fuerza entre pelvis y tronco. El guiado externo reduce la demanda de estabilización y concentra su papel en mantener la posición. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "gluteus_maximus",
-                  "note": "Secundario: el glúteo mayor asiste la extensión de cadera y completa el movimiento; por eso suma 0.5."
+                  "note": "Secundaria: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. En la configuración Máquina, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "back_extension_lumbar__machine__extension_lumbar",
@@ -58,7 +89,34 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "spinal_extension"
+                    "Extensión",
+                    "Control Pélvico"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Principal: La columna lumbar vuelve a extenderse con una carga progresiva sobre la cadena posterior. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Secundaria: La cadera ayuda a enderezar el tronco y reparte la salida con los glúteos. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Control Pélvico"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La pelvis regula la transición entre flexión y extensión sin perder la base. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -83,46 +141,53 @@
                   "movementPatternId": "spinal_extension",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "columna-lumbar",
+                    "cadera",
+                    "sacroiliaca"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón extensión columna para completar la repetición."
+                    "Buscar altura con hiperextensión, mover solo la zona lumbar o perder el apoyo."
                   ],
                   "cues": [
-                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                    "En el banco de hiperextensiones: bajas el torso y subes con la espalda trabajando. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Ejecuta «Extensión Lumbar» siguiendo el patrón extensión columna con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "En el banco de hiperextensiones: bajas el torso y subes con la espalda trabajando. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con un recorrido que se puede graduar siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar extensión del tronco y la cadera como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de columna lumbar según tolerancia y rango disponible.",
+                    "Movilidad de cadera según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura máquina y adopta la posición específica de «Extensión Lumbar» antes de iniciar; conserva una base estable."
+                    "Preparación: En el banco de hiperextensiones: bajas el torso y subes con la espalda trabajando."
                   ]
                 },
                 "display": {
                   "displayName": "Hiperextensiones de Espalda Baja",
                   "displaySummary": "Máquina",
                   "selectedOptions": {}
+                },
+                "editorial": {
+                  "benefits": [
+                    "En el banco de hiperextensiones: bajas el torso y subes con la espalda trabajando.",
+                    "El ejercicio base para una espalda fuerte."
+                  ],
+                  "description": "En el banco de hiperextensiones: bajas el torso y subes con la espalda trabajando. El ejercicio base para una espalda fuerte.",
+                  "technique": "En el banco de hiperextensiones: bajas el torso y subes con la espalda trabajando. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "En el banco de hiperextensiones: bajas el torso y subes con la espalda trabajando. El ejercicio base para una espalda fuerte."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -135,7 +200,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hiperextensiones de Espalda Baja",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "back_extension_lumbar__default",
                   "definitionId": "back_extension_lumbar",
                   "familyId": "lower_spinal_extension",
@@ -154,8 +219,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar erector_spinae dentro del patrón spinal_extension.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar los erectores espinales mediante Hiperextensiones de Espalda Baja en la variante Máquina.",
+                    "Priorizar fortalecer la cadena posterior con un recorrido que se puede graduar con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -177,7 +242,8 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón spinal_extension y el objetivo erector_spinae."
+                    "Conserva extensión del tronco y la cadera y el objetivo de los erectores espinales.",
+                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar, cadera, articulación sacroilíaca."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -194,25 +260,27 @@
                 "gluteus_maximus"
               ],
               "setupCues": [
-                "Configura máquina y adopta la posición específica de «Extensión Lumbar» antes de iniciar; conserva una base estable."
+                "Preparación: En el banco de hiperextensiones: bajas el torso y subes con la espalda trabajando."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "En el banco de hiperextensiones: bajas el torso y subes con la espalda trabajando. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 1.8,
+              "variantRationale": "En el banco de hiperextensiones: bajas el torso y subes con la espalda trabajando. El ejercicio base para una espalda fuerte."
             },
             "selectedOptions": {}
           }
         ],
         "defaultConfigurationId": "back_extension_lumbar__default",
-        "description": "Hiperextensiones de espalda baja: en el banco, bajas el torso y subes con la espalda trabajando. El ejercicio base para una espalda fuerte y sin molestias.",
+        "description": "En el banco, bajas el torso y subes con la espalda trabajando. El ejercicio base para una espalda fuerte y sin molestias.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:back_extension_lumbar"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_spinal_extension",
@@ -234,9 +302,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_superman_suelo",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "back_superman_suelo__default",
@@ -244,18 +312,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Boca abajo en el suelo: levantas brazos y piernas a la vez y aguantas un momento.",
+                "Espalda baja y core trabajando sin máquinas."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón extensión columna para completar la repetición."
+                "Buscar altura con hiperextensión, mover solo la zona lumbar o perder el apoyo."
               ],
               "description": "Boca abajo en el suelo: levantas brazos y piernas a la vez y aguantas un momento. Espalda baja y core trabajando sin máquinas.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Ejecuta «Superman en Suelo» siguiendo el patrón extensión columna con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Boca abajo en el suelo: levantas brazos y piernas a la vez y aguantas un momento. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Principal: La columna lumbar vuelve a extenderse con una carga progresiva sobre la cadena posterior. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Secundaria: La cadera ayuda a enderezar el tronco y reparte la salida con los glúteos. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Control Pélvico"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La pelvis regula la transición entre flexión y extensión sin perder la base. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
@@ -263,15 +362,15 @@
               "muscleNotes": [
                 {
                   "muscleId": "erector_spinae",
-                  "note": "Principal: los erectores extienden la columna y concentran la fuerza del movimiento; por eso suman la serie completa (1.0)."
+                  "note": "Principal: Los erectores espinales sostiene la columna frente a la flexión y transmite fuerza entre pelvis y tronco. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "gluteus_maximus",
-                  "note": "Secundario: el glúteo mayor asiste la extensión de cadera y completa el movimiento; por eso suma 0.5."
+                  "note": "Secundaria: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "hamstrings",
-                  "note": "Secundario: los isquiosurales asisten la cadena posterior y estabilizan la rodilla; por eso suman 0.5."
+                  "note": "Secundaria: Los isquiosurales extiende la cadera y frena el descenso cuando la cadera se flexiona. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "back_superman_suelo__bodyweight__superman_en_suelo",
@@ -284,7 +383,34 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "spinal_extension"
+                    "Extensión",
+                    "Control Pélvico"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Principal: La columna lumbar vuelve a extenderse con una carga progresiva sobre la cadena posterior. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Secundaria: La cadera ayuda a enderezar el tronco y reparte la salida con los glúteos. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Control Pélvico"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La pelvis regula la transición entre flexión y extensión sin perder la base. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -310,46 +436,53 @@
                   "movementPatternId": "spinal_extension",
                   "rangeOfMotion": "limited_by_support",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "columna-lumbar",
+                    "cadera",
+                    "sacroiliaca"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón extensión columna para completar la repetición."
+                    "Buscar altura con hiperextensión, mover solo la zona lumbar o perder el apoyo."
                   ],
                   "cues": [
-                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                    "Boca abajo en el suelo: levantas brazos y piernas a la vez y aguantas un momento. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Ejecuta «Superman en Suelo» siguiendo el patrón extensión columna con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Boca abajo en el suelo: levantas brazos y piernas a la vez y aguantas un momento. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con un recorrido que se puede graduar siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar extensión del tronco y la cadera como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de columna lumbar según tolerancia y rango disponible.",
+                    "Movilidad de cadera según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura peso corporal y adopta la posición específica de «Superman en Suelo» antes de iniciar; conserva una base estable."
+                    "Preparación: Boca abajo en el suelo: levantas brazos y piernas a la vez y aguantas un momento."
                   ]
                 },
                 "display": {
                   "displayName": "Superman en Suelo",
                   "displaySummary": "Peso Corporal",
                   "selectedOptions": {}
+                },
+                "editorial": {
+                  "benefits": [
+                    "Boca abajo en el suelo: levantas brazos y piernas a la vez y aguantas un momento.",
+                    "Espalda baja y core trabajando sin máquinas."
+                  ],
+                  "description": "Boca abajo en el suelo: levantas brazos y piernas a la vez y aguantas un momento. Espalda baja y core trabajando sin máquinas.",
+                  "technique": "Boca abajo en el suelo: levantas brazos y piernas a la vez y aguantas un momento. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Boca abajo en el suelo: levantas brazos y piernas a la vez y aguantas un momento. Espalda baja y core trabajando sin máquinas."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -362,7 +495,7 @@
                 },
                 "identity": {
                   "canonicalName": "Superman en Suelo",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "back_superman_suelo__default",
                   "definitionId": "back_superman_suelo",
                   "familyId": "lower_spinal_extension",
@@ -379,8 +512,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar erector_spinae dentro del patrón spinal_extension.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar los erectores espinales mediante Superman en Suelo en la variante Peso Corporal.",
+                    "Priorizar fortalecer la cadena posterior con un recorrido que se puede graduar con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -402,7 +535,8 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón spinal_extension y el objetivo erector_spinae."
+                    "Conserva extensión del tronco y la cadera y el objetivo de los erectores espinales.",
+                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar, cadera, articulación sacroilíaca."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -420,25 +554,27 @@
                 "hamstrings"
               ],
               "setupCues": [
-                "Configura peso corporal y adopta la posición específica de «Superman en Suelo» antes de iniciar; conserva una base estable."
+                "Preparación: Boca abajo en el suelo: levantas brazos y piernas a la vez y aguantas un momento."
               ],
               "setupTimeSeconds": 10,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Boca abajo en el suelo: levantas brazos y piernas a la vez y aguantas un momento. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 1.8,
+              "variantRationale": "Boca abajo en el suelo: levantas brazos y piernas a la vez y aguantas un momento. Espalda baja y core trabajando sin máquinas."
             },
             "selectedOptions": {}
           }
         ],
         "defaultConfigurationId": "back_superman_suelo__default",
-        "description": "Superman en el suelo: boca abajo, levantas brazos y piernas del piso a la vez. La espalda baja trabaja sin máquinas y el core también se enciende.",
+        "description": "Superman en el suelo: boca abajo, levantas brazos y piernas del piso a la vez. La espalda baja trabaja sin máquinas y el core también aumenta su tensión.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:back_superman_suelo"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_spinal_extension",
@@ -458,9 +594,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_extension_lumbar",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "back_hiperextension_45_zercher_espalda_baja__default",
@@ -468,18 +604,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.4,
+              "benefits": [
+                "Carga en los codos en el banco a 45: subes el torso con la espalda baja haciendo el trabajo.",
+                "Exigente y controlada; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Redondear la espalda al final del recorrido para ganar profundidad."
+                "Buscar altura con hiperextensión, mover solo la zona lumbar o perder el apoyo."
               ],
               "description": "Carga en los codos en el banco a 45: subes el torso con la espalda baja haciendo el trabajo. Exigente y controlada.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
-                "Extiende el tronco con control manteniendo la zona lumbar neutra."
+                "Carga en los codos en el banco a 45: subes el torso con la espalda baja haciendo el trabajo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Principal: La columna lumbar vuelve a extenderse con una carga progresiva sobre la cadena posterior. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Secundaria: La cadera ayuda a enderezar el tronco y reparte la salida con los glúteos. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Control Pélvico"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La pelvis regula la transición entre flexión y extensión sin perder la base. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -487,11 +654,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "erector_spinae",
-                  "note": "Principal: los erectores extienden la columna contra la carga y concentran el trabajo de esta variante; por eso suman la serie completa (1.0)."
+                  "note": "Principal: Los erectores espinales sostiene la columna frente a la flexión y transmite fuerza entre pelvis y tronco. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core mantiene el tronco firme y protege la zona lumbar durante el recorrido; por eso suma 0.4."
+                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "back_hiperextension_45_zercher_espalda_baja",
@@ -504,7 +671,34 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "spinal_extension"
+                    "Extensión",
+                    "Control Pélvico"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Principal: La columna lumbar vuelve a extenderse con una carga progresiva sobre la cadena posterior. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Secundaria: La cadera ayuda a enderezar el tronco y reparte la salida con los glúteos. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Control Pélvico"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La pelvis regula la transición entre flexión y extensión sin perder la base. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -529,46 +723,53 @@
                   "movementPatternId": "spinal_extension",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "columna-lumbar",
+                    "cadera",
+                    "sacroiliaca"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "guided"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Redondear la espalda al final del recorrido para ganar profundidad."
+                    "Buscar altura con hiperextensión, mover solo la zona lumbar o perder el apoyo."
                   ],
                   "cues": [
-                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                    "Carga en los codos en el banco a 45: subes el torso con la espalda baja haciendo el trabajo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Extiende el tronco con control manteniendo la zona lumbar neutra."
+                    "Carga en los codos en el banco a 45: subes el torso con la espalda baja haciendo el trabajo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con un recorrido que se puede graduar siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar extensión del tronco y la cadera como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de columna lumbar según tolerancia y rango disponible.",
+                    "Movilidad de cadera según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Ajusta el banco a 45 grados y sostén la carga en posición Zercher contra el pecho."
+                    "Preparación: Carga en los codos en el banco a 45: subes el torso con la espalda baja haciendo el trabajo."
                   ]
                 },
                 "display": {
                   "displayName": "Hiperextensión a 45 Zercher para Espalda Baja",
                   "displaySummary": "zercher",
                   "selectedOptions": {}
+                },
+                "editorial": {
+                  "benefits": [
+                    "Carga en los codos en el banco a 45: subes el torso con la espalda baja haciendo el trabajo.",
+                    "Exigente y controlada; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Carga en los codos en el banco a 45: subes el torso con la espalda baja haciendo el trabajo. Exigente y controlada.",
+                  "technique": "Carga en los codos en el banco a 45: subes el torso con la espalda baja haciendo el trabajo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Carga en los codos en el banco a 45: subes el torso con la espalda baja haciendo el trabajo. Exigente y controlada."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -581,7 +782,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hiperextensión a 45 Zercher para Espalda Baja",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "back_hiperextension_45_zercher_espalda_baja__default",
                   "definitionId": "back_hiperextension_45_zercher_espalda_baja",
                   "familyId": "lower_spinal_extension",
@@ -600,7 +801,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar erector_spinae con la hiperextensión Zercher a 45 grados."
+                    "Desarrollar los erectores espinales mediante Hiperextensión a 45 Zercher para Espalda Baja en la variante Barra.",
+                    "Priorizar fortalecer la cadena posterior con un recorrido que se puede graduar con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -622,7 +824,8 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva la extensión de columna y el objetivo erector_spinae."
+                    "Conserva extensión del tronco y la cadera y el objetivo de los erectores espinales.",
+                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar, cadera, articulación sacroilíaca."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -637,7 +840,7 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Ajusta el banco a 45 grados y sostén la carga en posición Zercher contra el pecho."
+                "Preparación: Carga en los codos en el banco a 45: subes el torso con la espalda baja haciendo el trabajo."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.4,
@@ -645,19 +848,21 @@
                 "core"
               ],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Carga en los codos en el banco a 45: subes el torso con la espalda baja haciendo el trabajo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 1.8,
+              "variantRationale": "Carga en los codos en el banco a 45: subes el torso con la espalda baja haciendo el trabajo. Exigente y controlada."
             },
             "selectedOptions": {}
           }
         ],
         "defaultConfigurationId": "back_hiperextension_45_zercher_espalda_baja__default",
-        "description": "Hiperextensión a 45 Zercher para espalda baja: la carga en los codos mientras subes el torso en el banco inclinado. Exigente y controlada.",
+        "description": "La carga en los codos mientras subes el torso en el banco inclinado. Exigente y controlada.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v3-2026-08-02"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Aprobado por decisión explícita de catálogo v3; la configuración está materializada y no depende de inferencia runtime.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_spinal_extension",
@@ -675,9 +880,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:lower_spinal_extension"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_spinal_extension",
@@ -686,6 +891,6 @@
       "spinal_extension"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

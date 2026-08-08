@@ -48,6 +48,7 @@ object SessionTemplateSuggestionEngine {
 
         val chosen = mutableListOf<SuggestedDayPlan>()
         val drains = mutableListOf<PredictedDrain>()
+        val warnings = mutableListOf<String>()
         var weeklyVolume = emptyMap<String, Double>()
 
         trainingDays.forEachIndexed { dayIndex, dayLabel ->
@@ -87,6 +88,9 @@ object SessionTemplateSuggestionEngine {
             val selected = when {
                 forced != null -> forced
                 else -> scored.firstOrNull()?.template
+            }
+            if (selected == null) {
+                warnings += "Sin plantilla para el día '$dayLabel' del split '${split.name}'; se generará una sesión en blanco."
             }
             val selectedScore = when {
                 selected == null -> 0.0
@@ -132,7 +136,6 @@ object SessionTemplateSuggestionEngine {
             weeklyDrain.muscular > weeklyCaps.muscular ||
             weeklyDrain.spinal > weeklyCaps.spinal
 
-        val warnings = mutableListOf<String>()
         if (weeklyDrain.cns > weeklyCaps.cns) {
             warnings += "Fatiga SNC semanal elevada (${weeklyDrain.cns}% > ${weeklyCaps.cns}%)"
         }

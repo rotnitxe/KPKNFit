@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Elevación de talones",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#calves_talones_de_pie",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "calf_raise__bilateral__machine",
@@ -22,18 +22,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.4,
+              "benefits": [
+                "Máquina de pantorrillas con ambas piernas: subes y bajas con la espalda apoyada.",
+                "La forma más utilizada de trabajar las pantorrillas."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+                "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
               ],
-              "description": "Máquina de pantorrillas con ambas piernas: subes y bajas con la espalda apoyada. La forma más popular de trabajar las pantorrillas.",
+              "description": "Máquina de pantorrillas con ambas piernas: subes y bajas con la espalda apoyada. La forma más utilizada de trabajar las pantorrillas.",
               "efc": 2.0,
               "equipmentId": "machine",
               "executionCues": [
-                "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+                "Máquina de pantorrillas con ambas piernas: subes y bajas con la espalda apoyada. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Plantar O Dorsiflexión"
+                  ],
+                  "jointId": "tobillo",
+                  "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Ajuste Del Apoyo"
+                  ],
+                  "jointId": "subtalar",
+                  "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Transmisión"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -41,7 +72,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "calves",
-                  "note": "Principal: la pantorrilla realiza la flexión plantar y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."
+                  "note": "Principal: La pantorrilla produce o controla la flexión plantar para transferir fuerza al suelo. En la configuración Máquina · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "calf_raise__bilateral__machine",
@@ -54,7 +85,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "plantar_flexion"
+                    "Flexión Plantar O Dorsiflexión",
+                    "Ajuste Del Apoyo",
+                    "Transmisión"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Plantar O Dorsiflexión"
+                      ],
+                      "jointId": "tobillo",
+                      "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Ajuste Del Apoyo"
+                      ],
+                      "jointId": "subtalar",
+                      "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Transmisión"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -77,40 +136,41 @@
                   "movementPatternId": "plantar_flexion",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "tobillo",
+                    "subtalar",
+                    "rodilla"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-aquiles",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+                    "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
                   ],
                   "cues": [
-                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                    "Máquina de pantorrillas con ambas piernas: subes y bajas con la espalda apoyada. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
                   ],
                   "execution": [
-                    "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+                    "Máquina de pantorrillas con ambas piernas: subes y bajas con la espalda apoyada. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar la fuerza del tobillo y la transferencia hacia la pierna siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar movimiento del pie desde el tobillo y control del apoyo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de tobillo según tolerancia y rango disponible.",
+                    "Movilidad de articulación subastragalina según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+                    "Preparación: Máquina de pantorrillas con ambas piernas: subes y bajas con la espalda apoyada."
                   ]
                 },
                 "display": {
@@ -120,6 +180,15 @@
                     "implement": "machine",
                     "laterality": "bilateral"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Máquina de pantorrillas con ambas piernas: subes y bajas con la espalda apoyada.",
+                    "La forma más utilizada de trabajar las pantorrillas."
+                  ],
+                  "description": "Máquina de pantorrillas con ambas piernas: subes y bajas con la espalda apoyada. La forma más utilizada de trabajar las pantorrillas.",
+                  "technique": "Máquina de pantorrillas con ambas piernas: subes y bajas con la espalda apoyada. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote.",
+                  "variantRationale": "Máquina de pantorrillas con ambas piernas: subes y bajas con la espalda apoyada. La forma más utilizada de trabajar las pantorrillas."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -132,7 +201,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "calf_raise__bilateral__machine",
                   "definitionId": "calf_raise",
                   "familyId": "lower_plantar_flexion",
@@ -152,7 +221,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar calves en flexión plantar."
+                    "Desarrollar la pantorrilla mediante Elevación de Talones en la variante Máquina · Trabajo Bilateral.",
+                    "Priorizar mejorar la fuerza del tobillo y la transferencia hacia la pierna con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -177,7 +247,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva la flexión plantar y el objetivo calves."
+                    "Conserva movimiento del pie desde el tobillo y control del apoyo y el objetivo de la pantorrilla.",
+                    "La sustitución debe respetar las articulaciones relevantes: tobillo, articulación subastragalina, rodilla."
                   ],
                   "replacementGroup": "calf_raise_standing",
                   "replacementPriority": 1
@@ -192,13 +263,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+                "Preparación: Máquina de pantorrillas con ambas piernas: subes y bajas con la espalda apoyada."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "techniqueSummary": "Máquina de pantorrillas con ambas piernas: subes y bajas con la espalda apoyada. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote.",
+              "ttc": 1.5,
+              "variantRationale": "Máquina de pantorrillas con ambas piernas: subes y bajas con la espalda apoyada. La forma más utilizada de trabajar las pantorrillas."
             },
             "selectedOptions": {
               "implement": "machine",
@@ -211,9 +284,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#calves_talones_de_pie",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "calf_raise__unilateral__machine",
@@ -221,18 +294,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.4,
+              "benefits": [
+                "Máquina con una pierna: cada pantorrilla eleva el cuerpo por separado y la plataforma elimina parte del problema de equilibrio.",
+                "Es una forma precisa de comparar fuerza y amplitud entre lados."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+                "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
               ],
-              "description": "Máquina con una pierna: cada pantorrilla trabaja sola y corriges desequilibrios. La versión fina de la elevación de talones.",
+              "description": "Máquina con una pierna: cada pantorrilla eleva el cuerpo por separado y la plataforma elimina parte del problema de equilibrio. Es una forma precisa de comparar fuerza y amplitud entre lados.",
               "efc": 2.0,
               "equipmentId": "machine",
               "executionCues": [
-                "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+                "Máquina con una pierna: cada pantorrilla eleva el cuerpo por separado y la plataforma elimina parte del problema de equilibrio. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Plantar O Dorsiflexión"
+                  ],
+                  "jointId": "tobillo",
+                  "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Ajuste Del Apoyo"
+                  ],
+                  "jointId": "subtalar",
+                  "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Transmisión"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
@@ -240,7 +344,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "calves",
-                  "note": "Principal: la pantorrilla realiza la flexión plantar y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."
+                  "note": "Principal: La pantorrilla produce o controla la flexión plantar para transferir fuerza al suelo. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "calf_raise__unilateral__machine",
@@ -253,7 +357,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "plantar_flexion"
+                    "Flexión Plantar O Dorsiflexión",
+                    "Ajuste Del Apoyo",
+                    "Transmisión"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Plantar O Dorsiflexión"
+                      ],
+                      "jointId": "tobillo",
+                      "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Ajuste Del Apoyo"
+                      ],
+                      "jointId": "subtalar",
+                      "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Transmisión"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -276,40 +408,41 @@
                   "movementPatternId": "plantar_flexion",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "tobillo",
+                    "subtalar",
+                    "rodilla"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-aquiles",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+                    "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
                   ],
                   "cues": [
-                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                    "Máquina con una pierna: cada pantorrilla eleva el cuerpo por separado y la plataforma elimina parte del problema de equilibrio. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
                   ],
                   "execution": [
-                    "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+                    "Máquina con una pierna: cada pantorrilla eleva el cuerpo por separado y la plataforma elimina parte del problema de equilibrio. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar la fuerza del tobillo y la transferencia hacia la pierna siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar movimiento del pie desde el tobillo y control del apoyo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de tobillo según tolerancia y rango disponible.",
+                    "Movilidad de articulación subastragalina según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+                    "Preparación: Máquina con una pierna: cada pantorrilla eleva el cuerpo por separado y la plataforma elimina parte del problema de equilibrio."
                   ]
                 },
                 "display": {
@@ -319,6 +452,15 @@
                     "implement": "machine",
                     "laterality": "unilateral"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Máquina con una pierna: cada pantorrilla eleva el cuerpo por separado y la plataforma elimina parte del problema de equilibrio.",
+                    "Es una forma precisa de comparar fuerza y amplitud entre lados."
+                  ],
+                  "description": "Máquina con una pierna: cada pantorrilla eleva el cuerpo por separado y la plataforma elimina parte del problema de equilibrio. Es una forma precisa de comparar fuerza y amplitud entre lados.",
+                  "technique": "Máquina con una pierna: cada pantorrilla eleva el cuerpo por separado y la plataforma elimina parte del problema de equilibrio. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote.",
+                  "variantRationale": "Máquina con una pierna: cada pantorrilla eleva el cuerpo por separado y la plataforma elimina parte del problema de equilibrio. Es una forma precisa de comparar fuerza y amplitud entre lados."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -331,7 +473,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "calf_raise__unilateral__machine",
                   "definitionId": "calf_raise",
                   "familyId": "lower_plantar_flexion",
@@ -351,7 +493,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar calves en flexión plantar."
+                    "Desarrollar la pantorrilla mediante Elevación de Talones en la variante Máquina · Trabajo Unilateral.",
+                    "Priorizar mejorar la fuerza del tobillo y la transferencia hacia la pierna con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -376,7 +519,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva la flexión plantar y el objetivo calves."
+                    "Conserva movimiento del pie desde el tobillo y control del apoyo y el objetivo de la pantorrilla.",
+                    "La sustitución debe respetar las articulaciones relevantes: tobillo, articulación subastragalina, rodilla."
                   ],
                   "replacementGroup": "calf_raise_standing",
                   "replacementPriority": 1
@@ -391,13 +535,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+                "Preparación: Máquina con una pierna: cada pantorrilla eleva el cuerpo por separado y la plataforma elimina parte del problema de equilibrio."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "techniqueSummary": "Máquina con una pierna: cada pantorrilla eleva el cuerpo por separado y la plataforma elimina parte del problema de equilibrio. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote.",
+              "ttc": 1.5,
+              "variantRationale": "Máquina con una pierna: cada pantorrilla eleva el cuerpo por separado y la plataforma elimina parte del problema de equilibrio. Es una forma precisa de comparar fuerza y amplitud entre lados."
             },
             "selectedOptions": {
               "implement": "machine",
@@ -410,9 +556,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#calves_talones_de_pie",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "calf_raise__bilateral__barbell",
@@ -420,18 +566,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.4,
+              "benefits": [
+                "Barra en la espalda con ambas piernas: subes a la punta de los pies con la carga.",
+                "El tradicional de pantorrillas del gimnasio."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+                "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
               ],
-              "description": "Barra en la espalda con ambas piernas: subes a la punta de los pies con la carga. El clásico de pantorrillas del gimnasio.",
+              "description": "Barra en la espalda con ambas piernas: subes a la punta de los pies con la carga. El tradicional de pantorrillas del gimnasio.",
               "efc": 2.0,
               "equipmentId": "barbell",
               "executionCues": [
-                "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+                "Barra en la espalda con ambas piernas: subes a la punta de los pies con la carga. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Plantar O Dorsiflexión"
+                  ],
+                  "jointId": "tobillo",
+                  "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Ajuste Del Apoyo"
+                  ],
+                  "jointId": "subtalar",
+                  "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Transmisión"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -439,7 +616,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "calves",
-                  "note": "Principal: la pantorrilla realiza la flexión plantar y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."
+                  "note": "Principal: La pantorrilla produce o controla la flexión plantar para transferir fuerza al suelo. En la configuración Barra · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "calf_raise__bilateral__barbell",
@@ -452,7 +629,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "plantar_flexion"
+                    "Flexión Plantar O Dorsiflexión",
+                    "Ajuste Del Apoyo",
+                    "Transmisión"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Plantar O Dorsiflexión"
+                      ],
+                      "jointId": "tobillo",
+                      "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Ajuste Del Apoyo"
+                      ],
+                      "jointId": "subtalar",
+                      "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Transmisión"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -475,40 +680,41 @@
                   "movementPatternId": "plantar_flexion",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "tobillo",
+                    "subtalar",
+                    "rodilla"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-aquiles",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "guided"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+                    "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
                   ],
                   "cues": [
-                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                    "Barra en la espalda con ambas piernas: subes a la punta de los pies con la carga. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
                   ],
                   "execution": [
-                    "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+                    "Barra en la espalda con ambas piernas: subes a la punta de los pies con la carga. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar la fuerza del tobillo y la transferencia hacia la pierna siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar movimiento del pie desde el tobillo y control del apoyo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de tobillo según tolerancia y rango disponible.",
+                    "Movilidad de articulación subastragalina según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+                    "Preparación: Barra en la espalda con ambas piernas: subes a la punta de los pies con la carga."
                   ]
                 },
                 "display": {
@@ -518,6 +724,15 @@
                     "implement": "barbell",
                     "laterality": "bilateral"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Barra en la espalda con ambas piernas: subes a la punta de los pies con la carga.",
+                    "El tradicional de pantorrillas del gimnasio."
+                  ],
+                  "description": "Barra en la espalda con ambas piernas: subes a la punta de los pies con la carga. El tradicional de pantorrillas del gimnasio.",
+                  "technique": "Barra en la espalda con ambas piernas: subes a la punta de los pies con la carga. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote.",
+                  "variantRationale": "Barra en la espalda con ambas piernas: subes a la punta de los pies con la carga. El tradicional de pantorrillas del gimnasio."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -530,7 +745,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "calf_raise__bilateral__barbell",
                   "definitionId": "calf_raise",
                   "familyId": "lower_plantar_flexion",
@@ -550,7 +765,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar calves en flexión plantar."
+                    "Desarrollar la pantorrilla mediante Elevación de Talones en la variante Barra · Trabajo Bilateral.",
+                    "Priorizar mejorar la fuerza del tobillo y la transferencia hacia la pierna con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -575,7 +791,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva la flexión plantar y el objetivo calves."
+                    "Conserva movimiento del pie desde el tobillo y control del apoyo y el objetivo de la pantorrilla.",
+                    "La sustitución debe respetar las articulaciones relevantes: tobillo, articulación subastragalina, rodilla."
                   ],
                   "replacementGroup": "calf_raise_standing",
                   "replacementPriority": 1
@@ -590,13 +807,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+                "Preparación: Barra en la espalda con ambas piernas: subes a la punta de los pies con la carga."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "techniqueSummary": "Barra en la espalda con ambas piernas: subes a la punta de los pies con la carga. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote.",
+              "ttc": 1.5,
+              "variantRationale": "Barra en la espalda con ambas piernas: subes a la punta de los pies con la carga. El tradicional de pantorrillas del gimnasio."
             },
             "selectedOptions": {
               "implement": "barbell",
@@ -609,9 +828,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#calves_talones_de_pie",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "calf_raise__unilateral__barbell",
@@ -619,18 +838,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.4,
+              "benefits": [
+                "Barra en una pierna: la pantorrilla de un lado hace la mayor parte de la carga.",
+                "Avanzado y útil para acumular trabajo para igualar gemelos."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+                "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
               ],
-              "description": "Barra en una pierna: la pantorrilla de un lado hace todo el trabajo. Avanzado y muy efectivo para igualar gemelos.",
+              "description": "Barra en una pierna: la pantorrilla de un lado hace la mayor parte de la carga. Avanzado y útil para acumular trabajo para igualar gemelos.",
               "efc": 2.0,
               "equipmentId": "barbell",
               "executionCues": [
-                "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+                "Barra en una pierna: la pantorrilla de un lado hace la mayor parte de la carga. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Plantar O Dorsiflexión"
+                  ],
+                  "jointId": "tobillo",
+                  "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Ajuste Del Apoyo"
+                  ],
+                  "jointId": "subtalar",
+                  "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Transmisión"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
@@ -638,7 +888,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "calves",
-                  "note": "Principal: la pantorrilla realiza la flexión plantar y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."
+                  "note": "Principal: La pantorrilla produce o controla la flexión plantar para transferir fuerza al suelo. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "calf_raise__unilateral__barbell",
@@ -651,7 +901,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "plantar_flexion"
+                    "Flexión Plantar O Dorsiflexión",
+                    "Ajuste Del Apoyo",
+                    "Transmisión"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Plantar O Dorsiflexión"
+                      ],
+                      "jointId": "tobillo",
+                      "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Ajuste Del Apoyo"
+                      ],
+                      "jointId": "subtalar",
+                      "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Transmisión"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -674,40 +952,41 @@
                   "movementPatternId": "plantar_flexion",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "tobillo",
+                    "subtalar",
+                    "rodilla"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-aquiles",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "guided"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+                    "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
                   ],
                   "cues": [
-                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                    "Barra en una pierna: la pantorrilla de un lado hace la mayor parte de la carga. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
                   ],
                   "execution": [
-                    "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+                    "Barra en una pierna: la pantorrilla de un lado hace la mayor parte de la carga. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar la fuerza del tobillo y la transferencia hacia la pierna siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar movimiento del pie desde el tobillo y control del apoyo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de tobillo según tolerancia y rango disponible.",
+                    "Movilidad de articulación subastragalina según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+                    "Preparación: Barra en una pierna: la pantorrilla de un lado hace la mayor parte de la carga."
                   ]
                 },
                 "display": {
@@ -717,6 +996,15 @@
                     "implement": "barbell",
                     "laterality": "unilateral"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Barra en una pierna: la pantorrilla de un lado hace la mayor parte de la carga.",
+                    "Avanzado y útil para acumular trabajo para igualar gemelos."
+                  ],
+                  "description": "Barra en una pierna: la pantorrilla de un lado hace la mayor parte de la carga. Avanzado y útil para acumular trabajo para igualar gemelos.",
+                  "technique": "Barra en una pierna: la pantorrilla de un lado hace la mayor parte de la carga. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote.",
+                  "variantRationale": "Barra en una pierna: la pantorrilla de un lado hace la mayor parte de la carga. Avanzado y útil para acumular trabajo para igualar gemelos."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -729,7 +1017,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "calf_raise__unilateral__barbell",
                   "definitionId": "calf_raise",
                   "familyId": "lower_plantar_flexion",
@@ -749,7 +1037,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar calves en flexión plantar."
+                    "Desarrollar la pantorrilla mediante Elevación de Talones en la variante Barra · Trabajo Unilateral.",
+                    "Priorizar mejorar la fuerza del tobillo y la transferencia hacia la pierna con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -774,7 +1063,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva la flexión plantar y el objetivo calves."
+                    "Conserva movimiento del pie desde el tobillo y control del apoyo y el objetivo de la pantorrilla.",
+                    "La sustitución debe respetar las articulaciones relevantes: tobillo, articulación subastragalina, rodilla."
                   ],
                   "replacementGroup": "calf_raise_standing",
                   "replacementPriority": 1
@@ -789,13 +1079,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+                "Preparación: Barra en una pierna: la pantorrilla de un lado hace la mayor parte de la carga."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "techniqueSummary": "Barra en una pierna: la pantorrilla de un lado hace la mayor parte de la carga. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote.",
+              "ttc": 1.5,
+              "variantRationale": "Barra en una pierna: la pantorrilla de un lado hace la mayor parte de la carga. Avanzado y útil para acumular trabajo para igualar gemelos."
             },
             "selectedOptions": {
               "implement": "barbell",
@@ -808,9 +1100,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#calves_talones_de_pie",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "calf_raise__bilateral__smith_machine",
@@ -818,18 +1110,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.4,
+              "benefits": [
+                "Smith con ambas piernas: la barra guiada sobre los hombros y subes a la punta de los pies.",
+                "Cómoda y estable para cargar peso; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+                "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
               ],
-              "description": "Smith con ambas piernas: la barra guiada sobre los hombros y subes a la punta de los pies. Cómoda y segura para cargar peso.",
+              "description": "Smith con ambas piernas: la barra guiada sobre los hombros y subes a la punta de los pies. Cómoda y estable para cargar peso.",
               "efc": 2.0,
               "equipmentId": "smith_machine",
               "executionCues": [
-                "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+                "Smith con ambas piernas: la barra guiada sobre los hombros y subes a la punta de los pies. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Plantar O Dorsiflexión"
+                  ],
+                  "jointId": "tobillo",
+                  "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Ajuste Del Apoyo"
+                  ],
+                  "jointId": "subtalar",
+                  "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Transmisión"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -837,7 +1160,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "calves",
-                  "note": "Principal: la pantorrilla realiza la flexión plantar y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."
+                  "note": "Principal: La pantorrilla produce o controla la flexión plantar para transferir fuerza al suelo. En la configuración Máquina Smith · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "calf_raise__bilateral__smith_machine",
@@ -850,7 +1173,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "plantar_flexion"
+                    "Flexión Plantar O Dorsiflexión",
+                    "Ajuste Del Apoyo",
+                    "Transmisión"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Plantar O Dorsiflexión"
+                      ],
+                      "jointId": "tobillo",
+                      "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Ajuste Del Apoyo"
+                      ],
+                      "jointId": "subtalar",
+                      "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Transmisión"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -873,40 +1224,41 @@
                   "movementPatternId": "plantar_flexion",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "tobillo",
+                    "subtalar",
+                    "rodilla"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-aquiles",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+                    "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
                   ],
                   "cues": [
-                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                    "Smith con ambas piernas: la barra guiada sobre los hombros y subes a la punta de los pies. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
                   ],
                   "execution": [
-                    "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+                    "Smith con ambas piernas: la barra guiada sobre los hombros y subes a la punta de los pies. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar la fuerza del tobillo y la transferencia hacia la pierna siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar movimiento del pie desde el tobillo y control del apoyo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de tobillo según tolerancia y rango disponible.",
+                    "Movilidad de articulación subastragalina según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+                    "Preparación: Smith con ambas piernas: la barra guiada sobre los hombros y subes a la punta de los pies."
                   ]
                 },
                 "display": {
@@ -916,6 +1268,15 @@
                     "implement": "smith_machine",
                     "laterality": "bilateral"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Smith con ambas piernas: la barra guiada sobre los hombros y subes a la punta de los pies.",
+                    "Cómoda y estable para cargar peso; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Smith con ambas piernas: la barra guiada sobre los hombros y subes a la punta de los pies. Cómoda y estable para cargar peso.",
+                  "technique": "Smith con ambas piernas: la barra guiada sobre los hombros y subes a la punta de los pies. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote.",
+                  "variantRationale": "Smith con ambas piernas: la barra guiada sobre los hombros y subes a la punta de los pies. Cómoda y estable para cargar peso."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -928,7 +1289,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "calf_raise__bilateral__smith_machine",
                   "definitionId": "calf_raise",
                   "familyId": "lower_plantar_flexion",
@@ -948,7 +1309,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar calves en flexión plantar."
+                    "Desarrollar la pantorrilla mediante Elevación de Talones en la variante Máquina Smith · Trabajo Bilateral.",
+                    "Priorizar mejorar la fuerza del tobillo y la transferencia hacia la pierna con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -973,7 +1335,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva la flexión plantar y el objetivo calves."
+                    "Conserva movimiento del pie desde el tobillo y control del apoyo y el objetivo de la pantorrilla.",
+                    "La sustitución debe respetar las articulaciones relevantes: tobillo, articulación subastragalina, rodilla."
                   ],
                   "replacementGroup": "calf_raise_standing",
                   "replacementPriority": 1
@@ -988,13 +1351,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+                "Preparación: Smith con ambas piernas: la barra guiada sobre los hombros y subes a la punta de los pies."
               ],
               "setupTimeSeconds": 40,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "techniqueSummary": "Smith con ambas piernas: la barra guiada sobre los hombros y subes a la punta de los pies. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote.",
+              "ttc": 1.5,
+              "variantRationale": "Smith con ambas piernas: la barra guiada sobre los hombros y subes a la punta de los pies. Cómoda y estable para cargar peso."
             },
             "selectedOptions": {
               "implement": "smith_machine",
@@ -1007,9 +1372,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#calves_talones_de_pie",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "calf_raise__unilateral__smith_machine",
@@ -1017,18 +1382,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.4,
+              "benefits": [
+                "Smith con una pierna: un gemelo trabaja sin ayuda del otro lado con la barra estable.",
+                "Útil para pantorrillas parejas; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+                "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
               ],
-              "description": "Smith con una pierna: un gemelo trabaja solo con la barra estable. Perfecta para pantorrillas parejas.",
+              "description": "Smith con una pierna: un gemelo trabaja sin ayuda del otro lado con la barra estable. Útil para pantorrillas parejas.",
               "efc": 2.0,
               "equipmentId": "smith_machine",
               "executionCues": [
-                "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+                "Smith con una pierna: un gemelo trabaja sin ayuda del otro lado con la barra estable. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Plantar O Dorsiflexión"
+                  ],
+                  "jointId": "tobillo",
+                  "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Ajuste Del Apoyo"
+                  ],
+                  "jointId": "subtalar",
+                  "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Transmisión"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
@@ -1036,7 +1432,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "calves",
-                  "note": "Principal: la pantorrilla realiza la flexión plantar y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."
+                  "note": "Principal: La pantorrilla produce o controla la flexión plantar para transferir fuerza al suelo. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "calf_raise__unilateral__smith_machine",
@@ -1049,7 +1445,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "plantar_flexion"
+                    "Flexión Plantar O Dorsiflexión",
+                    "Ajuste Del Apoyo",
+                    "Transmisión"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Plantar O Dorsiflexión"
+                      ],
+                      "jointId": "tobillo",
+                      "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Ajuste Del Apoyo"
+                      ],
+                      "jointId": "subtalar",
+                      "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Transmisión"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -1072,40 +1496,41 @@
                   "movementPatternId": "plantar_flexion",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "tobillo",
+                    "subtalar",
+                    "rodilla"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-aquiles",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+                    "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
                   ],
                   "cues": [
-                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                    "Smith con una pierna: un gemelo trabaja sin ayuda del otro lado con la barra estable. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
                   ],
                   "execution": [
-                    "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+                    "Smith con una pierna: un gemelo trabaja sin ayuda del otro lado con la barra estable. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar la fuerza del tobillo y la transferencia hacia la pierna siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar movimiento del pie desde el tobillo y control del apoyo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de tobillo según tolerancia y rango disponible.",
+                    "Movilidad de articulación subastragalina según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+                    "Preparación: Smith con una pierna: un gemelo trabaja sin ayuda del otro lado con la barra estable."
                   ]
                 },
                 "display": {
@@ -1115,6 +1540,15 @@
                     "implement": "smith_machine",
                     "laterality": "unilateral"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Smith con una pierna: un gemelo trabaja sin ayuda del otro lado con la barra estable.",
+                    "Útil para pantorrillas parejas; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Smith con una pierna: un gemelo trabaja sin ayuda del otro lado con la barra estable. Útil para pantorrillas parejas.",
+                  "technique": "Smith con una pierna: un gemelo trabaja sin ayuda del otro lado con la barra estable. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote.",
+                  "variantRationale": "Smith con una pierna: un gemelo trabaja sin ayuda del otro lado con la barra estable. Útil para pantorrillas parejas."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1127,7 +1561,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "calf_raise__unilateral__smith_machine",
                   "definitionId": "calf_raise",
                   "familyId": "lower_plantar_flexion",
@@ -1147,7 +1581,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar calves en flexión plantar."
+                    "Desarrollar la pantorrilla mediante Elevación de Talones en la variante Máquina Smith · Trabajo Unilateral.",
+                    "Priorizar mejorar la fuerza del tobillo y la transferencia hacia la pierna con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1172,7 +1607,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva la flexión plantar y el objetivo calves."
+                    "Conserva movimiento del pie desde el tobillo y control del apoyo y el objetivo de la pantorrilla.",
+                    "La sustitución debe respetar las articulaciones relevantes: tobillo, articulación subastragalina, rodilla."
                   ],
                   "replacementGroup": "calf_raise_standing",
                   "replacementPriority": 1
@@ -1187,13 +1623,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+                "Preparación: Smith con una pierna: un gemelo trabaja sin ayuda del otro lado con la barra estable."
               ],
               "setupTimeSeconds": 40,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "techniqueSummary": "Smith con una pierna: un gemelo trabaja sin ayuda del otro lado con la barra estable. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote.",
+              "ttc": 1.5,
+              "variantRationale": "Smith con una pierna: un gemelo trabaja sin ayuda del otro lado con la barra estable. Útil para pantorrillas parejas."
             },
             "selectedOptions": {
               "implement": "smith_machine",
@@ -1206,9 +1644,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#calves_talones_de_pie",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "calf_raise__bilateral__cable",
@@ -1216,18 +1654,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.4,
+              "benefits": [
+                "Polea con ambas piernas: la tensión constante sube los talones con la pantorrilla cargada.",
+                "Variante precisa y suave con la espalda."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+                "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
               ],
-              "description": "Polea con ambas piernas: la tensión constante sube los talones con la pantorrilla cargada. Variante fina y suave con la espalda.",
+              "description": "Polea con ambas piernas: la tensión constante sube los talones con la pantorrilla cargada. Variante precisa y suave con la espalda.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
-                "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+                "Polea con ambas piernas: la tensión constante sube los talones con la pantorrilla cargada. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Plantar O Dorsiflexión"
+                  ],
+                  "jointId": "tobillo",
+                  "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Ajuste Del Apoyo"
+                  ],
+                  "jointId": "subtalar",
+                  "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Transmisión"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -1235,7 +1704,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "calves",
-                  "note": "Principal: la pantorrilla realiza la flexión plantar y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."
+                  "note": "Principal: La pantorrilla produce o controla la flexión plantar para transferir fuerza al suelo. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "calf_raise__bilateral__cable",
@@ -1248,7 +1717,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "plantar_flexion"
+                    "Flexión Plantar O Dorsiflexión",
+                    "Ajuste Del Apoyo",
+                    "Transmisión"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Plantar O Dorsiflexión"
+                      ],
+                      "jointId": "tobillo",
+                      "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Ajuste Del Apoyo"
+                      ],
+                      "jointId": "subtalar",
+                      "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Transmisión"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -1271,40 +1768,41 @@
                   "movementPatternId": "plantar_flexion",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "tobillo",
+                    "subtalar",
+                    "rodilla"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-aquiles",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "guided"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+                    "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
                   ],
                   "cues": [
-                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                    "Polea con ambas piernas: la tensión constante sube los talones con la pantorrilla cargada. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
                   ],
                   "execution": [
-                    "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+                    "Polea con ambas piernas: la tensión constante sube los talones con la pantorrilla cargada. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar la fuerza del tobillo y la transferencia hacia la pierna siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar movimiento del pie desde el tobillo y control del apoyo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de tobillo según tolerancia y rango disponible.",
+                    "Movilidad de articulación subastragalina según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+                    "Preparación: Polea con ambas piernas: la tensión constante sube los talones con la pantorrilla cargada."
                   ]
                 },
                 "display": {
@@ -1314,6 +1812,15 @@
                     "implement": "cable",
                     "laterality": "bilateral"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Polea con ambas piernas: la tensión constante sube los talones con la pantorrilla cargada.",
+                    "Variante precisa y suave con la espalda."
+                  ],
+                  "description": "Polea con ambas piernas: la tensión constante sube los talones con la pantorrilla cargada. Variante precisa y suave con la espalda.",
+                  "technique": "Polea con ambas piernas: la tensión constante sube los talones con la pantorrilla cargada. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote.",
+                  "variantRationale": "Polea con ambas piernas: la tensión constante sube los talones con la pantorrilla cargada. Variante precisa y suave con la espalda."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1326,7 +1833,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "calf_raise__bilateral__cable",
                   "definitionId": "calf_raise",
                   "familyId": "lower_plantar_flexion",
@@ -1346,7 +1853,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar calves en flexión plantar."
+                    "Desarrollar la pantorrilla mediante Elevación de Talones en la variante Polea · Trabajo Bilateral.",
+                    "Priorizar mejorar la fuerza del tobillo y la transferencia hacia la pierna con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1371,7 +1879,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva la flexión plantar y el objetivo calves."
+                    "Conserva movimiento del pie desde el tobillo y control del apoyo y el objetivo de la pantorrilla.",
+                    "La sustitución debe respetar las articulaciones relevantes: tobillo, articulación subastragalina, rodilla."
                   ],
                   "replacementGroup": "calf_raise_standing",
                   "replacementPriority": 1
@@ -1386,13 +1895,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+                "Preparación: Polea con ambas piernas: la tensión constante sube los talones con la pantorrilla cargada."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "techniqueSummary": "Polea con ambas piernas: la tensión constante sube los talones con la pantorrilla cargada. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote.",
+              "ttc": 1.5,
+              "variantRationale": "Polea con ambas piernas: la tensión constante sube los talones con la pantorrilla cargada. Variante precisa y suave con la espalda."
             },
             "selectedOptions": {
               "implement": "cable",
@@ -1405,9 +1916,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#calves_talones_de_pie",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "calf_raise__unilateral__cable",
@@ -1415,18 +1926,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.4,
+              "benefits": [
+                "Polea con una pierna: tensión continua en una pantorrilla a la vez.",
+                "Útil para un trabajo preciso y equilibrado."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+                "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
               ],
-              "description": "Polea con una pierna: tensión continua en una pantorrilla a la vez. Ideal para un trabajo fino y equilibrado.",
+              "description": "Polea con una pierna: tensión continua en una pantorrilla a la vez. Útil para un trabajo preciso y equilibrado.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
-                "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+                "Polea con una pierna: tensión continua en una pantorrilla a la vez. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Plantar O Dorsiflexión"
+                  ],
+                  "jointId": "tobillo",
+                  "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Ajuste Del Apoyo"
+                  ],
+                  "jointId": "subtalar",
+                  "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Transmisión"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
@@ -1434,7 +1976,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "calves",
-                  "note": "Principal: la pantorrilla realiza la flexión plantar y concentra el trabajo de la elevación; por eso suma la serie completa (1.0)."
+                  "note": "Principal: La pantorrilla produce o controla la flexión plantar para transferir fuerza al suelo. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "calf_raise__unilateral__cable",
@@ -1447,7 +1989,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "plantar_flexion"
+                    "Flexión Plantar O Dorsiflexión",
+                    "Ajuste Del Apoyo",
+                    "Transmisión"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Plantar O Dorsiflexión"
+                      ],
+                      "jointId": "tobillo",
+                      "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Ajuste Del Apoyo"
+                      ],
+                      "jointId": "subtalar",
+                      "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Transmisión"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -1470,40 +2040,41 @@
                   "movementPatternId": "plantar_flexion",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "tobillo",
+                    "subtalar",
+                    "rodilla"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-aquiles",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "guided"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Rebotar en la fase baja o acortar el rango para completar más repeticiones."
+                    "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
                   ],
                   "cues": [
-                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                    "Polea con una pierna: tensión continua en una pantorrilla a la vez. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
                   ],
                   "execution": [
-                    "Sube sobre las puntas de los pies con control y baja hasta estirar la pantorrilla."
+                    "Polea con una pierna: tensión continua en una pantorrilla a la vez. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar la fuerza del tobillo y la transferencia hacia la pierna siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar movimiento del pie desde el tobillo y control del apoyo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de tobillo según tolerancia y rango disponible.",
+                    "Movilidad de articulación subastragalina según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+                    "Preparación: Polea con una pierna: tensión continua en una pantorrilla a la vez."
                   ]
                 },
                 "display": {
@@ -1513,6 +2084,15 @@
                     "implement": "cable",
                     "laterality": "unilateral"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Polea con una pierna: tensión continua en una pantorrilla a la vez.",
+                    "Útil para un trabajo preciso y equilibrado."
+                  ],
+                  "description": "Polea con una pierna: tensión continua en una pantorrilla a la vez. Útil para un trabajo preciso y equilibrado.",
+                  "technique": "Polea con una pierna: tensión continua en una pantorrilla a la vez. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote.",
+                  "variantRationale": "Polea con una pierna: tensión continua en una pantorrilla a la vez. Útil para un trabajo preciso y equilibrado."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1525,7 +2105,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "calf_raise__unilateral__cable",
                   "definitionId": "calf_raise",
                   "familyId": "lower_plantar_flexion",
@@ -1545,7 +2125,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar calves en flexión plantar."
+                    "Desarrollar la pantorrilla mediante Elevación de Talones en la variante Polea · Trabajo Unilateral.",
+                    "Priorizar mejorar la fuerza del tobillo y la transferencia hacia la pierna con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1570,7 +2151,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva la flexión plantar y el objetivo calves."
+                    "Conserva movimiento del pie desde el tobillo y control del apoyo y el objetivo de la pantorrilla.",
+                    "La sustitución debe respetar las articulaciones relevantes: tobillo, articulación subastragalina, rodilla."
                   ],
                   "replacementGroup": "calf_raise_standing",
                   "replacementPriority": 1
@@ -1585,13 +2167,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Coloca los pies con las puntas en el borde del apoyo y el peso según la estación."
+                "Preparación: Polea con una pierna: tensión continua en una pantorrilla a la vez."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "techniqueSummary": "Polea con una pierna: tensión continua en una pantorrilla a la vez. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote.",
+              "ttc": 1.5,
+              "variantRationale": "Polea con una pierna: tensión continua en una pantorrilla a la vez. Útil para un trabajo preciso y equilibrado."
             },
             "selectedOptions": {
               "implement": "cable",
@@ -1600,13 +2184,13 @@
           }
         ],
         "defaultConfigurationId": "calf_raise__bilateral__machine",
-        "description": "Elevación de talones: subes a la punta de los pies y bajas con control, con la pantorrilla haciendo todo el trabajo. El ejercicio pequeño que construye pantorrillas grandes.",
+        "description": "Subes a la punta de los pies y bajas con control, con la pantorrilla haciendo la mayor parte de la carga. El ejercicio pequeño que construye pantorrillas grandes.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:calf_raise"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_plantar_flexion",
@@ -1628,9 +2212,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:lower_plantar_flexion"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_plantar_flexion",
@@ -1640,6 +2224,6 @@
       "calf_raise"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

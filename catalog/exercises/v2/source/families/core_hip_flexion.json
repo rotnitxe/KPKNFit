@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Core · abdominals · hip flexion",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#core_elevacion_piernas",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "core_elevacion_piernas__default",
@@ -22,18 +22,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Colgado de la barra, subes las piernas rectas o dobladas hasta la cintura.",
+                "El abdomen trabaja sin apoyos externos porque no puede hacer compensación con el impulso."
+              ],
               "bodyRegion": "CORE",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón flexión pelvis / cadera para completar la repetición."
+                "Inclinar el tronco, redondear la espalda o levantar la pierna con impulso."
               ],
-              "description": "Colgado de la barra, subes las piernas rectas o dobladas hasta la cintura. El abdomen trabaja de verdad porque no puede hacer trampa con el impulso.",
+              "description": "Colgado de la barra, subes las piernas rectas o dobladas hasta la cintura. El abdomen trabaja sin apoyos externos porque no puede hacer compensación con el impulso.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Ejecuta «Elevación Piernas» siguiendo el patrón flexión pelvis / cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Colgado de la barra, subes las piernas rectas o dobladas hasta la cintura. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera acerca el muslo al tronco y recibe la mayor parte de la resistencia. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar conserva la pelvis organizada para que el flexor no tire del tronco. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Posición Del Miembro"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla acompaña el ángulo de la pierna sin robar el movimiento a la cadera. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
@@ -41,11 +72,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "abdominals",
-                  "note": "Principal: el abdomen flexiona o fija el tronco y concentra la fuerza del movimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El recto abdominal acerca costillas y pelvis o resiste la extensión del tronco. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "hip_flexors",
-                  "note": "Secundario: los flexores de cadera asisten la elevación y el control de la pierna; por eso suman 0.5."
+                  "note": "Secundaria: Los flexores de cadera acerca el muslo al tronco y ayuda a orientar la pelvis. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "core_elevacion_piernas__bodyweight__elevacion_piernas",
@@ -58,7 +89,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_flexion"
+                    "Flexión",
+                    "Estabilidad Lumbopélvica",
+                    "Posición Del Miembro"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera acerca el muslo al tronco y recibe la mayor parte de la resistencia. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Lumbopélvica"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar conserva la pelvis organizada para que el flexor no tire del tronco. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Posición Del Miembro"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla acompaña el ángulo de la pierna sin robar el movimiento a la cadera. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -83,44 +142,56 @@
                   "movementPatternId": "hip_flexion",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "spine",
-                    "hip"
+                    "cadera",
+                    "columna-lumbar",
+                    "rodilla"
                   ],
                   "relevantTendons": [
-                    "spine_tendon",
-                    "hip_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón flexión pelvis / cadera para completar la repetición."
+                    "Inclinar el tronco, redondear la espalda o levantar la pierna con impulso."
                   ],
                   "cues": [
-                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                    "Colgado de la barra, subes las piernas rectas o dobladas hasta la cintura. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Ejecuta «Elevación Piernas» siguiendo el patrón flexión pelvis / cadera con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Colgado de la barra, subes las piernas rectas o dobladas hasta la cintura. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando trabajar la flexión de cadera con una resistencia sencilla de dosificar siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar flexión de cadera y estabilidad de la pelvis como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de spine según tolerancia y rango disponible.",
-                    "Movilidad de hip según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de columna lumbar según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura peso corporal y adopta la posición específica de «Elevación Piernas» antes de iniciar; conserva una base estable."
+                    "Preparación: Colgado de la barra, subes las piernas rectas o dobladas hasta la cintura."
                   ]
                 },
                 "display": {
                   "displayName": "Elevación de Piernas Colgado",
                   "displaySummary": "Peso Corporal",
                   "selectedOptions": {}
+                },
+                "editorial": {
+                  "benefits": [
+                    "Colgado de la barra, subes las piernas rectas o dobladas hasta la cintura.",
+                    "El abdomen trabaja sin apoyos externos porque no puede hacer compensación con el impulso."
+                  ],
+                  "description": "Colgado de la barra, subes las piernas rectas o dobladas hasta la cintura. El abdomen trabaja sin apoyos externos porque no puede hacer compensación con el impulso.",
+                  "technique": "Colgado de la barra, subes las piernas rectas o dobladas hasta la cintura. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Colgado de la barra, subes las piernas rectas o dobladas hasta la cintura. El abdomen trabaja sin apoyos externos porque no puede hacer compensación con el impulso."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -133,7 +204,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevación de Piernas Colgado",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "core_elevacion_piernas__default",
                   "definitionId": "core_elevacion_piernas",
                   "familyId": "core_hip_flexion",
@@ -152,8 +223,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar abdominals dentro del patrón hip_flexion.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el recto abdominal mediante Elevación de Piernas Colgado en la variante Peso Corporal.",
+                    "Priorizar trabajar la flexión de cadera con una resistencia sencilla de dosificar con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -175,7 +246,8 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón hip_flexion y el objetivo abdominals."
+                    "Conserva flexión de cadera y estabilidad de la pelvis y el objetivo de el recto abdominal.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, columna lumbar, rodilla."
                   ],
                   "replacementGroup": "core_leg_raise_hanging",
                   "replacementPriority": 2
@@ -192,25 +264,27 @@
                 "hip_flexors"
               ],
               "setupCues": [
-                "Configura peso corporal y adopta la posición específica de «Elevación Piernas» antes de iniciar; conserva una base estable."
+                "Preparación: Colgado de la barra, subes las piernas rectas o dobladas hasta la cintura."
               ],
               "setupTimeSeconds": 10,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "techniqueSummary": "Colgado de la barra, subes las piernas rectas o dobladas hasta la cintura. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 1.5,
+              "variantRationale": "Colgado de la barra, subes las piernas rectas o dobladas hasta la cintura. El abdomen trabaja sin apoyos externos porque no puede hacer compensación con el impulso."
             },
             "selectedOptions": {}
           }
         ],
         "defaultConfigurationId": "core_elevacion_piernas__default",
-        "description": "Elevación de piernas colgado de la barra: subes las piernas mientras el abdomen trabaja para mantenerte quieto. La versión más honesta y difícil del trabajo abdominal.",
+        "description": "Subes las piernas mientras el abdomen trabaja para mantenerte quieto. La versión exigente del trabajo abdominal, con pocas oportunidades de compensación.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:core_elevacion_piernas"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "core_hip_flexion",
@@ -228,9 +302,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:core_hip_flexion"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "core_hip_flexion",
@@ -239,6 +313,6 @@
       "hip_flexion"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

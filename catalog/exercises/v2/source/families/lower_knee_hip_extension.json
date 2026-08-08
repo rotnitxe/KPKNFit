@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Glute-Ham Raise",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_glute_ham_raise",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "glute_ham_raise__default",
@@ -22,18 +22,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Espinillas apoyadas y cuerpo bajando extendido: isquios y glúteo frenan y suben el peso.",
+                "El ejercicio de los personas con experiencia, exigente y exigente."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Caer de golpe en la fase excéntrica o extender la cadera antes de tiempo."
+                "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
               ],
-              "description": "Espinillas apoyadas y cuerpo bajando extendido: isquios y glúteo frenan y suben el peso. El ejercicio de los atletas serios, brutal y adictivo.",
+              "description": "Espinillas apoyadas y cuerpo bajando extendido: isquios y glúteo frenan y suben el peso. El ejercicio de los personas con experiencia, exigente y exigente.",
               "efc": 2.8,
               "equipmentId": "ghd",
               "executionCues": [
-                "Baja extendiendo el cuerpo con control y vuelve arriba contrayendo isquios y glúteo."
+                "Espinillas apoyadas y cuerpo bajando extendido: isquios y glúteo frenan y suben el peso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Y Extensión"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Principal: La rodilla produce la mayor parte de la subida y recibe el carga dominante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión Y Extensión"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Secundaria: La cadera acompaña la profundidad y ayuda a salir sin que la rodilla pierda su línea. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Dorsiflexión Y Control"
+                  ],
+                  "jointId": "tobillo",
+                  "note": "Estabilizadora: El tobillo permite que la tibia avance y mantiene el pie conectado al suelo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Del Tronco"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la flexión para que la carga no colapse el torso. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
@@ -41,15 +80,15 @@
               "muscleNotes": [
                 {
                   "muscleId": "hamstrings",
-                  "note": "Principal: los isquiosurales controlan la extensión de rodilla de forma excéntrica y concentran el trabajo; por eso suman la serie completa (1.0)."
+                  "note": "Principal: Los isquiosurales extiende la cadera y frena el descenso cuando la cadera se flexiona. En la configuración GHD, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "gluteus_maximus",
-                  "note": "Secundario: el glúteo mayor extiende la cadera al llegar arriba del banco GHD; por eso suma 0.5."
+                  "note": "Secundaria: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. En la configuración GHD, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "erector_spinae",
-                  "note": "Estabilizador: los erectores mantienen la columna neutra durante la extensión del tronco; por eso suman 0.4."
+                  "note": "Estabilizadora: Los erectores espinales sostiene la columna frente a la flexión y transmite fuerza entre pelvis y tronco. En la configuración GHD, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "glute_ham_raise",
@@ -62,7 +101,43 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "knee_hip_extension"
+                    "Flexión Y Extensión",
+                    "Dorsiflexión Y Control",
+                    "Estabilidad Del Tronco"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Y Extensión"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Principal: La rodilla produce la mayor parte de la subida y recibe el carga dominante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión Y Extensión"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Secundaria: La cadera acompaña la profundidad y ayuda a salir sin que la rodilla pierda su línea. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Dorsiflexión Y Control"
+                      ],
+                      "jointId": "tobillo",
+                      "note": "Estabilizadora: El tobillo permite que la tibia avance y mantiene el pie conectado al suelo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Del Tronco"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la flexión para que la carga no colapse el torso. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -89,46 +164,58 @@
                   "movementPatternId": "knee_hip_extension",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "rodilla",
+                    "cadera",
+                    "tobillo",
+                    "columna-lumbar"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales",
+                    "tendon-iliopsoas",
+                    "tendon-aquiles"
                   ],
                   "resistanceProfile": "body_angle",
                   "stability": "guided"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Caer de golpe en la fase excéntrica o extender la cadera antes de tiempo."
+                    "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
                   ],
                   "cues": [
-                    "Mantén el equipo ghd alineado con el patrón y controla la fase excéntrica."
+                    "Espinillas apoyadas y cuerpo bajando extendido: isquios y glúteo frenan y suben el peso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Baja extendiendo el cuerpo con control y vuelve arriba contrayendo isquios y glúteo."
+                    "Espinillas apoyadas y cuerpo bajando extendido: isquios y glúteo frenan y suben el peso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando acumular trabajo de cuádriceps graduando profundidad, apoyo y carga siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar flexión y extensión de la rodilla con ayuda de cadera y tobillo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de rodilla según tolerancia y rango disponible.",
+                    "Movilidad de cadera según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Ajusta el banco GHD con las rodillas al borde y los pies fijados."
+                    "Preparación: Espinillas apoyadas y cuerpo bajando extendido: isquios y glúteo frenan y suben el peso."
                   ]
                 },
                 "display": {
                   "displayName": "Glute Ham Raise",
                   "displaySummary": "ghd",
                   "selectedOptions": {}
+                },
+                "editorial": {
+                  "benefits": [
+                    "Espinillas apoyadas y cuerpo bajando extendido: isquios y glúteo frenan y suben el peso.",
+                    "El ejercicio de los personas con experiencia, exigente y exigente."
+                  ],
+                  "description": "Espinillas apoyadas y cuerpo bajando extendido: isquios y glúteo frenan y suben el peso. El ejercicio de los personas con experiencia, exigente y exigente.",
+                  "technique": "Espinillas apoyadas y cuerpo bajando extendido: isquios y glúteo frenan y suben el peso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Espinillas apoyadas y cuerpo bajando extendido: isquios y glúteo frenan y suben el peso. El ejercicio de los personas con experiencia, exigente y exigente."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -141,7 +228,7 @@
                 },
                 "identity": {
                   "canonicalName": "Glute Ham Raise",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "glute_ham_raise__default",
                   "definitionId": "glute_ham_raise",
                   "familyId": "lower_knee_hip_extension",
@@ -160,7 +247,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar hamstrings con el Glute Ham Raise en banco GHD."
+                    "Desarrollar los isquiosurales mediante Glute Ham Raise en la variante GHD.",
+                    "Priorizar acumular trabajo de cuádriceps graduando profundidad, apoyo y carga con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -182,7 +270,8 @@
                     "ghd"
                   ],
                   "preservesIntent": [
-                    "Conserva la extensión de rodilla excéntrica y el objetivo hamstrings."
+                    "Conserva flexión y extensión de la rodilla con ayuda de cadera y tobillo y el objetivo de los isquiosurales.",
+                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -201,7 +290,7 @@
                 "gluteus_maximus"
               ],
               "setupCues": [
-                "Ajusta el banco GHD con las rodillas al borde y los pies fijados."
+                "Preparación: Espinillas apoyadas y cuerpo bajando extendido: isquios y glúteo frenan y suben el peso."
               ],
               "setupTimeSeconds": 55,
               "ssc": 0.5,
@@ -209,19 +298,21 @@
                 "erector_spinae"
               ],
               "technicalDifficulty": 5.2,
-              "ttc": 2.0
+              "techniqueSummary": "Espinillas apoyadas y cuerpo bajando extendido: isquios y glúteo frenan y suben el peso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 2.0,
+              "variantRationale": "Espinillas apoyadas y cuerpo bajando extendido: isquios y glúteo frenan y suben el peso. El ejercicio de los personas con experiencia, exigente y exigente."
             },
             "selectedOptions": {}
           }
         ],
         "defaultConfigurationId": "glute_ham_raise__default",
-        "description": "Glute ham raise: la espinilla apoyada en la máquina, bajas el cuerpo extendido y subes con isquios y glúteos. El ejercicio de los atletas serios, exigente de principio a fin.",
+        "description": "La espinilla apoyada en la máquina, bajas el cuerpo extendido y subes con isquios y glúteos. El ejercicio de los personas con experiencia, exigente durante todo el recorrido.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:glute_ham_raise"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_knee_hip_extension",
@@ -239,9 +330,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:lower_knee_hip_extension"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_knee_hip_extension",
@@ -251,6 +342,6 @@
       "glute_ham_raise"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

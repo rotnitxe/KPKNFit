@@ -7,15 +7,21 @@ improvisar.
 
 ## Flujo de trabajo
 
-1. `python scripts/split_catalog_v2_source.py` — regenera `source/families/*.json`
-   (superficie de revisión determinista; elimina residuales).
-2. Editar SOLO los archivos de `source/families/`.
+1. Editar `curation/editorial_briefs.json` para cualquier cambio de copy. Debe
+   existir un brief por definición y por configuración; no se acepta fallback
+   por patrón, implemento o nombre.
+2. `python scripts/curaduria_v6_catalogo_editorial.py` — aplica los briefs a
+   `source/families/*.json` sin recalcular músculos ni articulaciones.
 3. `python scripts/merge_catalog_v2_families.py` — reconstruye
    `source/catalog_v2.json` (fuente canónica única) con serialización idéntica.
 4. `python scripts/compile_exercise_catalog_v2.py --check` — validación estructural.
 5. `python scripts/catalog_v2_gate.py --strict` — gate editorial.
 6. Tras aprobación: `python scripts/compile_exercise_catalog_v2.py --write` para
-   regenerar el asset Android.
+   regenerar el asset Android y copiarlo idéntico al runtime iOS.
+
+Para cambios estructurales, `python scripts/split_catalog_v2_source.py` sigue
+siendo la superficie de revisión de `source/families/`; no se debe usar para
+reemplazar los briefs editoriales.
 
 Nunca editar `source/catalog_v2.json` a mano: el merge lo reconstruye.
 
@@ -108,8 +114,11 @@ sliders/balón, Curl Nórdico, zerchers, planchas, Dragon Flag, Frog Pumps.
 
 - Experto, breve, conciso, amigable; ni técnico en exceso ni coloquial.
 - Padre: 2-4 frases (qué es, qué entrena, cuándo elegirlo).
-- Cada configuración: misma base + matiz del chip (qué cambia y para quién).
-- Todas distintas entre sí (el gate lo exige).
+- Cada configuración tiene un microbrief propio: no se construye cambiando
+  solamente el nombre del implemento.
+- La primera frase de cada descripción debe distinguir el ejercicio o la
+  configuración; el gate bloquea aperturas repetidas.
+- Todas distintas entre sí y sincronizadas con `editorial_briefs.json`.
 - ≥40 chars.
 - Sin verbos instruccionales: ejecuta, mantén, configuras, adopta, controla,
   asegura, evita, sigue, selecciona (las pautas van en setupCues/executionCues).
@@ -117,7 +126,55 @@ sliders/balón, Curl Nórdico, zerchers, planchas, Dragon Flag, Frog Pumps.
 - Sin sufijos técnicos ("La variante se define por: ...").
 - Sin dobles nombres.
 
-## L1-L8 — Reglas extraídas de la curaduría v3
+## R9 — Involucramiento articular (única verdad)
+
+- Cada configuración declara `jointInvolvement` con una entrada por
+  articulación realmente implicada: `jointId`, `role`, `actions` y `note`.
+- `jointId` usa la ontología canónica de WikiLab; no se crean nombres visibles
+  alternativos ni se mezclan articulaciones con músculos o tendones.
+- Los roles son `PRIMARY`, `SECONDARY` y `STABILIZER`. Principal = articulación
+  que produce la acción dominante; secundaria = acompaña y comparte la
+  transferencia de fuerza; estabilizadora = conserva la posición o transmite
+  la carga sin ser el motor principal.
+- Cada nota tiene ≥40 caracteres y explica qué movimiento, transmisión o
+  estabilidad aporta ESA articulación en ESA configuración, incluyendo el
+  efecto de agarre, implemento, apoyo, lateralidad o altura de polea cuando
+  corresponda.
+- `richMetadata.anatomy.jointInvolvement` y
+  `richMetadata.biomechanics.relevantJoints` deben replicar exactamente la
+  ficha de perfil. No se aceptan articulaciones huérfanas, duplicadas o
+  genéricas.
+
+## R10 — Ficha editorial de cada configuración
+
+- `benefits` contiene ≥2 beneficios concretos; `techniqueSummary` resume la
+  técnica de esa opción y `variantRationale` explica cuándo la elección cambia
+  la demanda o el beneficio.
+- Los cuatro campos visibles se escriben en el brief de la configuración y se
+  copian sin transformación genérica al perfil y a `richMetadata.editorial`.
+- La descripción visible, los beneficios, la técnica, `muscleNotes` y
+  `jointInvolvement` deben describir la misma configuración exacta. Cambiar
+  solo el nombre del implemento no constituye curaduría.
+
+## R11 — Lectura y presentación para la persona que entrena
+
+- El nombre canónico aparece una sola vez en la tarjeta: en el título. Ninguna
+  descripción de definición o configuración lo repite, aunque coincida con el
+  nombre de un implemento o de un músculo.
+- La primera capa usa frases claras, directas y específicas para el ejercicio;
+  la anatomía profunda puede conservar precisión, pero no debe depender de
+  palabras como torque, vector, palanca o centro de masa para explicar el
+  beneficio.
+- Cada párrafo y cada viñeta comienza con mayúscula. Los nombres compactos de
+  implementos, agarres, acciones y secciones usan una capitalización uniforme.
+- En la tarjeta expandida, las opciones de implemento, estación, agarre,
+  amplitud y lateralidad aparecen primero y permanecen visibles. Después se
+  muestran, cerradas por defecto, las secciones plegables Descripción,
+  Técnica, Involucramiento Muscular e Involucramiento Articular.
+- El orden editorial es estable: opciones → descripción → técnica → músculos
+  → articulaciones. Abrir una sección no abre las demás.
+
+## L1-L12 — Reglas extraídas de la curaduría v3 y v5
 
 Reglas derivadas de las decisiones del dueño del producto durante la revisión
 v3. Son vinculantes para la siguiente pasada editorial.
@@ -170,6 +227,10 @@ v3. Son vinculantes para la siguiente pasada editorial.
     del catálogo: remos con agarre amplio → trapecio y espalda alta; agarre
     cerrado → dorsal y bíceps; dominada supina → bíceps protagonista;
     pronada/neutra → bíceps solo estabilizador.
+12. **L12 — La ficha articular cambia con la variante**: el implemento, el
+    agarre, la altura de polea, la lateralidad o el apoyo deben modificar la
+    explicación articular cuando cambian la trayectoria, la estabilidad o la
+    transferencia de fuerza; no se copia una lista articular indiferenciada.
 
 ## Ontología de músculos (21 IDs)
 

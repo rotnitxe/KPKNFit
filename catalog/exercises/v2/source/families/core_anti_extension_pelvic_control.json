@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Core · abdominals · anti extension pelvic control",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#core_dragon_flag_banco_plano",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "core_dragon_flag_banco_plano__default",
@@ -22,18 +22,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro.",
+                "La dificultad está en impedir que la pelvis se descuelgue durante el descenso."
+              ],
               "bodyRegion": "CORE",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón anti-extensión / control pelvis para completar la repetición."
+                "Arquear la espalda, girar con la carga o perder la tensión al final."
               ],
-              "description": "Versión completa del dragon flag: desde acostado subes el cuerpo entero sin doblar las rodillas y desciendes con freno. La joya de la corona del trabajo abdominal.",
+              "description": "Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro. La dificultad está en impedir que la pelvis se descuelgue durante el descenso.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Ejecuta «Dragon Flag en Banco Plano» siguiendo el patrón anti-extensión / control pelvis con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Anti-Extensión O Anti-Rotación"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Principal: La columna lumbar resiste el movimiento que la carga intenta imponer. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Control De Pelvis"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis conecta las fuerzas del suelo y del tronco sin perder orientación. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Posición Torácica"
+                  ],
+                  "jointId": "columna-toracica",
+                  "note": "Estabilizadora: La columna torácica aporta una base rígida para la acción del core. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
@@ -41,11 +72,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "abdominals",
-                  "note": "Principal: el abdomen flexiona o fija el tronco y concentra la fuerza del movimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El recto abdominal acerca costillas y pelvis o resiste la extensión del tronco. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Secundario: el core asiste la transmisión de fuerza entre el tronco y las extremidades; por eso suma 0.5."
+                  "note": "Secundaria: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "core_dragon_flag_banco_plano__bodyweight__dragon_flag_en_banco_plano",
@@ -58,7 +89,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "anti_extension_pelvic_control"
+                    "Anti-Extensión O Anti-Rotación",
+                    "Control De Pelvis",
+                    "Posición Torácica"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Anti-Extensión O Anti-Rotación"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Principal: La columna lumbar resiste el movimiento que la carga intenta imponer. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Control De Pelvis"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis conecta las fuerzas del suelo y del tronco sin perder orientación. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Posición Torácica"
+                      ],
+                      "jointId": "columna-toracica",
+                      "note": "Estabilizadora: La columna torácica aporta una base rígida para la acción del core. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -83,44 +142,51 @@
                   "movementPatternId": "anti_extension_pelvic_control",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "spine",
-                    "hip"
+                    "columna-lumbar",
+                    "sacroiliaca",
+                    "columna-toracica"
                   ],
-                  "relevantTendons": [
-                    "spine_tendon",
-                    "hip_tendon"
-                  ],
+                  "relevantTendons": [],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón anti-extensión / control pelvis para completar la repetición."
+                    "Arquear la espalda, girar con la carga o perder la tensión al final."
                   ],
                   "cues": [
-                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                    "Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Ejecuta «Dragon Flag en Banco Plano» siguiendo el patrón anti-extensión / control pelvis con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar la capacidad del core para transferir fuerza sin movimientos innecesarios siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar resistencia del tronco frente a extensión, giro o inclinación como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de spine según tolerancia y rango disponible.",
-                    "Movilidad de hip según tolerancia y rango disponible."
+                    "Movilidad de columna lumbar según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura peso corporal y adopta la posición específica de «Dragon Flag en Banco Plano» antes de iniciar; conserva una base estable."
+                    "Preparación: Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro."
                   ]
                 },
                 "display": {
                   "displayName": "Dragon Flag",
                   "displaySummary": "Peso Corporal",
                   "selectedOptions": {}
+                },
+                "editorial": {
+                  "benefits": [
+                    "Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro.",
+                    "La dificultad está en impedir que la pelvis se descuelgue durante el descenso."
+                  ],
+                  "description": "Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro. La dificultad está en impedir que la pelvis se descuelgue durante el descenso.",
+                  "technique": "Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro. La dificultad está en impedir que la pelvis se descuelgue durante el descenso."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -133,7 +199,7 @@
                 },
                 "identity": {
                   "canonicalName": "Dragon Flag",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "core_dragon_flag_banco_plano__default",
                   "definitionId": "core_dragon_flag_banco_plano",
                   "familyId": "core_anti_extension_pelvic_control",
@@ -151,8 +217,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar abdominals dentro del patrón anti_extension_pelvic_control.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el recto abdominal mediante Dragon Flag en la variante Peso Corporal.",
+                    "Priorizar mejorar la capacidad del core para transferir fuerza sin movimientos innecesarios con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -174,7 +240,8 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón anti_extension_pelvic_control y el objetivo abdominals."
+                    "Conserva resistencia del tronco frente a extensión, giro o inclinación y el objetivo de el recto abdominal.",
+                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar, articulación sacroilíaca, columna torácica."
                   ],
                   "replacementGroup": "core_niche",
                   "replacementPriority": 999
@@ -191,25 +258,27 @@
                 "core"
               ],
               "setupCues": [
-                "Configura peso corporal y adopta la posición específica de «Dragon Flag en Banco Plano» antes de iniciar; conserva una base estable."
+                "Preparación: Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro."
               ],
               "setupTimeSeconds": 10,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.5,
-              "ttc": 1.5
+              "techniqueSummary": "Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 1.5,
+              "variantRationale": "Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro. La dificultad está en impedir que la pelvis se descuelgue durante el descenso."
             },
             "selectedOptions": {}
           }
         ],
         "defaultConfigurationId": "core_dragon_flag_banco_plano__default",
-        "description": "El ejercicio de las películas de artes marciales: boca arriba en el banco, subes el cuerpo entero hasta casi la vertical y desciendes con todo controlado. Fuerza de core extrema y mucha adrenalina.",
+        "description": "El ejercicio con una exigencia alta de control del tronco: boca arriba en el banco, subes el cuerpo entero hasta casi la vertical y desciendes con todo controlado. Fuerza de core extrema y mucha demanda.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:core_dragon_flag_banco_plano"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "core_anti_extension_pelvic_control",
@@ -226,9 +295,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:core_anti_extension_pelvic_control"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "core_anti_extension_pelvic_control",
@@ -237,6 +306,6 @@
       "anti_extension_pelvic_control"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

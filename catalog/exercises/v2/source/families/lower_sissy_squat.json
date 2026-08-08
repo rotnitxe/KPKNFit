@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Sentadilla Sissy",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_sissy",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "sissy_squat__barbell",
@@ -22,18 +22,57 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
+              "benefits": [
+                "Barra en el pecho o la espalda con rodillas al frente: el cuádriceps concentrado con carga.",
+                "La versión pesada del sissy, exigente de verdad."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Flexionar la cadera en lugar de dejar el trabajo en la rodilla."
+                "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
               ],
-              "description": "Barra en el pecho o la espalda con rodillas al frente: el cuádriceps aislado con carga. La versión pesada del sissy, exigente de verdad.",
+              "description": "Barra en el pecho o la espalda con rodillas al frente: el cuádriceps concentrado con carga. La versión pesada del sissy, exigente de verdad.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Inclina el tronco hacia atrás flexionando las rodillas y vuelve a extender."
+                "Barra en el pecho o la espalda con rodillas al frente: el cuádriceps concentrado con carga. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Y Extensión"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Principal: La rodilla produce la mayor parte de la subida y recibe el carga dominante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión Y Extensión"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Secundaria: La cadera acompaña la profundidad y ayuda a salir sin que la rodilla pierda su línea. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Dorsiflexión Y Control"
+                  ],
+                  "jointId": "tobillo",
+                  "note": "Estabilizadora: El tobillo permite que la tibia avance y mantiene el pie conectado al suelo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Del Tronco"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la flexión para que la carga no colapse el torso. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -41,7 +80,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "quadriceps",
-                  "note": "Principal: el cuádriceps extiende la rodilla y concentra el trabajo de la sentadilla sissy; por eso suma la serie completa (1.0)."
+                  "note": "Principal: Los cuádriceps extiende la rodilla y absorbe la carga al descender. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "sissy_squat__barbell",
@@ -54,7 +93,43 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "knee_dominant_lengthened"
+                    "Flexión Y Extensión",
+                    "Dorsiflexión Y Control",
+                    "Estabilidad Del Tronco"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Y Extensión"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Principal: La rodilla produce la mayor parte de la subida y recibe el carga dominante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión Y Extensión"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Secundaria: La cadera acompaña la profundidad y ayuda a salir sin que la rodilla pierda su línea. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Dorsiflexión Y Control"
+                      ],
+                      "jointId": "tobillo",
+                      "note": "Estabilizadora: El tobillo permite que la tibia avance y mantiene el pie conectado al suelo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Del Tronco"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la flexión para que la carga no colapse el torso. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -77,40 +152,43 @@
                   "movementPatternId": "knee_dominant_lengthened",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "rodilla",
+                    "cadera",
+                    "tobillo",
+                    "columna-lumbar"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales",
+                    "tendon-iliopsoas",
+                    "tendon-aquiles"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Flexionar la cadera en lugar de dejar el trabajo en la rodilla."
+                    "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
                   ],
                   "cues": [
-                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                    "Barra en el pecho o la espalda con rodillas al frente: el cuádriceps concentrado con carga. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Inclina el tronco hacia atrás flexionando las rodillas y vuelve a extender."
+                    "Barra en el pecho o la espalda con rodillas al frente: el cuádriceps concentrado con carga. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando acumular trabajo de cuádriceps graduando profundidad, apoyo y carga siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar flexión y extensión de la rodilla con ayuda de cadera y tobillo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de rodilla según tolerancia y rango disponible.",
+                    "Movilidad de cadera según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Asegura los pies bajo el soporte y prepara la carga según la estación elegida."
+                    "Preparación: Barra en el pecho o la espalda con rodillas al frente: el cuádriceps concentrado con carga."
                   ]
                 },
                 "display": {
@@ -119,6 +197,15 @@
                   "selectedOptions": {
                     "implement": "barbell"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Barra en el pecho o la espalda con rodillas al frente: el cuádriceps concentrado con carga.",
+                    "La versión pesada del sissy, exigente de verdad."
+                  ],
+                  "description": "Barra en el pecho o la espalda con rodillas al frente: el cuádriceps concentrado con carga. La versión pesada del sissy, exigente de verdad.",
+                  "technique": "Barra en el pecho o la espalda con rodillas al frente: el cuádriceps concentrado con carga. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Barra en el pecho o la espalda con rodillas al frente: el cuádriceps concentrado con carga. La versión pesada del sissy, exigente de verdad."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -131,7 +218,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Sissy",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "sissy_squat__barbell",
                   "definitionId": "sissy_squat",
                   "familyId": "lower_sissy_squat",
@@ -150,7 +237,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar quadriceps con la sentadilla sissy."
+                    "Desarrollar los cuádriceps mediante Sentadilla Sissy en la variante Barra.",
+                    "Priorizar acumular trabajo de cuádriceps graduando profundidad, apoyo y carga con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -176,7 +264,8 @@
                     "plate"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón de rodilla dominante de la sissy y el objetivo quadriceps."
+                    "Conserva flexión y extensión de la rodilla con ayuda de cadera y tobillo y el objetivo de los cuádriceps.",
+                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
@@ -193,13 +282,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Asegura los pies bajo el soporte y prepara la carga según la estación elegida."
+                "Preparación: Barra en el pecho o la espalda con rodillas al frente: el cuádriceps concentrado con carga."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.2,
-              "ttc": 2.0
+              "techniqueSummary": "Barra en el pecho o la espalda con rodillas al frente: el cuádriceps concentrado con carga. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 2.0,
+              "variantRationale": "Barra en el pecho o la espalda con rodillas al frente: el cuádriceps concentrado con carga. La versión pesada del sissy, exigente de verdad."
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -211,9 +302,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_sissy",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "sissy_squat__machine",
@@ -221,18 +312,57 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
+              "benefits": [
+                "Máquina sissy: los tobillos sujetos y el guiado te dejan bajar profundo.",
+                "La forma más cómoda de cargar el cuádriceps."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Flexionar la cadera en lugar de dejar el trabajo en la rodilla."
+                "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
               ],
-              "description": "Máquina sissy: los tobillos sujetos y el guiado te dejan bajar profundo. La forma más cómoda de exprimir el cuádriceps.",
+              "description": "Máquina sissy: los tobillos sujetos y el guiado te dejan bajar profundo. La forma más cómoda de cargar el cuádriceps.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
-                "Inclina el tronco hacia atrás flexionando las rodillas y vuelve a extender."
+                "Máquina sissy: los tobillos sujetos y el guiado te dejan bajar profundo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Y Extensión"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Principal: La rodilla produce la mayor parte de la subida y recibe el carga dominante. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión Y Extensión"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Secundaria: La cadera acompaña la profundidad y ayuda a salir sin que la rodilla pierda su línea. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Dorsiflexión Y Control"
+                  ],
+                  "jointId": "tobillo",
+                  "note": "Estabilizadora: El tobillo permite que la tibia avance y mantiene el pie conectado al suelo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Del Tronco"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la flexión para que la carga no colapse el torso. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
@@ -240,7 +370,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "quadriceps",
-                  "note": "Principal: el cuádriceps extiende la rodilla y concentra el trabajo de la sentadilla sissy; por eso suma la serie completa (1.0)."
+                  "note": "Principal: Los cuádriceps extiende la rodilla y absorbe la carga al descender. En la configuración Máquina, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "sissy_squat__machine",
@@ -253,7 +383,43 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "knee_dominant_lengthened"
+                    "Flexión Y Extensión",
+                    "Dorsiflexión Y Control",
+                    "Estabilidad Del Tronco"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Y Extensión"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Principal: La rodilla produce la mayor parte de la subida y recibe el carga dominante. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión Y Extensión"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Secundaria: La cadera acompaña la profundidad y ayuda a salir sin que la rodilla pierda su línea. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Dorsiflexión Y Control"
+                      ],
+                      "jointId": "tobillo",
+                      "note": "Estabilizadora: El tobillo permite que la tibia avance y mantiene el pie conectado al suelo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Del Tronco"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la flexión para que la carga no colapse el torso. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -276,40 +442,43 @@
                   "movementPatternId": "knee_dominant_lengthened",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "rodilla",
+                    "cadera",
+                    "tobillo",
+                    "columna-lumbar"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales",
+                    "tendon-iliopsoas",
+                    "tendon-aquiles"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Flexionar la cadera en lugar de dejar el trabajo en la rodilla."
+                    "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
                   ],
                   "cues": [
-                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                    "Máquina sissy: los tobillos sujetos y el guiado te dejan bajar profundo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Inclina el tronco hacia atrás flexionando las rodillas y vuelve a extender."
+                    "Máquina sissy: los tobillos sujetos y el guiado te dejan bajar profundo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando acumular trabajo de cuádriceps graduando profundidad, apoyo y carga siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar flexión y extensión de la rodilla con ayuda de cadera y tobillo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de rodilla según tolerancia y rango disponible.",
+                    "Movilidad de cadera según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Asegura los pies bajo el soporte y prepara la carga según la estación elegida."
+                    "Preparación: Máquina sissy: los tobillos sujetos y el guiado te dejan bajar profundo."
                   ]
                 },
                 "display": {
@@ -318,6 +487,15 @@
                   "selectedOptions": {
                     "implement": "machine"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Máquina sissy: los tobillos sujetos y el guiado te dejan bajar profundo.",
+                    "La forma más cómoda de cargar el cuádriceps."
+                  ],
+                  "description": "Máquina sissy: los tobillos sujetos y el guiado te dejan bajar profundo. La forma más cómoda de cargar el cuádriceps.",
+                  "technique": "Máquina sissy: los tobillos sujetos y el guiado te dejan bajar profundo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Máquina sissy: los tobillos sujetos y el guiado te dejan bajar profundo. La forma más cómoda de cargar el cuádriceps."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -330,7 +508,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Sissy",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "sissy_squat__machine",
                   "definitionId": "sissy_squat",
                   "familyId": "lower_sissy_squat",
@@ -349,7 +527,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar quadriceps con la sentadilla sissy."
+                    "Desarrollar los cuádriceps mediante Sentadilla Sissy en la variante Máquina.",
+                    "Priorizar acumular trabajo de cuádriceps graduando profundidad, apoyo y carga con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -375,7 +554,8 @@
                     "plate"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón de rodilla dominante de la sissy y el objetivo quadriceps."
+                    "Conserva flexión y extensión de la rodilla con ayuda de cadera y tobillo y el objetivo de los cuádriceps.",
+                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
@@ -392,13 +572,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Asegura los pies bajo el soporte y prepara la carga según la estación elegida."
+                "Preparación: Máquina sissy: los tobillos sujetos y el guiado te dejan bajar profundo."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.2,
-              "ttc": 2.0
+              "techniqueSummary": "Máquina sissy: los tobillos sujetos y el guiado te dejan bajar profundo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 2.0,
+              "variantRationale": "Máquina sissy: los tobillos sujetos y el guiado te dejan bajar profundo. La forma más cómoda de cargar el cuádriceps."
             },
             "selectedOptions": {
               "implement": "machine"
@@ -410,9 +592,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_sissy",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "sissy_squat__smith_machine",
@@ -420,18 +602,57 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
+              "benefits": [
+                "Smith sissy: el guiado de la barra acompaña la inclinación del torso.",
+                "Estable para progresar en el movimiento."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Flexionar la cadera en lugar de dejar el trabajo en la rodilla."
+                "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
               ],
-              "description": "Smith sissy: el guiado de la barra acompaña la inclinación del torso. Segura para progresar en el movimiento.",
+              "description": "Smith sissy: el guiado de la barra acompaña la inclinación del torso. Estable para progresar en el movimiento.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
-                "Inclina el tronco hacia atrás flexionando las rodillas y vuelve a extender."
+                "Smith sissy: el guiado de la barra acompaña la inclinación del torso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Y Extensión"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Principal: La rodilla produce la mayor parte de la subida y recibe el carga dominante. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión Y Extensión"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Secundaria: La cadera acompaña la profundidad y ayuda a salir sin que la rodilla pierda su línea. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Dorsiflexión Y Control"
+                  ],
+                  "jointId": "tobillo",
+                  "note": "Estabilizadora: El tobillo permite que la tibia avance y mantiene el pie conectado al suelo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Del Tronco"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la flexión para que la carga no colapse el torso. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
@@ -439,7 +660,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "quadriceps",
-                  "note": "Principal: el cuádriceps extiende la rodilla y concentra el trabajo de la sentadilla sissy; por eso suma la serie completa (1.0)."
+                  "note": "Principal: Los cuádriceps extiende la rodilla y absorbe la carga al descender. En la configuración Máquina Smith, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "sissy_squat__smith_machine",
@@ -452,7 +673,43 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "knee_dominant_lengthened"
+                    "Flexión Y Extensión",
+                    "Dorsiflexión Y Control",
+                    "Estabilidad Del Tronco"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Y Extensión"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Principal: La rodilla produce la mayor parte de la subida y recibe el carga dominante. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión Y Extensión"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Secundaria: La cadera acompaña la profundidad y ayuda a salir sin que la rodilla pierda su línea. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Dorsiflexión Y Control"
+                      ],
+                      "jointId": "tobillo",
+                      "note": "Estabilizadora: El tobillo permite que la tibia avance y mantiene el pie conectado al suelo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Del Tronco"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la flexión para que la carga no colapse el torso. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -475,40 +732,43 @@
                   "movementPatternId": "knee_dominant_lengthened",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "rodilla",
+                    "cadera",
+                    "tobillo",
+                    "columna-lumbar"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales",
+                    "tendon-iliopsoas",
+                    "tendon-aquiles"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Flexionar la cadera en lugar de dejar el trabajo en la rodilla."
+                    "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
                   ],
                   "cues": [
-                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                    "Smith sissy: el guiado de la barra acompaña la inclinación del torso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Inclina el tronco hacia atrás flexionando las rodillas y vuelve a extender."
+                    "Smith sissy: el guiado de la barra acompaña la inclinación del torso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando acumular trabajo de cuádriceps graduando profundidad, apoyo y carga siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar flexión y extensión de la rodilla con ayuda de cadera y tobillo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de rodilla según tolerancia y rango disponible.",
+                    "Movilidad de cadera según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Asegura los pies bajo el soporte y prepara la carga según la estación elegida."
+                    "Preparación: Smith sissy: el guiado de la barra acompaña la inclinación del torso."
                   ]
                 },
                 "display": {
@@ -517,6 +777,15 @@
                   "selectedOptions": {
                     "implement": "smith_machine"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Smith sissy: el guiado de la barra acompaña la inclinación del torso.",
+                    "Estable para progresar en el movimiento."
+                  ],
+                  "description": "Smith sissy: el guiado de la barra acompaña la inclinación del torso. Estable para progresar en el movimiento.",
+                  "technique": "Smith sissy: el guiado de la barra acompaña la inclinación del torso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Smith sissy: el guiado de la barra acompaña la inclinación del torso. Estable para progresar en el movimiento."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -529,7 +798,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Sissy",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "sissy_squat__smith_machine",
                   "definitionId": "sissy_squat",
                   "familyId": "lower_sissy_squat",
@@ -548,7 +817,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar quadriceps con la sentadilla sissy."
+                    "Desarrollar los cuádriceps mediante Sentadilla Sissy en la variante Máquina Smith.",
+                    "Priorizar acumular trabajo de cuádriceps graduando profundidad, apoyo y carga con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -574,7 +844,8 @@
                     "plate"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón de rodilla dominante de la sissy y el objetivo quadriceps."
+                    "Conserva flexión y extensión de la rodilla con ayuda de cadera y tobillo y el objetivo de los cuádriceps.",
+                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
@@ -591,13 +862,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Asegura los pies bajo el soporte y prepara la carga según la estación elegida."
+                "Preparación: Smith sissy: el guiado de la barra acompaña la inclinación del torso."
               ],
               "setupTimeSeconds": 40,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.2,
-              "ttc": 2.0
+              "techniqueSummary": "Smith sissy: el guiado de la barra acompaña la inclinación del torso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 2.0,
+              "variantRationale": "Smith sissy: el guiado de la barra acompaña la inclinación del torso. Estable para progresar en el movimiento."
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -609,9 +882,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_sissy",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "sissy_squat__dumbbells",
@@ -619,18 +892,57 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
+              "benefits": [
+                "Mancuerna en el pecho: el sissy con carga ligera y mucho control.",
+                "Útil para aprender el movimiento acumulando fatiga en cuádriceps."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Flexionar la cadera en lugar de dejar el trabajo en la rodilla."
+                "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
               ],
-              "description": "Mancuerna en el pecho: el sissy con carga ligera y mucho control. Ideal para aprender el movimiento quemando cuádriceps.",
+              "description": "Mancuerna en el pecho: el sissy con carga ligera y mucho control. Útil para aprender el movimiento acumulando fatiga en cuádriceps.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Inclina el tronco hacia atrás flexionando las rodillas y vuelve a extender."
+                "Mancuerna en el pecho: el sissy con carga ligera y mucho control. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Y Extensión"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Principal: La rodilla produce la mayor parte de la subida y recibe el carga dominante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión Y Extensión"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Secundaria: La cadera acompaña la profundidad y ayuda a salir sin que la rodilla pierda su línea. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Dorsiflexión Y Control"
+                  ],
+                  "jointId": "tobillo",
+                  "note": "Estabilizadora: El tobillo permite que la tibia avance y mantiene el pie conectado al suelo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Del Tronco"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la flexión para que la carga no colapse el torso. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -638,7 +950,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "quadriceps",
-                  "note": "Principal: el cuádriceps extiende la rodilla y concentra el trabajo de la sentadilla sissy; por eso suma la serie completa (1.0)."
+                  "note": "Principal: Los cuádriceps extiende la rodilla y absorbe la carga al descender. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "sissy_squat__dumbbells",
@@ -651,7 +963,43 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "knee_dominant_lengthened"
+                    "Flexión Y Extensión",
+                    "Dorsiflexión Y Control",
+                    "Estabilidad Del Tronco"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Y Extensión"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Principal: La rodilla produce la mayor parte de la subida y recibe el carga dominante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión Y Extensión"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Secundaria: La cadera acompaña la profundidad y ayuda a salir sin que la rodilla pierda su línea. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Dorsiflexión Y Control"
+                      ],
+                      "jointId": "tobillo",
+                      "note": "Estabilizadora: El tobillo permite que la tibia avance y mantiene el pie conectado al suelo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Del Tronco"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la flexión para que la carga no colapse el torso. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -674,40 +1022,43 @@
                   "movementPatternId": "knee_dominant_lengthened",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "rodilla",
+                    "cadera",
+                    "tobillo",
+                    "columna-lumbar"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales",
+                    "tendon-iliopsoas",
+                    "tendon-aquiles"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Flexionar la cadera en lugar de dejar el trabajo en la rodilla."
+                    "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
                   ],
                   "cues": [
-                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                    "Mancuerna en el pecho: el sissy con carga ligera y mucho control. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Inclina el tronco hacia atrás flexionando las rodillas y vuelve a extender."
+                    "Mancuerna en el pecho: el sissy con carga ligera y mucho control. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando acumular trabajo de cuádriceps graduando profundidad, apoyo y carga siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar flexión y extensión de la rodilla con ayuda de cadera y tobillo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de rodilla según tolerancia y rango disponible.",
+                    "Movilidad de cadera según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Asegura los pies bajo el soporte y prepara la carga según la estación elegida."
+                    "Preparación: Mancuerna en el pecho: el sissy con carga ligera y mucho control."
                   ]
                 },
                 "display": {
@@ -716,6 +1067,15 @@
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Mancuerna en el pecho: el sissy con carga ligera y mucho control.",
+                    "Útil para aprender el movimiento acumulando fatiga en cuádriceps."
+                  ],
+                  "description": "Mancuerna en el pecho: el sissy con carga ligera y mucho control. Útil para aprender el movimiento acumulando fatiga en cuádriceps.",
+                  "technique": "Mancuerna en el pecho: el sissy con carga ligera y mucho control. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Mancuerna en el pecho: el sissy con carga ligera y mucho control. Útil para aprender el movimiento acumulando fatiga en cuádriceps."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -728,7 +1088,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Sissy",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "sissy_squat__dumbbells",
                   "definitionId": "sissy_squat",
                   "familyId": "lower_sissy_squat",
@@ -747,7 +1107,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar quadriceps con la sentadilla sissy."
+                    "Desarrollar los cuádriceps mediante Sentadilla Sissy en la variante Mancuernas.",
+                    "Priorizar acumular trabajo de cuádriceps graduando profundidad, apoyo y carga con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -773,7 +1134,8 @@
                     "plate"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón de rodilla dominante de la sissy y el objetivo quadriceps."
+                    "Conserva flexión y extensión de la rodilla con ayuda de cadera y tobillo y el objetivo de los cuádriceps.",
+                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
@@ -790,13 +1152,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Asegura los pies bajo el soporte y prepara la carga según la estación elegida."
+                "Preparación: Mancuerna en el pecho: el sissy con carga ligera y mucho control."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.2,
-              "ttc": 2.0
+              "techniqueSummary": "Mancuerna en el pecho: el sissy con carga ligera y mucho control. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 2.0,
+              "variantRationale": "Mancuerna en el pecho: el sissy con carga ligera y mucho control. Útil para aprender el movimiento acumulando fatiga en cuádriceps."
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -808,9 +1172,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_sissy",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "sissy_squat__plate",
@@ -818,18 +1182,57 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
+              "benefits": [
+                "Disco en el pecho: carga ligera para dominar la inclinación del sissy.",
+                "Útil para empezar con el cuádriceps bajo una tensión intensa."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Flexionar la cadera en lugar de dejar el trabajo en la rodilla."
+                "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
               ],
-              "description": "Disco en el pecho: carga ligera para dominar la inclinación del sissy. Perfecto para empezar con el cuádriceps ardiendo.",
+              "description": "Disco en el pecho: carga ligera para dominar la inclinación del sissy. Útil para empezar con el cuádriceps bajo una tensión intensa.",
               "efc": 2.8,
               "equipmentId": "plate",
               "executionCues": [
-                "Inclina el tronco hacia atrás flexionando las rodillas y vuelve a extender."
+                "Disco en el pecho: carga ligera para dominar la inclinación del sissy. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Y Extensión"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Principal: La rodilla produce la mayor parte de la subida y recibe el carga dominante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión Y Extensión"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Secundaria: La cadera acompaña la profundidad y ayuda a salir sin que la rodilla pierda su línea. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Dorsiflexión Y Control"
+                  ],
+                  "jointId": "tobillo",
+                  "note": "Estabilizadora: El tobillo permite que la tibia avance y mantiene el pie conectado al suelo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Del Tronco"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la flexión para que la carga no colapse el torso. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -837,7 +1240,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "quadriceps",
-                  "note": "Principal: el cuádriceps extiende la rodilla y concentra el trabajo de la sentadilla sissy; por eso suma la serie completa (1.0)."
+                  "note": "Principal: Los cuádriceps extiende la rodilla y absorbe la carga al descender. En la configuración Disco, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "sissy_squat__plate",
@@ -850,7 +1253,43 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "knee_dominant_lengthened"
+                    "Flexión Y Extensión",
+                    "Dorsiflexión Y Control",
+                    "Estabilidad Del Tronco"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Y Extensión"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Principal: La rodilla produce la mayor parte de la subida y recibe el carga dominante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión Y Extensión"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Secundaria: La cadera acompaña la profundidad y ayuda a salir sin que la rodilla pierda su línea. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Dorsiflexión Y Control"
+                      ],
+                      "jointId": "tobillo",
+                      "note": "Estabilizadora: El tobillo permite que la tibia avance y mantiene el pie conectado al suelo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Del Tronco"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la flexión para que la carga no colapse el torso. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -873,40 +1312,43 @@
                   "movementPatternId": "knee_dominant_lengthened",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "rodilla",
+                    "cadera",
+                    "tobillo",
+                    "columna-lumbar"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales",
+                    "tendon-iliopsoas",
+                    "tendon-aquiles"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Flexionar la cadera en lugar de dejar el trabajo en la rodilla."
+                    "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
                   ],
                   "cues": [
-                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                    "Disco en el pecho: carga ligera para dominar la inclinación del sissy. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Inclina el tronco hacia atrás flexionando las rodillas y vuelve a extender."
+                    "Disco en el pecho: carga ligera para dominar la inclinación del sissy. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando acumular trabajo de cuádriceps graduando profundidad, apoyo y carga siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar flexión y extensión de la rodilla con ayuda de cadera y tobillo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de rodilla según tolerancia y rango disponible.",
+                    "Movilidad de cadera según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Asegura los pies bajo el soporte y prepara la carga según la estación elegida."
+                    "Preparación: Disco en el pecho: carga ligera para dominar la inclinación del sissy."
                   ]
                 },
                 "display": {
@@ -915,6 +1357,15 @@
                   "selectedOptions": {
                     "implement": "plate"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Disco en el pecho: carga ligera para dominar la inclinación del sissy.",
+                    "Útil para empezar con el cuádriceps bajo una tensión intensa."
+                  ],
+                  "description": "Disco en el pecho: carga ligera para dominar la inclinación del sissy. Útil para empezar con el cuádriceps bajo una tensión intensa.",
+                  "technique": "Disco en el pecho: carga ligera para dominar la inclinación del sissy. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Disco en el pecho: carga ligera para dominar la inclinación del sissy. Útil para empezar con el cuádriceps bajo una tensión intensa."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -927,7 +1378,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Sissy",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "sissy_squat__plate",
                   "definitionId": "sissy_squat",
                   "familyId": "lower_sissy_squat",
@@ -946,7 +1397,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar quadriceps con la sentadilla sissy."
+                    "Desarrollar los cuádriceps mediante Sentadilla Sissy en la variante Disco.",
+                    "Priorizar acumular trabajo de cuádriceps graduando profundidad, apoyo y carga con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -972,7 +1424,8 @@
                     "plate"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón de rodilla dominante de la sissy y el objetivo quadriceps."
+                    "Conserva flexión y extensión de la rodilla con ayuda de cadera y tobillo y el objetivo de los cuádriceps.",
+                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
@@ -989,13 +1442,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Asegura los pies bajo el soporte y prepara la carga según la estación elegida."
+                "Preparación: Disco en el pecho: carga ligera para dominar la inclinación del sissy."
               ],
               "setupTimeSeconds": 15,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.2,
-              "ttc": 2.0
+              "techniqueSummary": "Disco en el pecho: carga ligera para dominar la inclinación del sissy. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 2.0,
+              "variantRationale": "Disco en el pecho: carga ligera para dominar la inclinación del sissy. Útil para empezar con el cuádriceps bajo una tensión intensa."
             },
             "selectedOptions": {
               "implement": "plate"
@@ -1003,13 +1458,13 @@
           }
         ],
         "defaultConfigurationId": "sissy_squat__machine",
-        "description": "Sentadilla Sissy: rodillas al frente y torso hacia atrás, bajando en línea como si te inclinaras. El ejercicio que aísla el cuádriceps con tu propio peso: pocas cosas queman tanto.",
+        "description": "Rodillas al frente y torso hacia atrás, bajando en línea como si te inclinaras. El ejercicio que concentra el cuádriceps con tu propio peso: pocas cosas acumulan fatiga local tanto.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:sissy_squat"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_sissy_squat",
@@ -1029,9 +1484,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:lower_sissy_squat"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_sissy_squat",
@@ -1041,6 +1496,6 @@
       "sissy_squat"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

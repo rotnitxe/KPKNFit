@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Core · core · anti extension isometric",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#core_plancha",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "core_plancha__default",
@@ -22,18 +22,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie.",
+                "Simple de aprender, exigente para el core y útil para empezar."
+              ],
               "bodyRegion": "CORE",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón anti-extensión isométrica para completar la repetición."
+                "Arquear la espalda, girar con la carga o perder la tensión al final."
               ],
-              "description": "Versión isométrica clásica: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie. Simple de aprender, demoledor para el core y perfecto para empezar.",
+              "description": "Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie. Simple de aprender, exigente para el core y útil para empezar.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Ejecuta «Plancha» siguiendo el patrón anti-extensión isométrica con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Anti-Extensión O Anti-Rotación"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Principal: La columna lumbar resiste el movimiento que la carga intenta imponer. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Control De Pelvis"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis conecta las fuerzas del suelo y del tronco sin perder orientación. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Posición Torácica"
+                  ],
+                  "jointId": "columna-toracica",
+                  "note": "Estabilizadora: La columna torácica aporta una base rígida para la acción del core. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
@@ -41,11 +72,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "core",
-                  "note": "Principal: el core controla el tronco y concentra la demanda del patrón; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "abdominals",
-                  "note": "Secundario: el abdomen acompaña la estabilización del tronco durante el movimiento; por eso suma 0.5."
+                  "note": "Secundaria: El recto abdominal acerca costillas y pelvis o resiste la extensión del tronco. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "core_plancha__bodyweight__plancha",
@@ -58,7 +89,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "anti_extension_isometric"
+                    "Anti-Extensión O Anti-Rotación",
+                    "Control De Pelvis",
+                    "Posición Torácica"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Anti-Extensión O Anti-Rotación"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Principal: La columna lumbar resiste el movimiento que la carga intenta imponer. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Control De Pelvis"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis conecta las fuerzas del suelo y del tronco sin perder orientación. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Posición Torácica"
+                      ],
+                      "jointId": "columna-toracica",
+                      "note": "Estabilizadora: La columna torácica aporta una base rígida para la acción del core. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -83,44 +142,51 @@
                   "movementPatternId": "anti_extension_isometric",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "spine",
-                    "hip"
+                    "columna-lumbar",
+                    "sacroiliaca",
+                    "columna-toracica"
                   ],
-                  "relevantTendons": [
-                    "spine_tendon",
-                    "hip_tendon"
-                  ],
+                  "relevantTendons": [],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón anti-extensión isométrica para completar la repetición."
+                    "Arquear la espalda, girar con la carga o perder la tensión al final."
                   ],
                   "cues": [
-                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                    "Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Ejecuta «Plancha» siguiendo el patrón anti-extensión isométrica con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar la capacidad del core para transferir fuerza sin movimientos innecesarios siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar resistencia del tronco frente a extensión, giro o inclinación como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de spine según tolerancia y rango disponible.",
-                    "Movilidad de hip según tolerancia y rango disponible."
+                    "Movilidad de columna lumbar según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura peso corporal y adopta la posición específica de «Plancha» antes de iniciar; conserva una base estable."
+                    "Preparación: Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie."
                   ]
                 },
                 "display": {
                   "displayName": "Plancha Abdominal",
                   "displaySummary": "Peso Corporal",
                   "selectedOptions": {}
+                },
+                "editorial": {
+                  "benefits": [
+                    "Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie.",
+                    "Simple de aprender, exigente para el core y útil para empezar."
+                  ],
+                  "description": "Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie. Simple de aprender, exigente para el core y útil para empezar.",
+                  "technique": "Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie. Simple de aprender, exigente para el core y útil para empezar."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -133,7 +199,7 @@
                 },
                 "identity": {
                   "canonicalName": "Plancha Abdominal",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "core_plancha__default",
                   "definitionId": "core_plancha",
                   "familyId": "core_anti_extension_isometric",
@@ -152,8 +218,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar core dentro del patrón anti_extension_isometric.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el core mediante Plancha Abdominal en la variante Peso Corporal.",
+                    "Priorizar mejorar la capacidad del core para transferir fuerza sin movimientos innecesarios con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -175,7 +241,8 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón anti_extension_isometric y el objetivo core."
+                    "Conserva resistencia del tronco frente a extensión, giro o inclinación y el objetivo de el core.",
+                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar, articulación sacroilíaca, columna torácica."
                   ],
                   "replacementGroup": "core_plank_front",
                   "replacementPriority": 3
@@ -192,25 +259,27 @@
                 "abdominals"
               ],
               "setupCues": [
-                "Configura peso corporal y adopta la posición específica de «Plancha» antes de iniciar; conserva una base estable."
+                "Preparación: Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie."
               ],
               "setupTimeSeconds": 10,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "techniqueSummary": "Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 1.5,
+              "variantRationale": "Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie. Simple de aprender, exigente para el core y útil para empezar."
             },
             "selectedOptions": {}
           }
         ],
         "defaultConfigurationId": "core_plancha__default",
-        "description": "Plancha abdominal: aguanta el cuerpo recto como una tabla apoyado en los antebrazos y las puntas de los pies. El isométrico clásico que enciende el abdomen en serio, sin moverte un centímetro.",
+        "description": "Aguanta el cuerpo recto como una tabla apoyado en los antebrazos y las puntas de los pies. El isométrico tradicional que aumenta la demanda del abdomen con una demanda alta, sin moverte un centímetro.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:core_plancha"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "core_anti_extension_isometric",
@@ -228,9 +297,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:core_anti_extension_isometric"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "core_anti_extension_isometric",
@@ -239,6 +308,6 @@
       "anti_extension_isometric"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

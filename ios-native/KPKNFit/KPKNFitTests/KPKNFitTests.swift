@@ -5,7 +5,7 @@ final class KPKNFitTests: XCTestCase {
     func testApprovedExerciseCatalogV2LoadsWithUniqueIdentity() throws {
         let repository = try ExerciseCatalogV2Repository(bundle: Bundle(for: Self.self))
         XCTAssertEqual(repository.catalog.schemaVersion, 2)
-        XCTAssertEqual(repository.catalog.catalogRevision, "v2-approved-2026-08-02-c")
+        XCTAssertEqual(repository.catalog.catalogRevision, "v2-approved-2026-08-08-c")
         XCTAssertFalse(repository.catalog.families.isEmpty)
 
         let definitions = repository.catalog.families.flatMap(\.definitions)

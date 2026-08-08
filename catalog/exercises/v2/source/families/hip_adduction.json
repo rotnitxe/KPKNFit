@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Aducciones de Pierna",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#adductors_plancha_copenhagen_dinamica",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "copenhagen_plank__default",
@@ -22,18 +22,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Versión estática: pierna superior en el banco y cadera arriba todo el tiempo.",
+                "Los aductores acumulan fatiga local con una tensión que no se parece a nada."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón aducción dinámica para completar la repetición."
+                "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
               ],
-              "description": "Versión estática: pierna superior en el banco y cadera arriba todo el tiempo. Los aductores arden con una tensión que no se parece a nada.",
+              "description": "Versión estática: pierna superior en el banco y cadera arriba todo el tiempo. Los aductores acumulan fatiga local con una tensión que no se parece a nada.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Ejecuta «Plancha Copenhagen Dinámica» siguiendo el patrón aducción dinámica con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Versión estática: pierna superior en el banco y cadera arriba todo el tiempo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Aducción"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Control De Pelvis"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
@@ -41,11 +72,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "adductors",
-                  "note": "Principal: los aductores acercan la pierna hacia la línea media y son el motor del ejercicio; por eso suman la serie completa (1.0)."
+                  "note": "Principal: Los aductores aproxima el muslo y estabiliza la cadera frente a fuerzas laterales. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Secundario: el core asiste la transmisión de fuerza entre el tronco y las extremidades; por eso suma 0.5."
+                  "note": "Secundaria: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "copenhagen_plank__bodyweight__plancha_copenhagen",
@@ -58,7 +89,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_adduction_dynamic"
+                    "Aducción",
+                    "Control De Pelvis",
+                    "Alineación"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Aducción"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Control De Pelvis"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -83,46 +142,56 @@
                   "movementPatternId": "hip_adduction_dynamic",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "sacroiliaca",
+                    "rodilla"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón aducción dinámica para completar la repetición."
+                    "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
                   ],
                   "cues": [
-                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                    "Versión estática: pierna superior en el banco y cadera arriba todo el tiempo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Ejecuta «Plancha Copenhagen Dinámica» siguiendo el patrón aducción dinámica con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Versión estática: pierna superior en el banco y cadera arriba todo el tiempo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer aductores y control de la cadera en un recorrido localizado siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar acercamiento de la pierna y estabilidad de la pelvis como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura peso corporal y adopta la posición específica de «Plancha Copenhagen Dinámica» antes de iniciar; conserva una base estable."
+                    "Preparación: Versión estática: pierna superior en el banco y cadera arriba todo el tiempo."
                   ]
                 },
                 "display": {
                   "displayName": "Plancha Copenhague",
                   "displaySummary": "Plancha Copenhagen",
                   "selectedOptions": {}
+                },
+                "editorial": {
+                  "benefits": [
+                    "Versión estática: pierna superior en el banco y cadera arriba todo el tiempo.",
+                    "Los aductores acumulan fatiga local con una tensión que no se parece a nada."
+                  ],
+                  "description": "Versión estática: pierna superior en el banco y cadera arriba todo el tiempo. Los aductores acumulan fatiga local con una tensión que no se parece a nada.",
+                  "technique": "Versión estática: pierna superior en el banco y cadera arriba todo el tiempo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Versión estática: pierna superior en el banco y cadera arriba todo el tiempo. Los aductores acumulan fatiga local con una tensión que no se parece a nada."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -135,7 +204,7 @@
                 },
                 "identity": {
                   "canonicalName": "Plancha Copenhague",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "copenhagen_plank__default",
                   "definitionId": "copenhagen_plank",
                   "familyId": "hip_adduction",
@@ -154,8 +223,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar adductors dentro del patrón hip_adduction_dynamic.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar los aductores mediante Plancha Copenhague en la variante Peso Corporal.",
+                    "Priorizar fortalecer aductores y control de la cadera en un recorrido localizado con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -177,7 +246,8 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón hip_adduction_dynamic y el objetivo adductors."
+                    "Conserva acercamiento de la pierna y estabilidad de la pelvis y el objetivo de los aductores.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, articulación sacroilíaca, rodilla."
                   ],
                   "replacementGroup": "adductor_copenhagen",
                   "replacementPriority": 3
@@ -194,25 +264,27 @@
                 "core"
               ],
               "setupCues": [
-                "Configura peso corporal y adopta la posición específica de «Plancha Copenhagen Dinámica» antes de iniciar; conserva una base estable."
+                "Preparación: Versión estática: pierna superior en el banco y cadera arriba todo el tiempo."
               ],
               "setupTimeSeconds": 10,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.5,
-              "ttc": 1.5
+              "techniqueSummary": "Versión estática: pierna superior en el banco y cadera arriba todo el tiempo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 1.5,
+              "variantRationale": "Versión estática: pierna superior en el banco y cadera arriba todo el tiempo. Los aductores acumulan fatiga local con una tensión que no se parece a nada."
             },
             "selectedOptions": {}
           }
         ],
         "defaultConfigurationId": "copenhagen_plank__default",
-        "description": "Plancha Copenhague: lateral apoyado en antebrazo con la pierna de arriba en el banco, aguantando la cadera elevada. Los aductores trabajan de una forma que no encontrarás en ningún otro ejercicio.",
+        "description": "Lateral apoyado en antebrazo con la pierna de arriba en el banco, aguantando la cadera elevada. Los aductores trabajan con una demanda sostenida de los aductores.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:copenhagen_plank"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "hip_adduction",
@@ -234,9 +306,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#adductors_aduccion_cadera_sentado_maquina",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "hip_adduction__seated__machine__bilateral",
@@ -244,18 +316,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Máquina sentado con ambas piernas: cierras las almohadillas juntando los muslos y los aductores aumentan su tensión.",
+                "El tradicional del muslo interno; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Usar impulso o un rango corto que no alcanza la máxima contracción."
+                "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
               ],
-              "description": "Máquina sentado con ambas piernas: cierras las almohadillas juntando los muslos y los aductores se encienden. El clásico del muslo interno.",
+              "description": "Máquina sentado con ambas piernas: cierras las almohadillas juntando los muslos y los aductores aumentan su tensión. El tradicional del muslo interno.",
               "efc": 2.0,
               "equipmentId": "machine",
               "executionCues": [
-                "Cierra las piernas con recorrido controlado y resiste el retorno."
+                "Máquina sentado con ambas piernas: cierras las almohadillas juntando los muslos y los aductores aumentan su tensión. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Aducción"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. El apoyo sentado reduce la demanda de equilibrio y cambia el papel de esta articulación hacia la transmisión.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Control De Pelvis"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. El apoyo sentado reduce la demanda de equilibrio y cambia el papel de esta articulación hacia la transmisión.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -263,7 +366,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "adductors",
-                  "note": "Principal: los aductores acercan el muslo a la línea media y concentran el trabajo del movimiento; por eso suman la serie completa (1.0)."
+                  "note": "Principal: Los aductores aproxima el muslo y estabiliza la cadera frente a fuerzas laterales. En la configuración Máquina · Trabajo Bilateral · Posición Sentada, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "hip_adduction__machine__adduccion_de_cadera",
@@ -276,7 +379,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_adduction"
+                    "Aducción",
+                    "Control De Pelvis",
+                    "Alineación"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Aducción"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. El apoyo sentado reduce la demanda de equilibrio y cambia el papel de esta articulación hacia la transmisión.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Control De Pelvis"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. El apoyo sentado reduce la demanda de equilibrio y cambia el papel de esta articulación hacia la transmisión.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -299,40 +430,41 @@
                   "movementPatternId": "hip_adduction",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "sacroiliaca",
+                    "rodilla"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso o un rango corto que no alcanza la máxima contracción."
+                    "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
                   ],
                   "cues": [
-                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                    "Máquina sentado con ambas piernas: cierras las almohadillas juntando los muslos y los aductores aumentan su tensión. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
                   ],
                   "execution": [
-                    "Cierra las piernas con recorrido controlado y resiste el retorno."
+                    "Máquina sentado con ambas piernas: cierras las almohadillas juntando los muslos y los aductores aumentan su tensión. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer aductores y control de la cadera en un recorrido localizado siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar acercamiento de la pierna y estabilidad de la pelvis como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Ajusta el equipo y la posición de inicio antes de mover las piernas."
+                    "Preparación: Máquina sentado con ambas piernas: cierras las almohadillas juntando los muslos y los aductores aumentan su tensión."
                   ]
                 },
                 "display": {
@@ -343,6 +475,15 @@
                     "laterality": "bilateral",
                     "station": "seated"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Máquina sentado con ambas piernas: cierras las almohadillas juntando los muslos y los aductores aumentan su tensión.",
+                    "El tradicional del muslo interno; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Máquina sentado con ambas piernas: cierras las almohadillas juntando los muslos y los aductores aumentan su tensión. El tradicional del muslo interno.",
+                  "technique": "Máquina sentado con ambas piernas: cierras las almohadillas juntando los muslos y los aductores aumentan su tensión. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo.",
+                  "variantRationale": "Máquina sentado con ambas piernas: cierras las almohadillas juntando los muslos y los aductores aumentan su tensión. El tradicional del muslo interno."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -355,7 +496,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "hip_adduction__seated__machine__bilateral",
                   "definitionId": "hip_adduction",
                   "familyId": "hip_adduction",
@@ -374,7 +515,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar adductors dentro del patrón hip_adduction."
+                    "Desarrollar los aductores mediante Aducciones de Pierna en la variante Máquina · Trabajo Bilateral · Posición Sentada.",
+                    "Priorizar fortalecer aductores y control de la cadera en un recorrido localizado con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -398,7 +540,8 @@
                     "band"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón hip_adduction y el objetivo adductors."
+                    "Conserva acercamiento de la pierna y estabilidad de la pelvis y el objetivo de los aductores.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, articulación sacroilíaca, rodilla."
                   ],
                   "replacementGroup": "adductor_hip_adduction",
                   "replacementPriority": 1
@@ -413,13 +556,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Ajusta el equipo y la posición de inicio antes de mover las piernas."
+                "Preparación: Máquina sentado con ambas piernas: cierras las almohadillas juntando los muslos y los aductores aumentan su tensión."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "techniqueSummary": "Máquina sentado con ambas piernas: cierras las almohadillas juntando los muslos y los aductores aumentan su tensión. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo.",
+              "ttc": 1.5,
+              "variantRationale": "Máquina sentado con ambas piernas: cierras las almohadillas juntando los muslos y los aductores aumentan su tensión. El tradicional del muslo interno."
             },
             "selectedOptions": {
               "implement": "machine",
@@ -433,9 +578,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#adductors_aduccion_cadera_sentado_maquina",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "hip_adduction__seated__machine__unilateral",
@@ -443,18 +588,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Máquina sentado de un lado a la vez: cada aductor trabaja por separado y corriges desequilibrios.",
+                "Útil para piernas parejas; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Usar impulso o un rango corto que no alcanza la máxima contracción."
+                "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
               ],
               "description": "Máquina sentado de un lado a la vez: cada aductor trabaja por separado y corriges desequilibrios. Útil para piernas parejas.",
               "efc": 2.0,
               "equipmentId": "machine",
               "executionCues": [
-                "Cierra las piernas con recorrido controlado y resiste el retorno."
+                "Máquina sentado de un lado a la vez: cada aductor trabaja por separado y corriges desequilibrios. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Aducción"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Control De Pelvis"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
@@ -462,7 +638,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "adductors",
-                  "note": "Principal: los aductores acercan el muslo a la línea media y concentran el trabajo del movimiento; por eso suman la serie completa (1.0)."
+                  "note": "Principal: Los aductores aproxima el muslo y estabiliza la cadera frente a fuerzas laterales. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "hip_adduction__machine__adduccion_de_cadera_unilateral",
@@ -475,7 +651,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_adduction"
+                    "Aducción",
+                    "Control De Pelvis",
+                    "Alineación"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Aducción"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Control De Pelvis"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -498,40 +702,41 @@
                   "movementPatternId": "hip_adduction",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "sacroiliaca",
+                    "rodilla"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso o un rango corto que no alcanza la máxima contracción."
+                    "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
                   ],
                   "cues": [
-                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                    "Máquina sentado de un lado a la vez: cada aductor trabaja por separado y corriges desequilibrios. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
                   ],
                   "execution": [
-                    "Cierra las piernas con recorrido controlado y resiste el retorno."
+                    "Máquina sentado de un lado a la vez: cada aductor trabaja por separado y corriges desequilibrios. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer aductores y control de la cadera en un recorrido localizado siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar acercamiento de la pierna y estabilidad de la pelvis como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Ajusta el equipo y la posición de inicio antes de mover las piernas."
+                    "Preparación: Máquina sentado de un lado a la vez: cada aductor trabaja por separado y corriges desequilibrios."
                   ]
                 },
                 "display": {
@@ -542,6 +747,15 @@
                     "laterality": "unilateral",
                     "station": "seated"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Máquina sentado de un lado a la vez: cada aductor trabaja por separado y corriges desequilibrios.",
+                    "Útil para piernas parejas; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Máquina sentado de un lado a la vez: cada aductor trabaja por separado y corriges desequilibrios. Útil para piernas parejas.",
+                  "technique": "Máquina sentado de un lado a la vez: cada aductor trabaja por separado y corriges desequilibrios. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo.",
+                  "variantRationale": "Máquina sentado de un lado a la vez: cada aductor trabaja por separado y corriges desequilibrios. Útil para piernas parejas."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -554,7 +768,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "hip_adduction__seated__machine__unilateral",
                   "definitionId": "hip_adduction",
                   "familyId": "hip_adduction",
@@ -573,7 +787,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar adductors dentro del patrón hip_adduction con foco unilateral."
+                    "Desarrollar los aductores mediante Aducciones de Pierna en la variante Máquina · Trabajo Unilateral · Posición Sentada.",
+                    "Priorizar fortalecer aductores y control de la cadera en un recorrido localizado con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -597,7 +812,8 @@
                     "band"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón hip_adduction y el objetivo adductors."
+                    "Conserva acercamiento de la pierna y estabilidad de la pelvis y el objetivo de los aductores.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, articulación sacroilíaca, rodilla."
                   ],
                   "replacementGroup": "adductor_hip_adduction",
                   "replacementPriority": 1
@@ -612,13 +828,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Ajusta el equipo y la posición de inicio antes de mover las piernas."
+                "Preparación: Máquina sentado de un lado a la vez: cada aductor trabaja por separado y corriges desequilibrios."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "techniqueSummary": "Máquina sentado de un lado a la vez: cada aductor trabaja por separado y corriges desequilibrios. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo.",
+              "ttc": 1.5,
+              "variantRationale": "Máquina sentado de un lado a la vez: cada aductor trabaja por separado y corriges desequilibrios. Útil para piernas parejas."
             },
             "selectedOptions": {
               "implement": "machine",
@@ -632,9 +850,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#adductors_aduccion_cadera_sentado_maquina",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "hip_adduction__standing__cable__bilateral",
@@ -642,18 +860,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Polea de pie con ambas piernas: juntas las piernas contra la tensión del cable.",
+                "Variante precisa que mantiene el aductor cargado."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Usar impulso o un rango corto que no alcanza la máxima contracción."
+                "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
               ],
-              "description": "Polea de pie con ambas piernas: juntas las piernas contra la tensión del cable. Variante fina que mantiene el aductor cargado.",
+              "description": "Polea de pie con ambas piernas: juntas las piernas contra la tensión del cable. Variante precisa que mantiene el aductor cargado.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
-                "Cierra las piernas con recorrido controlado y resiste el retorno."
+                "Polea de pie con ambas piernas: juntas las piernas contra la tensión del cable. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Aducción"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Control De Pelvis"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -661,7 +910,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "adductors",
-                  "note": "Principal: los aductores acercan el muslo a la línea media y concentran el trabajo del movimiento; por eso suman la serie completa (1.0)."
+                  "note": "Principal: Los aductores aproxima el muslo y estabiliza la cadera frente a fuerzas laterales. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "hip_adduction__cable__adduccion_de_cadera",
@@ -674,7 +923,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_adduction"
+                    "Aducción",
+                    "Control De Pelvis",
+                    "Alineación"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Aducción"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Control De Pelvis"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -697,40 +974,41 @@
                   "movementPatternId": "hip_adduction",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "sacroiliaca",
+                    "rodilla"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "guided"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso o un rango corto que no alcanza la máxima contracción."
+                    "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
                   ],
                   "cues": [
-                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                    "Polea de pie con ambas piernas: juntas las piernas contra la tensión del cable. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
                   ],
                   "execution": [
-                    "Cierra las piernas con recorrido controlado y resiste el retorno."
+                    "Polea de pie con ambas piernas: juntas las piernas contra la tensión del cable. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer aductores y control de la cadera en un recorrido localizado siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar acercamiento de la pierna y estabilidad de la pelvis como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Ajusta el equipo y la posición de inicio antes de mover las piernas."
+                    "Preparación: Polea de pie con ambas piernas: juntas las piernas contra la tensión del cable."
                   ]
                 },
                 "display": {
@@ -741,6 +1019,15 @@
                     "laterality": "bilateral",
                     "station": "standing"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Polea de pie con ambas piernas: juntas las piernas contra la tensión del cable.",
+                    "Variante precisa que mantiene el aductor cargado."
+                  ],
+                  "description": "Polea de pie con ambas piernas: juntas las piernas contra la tensión del cable. Variante precisa que mantiene el aductor cargado.",
+                  "technique": "Polea de pie con ambas piernas: juntas las piernas contra la tensión del cable. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo.",
+                  "variantRationale": "Polea de pie con ambas piernas: juntas las piernas contra la tensión del cable. Variante precisa que mantiene el aductor cargado."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -753,7 +1040,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "hip_adduction__standing__cable__bilateral",
                   "definitionId": "hip_adduction",
                   "familyId": "hip_adduction",
@@ -772,7 +1059,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar adductors dentro del patrón hip_adduction con polea."
+                    "Desarrollar los aductores mediante Aducciones de Pierna en la variante Polea · Trabajo Bilateral · Posición De Pie.",
+                    "Priorizar fortalecer aductores y control de la cadera en un recorrido localizado con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -796,7 +1084,8 @@
                     "band"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón hip_adduction y el objetivo adductors."
+                    "Conserva acercamiento de la pierna y estabilidad de la pelvis y el objetivo de los aductores.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, articulación sacroilíaca, rodilla."
                   ],
                   "replacementGroup": "adductor_hip_adduction",
                   "replacementPriority": 1
@@ -811,13 +1100,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Ajusta el equipo y la posición de inicio antes de mover las piernas."
+                "Preparación: Polea de pie con ambas piernas: juntas las piernas contra la tensión del cable."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "techniqueSummary": "Polea de pie con ambas piernas: juntas las piernas contra la tensión del cable. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo.",
+              "ttc": 1.5,
+              "variantRationale": "Polea de pie con ambas piernas: juntas las piernas contra la tensión del cable. Variante precisa que mantiene el aductor cargado."
             },
             "selectedOptions": {
               "implement": "cable",
@@ -831,9 +1122,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#adductors_aduccion_cadera_sentado_maquina",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "hip_adduction__standing__cable__unilateral",
@@ -841,18 +1132,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Polea de pie con una pierna: el aductor trabaja concentrado con tensión constante.",
+                "Útil para centrarse en un lado; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Usar impulso o un rango corto que no alcanza la máxima contracción."
+                "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
               ],
-              "description": "Polea de pie con una pierna: el aductor trabaja aislado con tensión constante. Perfecto para centrarse en un lado.",
+              "description": "Polea de pie con una pierna: el aductor trabaja concentrado con tensión constante. Útil para centrarse en un lado.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
-                "Cierra las piernas con recorrido controlado y resiste el retorno."
+                "Polea de pie con una pierna: el aductor trabaja concentrado con tensión constante. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Aducción"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Control De Pelvis"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
@@ -860,7 +1182,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "adductors",
-                  "note": "Principal: los aductores acercan el muslo a la línea media y concentran el trabajo del movimiento; por eso suman la serie completa (1.0)."
+                  "note": "Principal: Los aductores aproxima el muslo y estabiliza la cadera frente a fuerzas laterales. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "hip_adduction__cable__adduccion_de_cadera_unilateral",
@@ -873,7 +1195,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_adduction"
+                    "Aducción",
+                    "Control De Pelvis",
+                    "Alineación"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Aducción"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Control De Pelvis"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -896,40 +1246,41 @@
                   "movementPatternId": "hip_adduction",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "sacroiliaca",
+                    "rodilla"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "guided"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso o un rango corto que no alcanza la máxima contracción."
+                    "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
                   ],
                   "cues": [
-                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                    "Polea de pie con una pierna: el aductor trabaja concentrado con tensión constante. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
                   ],
                   "execution": [
-                    "Cierra las piernas con recorrido controlado y resiste el retorno."
+                    "Polea de pie con una pierna: el aductor trabaja concentrado con tensión constante. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer aductores y control de la cadera en un recorrido localizado siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar acercamiento de la pierna y estabilidad de la pelvis como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Ajusta el equipo y la posición de inicio antes de mover las piernas."
+                    "Preparación: Polea de pie con una pierna: el aductor trabaja concentrado con tensión constante."
                   ]
                 },
                 "display": {
@@ -940,6 +1291,15 @@
                     "laterality": "unilateral",
                     "station": "standing"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Polea de pie con una pierna: el aductor trabaja concentrado con tensión constante.",
+                    "Útil para centrarse en un lado; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Polea de pie con una pierna: el aductor trabaja concentrado con tensión constante. Útil para centrarse en un lado.",
+                  "technique": "Polea de pie con una pierna: el aductor trabaja concentrado con tensión constante. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo.",
+                  "variantRationale": "Polea de pie con una pierna: el aductor trabaja concentrado con tensión constante. Útil para centrarse en un lado."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -952,7 +1312,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "hip_adduction__standing__cable__unilateral",
                   "definitionId": "hip_adduction",
                   "familyId": "hip_adduction",
@@ -971,7 +1331,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar adductors dentro del patrón hip_adduction con foco unilateral en polea."
+                    "Desarrollar los aductores mediante Aducciones de Pierna en la variante Polea · Trabajo Unilateral · Posición De Pie.",
+                    "Priorizar fortalecer aductores y control de la cadera en un recorrido localizado con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -995,7 +1356,8 @@
                     "band"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón hip_adduction y el objetivo adductors."
+                    "Conserva acercamiento de la pierna y estabilidad de la pelvis y el objetivo de los aductores.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, articulación sacroilíaca, rodilla."
                   ],
                   "replacementGroup": "adductor_hip_adduction",
                   "replacementPriority": 1
@@ -1010,13 +1372,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Ajusta el equipo y la posición de inicio antes de mover las piernas."
+                "Preparación: Polea de pie con una pierna: el aductor trabaja concentrado con tensión constante."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "techniqueSummary": "Polea de pie con una pierna: el aductor trabaja concentrado con tensión constante. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo.",
+              "ttc": 1.5,
+              "variantRationale": "Polea de pie con una pierna: el aductor trabaja concentrado con tensión constante. Útil para centrarse en un lado."
             },
             "selectedOptions": {
               "implement": "cable",
@@ -1030,9 +1394,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#adductors_aduccion_cadera_sentado_maquina",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "hip_adduction__standing__band__bilateral",
@@ -1040,18 +1404,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Banda de pie con ambas piernas: juntas las piernas contra la resistencia elástica.",
+                "Fácil de llevar a cualquier sitio; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Usar impulso o un rango corto que no alcanza la máxima contracción."
+                "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
               ],
               "description": "Banda de pie con ambas piernas: juntas las piernas contra la resistencia elástica. Fácil de llevar a cualquier sitio.",
               "efc": 2.0,
               "equipmentId": "band",
               "executionCues": [
-                "Cierra las piernas con recorrido controlado y resiste el retorno."
+                "Banda de pie con ambas piernas: juntas las piernas contra la resistencia elástica. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Aducción"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Control De Pelvis"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
@@ -1059,7 +1454,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "adductors",
-                  "note": "Principal: los aductores acercan el muslo a la línea media y concentran el trabajo del movimiento; por eso suman la serie completa (1.0)."
+                  "note": "Principal: Los aductores aproxima el muslo y estabiliza la cadera frente a fuerzas laterales. La banda se vuelve más exigente al final y hace más visible su participación en ese tramo. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "hip_adduction__band__adduccion_de_cadera",
@@ -1072,7 +1467,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_adduction"
+                    "Aducción",
+                    "Control De Pelvis",
+                    "Alineación"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Aducción"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Control De Pelvis"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -1095,40 +1518,41 @@
                   "movementPatternId": "hip_adduction",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "sacroiliaca",
+                    "rodilla"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "variable_band",
                   "stability": "guided"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso o un rango corto que no alcanza la máxima contracción."
+                    "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
                   ],
                   "cues": [
-                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                    "Banda de pie con ambas piernas: juntas las piernas contra la resistencia elástica. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
                   ],
                   "execution": [
-                    "Cierra las piernas con recorrido controlado y resiste el retorno."
+                    "Banda de pie con ambas piernas: juntas las piernas contra la resistencia elástica. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer aductores y control de la cadera en un recorrido localizado siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar acercamiento de la pierna y estabilidad de la pelvis como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Ajusta el equipo y la posición de inicio antes de mover las piernas."
+                    "Preparación: Banda de pie con ambas piernas: juntas las piernas contra la resistencia elástica."
                   ]
                 },
                 "display": {
@@ -1139,6 +1563,15 @@
                     "laterality": "bilateral",
                     "station": "standing"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Banda de pie con ambas piernas: juntas las piernas contra la resistencia elástica.",
+                    "Fácil de llevar a cualquier sitio; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Banda de pie con ambas piernas: juntas las piernas contra la resistencia elástica. Fácil de llevar a cualquier sitio.",
+                  "technique": "Banda de pie con ambas piernas: juntas las piernas contra la resistencia elástica. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo.",
+                  "variantRationale": "Banda de pie con ambas piernas: juntas las piernas contra la resistencia elástica. Fácil de llevar a cualquier sitio."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1151,7 +1584,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "hip_adduction__standing__band__bilateral",
                   "definitionId": "hip_adduction",
                   "familyId": "hip_adduction",
@@ -1170,7 +1603,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar adductors dentro del patrón hip_adduction con banda."
+                    "Desarrollar los aductores mediante Aducciones de Pierna en la variante Banda Elástica · Trabajo Bilateral · Posición De Pie.",
+                    "Priorizar fortalecer aductores y control de la cadera en un recorrido localizado con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1194,7 +1628,8 @@
                     "band"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón hip_adduction y el objetivo adductors."
+                    "Conserva acercamiento de la pierna y estabilidad de la pelvis y el objetivo de los aductores.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, articulación sacroilíaca, rodilla."
                   ],
                   "replacementGroup": "adductor_hip_adduction",
                   "replacementPriority": 1
@@ -1209,13 +1644,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Ajusta el equipo y la posición de inicio antes de mover las piernas."
+                "Preparación: Banda de pie con ambas piernas: juntas las piernas contra la resistencia elástica."
               ],
               "setupTimeSeconds": 10,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "techniqueSummary": "Banda de pie con ambas piernas: juntas las piernas contra la resistencia elástica. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo.",
+              "ttc": 1.5,
+              "variantRationale": "Banda de pie con ambas piernas: juntas las piernas contra la resistencia elástica. Fácil de llevar a cualquier sitio."
             },
             "selectedOptions": {
               "implement": "band",
@@ -1229,9 +1666,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#adductors_aduccion_cadera_sentado_maquina",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "hip_adduction__standing__band__unilateral",
@@ -1239,18 +1676,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Banda en una pierna: aducciones contra la banda lado a lado.",
+                "Útil para activar el muslo interno antes de las sentadillas."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Usar impulso o un rango corto que no alcanza la máxima contracción."
+                "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
               ],
-              "description": "Banda en una pierna: aducciones contra la banda lado a lado. Ideal para activar el muslo interno antes de las sentadillas.",
+              "description": "Banda en una pierna: aducciones contra la banda lado a lado. Útil para activar el muslo interno antes de las sentadillas.",
               "efc": 2.0,
               "equipmentId": "band",
               "executionCues": [
-                "Cierra las piernas con recorrido controlado y resiste el retorno."
+                "Banda en una pierna: aducciones contra la banda lado a lado. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Aducción"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Control De Pelvis"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
               "loadMode": "variable_band_resistance",
@@ -1258,7 +1726,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "adductors",
-                  "note": "Principal: los aductores acercan el muslo a la línea media y concentran el trabajo del movimiento; por eso suman la serie completa (1.0)."
+                  "note": "Principal: Los aductores aproxima el muslo y estabiliza la cadera frente a fuerzas laterales. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "hip_adduction__band__adduccion_de_cadera_unilateral",
@@ -1271,7 +1739,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_adduction"
+                    "Aducción",
+                    "Control De Pelvis",
+                    "Alineación"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Aducción"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Control De Pelvis"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -1294,40 +1790,41 @@
                   "movementPatternId": "hip_adduction",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "sacroiliaca",
+                    "rodilla"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "variable_band",
                   "stability": "guided"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso o un rango corto que no alcanza la máxima contracción."
+                    "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
                   ],
                   "cues": [
-                    "Mantén el equipo machine alineado con el patrón y controla la fase excéntrica."
+                    "Banda en una pierna: aducciones contra la banda lado a lado. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
                   ],
                   "execution": [
-                    "Cierra las piernas con recorrido controlado y resiste el retorno."
+                    "Banda en una pierna: aducciones contra la banda lado a lado. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer aductores y control de la cadera en un recorrido localizado siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar acercamiento de la pierna y estabilidad de la pelvis como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Ajusta el equipo y la posición de inicio antes de mover las piernas."
+                    "Preparación: Banda en una pierna: aducciones contra la banda lado a lado."
                   ]
                 },
                 "display": {
@@ -1338,6 +1835,15 @@
                     "laterality": "unilateral",
                     "station": "standing"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Banda en una pierna: aducciones contra la banda lado a lado.",
+                    "Útil para activar el muslo interno antes de las sentadillas."
+                  ],
+                  "description": "Banda en una pierna: aducciones contra la banda lado a lado. Útil para activar el muslo interno antes de las sentadillas.",
+                  "technique": "Banda en una pierna: aducciones contra la banda lado a lado. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo.",
+                  "variantRationale": "Banda en una pierna: aducciones contra la banda lado a lado. Útil para activar el muslo interno antes de las sentadillas."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1350,7 +1856,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "hip_adduction__standing__band__unilateral",
                   "definitionId": "hip_adduction",
                   "familyId": "hip_adduction",
@@ -1369,7 +1875,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar adductors dentro del patrón hip_adduction con foco unilateral en banda."
+                    "Desarrollar los aductores mediante Aducciones de Pierna en la variante Banda Elástica · Trabajo Unilateral · Posición De Pie.",
+                    "Priorizar fortalecer aductores y control de la cadera en un recorrido localizado con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1393,7 +1900,8 @@
                     "band"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón hip_adduction y el objetivo adductors."
+                    "Conserva acercamiento de la pierna y estabilidad de la pelvis y el objetivo de los aductores.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, articulación sacroilíaca, rodilla."
                   ],
                   "replacementGroup": "adductor_hip_adduction",
                   "replacementPriority": 1
@@ -1408,13 +1916,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Ajusta el equipo y la posición de inicio antes de mover las piernas."
+                "Preparación: Banda en una pierna: aducciones contra la banda lado a lado."
               ],
               "setupTimeSeconds": 10,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "techniqueSummary": "Banda en una pierna: aducciones contra la banda lado a lado. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo.",
+              "ttc": 1.5,
+              "variantRationale": "Banda en una pierna: aducciones contra la banda lado a lado. Útil para activar el muslo interno antes de las sentadillas."
             },
             "selectedOptions": {
               "implement": "band",
@@ -1424,13 +1934,13 @@
           }
         ],
         "defaultConfigurationId": "hip_adduction__seated__machine__bilateral",
-        "description": "Aducciones de pierna: juntas la pierna hacia el centro contra resistencia y los aductores del muslo interno se encienden. Clave para piernas equilibradas y una cadera estable.",
+        "description": "Juntas la pierna hacia el centro contra resistencia y los aductores del muslo interno aumentan su tensión. Clave para piernas equilibradas y una cadera estable.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:hip_adduction"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "hip_adduction",
@@ -1456,9 +1966,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#adductors_plancha_copenhagen_dinamica",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "copenhagen_plank_dynamic__default",
@@ -1466,18 +1976,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Versión dinámica: subes y bajas la cadera con ritmo entre el banco y el suelo.",
+                "El movimiento añade trabajo extra a los aductores y al core."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.5,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón aducción dinámica para completar la repetición."
+                "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
               ],
               "description": "Versión dinámica: subes y bajas la cadera con ritmo entre el banco y el suelo. El movimiento añade trabajo extra a los aductores y al core.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Ejecuta «Plancha Copenhagen Dinámica» siguiendo el patrón aducción dinámica con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Versión dinámica: subes y bajas la cadera con ritmo entre el banco y el suelo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Aducción"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Control De Pelvis"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
@@ -1485,11 +2026,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "adductors",
-                  "note": "Principal: los aductores acercan la pierna hacia la línea media y son el motor del ejercicio; por eso suman la serie completa (1.0)."
+                  "note": "Principal: Los aductores aproxima el muslo y estabiliza la cadera frente a fuerzas laterales. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Secundario: el core asiste la transmisión de fuerza entre el tronco y las extremidades; por eso suma 0.5."
+                  "note": "Secundaria: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "copenhagen_plank__bodyweight__plancha_copenhagen",
@@ -1502,7 +2043,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_adduction_dynamic"
+                    "Aducción",
+                    "Control De Pelvis",
+                    "Alineación"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Aducción"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Control De Pelvis"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -1527,46 +2096,56 @@
                   "movementPatternId": "hip_adduction_dynamic",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "sacroiliaca",
+                    "rodilla"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón aducción dinámica para completar la repetición."
+                    "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
                   ],
                   "cues": [
-                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                    "Versión dinámica: subes y bajas la cadera con ritmo entre el banco y el suelo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Ejecuta «Plancha Copenhagen Dinámica» siguiendo el patrón aducción dinámica con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Versión dinámica: subes y bajas la cadera con ritmo entre el banco y el suelo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer aductores y control de la cadera en un recorrido localizado siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar acercamiento de la pierna y estabilidad de la pelvis como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura peso corporal y adopta la posición específica de «Plancha Copenhagen Dinámica» antes de iniciar; conserva una base estable."
+                    "Preparación: Versión dinámica: subes y bajas la cadera con ritmo entre el banco y el suelo."
                   ]
                 },
                 "display": {
                   "displayName": "Plancha Copenhague Dinámica",
                   "displaySummary": "Plancha Copenhagen",
                   "selectedOptions": {}
+                },
+                "editorial": {
+                  "benefits": [
+                    "Versión dinámica: subes y bajas la cadera con ritmo entre el banco y el suelo.",
+                    "El movimiento añade trabajo extra a los aductores y al core."
+                  ],
+                  "description": "Versión dinámica: subes y bajas la cadera con ritmo entre el banco y el suelo. El movimiento añade trabajo extra a los aductores y al core.",
+                  "technique": "Versión dinámica: subes y bajas la cadera con ritmo entre el banco y el suelo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Versión dinámica: subes y bajas la cadera con ritmo entre el banco y el suelo. El movimiento añade trabajo extra a los aductores y al core."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1579,7 +2158,7 @@
                 },
                 "identity": {
                   "canonicalName": "Plancha Copenhague Dinámica",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "copenhagen_plank_dynamic__default",
                   "definitionId": "copenhagen_plank_dynamic",
                   "familyId": "hip_adduction",
@@ -1598,8 +2177,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar adductors dentro del patrón hip_adduction_dynamic.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar los aductores mediante Plancha Copenhague Dinámica en la variante Peso Corporal.",
+                    "Priorizar fortalecer aductores y control de la cadera en un recorrido localizado con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1621,7 +2200,8 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón hip_adduction_dynamic y el objetivo adductors."
+                    "Conserva acercamiento de la pierna y estabilidad de la pelvis y el objetivo de los aductores.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, articulación sacroilíaca, rodilla."
                   ],
                   "replacementGroup": "adductor_copenhagen",
                   "replacementPriority": 3
@@ -1638,25 +2218,27 @@
                 "core"
               ],
               "setupCues": [
-                "Configura peso corporal y adopta la posición específica de «Plancha Copenhagen Dinámica» antes de iniciar; conserva una base estable."
+                "Preparación: Versión dinámica: subes y bajas la cadera con ritmo entre el banco y el suelo."
               ],
               "setupTimeSeconds": 10,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.5,
-              "ttc": 1.5
+              "techniqueSummary": "Versión dinámica: subes y bajas la cadera con ritmo entre el banco y el suelo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 1.5,
+              "variantRationale": "Versión dinámica: subes y bajas la cadera con ritmo entre el banco y el suelo. El movimiento añade trabajo extra a los aductores y al core."
             },
             "selectedOptions": {}
           }
         ],
         "defaultConfigurationId": "copenhagen_plank_dynamic__default",
-        "description": "Plancha Copenhague dinámica: como la clásica, pero bajando y subiendo la cadera con ritmo. La versión con movimiento que hace arder los aductores aún más rápido.",
+        "description": "Como la tradicional, pero bajando y subiendo la cadera con ritmo. La versión con movimiento que aumenta la fatiga local de los aductores aún más rápido.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v3-2026-08-02"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Aprobado por decisión explícita de catálogo v3; la configuración está materializada y no depende de inferencia runtime.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "hip_adduction",
@@ -1674,9 +2256,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:hip_adduction"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "hip_adduction",
@@ -1685,6 +2267,6 @@
       "hip_adduction"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

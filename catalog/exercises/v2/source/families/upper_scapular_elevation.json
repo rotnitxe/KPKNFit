@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Tren superior · trapezius · scapular elevation",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_encogimientos",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "back_encogimientos__dumbbells",
@@ -22,18 +22,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
+              "benefits": [
+                "Mancuernas a los costados y hombros hacia arriba: el encogimiento tradicional.",
+                "La forma más utilizada de trabajar los trapecios."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Usar los brazos o el tronco en lugar de la elevación escapular."
+                "Encoger el cuello, doblar los codos o balancear el tronco."
               ],
-              "description": "Mancuernas a los costados y hombros hacia arriba: el encogimiento clásico. La forma más popular de trabajar los trapecios.",
+              "description": "Mancuernas a los costados y hombros hacia arriba: el encogimiento tradicional. La forma más utilizada de trabajar los trapecios.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Eleva los hombros hacia las orejas y baja con control sin balanceo."
+                "Mancuernas a los costados y hombros hacia arriba: el encogimiento tradicional. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Elevación O Depresión"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se desplaza sobre el tórax y concentra la acción del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Centrado Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El hombro mantiene la cabeza del brazo organizada mientras la escápula se mueve. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Posición Cervical"
+                  ],
+                  "jointId": "columna-cervical",
+                  "note": "Estabilizadora: La columna cervical conserva un cuello largo y evita que el trapecio tire de la cabeza. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -41,11 +72,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El trapecio coordina la posición de la escápula y reparte la fuerza en la cintura escapular. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides estabilizan la escápula durante la elevación; por eso suman 0.5."
+                  "note": "Secundaria: Los romboides acerca y fija las escápulas para que el brazo tenga una base estable. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "back_encogimientos__dumbbells",
@@ -58,7 +89,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "scapular_elevation"
+                    "Elevación O Depresión",
+                    "Centrado Del Hombro",
+                    "Posición Cervical"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Elevación O Depresión"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se desplaza sobre el tórax y concentra la acción del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Centrado Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El hombro mantiene la cabeza del brazo organizada mientras la escápula se mueve. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Posición Cervical"
+                      ],
+                      "jointId": "columna-cervical",
+                      "note": "Estabilizadora: La columna cervical conserva un cuello largo y evita que el trapecio tire de la cabeza. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -83,39 +142,40 @@
                   "movementPatternId": "scapular_elevation",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "escapulotoracica",
+                    "glenohumeral",
+                    "columna-cervical"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar los brazos o el tronco en lugar de la elevación escapular."
+                    "Encoger el cuello, doblar los codos o balancear el tronco."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Mancuernas a los costados y hombros hacia arriba: el encogimiento tradicional. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Eleva los hombros hacia las orejas y baja con control sin balanceo."
+                    "Mancuernas a los costados y hombros hacia arriba: el encogimiento tradicional. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar el control de la cintura escapular para empujes y tirones siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar movimiento de la escápula y estabilidad del hombro como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible.",
+                    "Movilidad de hombro según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Toma el peso con los brazos extendidos y la postura erguida."
+                    "Preparación: Mancuernas a los costados y hombros hacia arriba: el encogimiento tradicional."
                   ]
                 },
                 "display": {
@@ -124,6 +184,15 @@
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Mancuernas a los costados y hombros hacia arriba: el encogimiento tradicional.",
+                    "La forma más utilizada de trabajar los trapecios."
+                  ],
+                  "description": "Mancuernas a los costados y hombros hacia arriba: el encogimiento tradicional. La forma más utilizada de trabajar los trapecios.",
+                  "technique": "Mancuernas a los costados y hombros hacia arriba: el encogimiento tradicional. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Mancuernas a los costados y hombros hacia arriba: el encogimiento tradicional. La forma más utilizada de trabajar los trapecios."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -136,7 +205,7 @@
                 },
                 "identity": {
                   "canonicalName": "Encogimientos",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "back_encogimientos__dumbbells",
                   "definitionId": "back_encogimientos",
                   "familyId": "upper_scapular_elevation",
@@ -156,7 +225,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar trapezius en elevación escapular."
+                    "Desarrollar el trapecio mediante Encogimientos en la variante Mancuernas.",
+                    "Priorizar mejorar el control de la cintura escapular para empujes y tirones con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -182,7 +252,8 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva la elevación escapular y el objetivo trapezius."
+                    "Conserva movimiento de la escápula y estabilidad del hombro y el objetivo de el trapecio.",
+                    "La sustitución debe respetar las articulaciones relevantes: articulación escapulotorácica, hombro, columna cervical."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -199,13 +270,15 @@
                 "rhomboids"
               ],
               "setupCues": [
-                "Toma el peso con los brazos extendidos y la postura erguida."
+                "Preparación: Mancuernas a los costados y hombros hacia arriba: el encogimiento tradicional."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Mancuernas a los costados y hombros hacia arriba: el encogimiento tradicional. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 1.8,
+              "variantRationale": "Mancuernas a los costados y hombros hacia arriba: el encogimiento tradicional. La forma más utilizada de trabajar los trapecios."
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -217,9 +290,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_encogimientos",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "back_encogimientos__smith_machine",
@@ -227,18 +300,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
+              "benefits": [
+                "Smith con los hombros libres: la guía permite cargar más sin tener que equilibrar la barra.",
+                "La referencia vertical facilita repetir el encogimiento y concentrar la tensión en el trapecio."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Usar los brazos o el tronco en lugar de la elevación escapular."
+                "Encoger el cuello, doblar los codos o balancear el tronco."
               ],
-              "description": "Smith y hombros hacia arriba: la barra guiada te permite cargar pesado. Cómoda para encogimientos con mucha carga.",
+              "description": "Smith con los hombros libres: la guía permite cargar más sin tener que equilibrar la barra. La referencia vertical facilita repetir el encogimiento y concentrar la tensión en el trapecio.",
               "efc": 2.5,
               "equipmentId": "smith_machine",
               "executionCues": [
-                "Eleva los hombros hacia las orejas y baja con control sin balanceo."
+                "Smith con los hombros libres: la guía permite cargar más sin tener que equilibrar la barra. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Elevación O Depresión"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se desplaza sobre el tórax y concentra la acción del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Centrado Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El hombro mantiene la cabeza del brazo organizada mientras la escápula se mueve. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Posición Cervical"
+                  ],
+                  "jointId": "columna-cervical",
+                  "note": "Estabilizadora: La columna cervical conserva un cuello largo y evita que el trapecio tire de la cabeza. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
@@ -246,11 +350,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El trapecio coordina la posición de la escápula y reparte la fuerza en la cintura escapular. En la configuración Máquina Smith, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides estabilizan la escápula durante la elevación; por eso suman 0.5."
+                  "note": "Secundaria: Los romboides acerca y fija las escápulas para que el brazo tenga una base estable. En la configuración Máquina Smith, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "back_encogimientos__smith_machine",
@@ -263,7 +367,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "scapular_elevation"
+                    "Elevación O Depresión",
+                    "Centrado Del Hombro",
+                    "Posición Cervical"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Elevación O Depresión"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se desplaza sobre el tórax y concentra la acción del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Centrado Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El hombro mantiene la cabeza del brazo organizada mientras la escápula se mueve. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Posición Cervical"
+                      ],
+                      "jointId": "columna-cervical",
+                      "note": "Estabilizadora: La columna cervical conserva un cuello largo y evita que el trapecio tire de la cabeza. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -288,39 +420,40 @@
                   "movementPatternId": "scapular_elevation",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "escapulotoracica",
+                    "glenohumeral",
+                    "columna-cervical"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar los brazos o el tronco en lugar de la elevación escapular."
+                    "Encoger el cuello, doblar los codos o balancear el tronco."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Smith con los hombros libres: la guía permite cargar más sin tener que equilibrar la barra. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Eleva los hombros hacia las orejas y baja con control sin balanceo."
+                    "Smith con los hombros libres: la guía permite cargar más sin tener que equilibrar la barra. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar el control de la cintura escapular para empujes y tirones siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar movimiento de la escápula y estabilidad del hombro como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible.",
+                    "Movilidad de hombro según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Toma el peso con los brazos extendidos y la postura erguida."
+                    "Preparación: Smith con los hombros libres: la guía permite cargar más sin tener que equilibrar la barra."
                   ]
                 },
                 "display": {
@@ -329,6 +462,15 @@
                   "selectedOptions": {
                     "implement": "smith_machine"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Smith con los hombros libres: la guía permite cargar más sin tener que equilibrar la barra.",
+                    "La referencia vertical facilita repetir el encogimiento y concentrar la tensión en el trapecio."
+                  ],
+                  "description": "Smith con los hombros libres: la guía permite cargar más sin tener que equilibrar la barra. La referencia vertical facilita repetir el encogimiento y concentrar la tensión en el trapecio.",
+                  "technique": "Smith con los hombros libres: la guía permite cargar más sin tener que equilibrar la barra. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Smith con los hombros libres: la guía permite cargar más sin tener que equilibrar la barra. La referencia vertical facilita repetir el encogimiento y concentrar la tensión en el trapecio."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -341,7 +483,7 @@
                 },
                 "identity": {
                   "canonicalName": "Encogimientos",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "back_encogimientos__smith_machine",
                   "definitionId": "back_encogimientos",
                   "familyId": "upper_scapular_elevation",
@@ -361,7 +503,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar trapezius en elevación escapular."
+                    "Desarrollar el trapecio mediante Encogimientos en la variante Máquina Smith.",
+                    "Priorizar mejorar el control de la cintura escapular para empujes y tirones con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -387,7 +530,8 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva la elevación escapular y el objetivo trapezius."
+                    "Conserva movimiento de la escápula y estabilidad del hombro y el objetivo de el trapecio.",
+                    "La sustitución debe respetar las articulaciones relevantes: articulación escapulotorácica, hombro, columna cervical."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -404,13 +548,15 @@
                 "rhomboids"
               ],
               "setupCues": [
-                "Toma el peso con los brazos extendidos y la postura erguida."
+                "Preparación: Smith con los hombros libres: la guía permite cargar más sin tener que equilibrar la barra."
               ],
               "setupTimeSeconds": 40,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Smith con los hombros libres: la guía permite cargar más sin tener que equilibrar la barra. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 1.8,
+              "variantRationale": "Smith con los hombros libres: la guía permite cargar más sin tener que equilibrar la barra. La referencia vertical facilita repetir el encogimiento y concentrar la tensión en el trapecio."
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -422,9 +568,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_encogimientos",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "back_encogimientos__cable",
@@ -432,18 +578,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
+              "benefits": [
+                "Polea y hombros hacia arriba: la tensión constante mantiene el trapecio cargado.",
+                "La versión precisa del encogimiento; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Usar los brazos o el tronco en lugar de la elevación escapular."
+                "Encoger el cuello, doblar los codos o balancear el tronco."
               ],
-              "description": "Polea y hombros hacia arriba: la tensión constante mantiene el trapecio cargado. La versión fina del encogimiento.",
+              "description": "Polea y hombros hacia arriba: la tensión constante mantiene el trapecio cargado. La versión precisa del encogimiento.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
-                "Eleva los hombros hacia las orejas y baja con control sin balanceo."
+                "Polea y hombros hacia arriba: la tensión constante mantiene el trapecio cargado. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Elevación O Depresión"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se desplaza sobre el tórax y concentra la acción del ejercicio. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Centrado Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El hombro mantiene la cabeza del brazo organizada mientras la escápula se mueve. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Posición Cervical"
+                  ],
+                  "jointId": "columna-cervical",
+                  "note": "Estabilizadora: La columna cervical conserva un cuello largo y evita que el trapecio tire de la cabeza. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
@@ -451,11 +628,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El trapecio coordina la posición de la escápula y reparte la fuerza en la cintura escapular. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides estabilizan la escápula durante la elevación; por eso suman 0.5."
+                  "note": "Secundaria: Los romboides acerca y fija las escápulas para que el brazo tenga una base estable. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "back_encogimientos__cable",
@@ -468,7 +645,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "scapular_elevation"
+                    "Elevación O Depresión",
+                    "Centrado Del Hombro",
+                    "Posición Cervical"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Elevación O Depresión"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se desplaza sobre el tórax y concentra la acción del ejercicio. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Centrado Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El hombro mantiene la cabeza del brazo organizada mientras la escápula se mueve. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Posición Cervical"
+                      ],
+                      "jointId": "columna-cervical",
+                      "note": "Estabilizadora: La columna cervical conserva un cuello largo y evita que el trapecio tire de la cabeza. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -493,39 +698,40 @@
                   "movementPatternId": "scapular_elevation",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "escapulotoracica",
+                    "glenohumeral",
+                    "columna-cervical"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar los brazos o el tronco en lugar de la elevación escapular."
+                    "Encoger el cuello, doblar los codos o balancear el tronco."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Polea y hombros hacia arriba: la tensión constante mantiene el trapecio cargado. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Eleva los hombros hacia las orejas y baja con control sin balanceo."
+                    "Polea y hombros hacia arriba: la tensión constante mantiene el trapecio cargado. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar el control de la cintura escapular para empujes y tirones siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar movimiento de la escápula y estabilidad del hombro como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible.",
+                    "Movilidad de hombro según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Toma el peso con los brazos extendidos y la postura erguida."
+                    "Preparación: Polea y hombros hacia arriba: la tensión constante mantiene el trapecio cargado."
                   ]
                 },
                 "display": {
@@ -534,6 +740,15 @@
                   "selectedOptions": {
                     "implement": "cable"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Polea y hombros hacia arriba: la tensión constante mantiene el trapecio cargado.",
+                    "La versión precisa del encogimiento; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Polea y hombros hacia arriba: la tensión constante mantiene el trapecio cargado. La versión precisa del encogimiento.",
+                  "technique": "Polea y hombros hacia arriba: la tensión constante mantiene el trapecio cargado. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Polea y hombros hacia arriba: la tensión constante mantiene el trapecio cargado. La versión precisa del encogimiento."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -546,7 +761,7 @@
                 },
                 "identity": {
                   "canonicalName": "Encogimientos",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "back_encogimientos__cable",
                   "definitionId": "back_encogimientos",
                   "familyId": "upper_scapular_elevation",
@@ -566,7 +781,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar trapezius en elevación escapular."
+                    "Desarrollar el trapecio mediante Encogimientos en la variante Polea.",
+                    "Priorizar mejorar el control de la cintura escapular para empujes y tirones con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -592,7 +808,8 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva la elevación escapular y el objetivo trapezius."
+                    "Conserva movimiento de la escápula y estabilidad del hombro y el objetivo de el trapecio.",
+                    "La sustitución debe respetar las articulaciones relevantes: articulación escapulotorácica, hombro, columna cervical."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -609,13 +826,15 @@
                 "rhomboids"
               ],
               "setupCues": [
-                "Toma el peso con los brazos extendidos y la postura erguida."
+                "Preparación: Polea y hombros hacia arriba: la tensión constante mantiene el trapecio cargado."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Polea y hombros hacia arriba: la tensión constante mantiene el trapecio cargado. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 1.8,
+              "variantRationale": "Polea y hombros hacia arriba: la tensión constante mantiene el trapecio cargado. La versión precisa del encogimiento."
             },
             "selectedOptions": {
               "implement": "cable"
@@ -627,9 +846,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_encogimientos",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "back_encogimientos__kettlebell",
@@ -637,18 +856,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
+              "benefits": [
+                "Kettlebells a los costados: el peso colgante obliga a fijar la escápula mientras los hombros suben.",
+                "La carga repartida en cada mano añade una exigencia de agarre que no aparece igual con una barra."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Usar los brazos o el tronco en lugar de la elevación escapular."
+                "Encoger el cuello, doblar los codos o balancear el tronco."
               ],
-              "description": "Kettlebells y hombros hacia arriba: el agarre suma trabajo al movimiento. Variante completa de los encogimientos.",
+              "description": "Kettlebells a los costados: el peso colgante obliga a fijar la escápula mientras los hombros suben. La carga repartida en cada mano añade una exigencia de agarre que no aparece igual con una barra.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
-                "Eleva los hombros hacia las orejas y baja con control sin balanceo."
+                "Kettlebells a los costados: el peso colgante obliga a fijar la escápula mientras los hombros suben. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Elevación O Depresión"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se desplaza sobre el tórax y concentra la acción del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Centrado Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El hombro mantiene la cabeza del brazo organizada mientras la escápula se mueve. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Posición Cervical"
+                  ],
+                  "jointId": "columna-cervical",
+                  "note": "Estabilizadora: La columna cervical conserva un cuello largo y evita que el trapecio tire de la cabeza. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -656,11 +906,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El trapecio coordina la posición de la escápula y reparte la fuerza en la cintura escapular. En la configuración Kettlebell, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides estabilizan la escápula durante la elevación; por eso suman 0.5."
+                  "note": "Secundaria: Los romboides acerca y fija las escápulas para que el brazo tenga una base estable. En la configuración Kettlebell, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "back_encogimientos__kettlebell",
@@ -673,7 +923,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "scapular_elevation"
+                    "Elevación O Depresión",
+                    "Centrado Del Hombro",
+                    "Posición Cervical"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Elevación O Depresión"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se desplaza sobre el tórax y concentra la acción del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Centrado Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El hombro mantiene la cabeza del brazo organizada mientras la escápula se mueve. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Posición Cervical"
+                      ],
+                      "jointId": "columna-cervical",
+                      "note": "Estabilizadora: La columna cervical conserva un cuello largo y evita que el trapecio tire de la cabeza. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -698,39 +976,40 @@
                   "movementPatternId": "scapular_elevation",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "escapulotoracica",
+                    "glenohumeral",
+                    "columna-cervical"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar los brazos o el tronco en lugar de la elevación escapular."
+                    "Encoger el cuello, doblar los codos o balancear el tronco."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Kettlebells a los costados: el peso colgante obliga a fijar la escápula mientras los hombros suben. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Eleva los hombros hacia las orejas y baja con control sin balanceo."
+                    "Kettlebells a los costados: el peso colgante obliga a fijar la escápula mientras los hombros suben. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar el control de la cintura escapular para empujes y tirones siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar movimiento de la escápula y estabilidad del hombro como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible.",
+                    "Movilidad de hombro según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Toma el peso con los brazos extendidos y la postura erguida."
+                    "Preparación: Kettlebells a los costados: el peso colgante obliga a fijar la escápula mientras los hombros suben."
                   ]
                 },
                 "display": {
@@ -739,6 +1018,15 @@
                   "selectedOptions": {
                     "implement": "kettlebell"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Kettlebells a los costados: el peso colgante obliga a fijar la escápula mientras los hombros suben.",
+                    "La carga repartida en cada mano añade una exigencia de agarre que no aparece igual con una barra."
+                  ],
+                  "description": "Kettlebells a los costados: el peso colgante obliga a fijar la escápula mientras los hombros suben. La carga repartida en cada mano añade una exigencia de agarre que no aparece igual con una barra.",
+                  "technique": "Kettlebells a los costados: el peso colgante obliga a fijar la escápula mientras los hombros suben. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Kettlebells a los costados: el peso colgante obliga a fijar la escápula mientras los hombros suben. La carga repartida en cada mano añade una exigencia de agarre que no aparece igual con una barra."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -751,7 +1039,7 @@
                 },
                 "identity": {
                   "canonicalName": "Encogimientos",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "back_encogimientos__kettlebell",
                   "definitionId": "back_encogimientos",
                   "familyId": "upper_scapular_elevation",
@@ -771,7 +1059,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar trapezius en elevación escapular."
+                    "Desarrollar el trapecio mediante Encogimientos en la variante Kettlebell.",
+                    "Priorizar mejorar el control de la cintura escapular para empujes y tirones con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -797,7 +1086,8 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva la elevación escapular y el objetivo trapezius."
+                    "Conserva movimiento de la escápula y estabilidad del hombro y el objetivo de el trapecio.",
+                    "La sustitución debe respetar las articulaciones relevantes: articulación escapulotorácica, hombro, columna cervical."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -814,13 +1104,15 @@
                 "rhomboids"
               ],
               "setupCues": [
-                "Toma el peso con los brazos extendidos y la postura erguida."
+                "Preparación: Kettlebells a los costados: el peso colgante obliga a fijar la escápula mientras los hombros suben."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Kettlebells a los costados: el peso colgante obliga a fijar la escápula mientras los hombros suben. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 1.8,
+              "variantRationale": "Kettlebells a los costados: el peso colgante obliga a fijar la escápula mientras los hombros suben. La carga repartida en cada mano añade una exigencia de agarre que no aparece igual con una barra."
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -832,9 +1124,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_encogimientos",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "back_encogimientos__barbell",
@@ -842,18 +1134,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.3,
+              "benefits": [
+                "Barra al frente y hombros hacia arriba: el encogimiento tradicional con barra.",
+                "Facilita progresar con cargas altas; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Usar los brazos o el tronco en lugar de la elevación escapular."
+                "Encoger el cuello, doblar los codos o balancear el tronco."
               ],
-              "description": "Barra al frente y hombros hacia arriba: el encogimiento clásico con barra. La opción de los que buscan cargar peso de verdad.",
+              "description": "Barra al frente y hombros hacia arriba: el encogimiento tradicional con barra. Facilita progresar con cargas altas.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
-                "Eleva los hombros hacia las orejas y baja con control sin balanceo."
+                "Barra al frente y hombros hacia arriba: el encogimiento tradicional con barra. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Elevación O Depresión"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se desplaza sobre el tórax y concentra la acción del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Centrado Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El hombro mantiene la cabeza del brazo organizada mientras la escápula se mueve. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Posición Cervical"
+                  ],
+                  "jointId": "columna-cervical",
+                  "note": "Estabilizadora: La columna cervical conserva un cuello largo y evita que el trapecio tire de la cabeza. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -861,11 +1184,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El trapecio coordina la posición de la escápula y reparte la fuerza en la cintura escapular. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides estabilizan la escápula durante la elevación; por eso suman 0.5."
+                  "note": "Secundaria: Los romboides acerca y fija las escápulas para que el brazo tenga una base estable. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "back_encogimientos__barbell",
@@ -878,7 +1201,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "scapular_elevation"
+                    "Elevación O Depresión",
+                    "Centrado Del Hombro",
+                    "Posición Cervical"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Elevación O Depresión"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se desplaza sobre el tórax y concentra la acción del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Centrado Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El hombro mantiene la cabeza del brazo organizada mientras la escápula se mueve. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Posición Cervical"
+                      ],
+                      "jointId": "columna-cervical",
+                      "note": "Estabilizadora: La columna cervical conserva un cuello largo y evita que el trapecio tire de la cabeza. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -903,39 +1254,40 @@
                   "movementPatternId": "scapular_elevation",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "escapulotoracica",
+                    "glenohumeral",
+                    "columna-cervical"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar los brazos o el tronco en lugar de la elevación escapular."
+                    "Encoger el cuello, doblar los codos o balancear el tronco."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Barra al frente y hombros hacia arriba: el encogimiento tradicional con barra. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Eleva los hombros hacia las orejas y baja con control sin balanceo."
+                    "Barra al frente y hombros hacia arriba: el encogimiento tradicional con barra. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar el control de la cintura escapular para empujes y tirones siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar movimiento de la escápula y estabilidad del hombro como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible.",
+                    "Movilidad de hombro según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Toma el peso con los brazos extendidos y la postura erguida."
+                    "Preparación: Barra al frente y hombros hacia arriba: el encogimiento tradicional con barra."
                   ]
                 },
                 "display": {
@@ -944,6 +1296,15 @@
                   "selectedOptions": {
                     "implement": "barbell"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Barra al frente y hombros hacia arriba: el encogimiento tradicional con barra.",
+                    "Facilita progresar con cargas altas; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Barra al frente y hombros hacia arriba: el encogimiento tradicional con barra. Facilita progresar con cargas altas.",
+                  "technique": "Barra al frente y hombros hacia arriba: el encogimiento tradicional con barra. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Barra al frente y hombros hacia arriba: el encogimiento tradicional con barra. Facilita progresar con cargas altas."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -956,7 +1317,7 @@
                 },
                 "identity": {
                   "canonicalName": "Encogimientos",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "back_encogimientos__barbell",
                   "definitionId": "back_encogimientos",
                   "familyId": "upper_scapular_elevation",
@@ -976,7 +1337,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar trapezius en elevación escapular."
+                    "Desarrollar el trapecio mediante Encogimientos en la variante Barra.",
+                    "Priorizar mejorar el control de la cintura escapular para empujes y tirones con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1002,7 +1364,8 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva la elevación escapular y el objetivo trapezius."
+                    "Conserva movimiento de la escápula y estabilidad del hombro y el objetivo de el trapecio.",
+                    "La sustitución debe respetar las articulaciones relevantes: articulación escapulotorácica, hombro, columna cervical."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -1019,13 +1382,15 @@
                 "rhomboids"
               ],
               "setupCues": [
-                "Toma el peso con los brazos extendidos y la postura erguida."
+                "Preparación: Barra al frente y hombros hacia arriba: el encogimiento tradicional con barra."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Barra al frente y hombros hacia arriba: el encogimiento tradicional con barra. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 1.8,
+              "variantRationale": "Barra al frente y hombros hacia arriba: el encogimiento tradicional con barra. Facilita progresar con cargas altas."
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -1033,13 +1398,13 @@
           }
         ],
         "defaultConfigurationId": "back_encogimientos__dumbbells",
-        "description": "Encogimientos: subes los hombros hacia las orejas con el peso en las manos. El ejercicio directo de los trapecios, simple y efectivo.",
+        "description": "Subes los hombros hacia las orejas con el peso en las manos. El ejercicio directo de los trapecios, simple y efectivo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:back_encogimientos"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "upper_scapular_elevation",
@@ -1064,9 +1429,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_encogimientos_kelso",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "back_encogimientos_kelso__barbell",
@@ -1074,18 +1439,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
+              "benefits": [
+                "Barra por detrás del cuerpo: el Kelso shrug tradicional con los brazos atrás.",
+                "El trapecio trabaja desde un ángulo distinto."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Levantar el tronco del apoyo para impulsar el encogimiento."
+                "Encoger el cuello, doblar los codos o balancear el tronco."
               ],
-              "description": "Barra por detrás del cuerpo: el Kelso shrug clásico con los brazos atrás. El trapecio trabaja desde un ángulo distinto.",
+              "description": "Barra por detrás del cuerpo: el Kelso shrug tradicional con los brazos atrás. El trapecio trabaja desde un ángulo distinto.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
-                "Eleva los hombros hacia arriba con control desde la posición inclinada."
+                "Barra por detrás del cuerpo: el Kelso shrug tradicional con los brazos atrás. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Elevación O Depresión"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se desplaza sobre el tórax y concentra la acción del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Centrado Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El hombro mantiene la cabeza del brazo organizada mientras la escápula se mueve. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Posición Cervical"
+                  ],
+                  "jointId": "columna-cervical",
+                  "note": "Estabilizadora: La columna cervical conserva un cuello largo y evita que el trapecio tire de la cabeza. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -1093,11 +1489,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El trapecio coordina la posición de la escápula y reparte la fuerza en la cintura escapular. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides sostienen la escápula en la posición inclinada; por eso suman 0.5."
+                  "note": "Secundaria: Los romboides acerca y fija las escápulas para que el brazo tenga una base estable. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "back_encogimientos_kelso__barbell",
@@ -1110,7 +1506,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "scapular_elevation"
+                    "Elevación O Depresión",
+                    "Centrado Del Hombro",
+                    "Posición Cervical"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Elevación O Depresión"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se desplaza sobre el tórax y concentra la acción del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Centrado Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El hombro mantiene la cabeza del brazo organizada mientras la escápula se mueve. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Posición Cervical"
+                      ],
+                      "jointId": "columna-cervical",
+                      "note": "Estabilizadora: La columna cervical conserva un cuello largo y evita que el trapecio tire de la cabeza. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -1135,39 +1559,40 @@
                   "movementPatternId": "scapular_elevation",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "escapulotoracica",
+                    "glenohumeral",
+                    "columna-cervical"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Levantar el tronco del apoyo para impulsar el encogimiento."
+                    "Encoger el cuello, doblar los codos o balancear el tronco."
                   ],
                   "cues": [
-                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                    "Barra por detrás del cuerpo: el Kelso shrug tradicional con los brazos atrás. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Eleva los hombros hacia arriba con control desde la posición inclinada."
+                    "Barra por detrás del cuerpo: el Kelso shrug tradicional con los brazos atrás. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar el control de la cintura escapular para empujes y tirones siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar movimiento de la escápula y estabilidad del hombro como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible.",
+                    "Movilidad de hombro según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."
+                    "Preparación: Barra por detrás del cuerpo: el Kelso shrug tradicional con los brazos atrás."
                   ]
                 },
                 "display": {
@@ -1176,6 +1601,15 @@
                   "selectedOptions": {
                     "implement": "barbell"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Barra por detrás del cuerpo: el Kelso shrug tradicional con los brazos atrás.",
+                    "El trapecio trabaja desde un ángulo distinto."
+                  ],
+                  "description": "Barra por detrás del cuerpo: el Kelso shrug tradicional con los brazos atrás. El trapecio trabaja desde un ángulo distinto.",
+                  "technique": "Barra por detrás del cuerpo: el Kelso shrug tradicional con los brazos atrás. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Barra por detrás del cuerpo: el Kelso shrug tradicional con los brazos atrás. El trapecio trabaja desde un ángulo distinto."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1188,7 +1622,7 @@
                 },
                 "identity": {
                   "canonicalName": "Kelso Shrugs",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "back_encogimientos_kelso__barbell",
                   "definitionId": "back_encogimientos_kelso",
                   "familyId": "upper_scapular_elevation",
@@ -1207,7 +1641,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar trapezius con el patrón inclinado de los Kelso Shrugs."
+                    "Desarrollar el trapecio mediante Kelso Shrugs en la variante Barra.",
+                    "Priorizar mejorar el control de la cintura escapular para empujes y tirones con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1233,7 +1668,8 @@
                     "smith_machine"
                   ],
                   "preservesIntent": [
-                    "Conserva la elevación escapular inclinada y el objetivo trapezius."
+                    "Conserva movimiento de la escápula y estabilidad del hombro y el objetivo de el trapecio.",
+                    "La sustitución debe respetar las articulaciones relevantes: articulación escapulotorácica, hombro, columna cervical."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
@@ -1250,13 +1686,15 @@
                 "rhomboids"
               ],
               "setupCues": [
-                "Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."
+                "Preparación: Barra por detrás del cuerpo: el Kelso shrug tradicional con los brazos atrás."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Barra por detrás del cuerpo: el Kelso shrug tradicional con los brazos atrás. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 1.8,
+              "variantRationale": "Barra por detrás del cuerpo: el Kelso shrug tradicional con los brazos atrás. El trapecio trabaja desde un ángulo distinto."
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -1268,9 +1706,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_encogimientos_kelso",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "back_encogimientos_kelso__machine",
@@ -1278,18 +1716,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
+              "benefits": [
+                "Máquina con los brazos detrás: el guiado hace el recorrido estable.",
+                "La opción cómoda del Kelso shrug; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Levantar el tronco del apoyo para impulsar el encogimiento."
+                "Encoger el cuello, doblar los codos o balancear el tronco."
               ],
               "description": "Máquina con los brazos detrás: el guiado hace el recorrido estable. La opción cómoda del Kelso shrug.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
-                "Eleva los hombros hacia arriba con control desde la posición inclinada."
+                "Máquina con los brazos detrás: el guiado hace el recorrido estable. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Elevación O Depresión"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se desplaza sobre el tórax y concentra la acción del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Centrado Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El hombro mantiene la cabeza del brazo organizada mientras la escápula se mueve. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Posición Cervical"
+                  ],
+                  "jointId": "columna-cervical",
+                  "note": "Estabilizadora: La columna cervical conserva un cuello largo y evita que el trapecio tire de la cabeza. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
@@ -1297,11 +1766,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El trapecio coordina la posición de la escápula y reparte la fuerza en la cintura escapular. En la configuración Máquina, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides sostienen la escápula en la posición inclinada; por eso suman 0.5."
+                  "note": "Secundaria: Los romboides acerca y fija las escápulas para que el brazo tenga una base estable. En la configuración Máquina, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "back_encogimientos_kelso__machine",
@@ -1314,7 +1783,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "scapular_elevation"
+                    "Elevación O Depresión",
+                    "Centrado Del Hombro",
+                    "Posición Cervical"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Elevación O Depresión"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se desplaza sobre el tórax y concentra la acción del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Centrado Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El hombro mantiene la cabeza del brazo organizada mientras la escápula se mueve. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Posición Cervical"
+                      ],
+                      "jointId": "columna-cervical",
+                      "note": "Estabilizadora: La columna cervical conserva un cuello largo y evita que el trapecio tire de la cabeza. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -1339,39 +1836,40 @@
                   "movementPatternId": "scapular_elevation",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "escapulotoracica",
+                    "glenohumeral",
+                    "columna-cervical"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Levantar el tronco del apoyo para impulsar el encogimiento."
+                    "Encoger el cuello, doblar los codos o balancear el tronco."
                   ],
                   "cues": [
-                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                    "Máquina con los brazos detrás: el guiado hace el recorrido estable. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Eleva los hombros hacia arriba con control desde la posición inclinada."
+                    "Máquina con los brazos detrás: el guiado hace el recorrido estable. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar el control de la cintura escapular para empujes y tirones siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar movimiento de la escápula y estabilidad del hombro como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible.",
+                    "Movilidad de hombro según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."
+                    "Preparación: Máquina con los brazos detrás: el guiado hace el recorrido estable."
                   ]
                 },
                 "display": {
@@ -1380,6 +1878,15 @@
                   "selectedOptions": {
                     "implement": "machine"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Máquina con los brazos detrás: el guiado hace el recorrido estable.",
+                    "La opción cómoda del Kelso shrug; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Máquina con los brazos detrás: el guiado hace el recorrido estable. La opción cómoda del Kelso shrug.",
+                  "technique": "Máquina con los brazos detrás: el guiado hace el recorrido estable. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Máquina con los brazos detrás: el guiado hace el recorrido estable. La opción cómoda del Kelso shrug."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1392,7 +1899,7 @@
                 },
                 "identity": {
                   "canonicalName": "Kelso Shrugs",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "back_encogimientos_kelso__machine",
                   "definitionId": "back_encogimientos_kelso",
                   "familyId": "upper_scapular_elevation",
@@ -1411,7 +1918,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar trapezius con el patrón inclinado de los Kelso Shrugs."
+                    "Desarrollar el trapecio mediante Kelso Shrugs en la variante Máquina.",
+                    "Priorizar mejorar el control de la cintura escapular para empujes y tirones con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1437,7 +1945,8 @@
                     "smith_machine"
                   ],
                   "preservesIntent": [
-                    "Conserva la elevación escapular inclinada y el objetivo trapezius."
+                    "Conserva movimiento de la escápula y estabilidad del hombro y el objetivo de el trapecio.",
+                    "La sustitución debe respetar las articulaciones relevantes: articulación escapulotorácica, hombro, columna cervical."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
@@ -1454,13 +1963,15 @@
                 "rhomboids"
               ],
               "setupCues": [
-                "Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."
+                "Preparación: Máquina con los brazos detrás: el guiado hace el recorrido estable."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Máquina con los brazos detrás: el guiado hace el recorrido estable. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 1.8,
+              "variantRationale": "Máquina con los brazos detrás: el guiado hace el recorrido estable. La opción cómoda del Kelso shrug."
             },
             "selectedOptions": {
               "implement": "machine"
@@ -1472,9 +1983,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_encogimientos_kelso",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "back_encogimientos_kelso__cable",
@@ -1482,18 +1993,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
+              "benefits": [
+                "Polea por detrás: la tensión constante acompaña el encogimiento trasero.",
+                "La versión precisa del Kelso; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Levantar el tronco del apoyo para impulsar el encogimiento."
+                "Encoger el cuello, doblar los codos o balancear el tronco."
               ],
-              "description": "Polea por detrás: la tensión constante acompaña el encogimiento trasero. La versión fina del Kelso.",
+              "description": "Polea por detrás: la tensión constante acompaña el encogimiento trasero. La versión precisa del Kelso.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
-                "Eleva los hombros hacia arriba con control desde la posición inclinada."
+                "Polea por detrás: la tensión constante acompaña el encogimiento trasero. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Elevación O Depresión"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se desplaza sobre el tórax y concentra la acción del ejercicio. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Centrado Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El hombro mantiene la cabeza del brazo organizada mientras la escápula se mueve. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Posición Cervical"
+                  ],
+                  "jointId": "columna-cervical",
+                  "note": "Estabilizadora: La columna cervical conserva un cuello largo y evita que el trapecio tire de la cabeza. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
@@ -1501,11 +2043,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El trapecio coordina la posición de la escápula y reparte la fuerza en la cintura escapular. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides sostienen la escápula en la posición inclinada; por eso suman 0.5."
+                  "note": "Secundaria: Los romboides acerca y fija las escápulas para que el brazo tenga una base estable. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "back_encogimientos_kelso__cable",
@@ -1518,7 +2060,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "scapular_elevation"
+                    "Elevación O Depresión",
+                    "Centrado Del Hombro",
+                    "Posición Cervical"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Elevación O Depresión"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se desplaza sobre el tórax y concentra la acción del ejercicio. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Centrado Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El hombro mantiene la cabeza del brazo organizada mientras la escápula se mueve. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Posición Cervical"
+                      ],
+                      "jointId": "columna-cervical",
+                      "note": "Estabilizadora: La columna cervical conserva un cuello largo y evita que el trapecio tire de la cabeza. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -1543,39 +2113,40 @@
                   "movementPatternId": "scapular_elevation",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "escapulotoracica",
+                    "glenohumeral",
+                    "columna-cervical"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Levantar el tronco del apoyo para impulsar el encogimiento."
+                    "Encoger el cuello, doblar los codos o balancear el tronco."
                   ],
                   "cues": [
-                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                    "Polea por detrás: la tensión constante acompaña el encogimiento trasero. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Eleva los hombros hacia arriba con control desde la posición inclinada."
+                    "Polea por detrás: la tensión constante acompaña el encogimiento trasero. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar el control de la cintura escapular para empujes y tirones siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar movimiento de la escápula y estabilidad del hombro como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible.",
+                    "Movilidad de hombro según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."
+                    "Preparación: Polea por detrás: la tensión constante acompaña el encogimiento trasero."
                   ]
                 },
                 "display": {
@@ -1584,6 +2155,15 @@
                   "selectedOptions": {
                     "implement": "cable"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Polea por detrás: la tensión constante acompaña el encogimiento trasero.",
+                    "La versión precisa del Kelso; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Polea por detrás: la tensión constante acompaña el encogimiento trasero. La versión precisa del Kelso.",
+                  "technique": "Polea por detrás: la tensión constante acompaña el encogimiento trasero. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Polea por detrás: la tensión constante acompaña el encogimiento trasero. La versión precisa del Kelso."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1596,7 +2176,7 @@
                 },
                 "identity": {
                   "canonicalName": "Kelso Shrugs",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "back_encogimientos_kelso__cable",
                   "definitionId": "back_encogimientos_kelso",
                   "familyId": "upper_scapular_elevation",
@@ -1615,7 +2195,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar trapezius con el patrón inclinado de los Kelso Shrugs."
+                    "Desarrollar el trapecio mediante Kelso Shrugs en la variante Polea.",
+                    "Priorizar mejorar el control de la cintura escapular para empujes y tirones con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1641,7 +2222,8 @@
                     "smith_machine"
                   ],
                   "preservesIntent": [
-                    "Conserva la elevación escapular inclinada y el objetivo trapezius."
+                    "Conserva movimiento de la escápula y estabilidad del hombro y el objetivo de el trapecio.",
+                    "La sustitución debe respetar las articulaciones relevantes: articulación escapulotorácica, hombro, columna cervical."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
@@ -1658,13 +2240,15 @@
                 "rhomboids"
               ],
               "setupCues": [
-                "Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."
+                "Preparación: Polea por detrás: la tensión constante acompaña el encogimiento trasero."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Polea por detrás: la tensión constante acompaña el encogimiento trasero. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 1.8,
+              "variantRationale": "Polea por detrás: la tensión constante acompaña el encogimiento trasero. La versión precisa del Kelso."
             },
             "selectedOptions": {
               "implement": "cable"
@@ -1676,9 +2260,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_encogimientos_kelso",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "back_encogimientos_kelso__kettlebell",
@@ -1686,18 +2270,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
+              "benefits": [
+                "Kettlebells por detrás: el agarre suma trabajo y el trapecio aumenta su tensión.",
+                "Variante completa del Kelso shrug; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Levantar el tronco del apoyo para impulsar el encogimiento."
+                "Encoger el cuello, doblar los codos o balancear el tronco."
               ],
-              "description": "Kettlebells por detrás: el agarre suma trabajo y el trapecio se enciende. Variante completa del Kelso shrug.",
+              "description": "Kettlebells por detrás: el agarre suma trabajo y el trapecio aumenta su tensión. Variante completa del Kelso shrug.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
-                "Eleva los hombros hacia arriba con control desde la posición inclinada."
+                "Kettlebells por detrás: el agarre suma trabajo y el trapecio aumenta su tensión. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Elevación O Depresión"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se desplaza sobre el tórax y concentra la acción del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Centrado Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El hombro mantiene la cabeza del brazo organizada mientras la escápula se mueve. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Posición Cervical"
+                  ],
+                  "jointId": "columna-cervical",
+                  "note": "Estabilizadora: La columna cervical conserva un cuello largo y evita que el trapecio tire de la cabeza. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
@@ -1705,11 +2320,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El trapecio coordina la posición de la escápula y reparte la fuerza en la cintura escapular. En la configuración Kettlebell, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides sostienen la escápula en la posición inclinada; por eso suman 0.5."
+                  "note": "Secundaria: Los romboides acerca y fija las escápulas para que el brazo tenga una base estable. En la configuración Kettlebell, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "back_encogimientos_kelso__kettlebell",
@@ -1722,7 +2337,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "scapular_elevation"
+                    "Elevación O Depresión",
+                    "Centrado Del Hombro",
+                    "Posición Cervical"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Elevación O Depresión"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se desplaza sobre el tórax y concentra la acción del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Centrado Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El hombro mantiene la cabeza del brazo organizada mientras la escápula se mueve. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Posición Cervical"
+                      ],
+                      "jointId": "columna-cervical",
+                      "note": "Estabilizadora: La columna cervical conserva un cuello largo y evita que el trapecio tire de la cabeza. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -1747,39 +2390,40 @@
                   "movementPatternId": "scapular_elevation",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "escapulotoracica",
+                    "glenohumeral",
+                    "columna-cervical"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Levantar el tronco del apoyo para impulsar el encogimiento."
+                    "Encoger el cuello, doblar los codos o balancear el tronco."
                   ],
                   "cues": [
-                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                    "Kettlebells por detrás: el agarre suma trabajo y el trapecio aumenta su tensión. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Eleva los hombros hacia arriba con control desde la posición inclinada."
+                    "Kettlebells por detrás: el agarre suma trabajo y el trapecio aumenta su tensión. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar el control de la cintura escapular para empujes y tirones siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar movimiento de la escápula y estabilidad del hombro como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible.",
+                    "Movilidad de hombro según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."
+                    "Preparación: Kettlebells por detrás: el agarre suma trabajo y el trapecio aumenta su tensión."
                   ]
                 },
                 "display": {
@@ -1788,6 +2432,15 @@
                   "selectedOptions": {
                     "implement": "kettlebell"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Kettlebells por detrás: el agarre suma trabajo y el trapecio aumenta su tensión.",
+                    "Variante completa del Kelso shrug; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Kettlebells por detrás: el agarre suma trabajo y el trapecio aumenta su tensión. Variante completa del Kelso shrug.",
+                  "technique": "Kettlebells por detrás: el agarre suma trabajo y el trapecio aumenta su tensión. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Kettlebells por detrás: el agarre suma trabajo y el trapecio aumenta su tensión. Variante completa del Kelso shrug."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1800,7 +2453,7 @@
                 },
                 "identity": {
                   "canonicalName": "Kelso Shrugs",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "back_encogimientos_kelso__kettlebell",
                   "definitionId": "back_encogimientos_kelso",
                   "familyId": "upper_scapular_elevation",
@@ -1819,7 +2472,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar trapezius con el patrón inclinado de los Kelso Shrugs."
+                    "Desarrollar el trapecio mediante Kelso Shrugs en la variante Kettlebell.",
+                    "Priorizar mejorar el control de la cintura escapular para empujes y tirones con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1845,7 +2499,8 @@
                     "smith_machine"
                   ],
                   "preservesIntent": [
-                    "Conserva la elevación escapular inclinada y el objetivo trapezius."
+                    "Conserva movimiento de la escápula y estabilidad del hombro y el objetivo de el trapecio.",
+                    "La sustitución debe respetar las articulaciones relevantes: articulación escapulotorácica, hombro, columna cervical."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
@@ -1862,13 +2517,15 @@
                 "rhomboids"
               ],
               "setupCues": [
-                "Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."
+                "Preparación: Kettlebells por detrás: el agarre suma trabajo y el trapecio aumenta su tensión."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Kettlebells por detrás: el agarre suma trabajo y el trapecio aumenta su tensión. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 1.8,
+              "variantRationale": "Kettlebells por detrás: el agarre suma trabajo y el trapecio aumenta su tensión. Variante completa del Kelso shrug."
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -1880,9 +2537,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_encogimientos_kelso",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "back_encogimientos_kelso__smith_machine",
@@ -1890,18 +2547,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
+              "benefits": [
+                "Smith por detrás: la barra guiada con los brazos atrás y mucha carga.",
+                "Estable y útil para acumular trabajo para el trapecio."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Levantar el tronco del apoyo para impulsar el encogimiento."
+                "Encoger el cuello, doblar los codos o balancear el tronco."
               ],
-              "description": "Smith por detrás: la barra guiada con los brazos atrás y mucha carga. Segura y muy efectiva para el trapecio.",
+              "description": "Smith por detrás: la barra guiada con los brazos atrás y mucha carga. Estable y útil para acumular trabajo para el trapecio.",
               "efc": 2.5,
               "equipmentId": "smith_machine",
               "executionCues": [
-                "Eleva los hombros hacia arriba con control desde la posición inclinada."
+                "Smith por detrás: la barra guiada con los brazos atrás y mucha carga. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Elevación O Depresión"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se desplaza sobre el tórax y concentra la acción del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Centrado Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El hombro mantiene la cabeza del brazo organizada mientras la escápula se mueve. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Posición Cervical"
+                  ],
+                  "jointId": "columna-cervical",
+                  "note": "Estabilizadora: La columna cervical conserva un cuello largo y evita que el trapecio tire de la cabeza. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
@@ -1909,11 +2597,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio superior eleva la escápula y concentra el trabajo del encogimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El trapecio coordina la posición de la escápula y reparte la fuerza en la cintura escapular. En la configuración Máquina Smith, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "rhomboids",
-                  "note": "Secundario: los romboides sostienen la escápula en la posición inclinada; por eso suman 0.5."
+                  "note": "Secundaria: Los romboides acerca y fija las escápulas para que el brazo tenga una base estable. En la configuración Máquina Smith, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "back_encogimientos_kelso__smith_machine",
@@ -1926,7 +2614,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "scapular_elevation"
+                    "Elevación O Depresión",
+                    "Centrado Del Hombro",
+                    "Posición Cervical"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Elevación O Depresión"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se desplaza sobre el tórax y concentra la acción del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Centrado Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El hombro mantiene la cabeza del brazo organizada mientras la escápula se mueve. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Posición Cervical"
+                      ],
+                      "jointId": "columna-cervical",
+                      "note": "Estabilizadora: La columna cervical conserva un cuello largo y evita que el trapecio tire de la cabeza. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -1951,39 +2667,40 @@
                   "movementPatternId": "scapular_elevation",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "escapulotoracica",
+                    "glenohumeral",
+                    "columna-cervical"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Levantar el tronco del apoyo para impulsar el encogimiento."
+                    "Encoger el cuello, doblar los codos o balancear el tronco."
                   ],
                   "cues": [
-                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                    "Smith por detrás: la barra guiada con los brazos atrás y mucha carga. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Eleva los hombros hacia arriba con control desde la posición inclinada."
+                    "Smith por detrás: la barra guiada con los brazos atrás y mucha carga. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar el control de la cintura escapular para empujes y tirones siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar movimiento de la escápula y estabilidad del hombro como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible.",
+                    "Movilidad de hombro según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."
+                    "Preparación: Smith por detrás: la barra guiada con los brazos atrás y mucha carga."
                   ]
                 },
                 "display": {
@@ -1992,6 +2709,15 @@
                   "selectedOptions": {
                     "implement": "smith_machine"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Smith por detrás: la barra guiada con los brazos atrás y mucha carga.",
+                    "Estable y útil para acumular trabajo para el trapecio."
+                  ],
+                  "description": "Smith por detrás: la barra guiada con los brazos atrás y mucha carga. Estable y útil para acumular trabajo para el trapecio.",
+                  "technique": "Smith por detrás: la barra guiada con los brazos atrás y mucha carga. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Smith por detrás: la barra guiada con los brazos atrás y mucha carga. Estable y útil para acumular trabajo para el trapecio."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2004,7 +2730,7 @@
                 },
                 "identity": {
                   "canonicalName": "Kelso Shrugs",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "back_encogimientos_kelso__smith_machine",
                   "definitionId": "back_encogimientos_kelso",
                   "familyId": "upper_scapular_elevation",
@@ -2023,7 +2749,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar trapezius con el patrón inclinado de los Kelso Shrugs."
+                    "Desarrollar el trapecio mediante Kelso Shrugs en la variante Máquina Smith.",
+                    "Priorizar mejorar el control de la cintura escapular para empujes y tirones con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -2049,7 +2776,8 @@
                     "smith_machine"
                   ],
                   "preservesIntent": [
-                    "Conserva la elevación escapular inclinada y el objetivo trapezius."
+                    "Conserva movimiento de la escápula y estabilidad del hombro y el objetivo de el trapecio.",
+                    "La sustitución debe respetar las articulaciones relevantes: articulación escapulotorácica, hombro, columna cervical."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
@@ -2066,13 +2794,15 @@
                 "rhomboids"
               ],
               "setupCues": [
-                "Apoya el tronco inclinado sobre un banco o la estación y deja los brazos colgando."
+                "Preparación: Smith por detrás: la barra guiada con los brazos atrás y mucha carga."
               ],
               "setupTimeSeconds": 40,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Smith por detrás: la barra guiada con los brazos atrás y mucha carga. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 1.8,
+              "variantRationale": "Smith por detrás: la barra guiada con los brazos atrás y mucha carga. Estable y útil para acumular trabajo para el trapecio."
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -2080,13 +2810,13 @@
           }
         ],
         "defaultConfigurationId": "back_encogimientos_kelso__barbell",
-        "description": "Kelso shrugs: encogimientos con los brazos por detrás del cuerpo, pegados a la espalda. La variante que enciende los trapecios desde un ángulo distinto.",
+        "description": "Encogimientos con los brazos por detrás del cuerpo, pegados a la espalda. La variante que aumenta la tensión del trapecio desde un ángulo distinto.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:back_encogimientos_kelso"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "upper_scapular_elevation",
@@ -2110,9 +2840,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_y_raises",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "back_y_raises__default",
@@ -2120,18 +2850,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Subes los brazos en forma de Y desde el suelo: la espalda alta y el hombro trabajan con elegancia.",
+                "Un ejercicio preciso para la postura; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón elevación escapular para completar la repetición."
+                "Encoger el cuello, doblar los codos o balancear el tronco."
               ],
-              "description": "Subes los brazos en forma de Y desde el suelo: la espalda alta y el hombro trabajan con elegancia. Un ejercicio fino para la postura.",
+              "description": "Subes los brazos en forma de Y desde el suelo: la espalda alta y el hombro trabajan con elegancia. Un ejercicio preciso para la postura.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Ejecuta «Y-Raises» siguiendo el patrón elevación escapular con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Subes los brazos en forma de Y desde el suelo: la espalda alta y el hombro trabajan con elegancia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Elevación O Depresión"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se desplaza sobre el tórax y concentra la acción del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Centrado Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El hombro mantiene la cabeza del brazo organizada mientras la escápula se mueve. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Posición Cervical"
+                  ],
+                  "jointId": "columna-cervical",
+                  "note": "Estabilizadora: La columna cervical conserva un cuello largo y evita que el trapecio tire de la cabeza. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -2139,23 +2900,23 @@
               "muscleNotes": [
                 {
                   "muscleId": "trapezius",
-                  "note": "Principal: el trapecio mueve la escápula y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El trapecio coordina la posición de la escápula y reparte la fuerza en la cintura escapular. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tracciona el brazo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El dorsal extiende o aproxima el brazo al tronco desde la espalda. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."
+                  "note": "Secundaria: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "biceps",
-                  "note": "Secundario: el bíceps asiste la tracción o flexión con contribución real al movimiento; por eso suma 0.5."
+                  "note": "Secundaria: El bíceps flexiona el codo y, con agarre supino, ayuda a supinar el antebrazo. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "erector_spinae",
-                  "note": "Secundario: los erectores asisten la extensión y el control de la columna; por eso suman 0.5."
+                  "note": "Secundaria: Los erectores espinales sostiene la columna frente a la flexión y transmite fuerza entre pelvis y tronco. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "back_y_raises__dumbbells__y_raises",
@@ -2169,7 +2930,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "scapular_elevation"
+                    "Elevación O Depresión",
+                    "Centrado Del Hombro",
+                    "Posición Cervical"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Elevación O Depresión"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se desplaza sobre el tórax y concentra la acción del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Centrado Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El hombro mantiene la cabeza del brazo organizada mientras la escápula se mueve. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Posición Cervical"
+                      ],
+                      "jointId": "columna-cervical",
+                      "note": "Estabilizadora: La columna cervical conserva un cuello largo y evita que el trapecio tire de la cabeza. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -2197,45 +2986,55 @@
                   "movementPatternId": "scapular_elevation",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "escapulotoracica",
+                    "glenohumeral",
+                    "columna-cervical"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón elevación escapular para completar la repetición."
+                    "Encoger el cuello, doblar los codos o balancear el tronco."
                   ],
                   "cues": [
-                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                    "Subes los brazos en forma de Y desde el suelo: la espalda alta y el hombro trabajan con elegancia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Ejecuta «Y-Raises» siguiendo el patrón elevación escapular con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Subes los brazos en forma de Y desde el suelo: la espalda alta y el hombro trabajan con elegancia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar el control de la cintura escapular para empujes y tirones siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar movimiento de la escápula y estabilidad del hombro como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible.",
+                    "Movilidad de hombro según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura mancuerna y adopta la posición específica de «Y-Raises» antes de iniciar; conserva una base estable."
+                    "Preparación: Subes los brazos en forma de Y desde el suelo: la espalda alta y el hombro trabajan con elegancia."
                   ]
                 },
                 "display": {
                   "displayName": "Y-Raises",
                   "displaySummary": "Mancuerna",
                   "selectedOptions": {}
+                },
+                "editorial": {
+                  "benefits": [
+                    "Subes los brazos en forma de Y desde el suelo: la espalda alta y el hombro trabajan con elegancia.",
+                    "Un ejercicio preciso para la postura; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Subes los brazos en forma de Y desde el suelo: la espalda alta y el hombro trabajan con elegancia. Un ejercicio preciso para la postura.",
+                  "technique": "Subes los brazos en forma de Y desde el suelo: la espalda alta y el hombro trabajan con elegancia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Subes los brazos en forma de Y desde el suelo: la espalda alta y el hombro trabajan con elegancia. Un ejercicio preciso para la postura."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2248,7 +3047,7 @@
                 },
                 "identity": {
                   "canonicalName": "Y-Raises",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "back_y_raises__default",
                   "definitionId": "back_y_raises",
                   "familyId": "upper_scapular_elevation",
@@ -2266,8 +3065,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar trapezius dentro del patrón scapular_elevation.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el trapecio mediante Y-Raises en la variante Mancuernas.",
+                    "Priorizar mejorar el control de la cintura escapular para empujes y tirones con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -2289,7 +3088,8 @@
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón scapular_elevation y el objetivo trapezius."
+                    "Conserva movimiento de la escápula y estabilidad del hombro y el objetivo de el trapecio.",
+                    "La sustitución debe respetar las articulaciones relevantes: articulación escapulotorácica, hombro, columna cervical."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -2308,25 +3108,27 @@
                 "erector_spinae"
               ],
               "setupCues": [
-                "Configura mancuerna y adopta la posición específica de «Y-Raises» antes de iniciar; conserva una base estable."
+                "Preparación: Subes los brazos en forma de Y desde el suelo: la espalda alta y el hombro trabajan con elegancia."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Subes los brazos en forma de Y desde el suelo: la espalda alta y el hombro trabajan con elegancia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 1.8,
+              "variantRationale": "Subes los brazos en forma de Y desde el suelo: la espalda alta y el hombro trabajan con elegancia. Un ejercicio preciso para la postura."
             },
             "selectedOptions": {}
           }
         ],
         "defaultConfigurationId": "back_y_raises__default",
-        "description": "Y-raises: subes los brazos en forma de Y desde el suelo o el banco. La espalda alta y los hombros trabajando con un movimiento fino y elegante.",
+        "description": "Subes los brazos en forma de Y desde el suelo o el banco. La espalda alta y los hombros trabajando con un movimiento preciso y elegante.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:back_y_raises"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "upper_scapular_elevation",
@@ -2343,9 +3145,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:upper_scapular_elevation"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "upper_scapular_elevation",
@@ -2354,6 +3156,6 @@
       "scapular_elevation"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

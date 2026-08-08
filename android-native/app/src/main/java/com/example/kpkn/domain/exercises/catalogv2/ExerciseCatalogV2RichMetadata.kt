@@ -29,6 +29,7 @@ data class ExerciseAnatomyMetadataV2(
     val stabilizerMuscles: List<String> = emptyList(),
     val targetRegions: List<String> = emptyList(),
     val jointActions: List<String> = emptyList(),
+    val jointInvolvement: List<JointInvolvementV2> = emptyList(),
     val muscleLengthBias: String? = null,
     val volumeContribution: String? = null,
     val stabilizationDemand: String? = null,
@@ -108,6 +109,14 @@ data class ExerciseDisplayMetadataV2(
 )
 
 @Serializable
+data class ExerciseEditorialMetadataV2(
+    val description: String = "",
+    val benefits: List<String> = emptyList(),
+    val technique: String = "",
+    val variantRationale: String = "",
+)
+
+@Serializable
 data class IntRangeV2(
     val min: Int,
     val max: Int,
@@ -129,6 +138,7 @@ data class ResolvedExerciseMetadataV2(
     val coaching: ExerciseCoachingMetadataV2,
     val safety: ExerciseSafetyMetadataV2,
     val display: ExerciseDisplayMetadataV2,
+    val editorial: ExerciseEditorialMetadataV2 = ExerciseEditorialMetadataV2(),
     val evidenceConfidence: CatalogConfidenceV2,
 )
 
@@ -153,6 +163,7 @@ fun ResolvedExerciseProfileV2.toRichMetadata(
         primaryMuscles = primaryMuscles,
         secondaryMuscles = secondaryMuscles,
         stabilizerMuscles = stabilizerMuscles,
+        jointInvolvement = jointInvolvement,
     ),
     biomechanics = ExerciseBiomechanicsMetadataV2(
         movementPatternId = movementPatternId,
@@ -186,6 +197,12 @@ fun ResolvedExerciseProfileV2.toRichMetadata(
         displayName = definition.canonicalName,
         displaySummary = configuration.displaySummary,
         selectedOptions = configuration.selectedOptions,
+    ),
+    editorial = ExerciseEditorialMetadataV2(
+        description = description,
+        benefits = benefits,
+        technique = techniqueSummary,
+        variantRationale = variantRationale,
     ),
     evidenceConfidence = configuration.evidence.confidence,
 )

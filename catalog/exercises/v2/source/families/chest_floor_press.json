@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Floor press",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_floor_press_barra",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "floor_press__barbell",
@@ -22,18 +22,58 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro.",
+                "Un press plano con recorrido limitado y estable."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 3.2,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
+                "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas con hombros felices. Un press plano camuflado de seguro.",
+              "description": "Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro. Un press plano con recorrido limitado y estable.",
               "efc": 3.5,
               "equipmentId": "barbell",
               "executionCues": [
-                "Ejecuta «Floor Press con Barra» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro. El suelo limita el descenso cuando los brazos llegan a la línea del torso; la subida parte de una pausa estable."
               ],
               "fatigueTier": "ALTA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Aducción Horizontal",
+                    "Flexión Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Retracción Y Estabilidad Escapular"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad En Extensión"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -41,15 +81,15 @@
               "muscleNotes": [
                 {
                   "muscleId": "pectoralis",
-                  "note": "Principal: el pectoral mayor empuja o aduce el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "triceps",
-                  "note": "Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."
+                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."
+                  "note": "Secundaria: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "floor_press__barbell__floor_press",
@@ -62,7 +102,46 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "horizontal_push"
+                    "Aducción Horizontal",
+                    "Flexión Del Hombro",
+                    "Extensión",
+                    "Retracción Y Estabilidad Escapular",
+                    "Estabilidad En Extensión"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Aducción Horizontal",
+                        "Flexión Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Retracción Y Estabilidad Escapular"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad En Extensión"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -88,39 +167,45 @@
                   "movementPatternId": "horizontal_push",
                   "rangeOfMotion": "limited_by_support",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "codo",
+                    "escapulotoracica",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
+                    "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro. El suelo limita el descenso cuando los brazos llegan a la línea del torso; la subida parte de una pausa estable."
                   ],
                   "execution": [
-                    "Ejecuta «Floor Press con Barra» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro. El suelo limita el descenso cuando los brazos llegan a la línea del torso; la subida parte de una pausa estable."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando trabajar pecho y tríceps con una referencia sencilla para progresar siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar empuje del brazo y extensión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de codo según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura barra y adopta la posición específica de «Floor Press con Barra» antes de iniciar; conserva una base estable."
+                    "Preparación: Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro."
                   ]
                 },
                 "display": {
@@ -129,6 +214,15 @@
                   "selectedOptions": {
                     "implement": "barbell"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro.",
+                    "Un press plano con recorrido limitado y estable."
+                  ],
+                  "description": "Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro. Un press plano con recorrido limitado y estable.",
+                  "technique": "Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro. El suelo limita el descenso cuando los brazos llegan a la línea del torso; la subida parte de una pausa estable.",
+                  "variantRationale": "Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro. Un press plano con recorrido limitado y estable."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -141,7 +235,7 @@
                 },
                 "identity": {
                   "canonicalName": "Floor Press",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "floor_press__barbell",
                   "definitionId": "floor_press",
                   "familyId": "chest_floor_press",
@@ -159,8 +253,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar pectoralis dentro del patrón horizontal_push.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el pectoral mediante Floor Press en la variante Barra.",
+                    "Priorizar trabajar pecho y tríceps con una referencia sencilla para progresar con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "high",
                   "requiredEquipment": [
@@ -182,7 +276,8 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_push y el objetivo pectoralis."
+                    "Conserva empuje del brazo y extensión del codo y el objetivo de el pectoral.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, codo, articulación escapulotorácica."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -202,13 +297,15 @@
                 "deltoid"
               ],
               "setupCues": [
-                "Configura barra y adopta la posición específica de «Floor Press con Barra» antes de iniciar; conserva una base estable."
+                "Preparación: Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro."
               ],
               "setupTimeSeconds": 45,
               "ssc": 1.0,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.2,
-              "ttc": 2.0
+              "techniqueSummary": "Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro. El suelo limita el descenso cuando los brazos llegan a la línea del torso; la subida parte de una pausa estable.",
+              "ttc": 2.0,
+              "variantRationale": "Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro. Un press plano con recorrido limitado y estable."
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -220,9 +317,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_floor_press_mancuernas",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "floor_press__dumbbells",
@@ -230,18 +327,58 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado.",
+                "Útil para ganar fuerza de pecho cuidando el hombro."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.8,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
+                "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado. Ideal para ganar fuerza de pecho cuidando el hombro.",
+              "description": "Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado. Útil para ganar fuerza de pecho cuidando el hombro.",
               "efc": 3.2,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Ejecuta «Floor Press con Mancuernas» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado. El suelo limita el descenso cuando los brazos llegan a la línea del torso; la subida parte de una pausa estable."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Aducción Horizontal",
+                    "Flexión Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Retracción Y Estabilidad Escapular"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad En Extensión"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -249,15 +386,15 @@
               "muscleNotes": [
                 {
                   "muscleId": "pectoralis",
-                  "note": "Principal: el pectoral mayor empuja o aduce el brazo y concentra el trabajo; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "triceps",
-                  "note": "Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."
+                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."
+                  "note": "Secundaria: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "floor_press__dumbbells__floor_press",
@@ -270,7 +407,46 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "horizontal_push"
+                    "Aducción Horizontal",
+                    "Flexión Del Hombro",
+                    "Extensión",
+                    "Retracción Y Estabilidad Escapular",
+                    "Estabilidad En Extensión"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Aducción Horizontal",
+                        "Flexión Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Retracción Y Estabilidad Escapular"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad En Extensión"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -296,39 +472,45 @@
                   "movementPatternId": "horizontal_push",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "codo",
+                    "escapulotoracica",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón empuje horizontal para completar la repetición."
+                    "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
                   ],
                   "cues": [
-                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                    "Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado. El suelo limita el descenso cuando los brazos llegan a la línea del torso; la subida parte de una pausa estable."
                   ],
                   "execution": [
-                    "Ejecuta «Floor Press con Mancuernas» siguiendo el patrón empuje horizontal con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado. El suelo limita el descenso cuando los brazos llegan a la línea del torso; la subida parte de una pausa estable."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando trabajar pecho y tríceps con una referencia sencilla para progresar siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar empuje del brazo y extensión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de codo según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura mancuerna y adopta la posición específica de «Floor Press con Mancuernas» antes de iniciar; conserva una base estable."
+                    "Preparación: Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado."
                   ]
                 },
                 "display": {
@@ -337,6 +519,15 @@
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado.",
+                    "Útil para ganar fuerza de pecho cuidando el hombro."
+                  ],
+                  "description": "Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado. Útil para ganar fuerza de pecho cuidando el hombro.",
+                  "technique": "Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado. El suelo limita el descenso cuando los brazos llegan a la línea del torso; la subida parte de una pausa estable.",
+                  "variantRationale": "Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado. Útil para ganar fuerza de pecho cuidando el hombro."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -349,7 +540,7 @@
                 },
                 "identity": {
                   "canonicalName": "Floor Press",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "floor_press__dumbbells",
                   "definitionId": "floor_press",
                   "familyId": "chest_floor_press",
@@ -367,8 +558,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar pectoralis dentro del patrón horizontal_push.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el pectoral mediante Floor Press en la variante Mancuernas.",
+                    "Priorizar trabajar pecho y tríceps con una referencia sencilla para progresar con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -390,7 +581,8 @@
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón horizontal_push y el objetivo pectoralis."
+                    "Conserva empuje del brazo y extensión del codo y el objetivo de el pectoral.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, codo, articulación escapulotorácica."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -408,13 +600,15 @@
                 "deltoid"
               ],
               "setupCues": [
-                "Configura mancuerna y adopta la posición específica de «Floor Press con Mancuernas» antes de iniciar; conserva una base estable."
+                "Preparación: Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado."
               ],
               "setupTimeSeconds": 30,
               "ssc": 0.9,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "ttc": 2.0
+              "techniqueSummary": "Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado. El suelo limita el descenso cuando los brazos llegan a la línea del torso; la subida parte de una pausa estable.",
+              "ttc": 2.0,
+              "variantRationale": "Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado. Útil para ganar fuerza de pecho cuidando el hombro."
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -422,13 +616,13 @@
           }
         ],
         "defaultConfigurationId": "floor_press__barbell",
-        "description": "Press de pecho acostado en el suelo, con los codos tocando el piso en cada repetición. Reduce el recorrido, protege el hombro y te deja mover cargas pesadas con confianza.",
+        "description": "Press de pecho acostado en el suelo, con los codos tocando el piso en cada repetición. Reduce el recorrido, protege el hombro y te deja mover cargas pesadas con control.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:floor_press"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "chest_floor_press",
@@ -447,9 +641,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:chest_floor_press"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "chest_floor_press",
@@ -459,6 +653,6 @@
       "floor_press"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_RUNTIME_ASSET = ROOT / "android-native" / "app" / "src" / "main" / "assets" / "exercise_catalog_v2.json"
 IOS_RUNTIME_ASSET = ROOT / "ios-native" / "KPKNFit" / "KPKNFit" / "exercise_catalog_v2.json"
 EDITORIAL_SOURCE_ASSET = ROOT / "catalog" / "exercises" / "v2" / "source" / "catalog_v2.json"
+JOINT_ROLES = {"PRIMARY", "SECONDARY", "STABILIZER"}
 
 
 class CatalogV2Error(ValueError):
@@ -172,6 +173,28 @@ def validate_runtime_catalog(catalog: dict[str, Any]) -> None:
                 _require_non_blank(profile.get("description"), f"profile_description:{configuration_id}")
                 if re.search(r"(?i)\b(?:ejecuta|mantén|mantener|configura|adopta|controla|asegura|evita|sigue|selecciona)\b", profile["description"]):
                     raise CatalogV2Error(f"profile_description_instructional:{configuration_id}")
+                benefits = profile.get("benefits")
+                if not isinstance(benefits, list) or len(benefits) < 2 or any(not isinstance(benefit, str) or len(benefit.strip()) < 40 for benefit in benefits):
+                    raise CatalogV2Error(f"profile_benefits_invalid:{configuration_id}")
+                for field in ("techniqueSummary", "variantRationale"):
+                    if not isinstance(profile.get(field), str) or len(profile[field].strip()) < 40:
+                        raise CatalogV2Error(f"profile_{field}_invalid:{configuration_id}")
+                joint_involvement = profile.get("jointInvolvement")
+                if not isinstance(joint_involvement, list) or not joint_involvement:
+                    raise CatalogV2Error(f"profile_joint_involvement_missing:{configuration_id}")
+                joint_ids: list[str] = []
+                for joint in joint_involvement:
+                    if not isinstance(joint, dict) or not isinstance(joint.get("jointId"), str) or not joint["jointId"].strip():
+                        raise CatalogV2Error(f"profile_joint_involvement_invalid:{configuration_id}")
+                    if joint["jointId"] in joint_ids:
+                        raise CatalogV2Error(f"profile_joint_involvement_duplicate:{configuration_id}:{joint['jointId']}")
+                    if joint.get("role") not in JOINT_ROLES:
+                        raise CatalogV2Error(f"profile_joint_role_invalid:{configuration_id}:{joint['jointId']}")
+                    if not isinstance(joint.get("actions"), list) or not joint["actions"] or any(not isinstance(action, str) or not action.strip() for action in joint["actions"]):
+                        raise CatalogV2Error(f"profile_joint_actions_invalid:{configuration_id}:{joint['jointId']}")
+                    if not isinstance(joint.get("note"), str) or len(joint["note"].strip()) < 40:
+                        raise CatalogV2Error(f"profile_joint_note_short:{configuration_id}:{joint['jointId']}")
+                    joint_ids.append(joint["jointId"])
                 notes = profile.get("muscleNotes")
                 if not isinstance(notes, list) or not notes:
                     raise CatalogV2Error(f"profile_muscle_notes_missing:{configuration_id}")
@@ -218,6 +241,8 @@ def validate_runtime_catalog(catalog: dict[str, Any]) -> None:
                     raise CatalogV2Error(f"rich_anatomy_mismatch:{configuration_id}")
                 _require_text_list(anatomy.get("targetRegions"), f"rich_anatomy_target_regions:{configuration_id}")
                 _require_text_list(anatomy.get("jointActions"), f"rich_anatomy_joint_actions:{configuration_id}")
+                if anatomy.get("jointInvolvement") != joint_involvement:
+                    raise CatalogV2Error(f"rich_anatomy_joint_involvement_mismatch:{configuration_id}")
                 for key in ("muscleLengthBias", "volumeContribution", "stabilizationDemand"):
                     _require_non_blank(anatomy.get(key), f"rich_anatomy_{key}:{configuration_id}")
                 biomechanics = rich.get("biomechanics")
@@ -226,7 +251,17 @@ def validate_runtime_catalog(catalog: dict[str, Any]) -> None:
                 _require_non_blank(biomechanics.get("rangeOfMotion"), f"rich_biomechanics_rom:{configuration_id}")
                 _require_non_blank(biomechanics.get("stability"), f"rich_biomechanics_stability:{configuration_id}")
                 _require_text_list(biomechanics.get("relevantJoints"), f"rich_biomechanics_joints:{configuration_id}")
+                if set(biomechanics["relevantJoints"]) != set(joint_ids):
+                    raise CatalogV2Error(f"rich_biomechanics_joint_involvement_mismatch:{configuration_id}")
                 _require_text_list(biomechanics.get("relevantTendons"), f"rich_biomechanics_tendons:{configuration_id}", allow_empty=True)
+                editorial = rich.get("editorial")
+                if not isinstance(editorial, dict):
+                    raise CatalogV2Error(f"rich_editorial_missing:{configuration_id}")
+                if editorial.get("description") != profile.get("description") or editorial.get("benefits") != benefits or editorial.get("technique") != profile.get("techniqueSummary") or editorial.get("variantRationale") != profile.get("variantRationale"):
+                    raise CatalogV2Error(f"rich_editorial_mismatch:{configuration_id}")
+                _require_text_list(editorial.get("benefits"), f"rich_editorial_benefits:{configuration_id}")
+                _require_non_blank(editorial.get("technique"), f"rich_editorial_technique:{configuration_id}")
+                _require_non_blank(editorial.get("variantRationale"), f"rich_editorial_variant:{configuration_id}")
                 fatigue = rich.get("fatigue")
                 if not isinstance(fatigue, dict) or any(fatigue.get(key) != profile.get(key) for key in ("efc", "cnc", "ssc", "ttc", "axialLoadFactor", "technicalDifficulty")):
                     raise CatalogV2Error(f"rich_fatigue_mismatch:{configuration_id}")

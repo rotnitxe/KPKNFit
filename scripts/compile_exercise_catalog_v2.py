@@ -62,7 +62,8 @@ def validate_profile(value: Any, path: str, allow_draft: bool) -> None:
         "movementPatternId", "bodyRegion", "kineticChain", "laterality", "equipmentId",
         "loadMode", "primaryMuscles", "secondaryMuscles", "stabilizerMuscles", "efc",
         "cnc", "ssc", "ttc", "axialLoadFactor", "technicalDifficulty", "resistanceProfile",
-        "description", "muscleNotes", "setupCues", "executionCues", "commonMistakes",
+        "description", "benefits", "techniqueSummary", "variantRationale", "muscleNotes", "jointInvolvement",
+        "setupCues", "executionCues", "commonMistakes",
         "performanceProfileId",
     }
     missing = sorted(key for key in required if key not in value)
@@ -86,6 +87,21 @@ def validate_profile(value: Any, path: str, allow_draft: bool) -> None:
         noted[note["muscleId"]] = True
     missing_notes = sorted(listed - set(noted))
     require(not missing_notes, f"{path}.profile.muscleNotes missing muscles: {', '.join(missing_notes)}")
+    require(isinstance(value["benefits"], list) and len(value["benefits"]) >= 2, f"{path}.profile.benefits requires at least two entries")
+    require(all(isinstance(item, str) and len(item.strip()) >= 40 for item in value["benefits"]), f"{path}.profile.benefits contains short text")
+    require(isinstance(value["techniqueSummary"], str) and len(value["techniqueSummary"].strip()) >= 40, f"{path}.profile.techniqueSummary is too short")
+    require(isinstance(value["variantRationale"], str) and len(value["variantRationale"].strip()) >= 40, f"{path}.profile.variantRationale is too short")
+    joints = value.get("jointInvolvement")
+    require(isinstance(joints, list) and joints, f"{path}.profile.jointInvolvement cannot be empty")
+    joint_ids = []
+    for joint in joints:
+        require(isinstance(joint, dict), f"{path}.profile.jointInvolvement entry invalid")
+        require(isinstance(joint.get("jointId"), str) and joint["jointId"].strip(), f"{path}.profile.jointInvolvement jointId invalid")
+        require(joint["jointId"] not in joint_ids, f"{path}.profile.jointInvolvement duplicate: {joint['jointId']}")
+        joint_ids.append(joint["jointId"])
+        require(joint.get("role") in {"PRIMARY", "SECONDARY", "STABILIZER"}, f"{path}.profile.jointInvolvement role invalid")
+        require(isinstance(joint.get("actions"), list) and joint["actions"] and all(isinstance(action, str) and action.strip() for action in joint["actions"]), f"{path}.profile.jointInvolvement actions invalid")
+        require(isinstance(joint.get("note"), str) and len(joint["note"].strip()) >= 40, f"{path}.profile.jointInvolvement note too short")
     for key in ("efc", "cnc", "ssc", "ttc", "axialLoadFactor"):
         require(isinstance(value[key], (int, float)) and value[key] >= 0, f"{path}.profile.{key} must be a non-negative number")
     require(1 <= value["technicalDifficulty"] <= 10, f"{path}.profile.technicalDifficulty must be 1..10")
@@ -100,7 +116,7 @@ def validate_profile(value: Any, path: str, allow_draft: bool) -> None:
         require(value.get("automationEligible") is True, f"{path}.profile.automationEligible must be true for runtime")
         rich = value.get("richMetadata")
         require(isinstance(rich, dict), f"{path}.profile.richMetadata is required for runtime")
-        required_sections = {"identity", "anatomy", "biomechanics", "programming", "fatigue", "replacement", "coaching", "safety", "display", "evidenceConfidence"}
+        required_sections = {"identity", "anatomy", "biomechanics", "programming", "fatigue", "replacement", "coaching", "safety", "display", "editorial", "evidenceConfidence"}
         require(required_sections.issubset(rich), f"{path}.profile.richMetadata missing required sections")
         require(rich.get("evidenceConfidence") in {"MEDIUM", "HIGH"}, f"{path}.profile.richMetadata confidence must be MEDIUM or HIGH for runtime")
 
@@ -152,6 +168,7 @@ def validate_rich_metadata(
     require(anatomy.get("primaryMuscles") == profile["primaryMuscles"], f"{path}.richMetadata.anatomy.primaryMuscles mismatch")
     require(anatomy.get("secondaryMuscles") == profile["secondaryMuscles"], f"{path}.richMetadata.anatomy.secondaryMuscles mismatch")
     require(anatomy.get("stabilizerMuscles") == profile["stabilizerMuscles"], f"{path}.richMetadata.anatomy.stabilizerMuscles mismatch")
+    require(anatomy.get("jointInvolvement") == profile["jointInvolvement"], f"{path}.richMetadata.anatomy.jointInvolvement mismatch")
     biomechanics = rich.get("biomechanics")
     require(isinstance(biomechanics, dict), f"{path}.profile.richMetadata.biomechanics must be an object")
     for key in ("movementPatternId", "bodyRegion", "kineticChain", "laterality", "equipmentId", "loadMode", "resistanceProfile"):
@@ -159,6 +176,7 @@ def validate_rich_metadata(
     require_text(biomechanics.get("rangeOfMotion"), "biomechanics.rangeOfMotion")
     require_text(biomechanics.get("stability"), "biomechanics.stability")
     require_text_list(biomechanics.get("relevantJoints"), "biomechanics.relevantJoints")
+    require(set(biomechanics["relevantJoints"]) == {joint["jointId"] for joint in profile["jointInvolvement"]}, f"{path}.richMetadata.biomechanics.relevantJoints mismatch")
     require_text_list(biomechanics.get("relevantTendons"), "biomechanics.relevantTendons", allow_empty=True)
     fatigue = rich.get("fatigue")
     require(isinstance(fatigue, dict), f"{path}.profile.richMetadata.fatigue must be an object")
@@ -197,6 +215,15 @@ def validate_rich_metadata(
     require_text_list(safety.get("risks"), "safety.risks", allow_empty=True)
     require_text_list(safety.get("precautions"), "safety.precautions", allow_empty=True)
     require(isinstance(safety.get("medicalDisclaimerRequired"), bool), f"{path}.richMetadata.safety.medicalDisclaimerRequired must be boolean")
+    editorial = rich.get("editorial")
+    require(isinstance(editorial, dict), f"{path}.profile.richMetadata.editorial must be an object")
+    require(editorial.get("description") == profile["description"], f"{path}.richMetadata.editorial.description mismatch")
+    require(editorial.get("benefits") == profile["benefits"], f"{path}.richMetadata.editorial.benefits mismatch")
+    require(editorial.get("technique") == profile["techniqueSummary"], f"{path}.richMetadata.editorial.technique mismatch")
+    require(editorial.get("variantRationale") == profile["variantRationale"], f"{path}.richMetadata.editorial.variantRationale mismatch")
+    require_text_list(editorial.get("benefits"), "editorial.benefits")
+    require_text(editorial.get("technique"), "editorial.technique")
+    require_text(editorial.get("variantRationale"), "editorial.variantRationale")
     require(rich.get("evidenceConfidence") in {"MEDIUM", "HIGH"}, f"{path}.profile.richMetadata confidence must be MEDIUM or HIGH for runtime")
 def validate_family_manifest(source: dict[str, Any]) -> None:
     manifest_path = ROOT / "catalog" / "exercises" / "v2" / "source" / "manifest.json"

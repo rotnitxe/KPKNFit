@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Press de Hombros Sentado",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_hombros_sentado",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "seated_shoulder_press__barbell",
@@ -22,18 +22,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Barra sentado con respaldo: el torso fijo y los hombros haciendo todo el empuje.",
+                "El press sentado tradicional con barra; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.8,
               "commonMistakes": [
-                "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Barra sentado con respaldo: el torso fijo y los hombros haciendo todo el empuje. El press sentado clásico con barra.",
+              "description": "Barra sentado con respaldo: el torso fijo y los hombros haciendo todo el empuje. El press sentado tradicional con barra.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
-                "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Barra sentado con respaldo: el torso fijo y los hombros haciendo todo el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión O Abducción"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Rotación Superior"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -41,11 +80,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "deltoid",
-                  "note": "Principal: el deltoides empuja la carga por encima de la cabeza y concentra el trabajo del hombro; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "triceps",
-                  "note": "Secundario: el tríceps extiende el codo en la parte final del empuje; por eso suma 0.5."
+                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "seated_shoulder_press__barbell__press_hombros_sentado",
@@ -58,7 +97,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "vertical_push"
+                    "Flexión O Abducción",
+                    "Rotación Superior",
+                    "Extensión",
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión O Abducción"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Rotación Superior"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Lumbopélvica"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -83,39 +159,43 @@
                   "movementPatternId": "vertical_push",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "columna-lumbar"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                    "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Barra sentado con respaldo: el torso fijo y los hombros haciendo todo el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "execution": [
-                    "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Barra sentado con respaldo: el torso fijo y los hombros haciendo todo el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando desarrollar los hombros y completar el empuje con ayuda del tríceps siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar empuje del brazo por encima de la cabeza y extensión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura barra y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
+                    "Preparación: Barra sentado con respaldo: el torso fijo y los hombros haciendo todo el empuje."
                   ]
                 },
                 "display": {
@@ -124,6 +204,15 @@
                   "selectedOptions": {
                     "implement": "barbell"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Barra sentado con respaldo: el torso fijo y los hombros haciendo todo el empuje.",
+                    "El press sentado tradicional con barra; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Barra sentado con respaldo: el torso fijo y los hombros haciendo todo el empuje. El press sentado tradicional con barra.",
+                  "technique": "Barra sentado con respaldo: el torso fijo y los hombros haciendo todo el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+                  "variantRationale": "Barra sentado con respaldo: el torso fijo y los hombros haciendo todo el empuje. El press sentado tradicional con barra."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -136,7 +225,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Hombros Sentado",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "seated_shoulder_press__barbell",
                   "definitionId": "seated_shoulder_press",
                   "familyId": "upper_vertical_push_seated_press",
@@ -156,8 +245,8 @@
                     "min": 45
                   },
                   "objectives": [
-                    "Desarrollar deltoid dentro del patrón vertical_push.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el deltoides mediante Press de Hombros Sentado en la variante Barra.",
+                    "Priorizar desarrollar los hombros y completar el empuje con ayuda del tríceps con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -179,7 +268,8 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón vertical_push y el objetivo deltoid."
+                    "Conserva empuje del brazo por encima de la cabeza y extensión del codo y el objetivo de el deltoides.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": "shoulder_press_seated",
                   "replacementPriority": 3
@@ -196,13 +286,15 @@
                 "triceps"
               ],
               "setupCues": [
-                "Configura barra y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
+                "Preparación: Barra sentado con respaldo: el torso fijo y los hombros haciendo todo el empuje."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "techniqueSummary": "Barra sentado con respaldo: el torso fijo y los hombros haciendo todo el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+              "ttc": 1.6,
+              "variantRationale": "Barra sentado con respaldo: el torso fijo y los hombros haciendo todo el empuje. El press sentado tradicional con barra."
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -214,9 +306,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_hombros_sentado",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "seated_shoulder_press__dumbbells",
@@ -224,18 +316,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Mancuernas sentado: el respaldo fija el torso y cada brazo trabaja sin ayuda del otro lado.",
+                "La versión más utilizada del press de hombros."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.8,
               "commonMistakes": [
-                "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Mancuernas sentado: el respaldo fija el torso y cada brazo trabaja solo. La versión más popular del press de hombros.",
+              "description": "Mancuernas sentado: el respaldo fija el torso y cada brazo trabaja sin ayuda del otro lado. La versión más utilizada del press de hombros.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Mancuernas sentado: el respaldo fija el torso y cada brazo trabaja sin ayuda del otro lado. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión O Abducción"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Rotación Superior"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -243,11 +374,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "deltoid",
-                  "note": "Principal: el deltoides empuja la carga por encima de la cabeza y concentra el trabajo del hombro; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "triceps",
-                  "note": "Secundario: el tríceps extiende el codo en la parte final del empuje; por eso suma 0.5."
+                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "seated_shoulder_press__dumbbells__press_hombros_sentado",
@@ -260,7 +391,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "vertical_push"
+                    "Flexión O Abducción",
+                    "Rotación Superior",
+                    "Extensión",
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión O Abducción"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Rotación Superior"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Lumbopélvica"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -285,39 +453,43 @@
                   "movementPatternId": "vertical_push",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "columna-lumbar"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                    "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Mancuernas sentado: el respaldo fija el torso y cada brazo trabaja sin ayuda del otro lado. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "execution": [
-                    "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Mancuernas sentado: el respaldo fija el torso y cada brazo trabaja sin ayuda del otro lado. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando desarrollar los hombros y completar el empuje con ayuda del tríceps siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar empuje del brazo por encima de la cabeza y extensión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura mancuernas y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
+                    "Preparación: Mancuernas sentado: el respaldo fija el torso y cada brazo trabaja sin ayuda del otro lado."
                   ]
                 },
                 "display": {
@@ -326,6 +498,15 @@
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Mancuernas sentado: el respaldo fija el torso y cada brazo trabaja sin ayuda del otro lado.",
+                    "La versión más utilizada del press de hombros."
+                  ],
+                  "description": "Mancuernas sentado: el respaldo fija el torso y cada brazo trabaja sin ayuda del otro lado. La versión más utilizada del press de hombros.",
+                  "technique": "Mancuernas sentado: el respaldo fija el torso y cada brazo trabaja sin ayuda del otro lado. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+                  "variantRationale": "Mancuernas sentado: el respaldo fija el torso y cada brazo trabaja sin ayuda del otro lado. La versión más utilizada del press de hombros."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -338,7 +519,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Hombros Sentado",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "seated_shoulder_press__dumbbells",
                   "definitionId": "seated_shoulder_press",
                   "familyId": "upper_vertical_push_seated_press",
@@ -358,8 +539,8 @@
                     "min": 45
                   },
                   "objectives": [
-                    "Desarrollar deltoid dentro del patrón vertical_push.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el deltoides mediante Press de Hombros Sentado en la variante Mancuernas.",
+                    "Priorizar desarrollar los hombros y completar el empuje con ayuda del tríceps con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -381,7 +562,8 @@
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón vertical_push y el objetivo deltoid."
+                    "Conserva empuje del brazo por encima de la cabeza y extensión del codo y el objetivo de el deltoides.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": "shoulder_press_seated",
                   "replacementPriority": 3
@@ -398,13 +580,15 @@
                 "triceps"
               ],
               "setupCues": [
-                "Configura mancuernas y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
+                "Preparación: Mancuernas sentado: el respaldo fija el torso y cada brazo trabaja sin ayuda del otro lado."
               ],
               "setupTimeSeconds": 30,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "techniqueSummary": "Mancuernas sentado: el respaldo fija el torso y cada brazo trabaja sin ayuda del otro lado. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+              "ttc": 1.6,
+              "variantRationale": "Mancuernas sentado: el respaldo fija el torso y cada brazo trabaja sin ayuda del otro lado. La versión más utilizada del press de hombros."
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -416,9 +600,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_hombros_sentado",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "seated_shoulder_press__smith_machine",
@@ -426,18 +610,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Smith sentado: barra guiada y respaldo firme, aislar el hombro es sencillo.",
+                "Cómoda para progresar con peso; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.8,
               "commonMistakes": [
-                "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
               "description": "Smith sentado: barra guiada y respaldo firme, aislar el hombro es sencillo. Cómoda para progresar con peso.",
               "efc": 2.5,
               "equipmentId": "smith_machine",
               "executionCues": [
-                "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Smith sentado: barra guiada y respaldo firme, aislar el hombro es sencillo. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión O Abducción"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Rotación Superior"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -445,11 +668,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "deltoid",
-                  "note": "Principal: el deltoides empuja la carga por encima de la cabeza y concentra el trabajo del hombro; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Máquina Smith, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "triceps",
-                  "note": "Secundario: el tríceps extiende el codo en la parte final del empuje; por eso suma 0.5."
+                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. En la configuración Máquina Smith, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "seated_shoulder_press__smith_machine__press_hombros_sentado",
@@ -462,7 +685,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "vertical_push"
+                    "Flexión O Abducción",
+                    "Rotación Superior",
+                    "Extensión",
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión O Abducción"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Rotación Superior"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Lumbopélvica"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -487,39 +747,43 @@
                   "movementPatternId": "vertical_push",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "columna-lumbar"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                    "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Smith sentado: barra guiada y respaldo firme, aislar el hombro es sencillo. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "execution": [
-                    "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Smith sentado: barra guiada y respaldo firme, aislar el hombro es sencillo. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando desarrollar los hombros y completar el empuje con ayuda del tríceps siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar empuje del brazo por encima de la cabeza y extensión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura la máquina Smith y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
+                    "Preparación: Smith sentado: barra guiada y respaldo firme, aislar el hombro es sencillo."
                   ]
                 },
                 "display": {
@@ -528,6 +792,15 @@
                   "selectedOptions": {
                     "implement": "smith_machine"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Smith sentado: barra guiada y respaldo firme, aislar el hombro es sencillo.",
+                    "Cómoda para progresar con peso; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Smith sentado: barra guiada y respaldo firme, aislar el hombro es sencillo. Cómoda para progresar con peso.",
+                  "technique": "Smith sentado: barra guiada y respaldo firme, aislar el hombro es sencillo. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+                  "variantRationale": "Smith sentado: barra guiada y respaldo firme, aislar el hombro es sencillo. Cómoda para progresar con peso."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -540,7 +813,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Hombros Sentado",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "seated_shoulder_press__smith_machine",
                   "definitionId": "seated_shoulder_press",
                   "familyId": "upper_vertical_push_seated_press",
@@ -560,8 +833,8 @@
                     "min": 45
                   },
                   "objectives": [
-                    "Desarrollar deltoid dentro del patrón vertical_push.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el deltoides mediante Press de Hombros Sentado en la variante Máquina Smith.",
+                    "Priorizar desarrollar los hombros y completar el empuje con ayuda del tríceps con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -583,7 +856,8 @@
                     "smith_machine"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón vertical_push y el objetivo deltoid."
+                    "Conserva empuje del brazo por encima de la cabeza y extensión del codo y el objetivo de el deltoides.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": "shoulder_press_seated",
                   "replacementPriority": 3
@@ -600,13 +874,15 @@
                 "triceps"
               ],
               "setupCues": [
-                "Configura la máquina Smith y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
+                "Preparación: Smith sentado: barra guiada y respaldo firme, aislar el hombro es sencillo."
               ],
               "setupTimeSeconds": 50,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "techniqueSummary": "Smith sentado: barra guiada y respaldo firme, aislar el hombro es sencillo. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+              "ttc": 1.6,
+              "variantRationale": "Smith sentado: barra guiada y respaldo firme, aislar el hombro es sencillo. Cómoda para progresar con peso."
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -618,9 +894,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_hombros_sentado",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "seated_shoulder_press__machine",
@@ -628,18 +904,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Máquina sentada: el guiado lleva el trabajo directo al hombro.",
+                "La opción más estable y cómoda del press sentado."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.8,
               "commonMistakes": [
-                "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Máquina sentada: el guiado lleva el trabajo directo al hombro. La opción más segura y cómoda del press sentado.",
+              "description": "Máquina sentada: el guiado lleva el trabajo directo al hombro. La opción más estable y cómoda del press sentado.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
-                "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Máquina sentada: el guiado lleva el trabajo directo al hombro. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión O Abducción"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Rotación Superior"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -647,11 +962,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "deltoid",
-                  "note": "Principal: el deltoides empuja la carga por encima de la cabeza y concentra el trabajo del hombro; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Máquina, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "triceps",
-                  "note": "Secundario: el tríceps extiende el codo en la parte final del empuje; por eso suma 0.5."
+                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. En la configuración Máquina, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "seated_shoulder_press__machine__press_hombros_sentado",
@@ -664,7 +979,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "vertical_push"
+                    "Flexión O Abducción",
+                    "Rotación Superior",
+                    "Extensión",
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión O Abducción"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Rotación Superior"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Lumbopélvica"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -689,39 +1041,43 @@
                   "movementPatternId": "vertical_push",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "columna-lumbar"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                    "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Máquina sentada: el guiado lleva el trabajo directo al hombro. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "execution": [
-                    "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Máquina sentada: el guiado lleva el trabajo directo al hombro. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando desarrollar los hombros y completar el empuje con ayuda del tríceps siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar empuje del brazo por encima de la cabeza y extensión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura la máquina y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
+                    "Preparación: Máquina sentada: el guiado lleva el trabajo directo al hombro."
                   ]
                 },
                 "display": {
@@ -730,6 +1086,15 @@
                   "selectedOptions": {
                     "implement": "machine"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Máquina sentada: el guiado lleva el trabajo directo al hombro.",
+                    "La opción más estable y cómoda del press sentado."
+                  ],
+                  "description": "Máquina sentada: el guiado lleva el trabajo directo al hombro. La opción más estable y cómoda del press sentado.",
+                  "technique": "Máquina sentada: el guiado lleva el trabajo directo al hombro. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+                  "variantRationale": "Máquina sentada: el guiado lleva el trabajo directo al hombro. La opción más estable y cómoda del press sentado."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -742,7 +1107,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Hombros Sentado",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "seated_shoulder_press__machine",
                   "definitionId": "seated_shoulder_press",
                   "familyId": "upper_vertical_push_seated_press",
@@ -762,8 +1127,8 @@
                     "min": 45
                   },
                   "objectives": [
-                    "Desarrollar deltoid dentro del patrón vertical_push.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el deltoides mediante Press de Hombros Sentado en la variante Máquina.",
+                    "Priorizar desarrollar los hombros y completar el empuje con ayuda del tríceps con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -785,7 +1150,8 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón vertical_push y el objetivo deltoid."
+                    "Conserva empuje del brazo por encima de la cabeza y extensión del codo y el objetivo de el deltoides.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": "shoulder_press_seated",
                   "replacementPriority": 3
@@ -802,13 +1168,15 @@
                 "triceps"
               ],
               "setupCues": [
-                "Configura la máquina y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
+                "Preparación: Máquina sentada: el guiado lleva el trabajo directo al hombro."
               ],
               "setupTimeSeconds": 55,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "techniqueSummary": "Máquina sentada: el guiado lleva el trabajo directo al hombro. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+              "ttc": 1.6,
+              "variantRationale": "Máquina sentada: el guiado lleva el trabajo directo al hombro. La opción más estable y cómoda del press sentado."
             },
             "selectedOptions": {
               "implement": "machine"
@@ -820,9 +1188,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_hombros_sentado",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "seated_shoulder_press__cable",
@@ -830,18 +1198,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Polea sentado: la tensión constante mantiene el hombro activo en todo el empuje.",
+                "Variante precisa para terminar el día de hombro."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.8,
               "commonMistakes": [
-                "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Polea sentado: la tensión constante mantiene el hombro activo en todo el empuje. Variante fina para terminar el día de hombro.",
+              "description": "Polea sentado: la tensión constante mantiene el hombro activo en todo el empuje. Variante precisa para terminar el día de hombro.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
-                "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Polea sentado: la tensión constante mantiene el hombro activo en todo el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión O Abducción"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Rotación Superior"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -849,11 +1256,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "deltoid",
-                  "note": "Principal: el deltoides empuja la carga por encima de la cabeza y concentra el trabajo del hombro; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "triceps",
-                  "note": "Secundario: el tríceps extiende el codo en la parte final del empuje; por eso suma 0.5."
+                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "seated_shoulder_press__cable__press_hombros_sentado",
@@ -866,7 +1273,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "vertical_push"
+                    "Flexión O Abducción",
+                    "Rotación Superior",
+                    "Extensión",
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión O Abducción"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Rotación Superior"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Lumbopélvica"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -891,39 +1335,43 @@
                   "movementPatternId": "vertical_push",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "columna-lumbar"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                    "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Polea sentado: la tensión constante mantiene el hombro activo en todo el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "execution": [
-                    "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Polea sentado: la tensión constante mantiene el hombro activo en todo el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando desarrollar los hombros y completar el empuje con ayuda del tríceps siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar empuje del brazo por encima de la cabeza y extensión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura la polea y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
+                    "Preparación: Polea sentado: la tensión constante mantiene el hombro activo en todo el empuje."
                   ]
                 },
                 "display": {
@@ -932,6 +1380,15 @@
                   "selectedOptions": {
                     "implement": "cable"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Polea sentado: la tensión constante mantiene el hombro activo en todo el empuje.",
+                    "Variante precisa para terminar el día de hombro."
+                  ],
+                  "description": "Polea sentado: la tensión constante mantiene el hombro activo en todo el empuje. Variante precisa para terminar el día de hombro.",
+                  "technique": "Polea sentado: la tensión constante mantiene el hombro activo en todo el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+                  "variantRationale": "Polea sentado: la tensión constante mantiene el hombro activo en todo el empuje. Variante precisa para terminar el día de hombro."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -944,7 +1401,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Hombros Sentado",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "seated_shoulder_press__cable",
                   "definitionId": "seated_shoulder_press",
                   "familyId": "upper_vertical_push_seated_press",
@@ -964,8 +1421,8 @@
                     "min": 45
                   },
                   "objectives": [
-                    "Desarrollar deltoid dentro del patrón vertical_push.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el deltoides mediante Press de Hombros Sentado en la variante Polea.",
+                    "Priorizar desarrollar los hombros y completar el empuje con ayuda del tríceps con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -987,7 +1444,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón vertical_push y el objetivo deltoid."
+                    "Conserva empuje del brazo por encima de la cabeza y extensión del codo y el objetivo de el deltoides.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": "shoulder_press_seated",
                   "replacementPriority": 3
@@ -1004,13 +1462,15 @@
                 "triceps"
               ],
               "setupCues": [
-                "Configura la polea y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
+                "Preparación: Polea sentado: la tensión constante mantiene el hombro activo en todo el empuje."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "techniqueSummary": "Polea sentado: la tensión constante mantiene el hombro activo en todo el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+              "ttc": 1.6,
+              "variantRationale": "Polea sentado: la tensión constante mantiene el hombro activo en todo el empuje. Variante precisa para terminar el día de hombro."
             },
             "selectedOptions": {
               "implement": "cable"
@@ -1022,9 +1482,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_hombros_sentado",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "seated_shoulder_press__kettlebell",
@@ -1032,18 +1492,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Kettlebell sentado: el empuje inestable suma trabajo al core.",
+                "Variante exigente y con una demanda amplia."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.8,
               "commonMistakes": [
-                "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Kettlebell sentado: el empuje inestable suma trabajo al core. Variante exigente y muy completa.",
+              "description": "Kettlebell sentado: el empuje inestable suma trabajo al core. Variante exigente y con una demanda amplia.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
-                "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Kettlebell sentado: el empuje inestable suma trabajo al core. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión O Abducción"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Rotación Superior"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -1051,11 +1550,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "deltoid",
-                  "note": "Principal: el deltoides empuja la carga por encima de la cabeza y concentra el trabajo del hombro; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Kettlebell, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "triceps",
-                  "note": "Secundario: el tríceps extiende el codo en la parte final del empuje; por eso suma 0.5."
+                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. En la configuración Kettlebell, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "seated_shoulder_press__kettlebell__press_hombros_sentado",
@@ -1068,7 +1567,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "vertical_push"
+                    "Flexión O Abducción",
+                    "Rotación Superior",
+                    "Extensión",
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión O Abducción"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Rotación Superior"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Lumbopélvica"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -1093,39 +1629,43 @@
                   "movementPatternId": "vertical_push",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "columna-lumbar"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                    "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Kettlebell sentado: el empuje inestable suma trabajo al core. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "execution": [
-                    "Ejecuta «Press de Hombros Sentado» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Kettlebell sentado: el empuje inestable suma trabajo al core. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando desarrollar los hombros y completar el empuje con ayuda del tríceps siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar empuje del brazo por encima de la cabeza y extensión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura kettlebell y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
+                    "Preparación: Kettlebell sentado: el empuje inestable suma trabajo al core."
                   ]
                 },
                 "display": {
@@ -1134,6 +1674,15 @@
                   "selectedOptions": {
                     "implement": "kettlebell"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Kettlebell sentado: el empuje inestable suma trabajo al core.",
+                    "Variante exigente y con una demanda amplia."
+                  ],
+                  "description": "Kettlebell sentado: el empuje inestable suma trabajo al core. Variante exigente y con una demanda amplia.",
+                  "technique": "Kettlebell sentado: el empuje inestable suma trabajo al core. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+                  "variantRationale": "Kettlebell sentado: el empuje inestable suma trabajo al core. Variante exigente y con una demanda amplia."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1146,7 +1695,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Hombros Sentado",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "seated_shoulder_press__kettlebell",
                   "definitionId": "seated_shoulder_press",
                   "familyId": "upper_vertical_push_seated_press",
@@ -1166,8 +1715,8 @@
                     "min": 45
                   },
                   "objectives": [
-                    "Desarrollar deltoid dentro del patrón vertical_push.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el deltoides mediante Press de Hombros Sentado en la variante Kettlebell.",
+                    "Priorizar desarrollar los hombros y completar el empuje con ayuda del tríceps con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1189,7 +1738,8 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón vertical_push y el objetivo deltoid."
+                    "Conserva empuje del brazo por encima de la cabeza y extensión del codo y el objetivo de el deltoides.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": "shoulder_press_seated",
                   "replacementPriority": 3
@@ -1206,13 +1756,15 @@
                 "triceps"
               ],
               "setupCues": [
-                "Configura kettlebell y adopta la posición específica de «Press de Hombros Sentado» antes de iniciar; conserva una base estable."
+                "Preparación: Kettlebell sentado: el empuje inestable suma trabajo al core."
               ],
               "setupTimeSeconds": 30,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "techniqueSummary": "Kettlebell sentado: el empuje inestable suma trabajo al core. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+              "ttc": 1.6,
+              "variantRationale": "Kettlebell sentado: el empuje inestable suma trabajo al core. Variante exigente y con una demanda amplia."
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -1220,13 +1772,13 @@
           }
         ],
         "defaultConfigurationId": "seated_shoulder_press__barbell",
-        "description": "Press de hombros sentado: el banco con respaldo fija el torso y aísla los hombros. La opción cómoda para cargar peso sin balancear el cuerpo.",
+        "description": "El banco con respaldo fija el torso y concentra los hombros. La opción cómoda para cargar peso sin balancear el cuerpo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:seated_shoulder_press"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "upper_vertical_push_seated_press",
@@ -1247,9 +1799,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:upper_vertical_push_seated_press"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "upper_vertical_push_seated_press",
@@ -1259,6 +1811,6 @@
       "seated_shoulder_press"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

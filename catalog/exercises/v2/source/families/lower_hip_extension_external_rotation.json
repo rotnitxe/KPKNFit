@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Tren inferior · gluteus maximus · hip extension external rotation",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_frog_pumps",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "glutes_frog_pumps__default",
@@ -22,18 +22,57 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Plantas de los pies juntas y rodillas abiertas: bombeas la cadera hacia arriba y el glúteo acumula fatiga local.",
+                "Un movimiento pequeño con una sensación enorme."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón extensión cadera / rotación externa para completar la repetición."
+                "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
               ],
-              "description": "Plantas de los pies juntas y rodillas abiertas: bombeas la cadera hacia arriba y el glúteo arde. Un movimiento pequeño con una sensación enorme.",
+              "description": "Plantas de los pies juntas y rodillas abiertas: bombeas la cadera hacia arriba y el glúteo acumula fatiga local. Un movimiento pequeño con una sensación enorme.",
               "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Ejecuta «Frog Pumps» siguiendo el patrón extensión cadera / rotación externa con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Plantas de los pies juntas y rodillas abiertas: bombeas la cadera hacia arriba y el glúteo acumula fatiga local. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera lleva la pelvis hacia delante y concentra la salida del movimiento. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla ofrece una base firme para que el gesto ocurra sobre todo en la cadera. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar transmite la extensión sin convertirse en el origen del recorrido. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Control Pélvico"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La articulación sacroilíaca coordina pelvis y tronco al final de la extensión. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
@@ -41,7 +80,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "gluteus_maximus",
-                  "note": "Principal: el glúteo mayor extiende la cadera y concentra la potencia del movimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "glutes_frog_pumps__bodyweight__frog_pumps",
@@ -54,7 +93,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_extension_external_rotation"
+                    "Extensión",
+                    "Estabilidad",
+                    "Alineación",
+                    "Control Pélvico"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera lleva la pelvis hacia delante y concentra la salida del movimiento. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla ofrece una base firme para que el gesto ocurra sobre todo en la cadera. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar transmite la extensión sin convertirse en el origen del recorrido. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Control Pélvico"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La articulación sacroilíaca coordina pelvis y tronco al final de la extensión. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -77,46 +153,57 @@
                   "movementPatternId": "hip_extension_external_rotation",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "rodilla",
+                    "columna-lumbar",
+                    "sacroiliaca"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón extensión cadera / rotación externa para completar la repetición."
+                    "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
                   ],
                   "cues": [
-                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                    "Plantas de los pies juntas y rodillas abiertas: bombeas la cadera hacia arriba y el glúteo acumula fatiga local. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Ejecuta «Frog Pumps» siguiendo el patrón extensión cadera / rotación externa con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Plantas de los pies juntas y rodillas abiertas: bombeas la cadera hacia arriba y el glúteo acumula fatiga local. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando concentrar el trabajo en la extensión de cadera sin exigir demasiado a la rodilla siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar extensión de cadera y control de la pelvis como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de rodilla según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura peso corporal y adopta la posición específica de «Frog Pumps» antes de iniciar; conserva una base estable."
+                    "Preparación: Plantas de los pies juntas y rodillas abiertas: bombeas la cadera hacia arriba y el glúteo acumula fatiga local."
                   ]
                 },
                 "display": {
                   "displayName": "Frog Pumps",
                   "displaySummary": "Peso Corporal",
                   "selectedOptions": {}
+                },
+                "editorial": {
+                  "benefits": [
+                    "Plantas de los pies juntas y rodillas abiertas: bombeas la cadera hacia arriba y el glúteo acumula fatiga local.",
+                    "Un movimiento pequeño con una sensación enorme."
+                  ],
+                  "description": "Plantas de los pies juntas y rodillas abiertas: bombeas la cadera hacia arriba y el glúteo acumula fatiga local. Un movimiento pequeño con una sensación enorme.",
+                  "technique": "Plantas de los pies juntas y rodillas abiertas: bombeas la cadera hacia arriba y el glúteo acumula fatiga local. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Plantas de los pies juntas y rodillas abiertas: bombeas la cadera hacia arriba y el glúteo acumula fatiga local. Un movimiento pequeño con una sensación enorme."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -129,7 +216,7 @@
                 },
                 "identity": {
                   "canonicalName": "Frog Pumps",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "glutes_frog_pumps__default",
                   "definitionId": "glutes_frog_pumps",
                   "familyId": "lower_hip_extension_external_rotation",
@@ -146,8 +233,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar gluteus_maximus dentro del patrón hip_extension_external_rotation.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el glúteo mayor mediante Frog Pumps en la variante Peso Corporal.",
+                    "Priorizar concentrar el trabajo en la extensión de cadera sin exigir demasiado a la rodilla con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -169,7 +256,8 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón hip_extension_external_rotation y el objetivo gluteus_maximus."
+                    "Conserva extensión de cadera y control de la pelvis y el objetivo de el glúteo mayor.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
                   ],
                   "replacementGroup": "glute_frog_pump",
                   "replacementPriority": 3
@@ -184,25 +272,27 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Configura peso corporal y adopta la posición específica de «Frog Pumps» antes de iniciar; conserva una base estable."
+                "Preparación: Plantas de los pies juntas y rodillas abiertas: bombeas la cadera hacia arriba y el glúteo acumula fatiga local."
               ],
               "setupTimeSeconds": 10,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "techniqueSummary": "Plantas de los pies juntas y rodillas abiertas: bombeas la cadera hacia arriba y el glúteo acumula fatiga local. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 2.0,
+              "variantRationale": "Plantas de los pies juntas y rodillas abiertas: bombeas la cadera hacia arriba y el glúteo acumula fatiga local. Un movimiento pequeño con una sensación enorme."
             },
             "selectedOptions": {}
           }
         ],
         "defaultConfigurationId": "glutes_frog_pumps__default",
-        "description": "Frog pumps: boca arriba con las plantas de los pies juntas y las rodillas abiertas, bombeando la cadera hacia arriba. Un ejercicio pequeño que enciende el glúteo de una forma sorprendente.",
+        "description": "Boca arriba con las plantas de los pies juntas y las rodillas abiertas, elevando la cadera hacia arriba. Un ejercicio pequeño que aumenta la tensión del glúteo con una demanda marcada.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:glutes_frog_pumps"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_hip_extension_external_rotation",
@@ -218,9 +308,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:lower_hip_extension_external_rotation"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_hip_extension_external_rotation",
@@ -229,6 +319,6 @@
       "hip_extension_external_rotation"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

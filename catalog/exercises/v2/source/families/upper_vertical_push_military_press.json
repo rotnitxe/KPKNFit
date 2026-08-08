@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Press Militar",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_militar_de_pie",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "military_press__barbell",
@@ -22,18 +22,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás.",
+                "La carga bilateral ofrece una referencia clara para progresar en el empuje vertical."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.8,
               "commonMistakes": [
-                "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Barra desde los hombros hasta arriba: el press militar clásico de pie. El ejercicio rey de la fuerza de hombro.",
+              "description": "Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás. La carga bilateral ofrece una referencia clara para progresar en el empuje vertical.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
-                "Ejecuta «Press Militar» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión O Abducción"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Rotación Superior"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -41,15 +80,15 @@
               "muscleNotes": [
                 {
                   "muscleId": "deltoid",
-                  "note": "Principal: el deltoides empuja la carga por encima de la cabeza y concentra el trabajo del hombro; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "triceps",
-                  "note": "Secundario: el tríceps extiende el codo en la parte final del empuje; por eso suma 0.5."
+                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core fija el tronco durante el empuje vertical; por eso suma 0.4."
+                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "military_press__barbell__press_militar",
@@ -62,7 +101,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "vertical_push"
+                    "Flexión O Abducción",
+                    "Rotación Superior",
+                    "Extensión",
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión O Abducción"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Rotación Superior"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Lumbopélvica"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -89,39 +165,43 @@
                   "movementPatternId": "vertical_push",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "columna-lumbar"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                    "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "execution": [
-                    "Ejecuta «Press Militar» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando desarrollar los hombros y completar el empuje con ayuda del tríceps siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar empuje del brazo por encima de la cabeza y extensión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura barra y adopta la posición específica de «Press Militar» antes de iniciar; conserva una base estable."
+                    "Preparación: Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás."
                   ]
                 },
                 "display": {
@@ -130,6 +210,15 @@
                   "selectedOptions": {
                     "implement": "barbell"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás.",
+                    "La carga bilateral ofrece una referencia clara para progresar en el empuje vertical."
+                  ],
+                  "description": "Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás. La carga bilateral ofrece una referencia clara para progresar en el empuje vertical.",
+                  "technique": "Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+                  "variantRationale": "Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás. La carga bilateral ofrece una referencia clara para progresar en el empuje vertical."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -142,7 +231,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Militar",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "military_press__barbell",
                   "definitionId": "military_press",
                   "familyId": "upper_vertical_push_military_press",
@@ -162,8 +251,8 @@
                     "min": 45
                   },
                   "objectives": [
-                    "Desarrollar deltoid dentro del patrón vertical_push.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el deltoides mediante Press Militar en la variante Barra.",
+                    "Priorizar desarrollar los hombros y completar el empuje con ayuda del tríceps con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -185,7 +274,8 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón vertical_push y el objetivo deltoid."
+                    "Conserva empuje del brazo por encima de la cabeza y extensión del codo y el objetivo de el deltoides.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": "shoulder_press_standing",
                   "replacementPriority": 1
@@ -202,7 +292,7 @@
                 "triceps"
               ],
               "setupCues": [
-                "Configura barra y adopta la posición específica de «Press Militar» antes de iniciar; conserva una base estable."
+                "Preparación: Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.3,
@@ -210,7 +300,9 @@
                 "core"
               ],
               "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "techniqueSummary": "Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+              "ttc": 1.6,
+              "variantRationale": "Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás. La carga bilateral ofrece una referencia clara para progresar en el empuje vertical."
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -222,9 +314,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_militar_de_pie",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "military_press__dumbbells",
@@ -232,18 +324,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro.",
+                "La variante descubre diferencias que la barra puede ocultar."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.8,
               "commonMistakes": [
-                "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Mancuernas desde los hombros: cada brazo trabaja por separado y el recorrido es más natural. La versión equilibrada del press militar.",
+              "description": "Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro. La variante descubre diferencias que la barra puede ocultar.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Ejecuta «Press Militar» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión O Abducción"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Rotación Superior"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -251,15 +382,15 @@
               "muscleNotes": [
                 {
                   "muscleId": "deltoid",
-                  "note": "Principal: el deltoides empuja la carga por encima de la cabeza y concentra el trabajo del hombro; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "triceps",
-                  "note": "Secundario: el tríceps extiende el codo en la parte final del empuje; por eso suma 0.5."
+                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core fija el tronco durante el empuje vertical; por eso suma 0.4."
+                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "military_press__dumbbells__press_militar",
@@ -272,7 +403,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "vertical_push"
+                    "Flexión O Abducción",
+                    "Rotación Superior",
+                    "Extensión",
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión O Abducción"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Rotación Superior"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Lumbopélvica"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -299,39 +467,43 @@
                   "movementPatternId": "vertical_push",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "columna-lumbar"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                    "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "execution": [
-                    "Ejecuta «Press Militar» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando desarrollar los hombros y completar el empuje con ayuda del tríceps siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar empuje del brazo por encima de la cabeza y extensión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura mancuernas y adopta la posición específica de «Press Militar» antes de iniciar; conserva una base estable."
+                    "Preparación: Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro."
                   ]
                 },
                 "display": {
@@ -340,6 +512,15 @@
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro.",
+                    "La variante descubre diferencias que la barra puede ocultar."
+                  ],
+                  "description": "Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro. La variante descubre diferencias que la barra puede ocultar.",
+                  "technique": "Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+                  "variantRationale": "Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro. La variante descubre diferencias que la barra puede ocultar."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -352,7 +533,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Militar",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "military_press__dumbbells",
                   "definitionId": "military_press",
                   "familyId": "upper_vertical_push_military_press",
@@ -372,8 +553,8 @@
                     "min": 45
                   },
                   "objectives": [
-                    "Desarrollar deltoid dentro del patrón vertical_push.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el deltoides mediante Press Militar en la variante Mancuernas.",
+                    "Priorizar desarrollar los hombros y completar el empuje con ayuda del tríceps con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -395,7 +576,8 @@
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón vertical_push y el objetivo deltoid."
+                    "Conserva empuje del brazo por encima de la cabeza y extensión del codo y el objetivo de el deltoides.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": "shoulder_press_standing",
                   "replacementPriority": 1
@@ -412,7 +594,7 @@
                 "triceps"
               ],
               "setupCues": [
-                "Configura mancuernas y adopta la posición específica de «Press Militar» antes de iniciar; conserva una base estable."
+                "Preparación: Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro."
               ],
               "setupTimeSeconds": 30,
               "ssc": 0.3,
@@ -420,7 +602,9 @@
                 "core"
               ],
               "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "techniqueSummary": "Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+              "ttc": 1.6,
+              "variantRationale": "Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro. La variante descubre diferencias que la barra puede ocultar."
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -432,9 +616,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_militar_de_pie",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "military_press__smith_machine",
@@ -442,18 +626,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio.",
+                "Estable para cargar peso de pie; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.8,
               "commonMistakes": [
-                "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio. Segura para cargar peso de pie.",
+              "description": "Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio. Estable para cargar peso de pie.",
               "efc": 2.5,
               "equipmentId": "smith_machine",
               "executionCues": [
-                "Ejecuta «Press Militar» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión O Abducción"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Rotación Superior"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -461,15 +684,15 @@
               "muscleNotes": [
                 {
                   "muscleId": "deltoid",
-                  "note": "Principal: el deltoides empuja la carga por encima de la cabeza y concentra el trabajo del hombro; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Máquina Smith, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "triceps",
-                  "note": "Secundario: el tríceps extiende el codo en la parte final del empuje; por eso suma 0.5."
+                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. En la configuración Máquina Smith, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core fija el tronco durante el empuje vertical; por eso suma 0.4."
+                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. El guiado externo reduce la demanda de estabilización y concentra su papel en mantener la posición. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "military_press__smith_machine__press_militar",
@@ -482,7 +705,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "vertical_push"
+                    "Flexión O Abducción",
+                    "Rotación Superior",
+                    "Extensión",
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión O Abducción"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Rotación Superior"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Lumbopélvica"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -509,39 +769,43 @@
                   "movementPatternId": "vertical_push",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "columna-lumbar"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                    "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "execution": [
-                    "Ejecuta «Press Militar» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando desarrollar los hombros y completar el empuje con ayuda del tríceps siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar empuje del brazo por encima de la cabeza y extensión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura la máquina Smith y adopta la posición específica de «Press Militar» antes de iniciar; conserva una base estable."
+                    "Preparación: Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio."
                   ]
                 },
                 "display": {
@@ -550,6 +814,15 @@
                   "selectedOptions": {
                     "implement": "smith_machine"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio.",
+                    "Estable para cargar peso de pie; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio. Estable para cargar peso de pie.",
+                  "technique": "Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+                  "variantRationale": "Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio. Estable para cargar peso de pie."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -562,7 +835,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Militar",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "military_press__smith_machine",
                   "definitionId": "military_press",
                   "familyId": "upper_vertical_push_military_press",
@@ -582,8 +855,8 @@
                     "min": 45
                   },
                   "objectives": [
-                    "Desarrollar deltoid dentro del patrón vertical_push.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el deltoides mediante Press Militar en la variante Máquina Smith.",
+                    "Priorizar desarrollar los hombros y completar el empuje con ayuda del tríceps con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -605,7 +878,8 @@
                     "smith_machine"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón vertical_push y el objetivo deltoid."
+                    "Conserva empuje del brazo por encima de la cabeza y extensión del codo y el objetivo de el deltoides.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": "shoulder_press_standing",
                   "replacementPriority": 1
@@ -622,7 +896,7 @@
                 "triceps"
               ],
               "setupCues": [
-                "Configura la máquina Smith y adopta la posición específica de «Press Militar» antes de iniciar; conserva una base estable."
+                "Preparación: Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio."
               ],
               "setupTimeSeconds": 50,
               "ssc": 0.3,
@@ -630,7 +904,9 @@
                 "core"
               ],
               "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "techniqueSummary": "Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+              "ttc": 1.6,
+              "variantRationale": "Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio. Estable para cargar peso de pie."
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -642,9 +918,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_militar_de_pie",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "military_press__machine",
@@ -652,18 +928,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa.",
+                "Es una opción práctica para acumular volumen sin gastar energía en estabilizar la estación."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.8,
               "commonMistakes": [
-                "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Máquina de press militar: el recorrido fijo aísla los hombros por completo. La opción cómoda para meter volumen de hombro.",
+              "description": "Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa. Es una opción práctica para acumular volumen sin gastar energía en estabilizar la estación.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
-                "Ejecuta «Press Militar» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión O Abducción"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Rotación Superior"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
@@ -671,15 +986,15 @@
               "muscleNotes": [
                 {
                   "muscleId": "deltoid",
-                  "note": "Principal: el deltoides empuja la carga por encima de la cabeza y concentra el trabajo del hombro; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Máquina, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "triceps",
-                  "note": "Secundario: el tríceps extiende el codo en la parte final del empuje; por eso suma 0.5."
+                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. En la configuración Máquina, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core fija el tronco durante el empuje vertical; por eso suma 0.4."
+                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. El guiado externo reduce la demanda de estabilización y concentra su papel en mantener la posición. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "military_press__machine__press_militar",
@@ -692,7 +1007,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "vertical_push"
+                    "Flexión O Abducción",
+                    "Rotación Superior",
+                    "Extensión",
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión O Abducción"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Rotación Superior"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Lumbopélvica"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -719,39 +1071,43 @@
                   "movementPatternId": "vertical_push",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "columna-lumbar"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                    "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "execution": [
-                    "Ejecuta «Press Militar» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando desarrollar los hombros y completar el empuje con ayuda del tríceps siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar empuje del brazo por encima de la cabeza y extensión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura la máquina y adopta la posición específica de «Press Militar» antes de iniciar; conserva una base estable."
+                    "Preparación: Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa."
                   ]
                 },
                 "display": {
@@ -760,6 +1116,15 @@
                   "selectedOptions": {
                     "implement": "machine"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa.",
+                    "Es una opción práctica para acumular volumen sin gastar energía en estabilizar la estación."
+                  ],
+                  "description": "Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa. Es una opción práctica para acumular volumen sin gastar energía en estabilizar la estación.",
+                  "technique": "Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+                  "variantRationale": "Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa. Es una opción práctica para acumular volumen sin gastar energía en estabilizar la estación."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -772,7 +1137,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Militar",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "military_press__machine",
                   "definitionId": "military_press",
                   "familyId": "upper_vertical_push_military_press",
@@ -792,8 +1157,8 @@
                     "min": 45
                   },
                   "objectives": [
-                    "Desarrollar deltoid dentro del patrón vertical_push.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el deltoides mediante Press Militar en la variante Máquina.",
+                    "Priorizar desarrollar los hombros y completar el empuje con ayuda del tríceps con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -815,7 +1180,8 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón vertical_push y el objetivo deltoid."
+                    "Conserva empuje del brazo por encima de la cabeza y extensión del codo y el objetivo de el deltoides.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": "shoulder_press_standing",
                   "replacementPriority": 1
@@ -832,7 +1198,7 @@
                 "triceps"
               ],
               "setupCues": [
-                "Configura la máquina y adopta la posición específica de «Press Militar» antes de iniciar; conserva una base estable."
+                "Preparación: Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa."
               ],
               "setupTimeSeconds": 55,
               "ssc": 0.3,
@@ -840,7 +1206,9 @@
                 "core"
               ],
               "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "techniqueSummary": "Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+              "ttc": 1.6,
+              "variantRationale": "Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa. Es una opción práctica para acumular volumen sin gastar energía en estabilizar la estación."
             },
             "selectedOptions": {
               "implement": "machine"
@@ -852,9 +1220,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_militar_de_pie",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "military_press__cable",
@@ -862,18 +1230,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Polea desde los hombros: la tensión constante acompaña todo el empuje.",
+                "Variante precisa que mantiene el hombro cargado."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.8,
               "commonMistakes": [
-                "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Polea desde los hombros: la tensión constante acompaña todo el empuje. Variante fina que mantiene el hombro cargado.",
+              "description": "Polea desde los hombros: la tensión constante acompaña todo el empuje. Variante precisa que mantiene el hombro cargado.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
-                "Ejecuta «Press Militar» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Polea desde los hombros: la tensión constante acompaña todo el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión O Abducción"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Rotación Superior"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -881,15 +1288,15 @@
               "muscleNotes": [
                 {
                   "muscleId": "deltoid",
-                  "note": "Principal: el deltoides empuja la carga por encima de la cabeza y concentra el trabajo del hombro; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "triceps",
-                  "note": "Secundario: el tríceps extiende el codo en la parte final del empuje; por eso suma 0.5."
+                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core fija el tronco durante el empuje vertical; por eso suma 0.4."
+                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "military_press__cable__press_militar",
@@ -902,7 +1309,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "vertical_push"
+                    "Flexión O Abducción",
+                    "Rotación Superior",
+                    "Extensión",
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión O Abducción"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Rotación Superior"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Lumbopélvica"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -929,39 +1373,43 @@
                   "movementPatternId": "vertical_push",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "columna-lumbar"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                    "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Polea desde los hombros: la tensión constante acompaña todo el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "execution": [
-                    "Ejecuta «Press Militar» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Polea desde los hombros: la tensión constante acompaña todo el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando desarrollar los hombros y completar el empuje con ayuda del tríceps siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar empuje del brazo por encima de la cabeza y extensión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura la polea y adopta la posición específica de «Press Militar» antes de iniciar; conserva una base estable."
+                    "Preparación: Polea desde los hombros: la tensión constante acompaña todo el empuje."
                   ]
                 },
                 "display": {
@@ -970,6 +1418,15 @@
                   "selectedOptions": {
                     "implement": "cable"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Polea desde los hombros: la tensión constante acompaña todo el empuje.",
+                    "Variante precisa que mantiene el hombro cargado."
+                  ],
+                  "description": "Polea desde los hombros: la tensión constante acompaña todo el empuje. Variante precisa que mantiene el hombro cargado.",
+                  "technique": "Polea desde los hombros: la tensión constante acompaña todo el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+                  "variantRationale": "Polea desde los hombros: la tensión constante acompaña todo el empuje. Variante precisa que mantiene el hombro cargado."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -982,7 +1439,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Militar",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "military_press__cable",
                   "definitionId": "military_press",
                   "familyId": "upper_vertical_push_military_press",
@@ -1002,8 +1459,8 @@
                     "min": 45
                   },
                   "objectives": [
-                    "Desarrollar deltoid dentro del patrón vertical_push.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el deltoides mediante Press Militar en la variante Polea.",
+                    "Priorizar desarrollar los hombros y completar el empuje con ayuda del tríceps con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1025,7 +1482,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón vertical_push y el objetivo deltoid."
+                    "Conserva empuje del brazo por encima de la cabeza y extensión del codo y el objetivo de el deltoides.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": "shoulder_press_standing",
                   "replacementPriority": 1
@@ -1042,7 +1500,7 @@
                 "triceps"
               ],
               "setupCues": [
-                "Configura la polea y adopta la posición específica de «Press Militar» antes de iniciar; conserva una base estable."
+                "Preparación: Polea desde los hombros: la tensión constante acompaña todo el empuje."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.3,
@@ -1050,7 +1508,9 @@
                 "core"
               ],
               "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "techniqueSummary": "Polea desde los hombros: la tensión constante acompaña todo el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+              "ttc": 1.6,
+              "variantRationale": "Polea desde los hombros: la tensión constante acompaña todo el empuje. Variante precisa que mantiene el hombro cargado."
             },
             "selectedOptions": {
               "implement": "cable"
@@ -1062,9 +1522,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_militar_de_pie",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "military_press__kettlebell",
@@ -1072,18 +1532,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja.",
+                "Variante exigente para hombros y estabilidad."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.8,
               "commonMistakes": [
-                "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
               "description": "Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja. Variante exigente para hombros y estabilidad.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
-                "Ejecuta «Press Militar» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión O Abducción"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Rotación Superior"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -1091,15 +1590,15 @@
               "muscleNotes": [
                 {
                   "muscleId": "deltoid",
-                  "note": "Principal: el deltoides empuja la carga por encima de la cabeza y concentra el trabajo del hombro; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Kettlebell, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "triceps",
-                  "note": "Secundario: el tríceps extiende el codo en la parte final del empuje; por eso suma 0.5."
+                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. En la configuración Kettlebell, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "core",
-                  "note": "Estabilizador: el core fija el tronco durante el empuje vertical; por eso suma 0.4."
+                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. En la configuración Kettlebell, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "military_press__kettlebell__press_militar",
@@ -1112,7 +1611,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "vertical_push"
+                    "Flexión O Abducción",
+                    "Rotación Superior",
+                    "Extensión",
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión O Abducción"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Rotación Superior"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Lumbopélvica"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -1139,39 +1675,43 @@
                   "movementPatternId": "vertical_push",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "columna-lumbar"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso de las piernas, arquear la espalda o bajar la carga por detrás de la cabeza para completar la repetición."
+                    "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
                   ],
                   "cues": [
-                    "Mantén el equipo barbell alineado con el patrón y controla la fase excéntrica."
+                    "Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "execution": [
-                    "Ejecuta «Press Militar» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando desarrollar los hombros y completar el empuje con ayuda del tríceps siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar empuje del brazo por encima de la cabeza y extensión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura kettlebell y adopta la posición específica de «Press Militar» antes de iniciar; conserva una base estable."
+                    "Preparación: Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja."
                   ]
                 },
                 "display": {
@@ -1180,6 +1720,15 @@
                   "selectedOptions": {
                     "implement": "kettlebell"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja.",
+                    "Variante exigente para hombros y estabilidad."
+                  ],
+                  "description": "Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja. Variante exigente para hombros y estabilidad.",
+                  "technique": "Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+                  "variantRationale": "Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja. Variante exigente para hombros y estabilidad."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1192,7 +1741,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Militar",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "military_press__kettlebell",
                   "definitionId": "military_press",
                   "familyId": "upper_vertical_push_military_press",
@@ -1212,8 +1761,8 @@
                     "min": 45
                   },
                   "objectives": [
-                    "Desarrollar deltoid dentro del patrón vertical_push.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el deltoides mediante Press Militar en la variante Kettlebell.",
+                    "Priorizar desarrollar los hombros y completar el empuje con ayuda del tríceps con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -1235,7 +1784,8 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón vertical_push y el objetivo deltoid."
+                    "Conserva empuje del brazo por encima de la cabeza y extensión del codo y el objetivo de el deltoides.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": "shoulder_press_standing",
                   "replacementPriority": 1
@@ -1252,7 +1802,7 @@
                 "triceps"
               ],
               "setupCues": [
-                "Configura kettlebell y adopta la posición específica de «Press Militar» antes de iniciar; conserva una base estable."
+                "Preparación: Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja."
               ],
               "setupTimeSeconds": 30,
               "ssc": 0.3,
@@ -1260,7 +1810,9 @@
                 "core"
               ],
               "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "techniqueSummary": "Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+              "ttc": 1.6,
+              "variantRationale": "Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja. Variante exigente para hombros y estabilidad."
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -1268,13 +1820,13 @@
           }
         ],
         "defaultConfigurationId": "military_press__barbell",
-        "description": "Press militar: de pie, empujas la barra desde los hombros hasta arriba de la cabeza. El ejercicio rey para hombros fuertes y espalda alta sólida.",
+        "description": "De pie, empujas la barra desde los hombros hasta arriba de la cabeza. El ejercicio de referencia para hombros fuertes y espalda alta sólida.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:military_press"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "upper_vertical_push_military_press",
@@ -1295,9 +1847,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:upper_vertical_push_military_press"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "upper_vertical_push_military_press",
@@ -1307,6 +1859,6 @@
       "military_press"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

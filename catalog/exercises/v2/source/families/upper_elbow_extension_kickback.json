@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Patada de tríceps",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#triceps_patada",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "triceps_patada__dumbbells__bilateral",
@@ -22,18 +22,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Mancuernas inclinado con ambos brazos: los codos quedan atrás y la extensión termina con el tríceps completamente acortado.",
+                "La carga bilateral facilita repetir una trayectoria simétrica sin impulso."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.8,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
+                "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
               ],
-              "description": "Mancuernas inclinado con ambas manos: estiras los brazos atrás con el codo fijo. La patada de tríceps clásica.",
+              "description": "Mancuernas inclinado con ambos brazos: los codos quedan atrás y la extensión termina con el tríceps completamente acortado. La carga bilateral facilita repetir una trayectoria simétrica sin impulso.",
               "efc": 2.2,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Ejecuta «Patada de Tríceps» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Mancuernas inclinado con ambos brazos: los codos quedan atrás y la extensión termina con el tríceps completamente acortado. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Principal: El codo abre el brazo y concentra el trabajo mecánico del tríceps. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Posición Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro fija el brazo o lo coloca detrás de la cabeza según la variante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca transmite la presión sin doblarse bajo el implemento. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "FULL",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -41,7 +72,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "triceps",
-                  "note": "Principal: el tríceps extiende el codo y concentra la fuerza del movimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El tríceps extiende el codo y completa la fase de empuje. En la configuración Mancuernas · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "triceps_patada__dumbbells__patada_de_triceps",
@@ -54,7 +85,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "elbow_extension"
+                    "Extensión",
+                    "Posición Del Hombro",
+                    "Alineación"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Principal: El codo abre el brazo y concentra el trabajo mecánico del tríceps. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Posición Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro fija el brazo o lo coloca detrás de la cabeza según la variante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca transmite la presión sin doblarse bajo el implemento. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -77,39 +136,44 @@
                   "movementPatternId": "elbow_extension",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "codo",
+                    "glenohumeral",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
+                    "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
                   ],
                   "cues": [
-                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                    "Mancuernas inclinado con ambos brazos: los codos quedan atrás y la extensión termina con el tríceps completamente acortado. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
                   ],
                   "execution": [
-                    "Ejecuta «Patada de Tríceps» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Mancuernas inclinado con ambos brazos: los codos quedan atrás y la extensión termina con el tríceps completamente acortado. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando cargar el tríceps de forma directa y ajustar la dificultad con precisión siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar extensión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de codo según tolerancia y rango disponible.",
+                    "Movilidad de hombro según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura mancuerna y adopta la posición específica de «Patada de Tríceps» antes de iniciar; conserva una base estable."
+                    "Preparación: Mancuernas inclinado con ambos brazos: los codos quedan atrás y la extensión termina con el tríceps completamente acortado."
                   ]
                 },
                 "display": {
@@ -119,6 +183,15 @@
                     "implement": "dumbbells",
                     "laterality": "bilateral"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Mancuernas inclinado con ambos brazos: los codos quedan atrás y la extensión termina con el tríceps completamente acortado.",
+                    "La carga bilateral facilita repetir una trayectoria simétrica sin impulso."
+                  ],
+                  "description": "Mancuernas inclinado con ambos brazos: los codos quedan atrás y la extensión termina con el tríceps completamente acortado. La carga bilateral facilita repetir una trayectoria simétrica sin impulso.",
+                  "technique": "Mancuernas inclinado con ambos brazos: los codos quedan atrás y la extensión termina con el tríceps completamente acortado. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
+                  "variantRationale": "Mancuernas inclinado con ambos brazos: los codos quedan atrás y la extensión termina con el tríceps completamente acortado. La carga bilateral facilita repetir una trayectoria simétrica sin impulso."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -131,7 +204,7 @@
                 },
                 "identity": {
                   "canonicalName": "Patada de Tríceps",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "triceps_patada__dumbbells__bilateral",
                   "definitionId": "triceps_patada",
                   "familyId": "upper_elbow_extension_kickback",
@@ -150,8 +223,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar triceps dentro del patrón elbow_extension.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el tríceps mediante Patada de Tríceps en la variante Mancuernas · Trabajo Bilateral.",
+                    "Priorizar cargar el tríceps de forma directa y ajustar la dificultad con precisión con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -173,7 +246,8 @@
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón elbow_extension y el objetivo triceps."
+                    "Conserva extensión del codo y el objetivo de el tríceps.",
+                    "La sustitución debe respetar las articulaciones relevantes: codo, hombro, muñeca."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -188,13 +262,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Configura mancuerna y adopta la posición específica de «Patada de Tríceps» antes de iniciar; conserva una base estable."
+                "Preparación: Mancuernas inclinado con ambos brazos: los codos quedan atrás y la extensión termina con el tríceps completamente acortado."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "techniqueSummary": "Mancuernas inclinado con ambos brazos: los codos quedan atrás y la extensión termina con el tríceps completamente acortado. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
+              "ttc": 1.6,
+              "variantRationale": "Mancuernas inclinado con ambos brazos: los codos quedan atrás y la extensión termina con el tríceps completamente acortado. La carga bilateral facilita repetir una trayectoria simétrica sin impulso."
             },
             "selectedOptions": {
               "implement": "dumbbells",
@@ -208,9 +284,9 @@
               "evidenceRefs": [
                 "legacy:exercise_database.json#triceps_patada",
                 "editorial:configuration:triceps_patada__cable__bilateral",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "triceps_patada__cable__bilateral",
@@ -218,18 +294,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Polea inclinado con ambas manos: la tensión constante acompaña la patada.",
+                "La versión precisa que no deja descansar al tríceps."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.8,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
+                "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
               ],
-              "description": "Polea inclinado con ambas manos: la tensión constante acompaña la patada. La versión fina que no deja descansar al tríceps.",
+              "description": "Polea inclinado con ambas manos: la tensión constante acompaña la patada. La versión precisa que no deja descansar al tríceps.",
               "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
-                "Ejecuta «Patada de tríceps» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Polea inclinado con ambas manos: la tensión constante acompaña la patada. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Principal: El codo abre el brazo y concentra el trabajo mecánico del tríceps. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Posición Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro fija el brazo o lo coloca detrás de la cabeza según la variante. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca transmite la presión sin doblarse bajo el implemento. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "FULL",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -237,7 +344,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "triceps",
-                  "note": "Principal: el tríceps extiende el codo y concentra la fuerza del movimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El tríceps extiende el codo y completa la fase de empuje. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "triceps_patada__cable__patada_de_triceps",
@@ -250,7 +357,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "elbow_extension"
+                    "Extensión",
+                    "Posición Del Hombro",
+                    "Alineación"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Principal: El codo abre el brazo y concentra el trabajo mecánico del tríceps. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Posición Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro fija el brazo o lo coloca detrás de la cabeza según la variante. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca transmite la presión sin doblarse bajo el implemento. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -273,39 +408,44 @@
                   "movementPatternId": "elbow_extension",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "codo",
+                    "glenohumeral",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
+                    "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
                   ],
                   "cues": [
-                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                    "Polea inclinado con ambas manos: la tensión constante acompaña la patada. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
                   ],
                   "execution": [
-                    "Ejecuta «Patada de tríceps» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Polea inclinado con ambas manos: la tensión constante acompaña la patada. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando cargar el tríceps de forma directa y ajustar la dificultad con precisión siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar extensión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de codo según tolerancia y rango disponible.",
+                    "Movilidad de hombro según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura polea y adopta la posición específica de «Patada de tríceps» antes de iniciar; conserva una base estable."
+                    "Preparación: Polea inclinado con ambas manos: la tensión constante acompaña la patada."
                   ]
                 },
                 "display": {
@@ -315,6 +455,15 @@
                     "implement": "cable",
                     "laterality": "bilateral"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Polea inclinado con ambas manos: la tensión constante acompaña la patada.",
+                    "La versión precisa que no deja descansar al tríceps."
+                  ],
+                  "description": "Polea inclinado con ambas manos: la tensión constante acompaña la patada. La versión precisa que no deja descansar al tríceps.",
+                  "technique": "Polea inclinado con ambas manos: la tensión constante acompaña la patada. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
+                  "variantRationale": "Polea inclinado con ambas manos: la tensión constante acompaña la patada. La versión precisa que no deja descansar al tríceps."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -327,7 +476,7 @@
                 },
                 "identity": {
                   "canonicalName": "Patada de Tríceps",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "triceps_patada__cable__bilateral",
                   "definitionId": "triceps_patada",
                   "familyId": "upper_elbow_extension_kickback",
@@ -346,8 +495,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar triceps dentro del patrón elbow_extension.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el tríceps mediante Patada de Tríceps en la variante Polea · Trabajo Bilateral.",
+                    "Priorizar cargar el tríceps de forma directa y ajustar la dificultad con precisión con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -369,7 +518,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón elbow_extension y el objetivo triceps."
+                    "Conserva extensión del codo y el objetivo de el tríceps.",
+                    "La sustitución debe respetar las articulaciones relevantes: codo, hombro, muñeca."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -384,13 +534,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Configura polea y adopta la posición específica de «Patada de tríceps» antes de iniciar; conserva una base estable."
+                "Preparación: Polea inclinado con ambas manos: la tensión constante acompaña la patada."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "techniqueSummary": "Polea inclinado con ambas manos: la tensión constante acompaña la patada. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
+              "ttc": 1.6,
+              "variantRationale": "Polea inclinado con ambas manos: la tensión constante acompaña la patada. La versión precisa que no deja descansar al tríceps."
             },
             "selectedOptions": {
               "implement": "cable",
@@ -404,9 +556,9 @@
               "evidenceRefs": [
                 "legacy:exercise_database.json#triceps_patada",
                 "editorial:configuration:triceps_patada__dumbbells__unilateral",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "triceps_patada__dumbbells__unilateral",
@@ -414,18 +566,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Mancuerna con una mano apoyado en el banco: un tríceps a la vez con el codo firme.",
+                "Útil para igualar ambos brazos; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.8,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
+                "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
               ],
-              "description": "Mancuerna con una mano apoyado en el banco: un tríceps a la vez con el codo firme. Ideal para igualar ambos brazos.",
+              "description": "Mancuerna con una mano apoyado en el banco: un tríceps a la vez con el codo firme. Útil para igualar ambos brazos.",
               "efc": 2.2,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Ejecuta «Patada de tríceps» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Mancuerna con una mano apoyado en el banco: un tríceps a la vez con el codo firme. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Principal: El codo abre el brazo y concentra el trabajo mecánico del tríceps. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Posición Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro fija el brazo o lo coloca detrás de la cabeza según la variante. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca transmite la presión sin doblarse bajo el implemento. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "FULL",
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
@@ -433,7 +616,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "triceps",
-                  "note": "Principal: el tríceps extiende el codo y concentra la fuerza del movimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El tríceps extiende el codo y completa la fase de empuje. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "triceps_patada__dumbbells__patada_de_triceps",
@@ -446,7 +629,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "elbow_extension"
+                    "Extensión",
+                    "Posición Del Hombro",
+                    "Alineación"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Principal: El codo abre el brazo y concentra el trabajo mecánico del tríceps. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Posición Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro fija el brazo o lo coloca detrás de la cabeza según la variante. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca transmite la presión sin doblarse bajo el implemento. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -469,39 +680,44 @@
                   "movementPatternId": "elbow_extension",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "codo",
+                    "glenohumeral",
+                    "muñeca"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-bíceps",
+                    "tendon-tríceps",
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-flexores-muñeca",
+                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón extensión codo para completar la repetición."
+                    "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
                   ],
                   "cues": [
-                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                    "Mancuerna con una mano apoyado en el banco: un tríceps a la vez con el codo firme. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
                   ],
                   "execution": [
-                    "Ejecuta «Patada de tríceps» siguiendo el patrón extensión codo con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Mancuerna con una mano apoyado en el banco: un tríceps a la vez con el codo firme. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando cargar el tríceps de forma directa y ajustar la dificultad con precisión siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar extensión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de codo según tolerancia y rango disponible.",
+                    "Movilidad de hombro según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura mancuerna y adopta la posición específica de «Patada de tríceps» antes de iniciar; conserva una base estable."
+                    "Preparación: Mancuerna con una mano apoyado en el banco: un tríceps a la vez con el codo firme."
                   ]
                 },
                 "display": {
@@ -511,6 +727,15 @@
                     "implement": "dumbbells",
                     "laterality": "unilateral"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Mancuerna con una mano apoyado en el banco: un tríceps a la vez con el codo firme.",
+                    "Útil para igualar ambos brazos; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Mancuerna con una mano apoyado en el banco: un tríceps a la vez con el codo firme. Útil para igualar ambos brazos.",
+                  "technique": "Mancuerna con una mano apoyado en el banco: un tríceps a la vez con el codo firme. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
+                  "variantRationale": "Mancuerna con una mano apoyado en el banco: un tríceps a la vez con el codo firme. Útil para igualar ambos brazos."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -523,7 +748,7 @@
                 },
                 "identity": {
                   "canonicalName": "Patada de Tríceps",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "triceps_patada__dumbbells__unilateral",
                   "definitionId": "triceps_patada",
                   "familyId": "upper_elbow_extension_kickback",
@@ -542,8 +767,8 @@
                     "min": 30
                   },
                   "objectives": [
-                    "Desarrollar triceps dentro del patrón elbow_extension.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el tríceps mediante Patada de Tríceps en la variante Mancuernas · Trabajo Unilateral.",
+                    "Priorizar cargar el tríceps de forma directa y ajustar la dificultad con precisión con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -565,7 +790,8 @@
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón elbow_extension y el objetivo triceps."
+                    "Conserva extensión del codo y el objetivo de el tríceps.",
+                    "La sustitución debe respetar las articulaciones relevantes: codo, hombro, muñeca."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -580,13 +806,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Configura mancuerna y adopta la posición específica de «Patada de tríceps» antes de iniciar; conserva una base estable."
+                "Preparación: Mancuerna con una mano apoyado en el banco: un tríceps a la vez con el codo firme."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "techniqueSummary": "Mancuerna con una mano apoyado en el banco: un tríceps a la vez con el codo firme. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
+              "ttc": 1.6,
+              "variantRationale": "Mancuerna con una mano apoyado en el banco: un tríceps a la vez con el codo firme. Útil para igualar ambos brazos."
             },
             "selectedOptions": {
               "implement": "dumbbells",
@@ -595,13 +823,13 @@
           }
         ],
         "defaultConfigurationId": "triceps_patada__dumbbells__bilateral",
-        "description": "Patada de tríceps: inclinado, estiras el brazo hacia atrás con el codo fijo. El aislamiento clásico del tríceps, ideal para terminar el brazo.",
+        "description": "Inclinado, estiras el brazo hacia atrás con el codo fijo. El aislamiento tradicional del tríceps, útil para terminar el brazo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:triceps_patada"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "upper_elbow_extension_kickback",
@@ -622,9 +850,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:upper_elbow_extension_kickback"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "upper_elbow_extension_kickback",
@@ -634,6 +862,6 @@
       "triceps_kickback"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

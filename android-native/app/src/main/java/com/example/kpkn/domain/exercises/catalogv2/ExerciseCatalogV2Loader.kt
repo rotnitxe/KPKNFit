@@ -134,6 +134,16 @@ object ExerciseCatalogV2Loader {
                     require(profile.description.trim().length >= 40) {
                         "Configuration description is too short: ${configuration.id}"
                     }
+                    requireNonBlankList(profile.benefits, "profile.benefits")
+                    require(profile.benefits.all { it.trim().length >= 40 }) {
+                        "profile benefit is too short: ${configuration.id}"
+                    }
+                    require(profile.techniqueSummary.trim().length >= 40) {
+                        "profile.techniqueSummary is too short: ${configuration.id}"
+                    }
+                    require(profile.variantRationale.trim().length >= 40) {
+                        "profile.variantRationale is too short: ${configuration.id}"
+                    }
                     requireNonBlank(profile.performanceProfileId, "profile.performanceProfileId")
                     requireNonBlankList(profile.primaryMuscles, "profile.primaryMuscles")
                     requireNonBlankList(profile.setupCues, "profile.setupCues")
@@ -155,6 +165,23 @@ object ExerciseCatalogV2Loader {
                     }
                     require(profile.muscleNotes.all { it.note.trim().length >= 40 }) {
                         "muscle note is too short: ${configuration.id}"
+                    }
+                    require(profile.jointInvolvement.isNotEmpty()) {
+                        "jointInvolvement cannot be empty: ${configuration.id}"
+                    }
+                    val jointIds = profile.jointInvolvement.map { it.jointId }
+                    require(jointIds.size == jointIds.toSet().size) {
+                        "Duplicate joint involvement: ${configuration.id}"
+                    }
+                    require(jointIds.all(String::isNotBlank)) {
+                        "jointInvolvement contains blank joint id: ${configuration.id}"
+                    }
+                    require(profile.jointInvolvement.all { joint ->
+                        joint.actions.isNotEmpty() &&
+                            joint.actions.all(String::isNotBlank) &&
+                            joint.note.trim().length >= 40
+                    }) {
+                        "jointInvolvement entry is incomplete: ${configuration.id}"
                     }
                     require(profile.efc.isFinite() && profile.efc >= 0.0)
                     require(profile.cnc.isFinite() && profile.cnc >= 0.0)
@@ -178,6 +205,7 @@ object ExerciseCatalogV2Loader {
                     require(rich.anatomy.primaryMuscles == profile.primaryMuscles)
                     require(rich.anatomy.secondaryMuscles == profile.secondaryMuscles)
                     require(rich.anatomy.stabilizerMuscles == profile.stabilizerMuscles)
+                    require(rich.anatomy.jointInvolvement == profile.jointInvolvement)
                     require(rich.biomechanics.movementPatternId == profile.movementPatternId)
                     require(rich.biomechanics.bodyRegion == profile.bodyRegion)
                     require(rich.biomechanics.kineticChain == profile.kineticChain)
@@ -208,6 +236,9 @@ object ExerciseCatalogV2Loader {
                     requireNonBlank(rich.biomechanics.rangeOfMotion ?: "", "rich.biomechanics.rangeOfMotion")
                     requireNonBlank(rich.biomechanics.stability ?: "", "rich.biomechanics.stability")
                     requireNonBlankList(rich.biomechanics.relevantJoints, "rich.biomechanics.relevantJoints")
+                    require(rich.biomechanics.relevantJoints.toSet() == jointIds.toSet()) {
+                        "relevantJoints must cover jointInvolvement exactly: ${configuration.id}"
+                    }
                     requireNonBlankList(rich.biomechanics.relevantTendons, "rich.biomechanics.relevantTendons", allowEmpty = true)
                     requireNonBlank(rich.programming.role ?: "", "rich.programming.role")
                     requireNonBlankList(rich.programming.objectives, "rich.programming.objectives")
@@ -226,6 +257,13 @@ object ExerciseCatalogV2Loader {
                     requireNonBlankList(rich.coaching.relevantMobility, "rich.coaching.relevantMobility", allowEmpty = true)
                     requireNonBlankList(rich.safety.risks, "rich.safety.risks", allowEmpty = true)
                     requireNonBlankList(rich.safety.precautions, "rich.safety.precautions", allowEmpty = true)
+                    require(rich.editorial.description == profile.description)
+                    require(rich.editorial.benefits == profile.benefits)
+                    require(rich.editorial.technique == profile.techniqueSummary)
+                    require(rich.editorial.variantRationale == profile.variantRationale)
+                    requireNonBlankList(rich.editorial.benefits, "rich.editorial.benefits")
+                    requireNonBlank(rich.editorial.technique, "rich.editorial.technique")
+                    requireNonBlank(rich.editorial.variantRationale, "rich.editorial.variantRationale")
                     require(rich.evidenceConfidence != CatalogConfidenceV2.LOW)
                 }
             }

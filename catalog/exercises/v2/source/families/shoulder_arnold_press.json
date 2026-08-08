@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Press Arnold",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_arnold_mancuernas",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "arnold_press__dumbbells",
@@ -22,18 +22,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Mancuernas con el giro de Arnold: subes girando las palmas hasta arriba.",
+                "El press completo del hombro, directo del tradicional."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.8,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón empuje vertical para completar la repetición."
+                "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Mancuernas con el giro de Arnold: subes girando las palmas hasta arriba. El press completo del hombro, directo del legendario.",
+              "description": "Mancuernas con el giro de Arnold: subes girando las palmas hasta arriba. El press completo del hombro, directo del tradicional.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Ejecuta «Press Arnold con Mancuernas» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Mancuernas con el giro de Arnold: subes girando las palmas hasta arriba. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión O Abducción"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Rotación Superior"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -41,11 +80,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "deltoid",
-                  "note": "Principal: el deltoides mueve el brazo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "triceps",
-                  "note": "Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."
+                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "arnold_press__dumbbells__press_arnold",
@@ -58,7 +97,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "vertical_push"
+                    "Flexión O Abducción",
+                    "Rotación Superior",
+                    "Extensión",
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión O Abducción"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Rotación Superior"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Lumbopélvica"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -83,39 +159,43 @@
                   "movementPatternId": "vertical_push",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "columna-lumbar"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón empuje vertical para completar la repetición."
+                    "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
                   ],
                   "cues": [
-                    "Mantén el equipo dumbbells alineado con el patrón y controla la fase excéntrica."
+                    "Mancuernas con el giro de Arnold: subes girando las palmas hasta arriba. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "execution": [
-                    "Ejecuta «Press Arnold con Mancuernas» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Mancuernas con el giro de Arnold: subes girando las palmas hasta arriba. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando desarrollar los hombros y completar el empuje con ayuda del tríceps siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar empuje del brazo por encima de la cabeza y extensión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura mancuerna y adopta la posición específica de «Press Arnold con Mancuernas» antes de iniciar; conserva una base estable."
+                    "Preparación: Mancuernas con el giro de Arnold: subes girando las palmas hasta arriba."
                   ]
                 },
                 "display": {
@@ -124,6 +204,15 @@
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Mancuernas con el giro de Arnold: subes girando las palmas hasta arriba.",
+                    "El press completo del hombro, directo del tradicional."
+                  ],
+                  "description": "Mancuernas con el giro de Arnold: subes girando las palmas hasta arriba. El press completo del hombro, directo del tradicional.",
+                  "technique": "Mancuernas con el giro de Arnold: subes girando las palmas hasta arriba. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+                  "variantRationale": "Mancuernas con el giro de Arnold: subes girando las palmas hasta arriba. El press completo del hombro, directo del tradicional."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -136,7 +225,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Arnold",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "arnold_press__dumbbells",
                   "definitionId": "arnold_press",
                   "familyId": "shoulder_arnold_press",
@@ -156,8 +245,8 @@
                     "min": 45
                   },
                   "objectives": [
-                    "Desarrollar deltoid dentro del patrón vertical_push.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el deltoides mediante Press Arnold en la variante Mancuernas.",
+                    "Priorizar desarrollar los hombros y completar el empuje con ayuda del tríceps con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -179,7 +268,8 @@
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón vertical_push y el objetivo deltoid."
+                    "Conserva empuje del brazo por encima de la cabeza y extensión del codo y el objetivo de el deltoides.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -196,13 +286,15 @@
                 "triceps"
               ],
               "setupCues": [
-                "Configura mancuerna y adopta la posición específica de «Press Arnold con Mancuernas» antes de iniciar; conserva una base estable."
+                "Preparación: Mancuernas con el giro de Arnold: subes girando las palmas hasta arriba."
               ],
               "setupTimeSeconds": 30,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "techniqueSummary": "Mancuernas con el giro de Arnold: subes girando las palmas hasta arriba. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+              "ttc": 1.6,
+              "variantRationale": "Mancuernas con el giro de Arnold: subes girando las palmas hasta arriba. El press completo del hombro, directo del tradicional."
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -214,9 +306,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_arnold_kettlebell",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "arnold_press__kettlebell",
@@ -224,18 +316,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Kettlebells con el giro de Arnold: el movimiento rotatorio con campanas exige más estabilidad.",
+                "Variante avanzada del press de Arnold; una diferencia concreta para repartir el esfuerzo durante la serie."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.8,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón empuje vertical para completar la repetición."
+                "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
               "description": "Kettlebells con el giro de Arnold: el movimiento rotatorio con campanas exige más estabilidad. Variante avanzada del press de Arnold.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
-                "Ejecuta «Press Arnold con Kettlebell» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Kettlebells con el giro de Arnold: el movimiento rotatorio con campanas exige más estabilidad. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión O Abducción"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Rotación Superior"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
@@ -243,11 +374,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "deltoid",
-                  "note": "Principal: el deltoides mueve el brazo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Kettlebell, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "triceps",
-                  "note": "Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."
+                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. En la configuración Kettlebell, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "arnold_press__kettlebell__press_arnold",
@@ -260,7 +391,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "vertical_push"
+                    "Flexión O Abducción",
+                    "Rotación Superior",
+                    "Extensión",
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión O Abducción"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Rotación Superior"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Lumbopélvica"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -285,39 +453,43 @@
                   "movementPatternId": "vertical_push",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "columna-lumbar"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón empuje vertical para completar la repetición."
+                    "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
                   ],
                   "cues": [
-                    "Mantén el equipo kettlebell alineado con el patrón y controla la fase excéntrica."
+                    "Kettlebells con el giro de Arnold: el movimiento rotatorio con campanas exige más estabilidad. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "execution": [
-                    "Ejecuta «Press Arnold con Kettlebell» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Kettlebells con el giro de Arnold: el movimiento rotatorio con campanas exige más estabilidad. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando desarrollar los hombros y completar el empuje con ayuda del tríceps siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar empuje del brazo por encima de la cabeza y extensión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura kettlebell y adopta la posición específica de «Press Arnold con Kettlebell» antes de iniciar; conserva una base estable."
+                    "Preparación: Kettlebells con el giro de Arnold: el movimiento rotatorio con campanas exige más estabilidad."
                   ]
                 },
                 "display": {
@@ -326,6 +498,15 @@
                   "selectedOptions": {
                     "implement": "kettlebell"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Kettlebells con el giro de Arnold: el movimiento rotatorio con campanas exige más estabilidad.",
+                    "Variante avanzada del press de Arnold; una diferencia concreta para repartir el esfuerzo durante la serie."
+                  ],
+                  "description": "Kettlebells con el giro de Arnold: el movimiento rotatorio con campanas exige más estabilidad. Variante avanzada del press de Arnold.",
+                  "technique": "Kettlebells con el giro de Arnold: el movimiento rotatorio con campanas exige más estabilidad. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+                  "variantRationale": "Kettlebells con el giro de Arnold: el movimiento rotatorio con campanas exige más estabilidad. Variante avanzada del press de Arnold."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -338,7 +519,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Arnold",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "arnold_press__kettlebell",
                   "definitionId": "arnold_press",
                   "familyId": "shoulder_arnold_press",
@@ -358,8 +539,8 @@
                     "min": 45
                   },
                   "objectives": [
-                    "Desarrollar deltoid dentro del patrón vertical_push.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el deltoides mediante Press Arnold en la variante Kettlebell.",
+                    "Priorizar desarrollar los hombros y completar el empuje con ayuda del tríceps con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -381,7 +562,8 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón vertical_push y el objetivo deltoid."
+                    "Conserva empuje del brazo por encima de la cabeza y extensión del codo y el objetivo de el deltoides.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -398,13 +580,15 @@
                 "triceps"
               ],
               "setupCues": [
-                "Configura kettlebell y adopta la posición específica de «Press Arnold con Kettlebell» antes de iniciar; conserva una base estable."
+                "Preparación: Kettlebells con el giro de Arnold: el movimiento rotatorio con campanas exige más estabilidad."
               ],
               "setupTimeSeconds": 30,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "techniqueSummary": "Kettlebells con el giro de Arnold: el movimiento rotatorio con campanas exige más estabilidad. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+              "ttc": 1.6,
+              "variantRationale": "Kettlebells con el giro de Arnold: el movimiento rotatorio con campanas exige más estabilidad. Variante avanzada del press de Arnold."
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -416,9 +600,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_arnold_polea",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "arnold_press__cable",
@@ -426,18 +610,57 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Polea con el giro de Arnold: la tensión constante acompaña el giro y el empuje.",
+                "La versión controlada del press de Arnold."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 1.8,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón empuje vertical para completar la repetición."
+                "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Polea con el giro de Arnold: la tensión constante acompaña el giro y el empuje. La versión pulida del press de Arnold.",
+              "description": "Polea con el giro de Arnold: la tensión constante acompaña el giro y el empuje. La versión controlada del press de Arnold.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
-                "Ejecuta «Press Arnold en Polea» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Polea con el giro de Arnold: la tensión constante acompaña el giro y el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión O Abducción"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Rotación Superior"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
@@ -445,11 +668,11 @@
               "muscleNotes": [
                 {
                   "muscleId": "deltoid",
-                  "note": "Principal: el deltoides mueve el brazo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "triceps",
-                  "note": "Secundario: el tríceps asiste la extensión del codo en la fase final del movimiento; por eso suma 0.5."
+                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "arnold_press__cable__press_arnold",
@@ -462,7 +685,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "vertical_push"
+                    "Flexión O Abducción",
+                    "Rotación Superior",
+                    "Extensión",
+                    "Estabilidad Lumbopélvica"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión O Abducción"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: El hombro eleva el brazo y recibe el carga principal del empuje vertical. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Rotación Superior"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula acompaña la elevación y preserva espacio para el movimiento del brazo. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: El codo termina de alejar la carga del cuerpo y eleva la altura final. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Lumbopélvica"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la extensión para que el empuje no se convierta en arqueo. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -487,39 +747,43 @@
                   "movementPatternId": "vertical_push",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "columna-lumbar"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo",
+                    "tendon-bíceps",
+                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón empuje vertical para completar la repetición."
+                    "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
                   ],
                   "cues": [
-                    "Mantén el equipo cable alineado con el patrón y controla la fase excéntrica."
+                    "Polea con el giro de Arnold: la tensión constante acompaña el giro y el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "execution": [
-                    "Ejecuta «Press Arnold en Polea» siguiendo el patrón empuje vertical con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Polea con el giro de Arnold: la tensión constante acompaña el giro y el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando desarrollar los hombros y completar el empuje con ayuda del tríceps siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar empuje del brazo por encima de la cabeza y extensión del codo como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura polea y adopta la posición específica de «Press Arnold en Polea» antes de iniciar; conserva una base estable."
+                    "Preparación: Polea con el giro de Arnold: la tensión constante acompaña el giro y el empuje."
                   ]
                 },
                 "display": {
@@ -528,6 +792,15 @@
                   "selectedOptions": {
                     "implement": "cable"
                   }
+                },
+                "editorial": {
+                  "benefits": [
+                    "Polea con el giro de Arnold: la tensión constante acompaña el giro y el empuje.",
+                    "La versión controlada del press de Arnold."
+                  ],
+                  "description": "Polea con el giro de Arnold: la tensión constante acompaña el giro y el empuje. La versión controlada del press de Arnold.",
+                  "technique": "Polea con el giro de Arnold: la tensión constante acompaña el giro y el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+                  "variantRationale": "Polea con el giro de Arnold: la tensión constante acompaña el giro y el empuje. La versión controlada del press de Arnold."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -540,7 +813,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Arnold",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "arnold_press__cable",
                   "definitionId": "arnold_press",
                   "familyId": "shoulder_arnold_press",
@@ -560,8 +833,8 @@
                     "min": 45
                   },
                   "objectives": [
-                    "Desarrollar deltoid dentro del patrón vertical_push.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el deltoides mediante Press Arnold en la variante Polea.",
+                    "Priorizar desarrollar los hombros y completar el empuje con ayuda del tríceps con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -583,7 +856,8 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón vertical_push y el objetivo deltoid."
+                    "Conserva empuje del brazo por encima de la cabeza y extensión del codo y el objetivo de el deltoides.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -600,13 +874,15 @@
                 "triceps"
               ],
               "setupCues": [
-                "Configura polea y adopta la posición específica de «Press Arnold en Polea» antes de iniciar; conserva una base estable."
+                "Preparación: Polea con el giro de Arnold: la tensión constante acompaña el giro y el empuje."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "techniqueSummary": "Polea con el giro de Arnold: la tensión constante acompaña el giro y el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
+              "ttc": 1.6,
+              "variantRationale": "Polea con el giro de Arnold: la tensión constante acompaña el giro y el empuje. La versión controlada del press de Arnold."
             },
             "selectedOptions": {
               "implement": "cable"
@@ -614,13 +890,13 @@
           }
         ],
         "defaultConfigurationId": "arnold_press__dumbbells",
-        "description": "Press Arnold: empiezas con las palmas hacia ti y vas girando mientras subes. El press que trabaja el hombro completo en un solo movimiento, directo de Arnold.",
+        "description": "Empiezas con las palmas hacia ti y vas girando mientras subes. El press que trabaja el hombro completo en un solo movimiento, directo de Arnold.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:arnold_press"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "shoulder_arnold_press",
@@ -641,9 +917,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:shoulder_arnold_press"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "shoulder_arnold_press",
@@ -653,6 +929,6 @@
       "arnold_press"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

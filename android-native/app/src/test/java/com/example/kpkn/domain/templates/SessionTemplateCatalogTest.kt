@@ -7,6 +7,7 @@ import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.exercises.catalogv2.toLegacyConfigurationLookup
+import com.example.kpkn.data.protocols.ProtocolExerciseLibrary
 import com.example.kpkn.data.sessions.SESSION_TEMPLATES_SYSTEM
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.sessions.SessionTemplateFocusCategory
@@ -33,6 +34,7 @@ class SessionTemplateCatalogTest {
         private lateinit var exerciseDatabaseById: Map<String, ExerciseMuscleInfo>
         /** Índice exacto de configuraciones v2; no contiene aliases ni nombres. */
         private lateinit var exerciseIndexWithAliases: Map<String, ExerciseMuscleInfo>
+        private lateinit var catalogConfigurationIds: Set<String>
 
         @BeforeClass
         @JvmStatic
@@ -41,6 +43,11 @@ class SessionTemplateCatalogTest {
             exerciseIndexWithAliases = catalog.toLegacyConfigurationLookup()
             exerciseDatabase = exerciseIndexWithAliases.values.toList()
             exerciseDatabaseById = exerciseIndexWithAliases
+            catalogConfigurationIds = catalog.families
+                .flatMap { family -> family.definitions }
+                .flatMap { definition -> definition.configurations }
+                .map { configuration -> configuration.id }
+                .toSet()
         }
 
         private fun findCatalogFile(): File {
@@ -106,6 +113,41 @@ class SessionTemplateCatalogTest {
                 )
             }
         }
+    }
+
+    @Test
+    fun protocolExerciseLibraryUses_only_approved_catalog_configurations() {
+        val referenced = setOf(
+            ProtocolExerciseLibrary.SQUAT_MAIN,
+            ProtocolExerciseLibrary.SQUAT_TECHNIQUE,
+            ProtocolExerciseLibrary.BENCH_MAIN,
+            ProtocolExerciseLibrary.BENCH_TECHNIQUE,
+            ProtocolExerciseLibrary.DEADLIFT_MAIN,
+            ProtocolExerciseLibrary.DEADLIFT_TECHNIQUE,
+            ProtocolExerciseLibrary.OHP_MAIN,
+        )
+        // Include every private accessory pool through the public compiler so this
+        // gate follows the same executable path as the generated protocol sessions.
+        val generated = com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
+            .flatMap { protocol -> protocol.blocks }
+            .flatMap { block ->
+                listOf(
+                    ProtocolExerciseLibrary.SQUAT_MAIN,
+                    ProtocolExerciseLibrary.BENCH_MAIN,
+                    ProtocolExerciseLibrary.DEADLIFT_MAIN,
+                    ProtocolExerciseLibrary.OHP_MAIN,
+                )
+            }
+            .flatMap { lift ->
+                listOf(lift) + ProtocolExerciseLibrary.accessoriesFor(lift, weekNumber = 1, count = 3)
+            }
+        val missing = (referenced + generated.toSet())
+            .map { lift -> lift.exerciseDbId }
+            .filterNot { it in catalogConfigurationIds }
+        assertTrue(
+            "ProtocolExerciseLibrary contiene configurationId fuera del asset aprobado: $missing",
+            missing.isEmpty(),
+        )
     }
 
     @Test

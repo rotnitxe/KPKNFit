@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Tren inferior · gluteus maximus · hip abduction stability",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_monster_walk_banda",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "glutes_monster_walk_banda__default",
@@ -22,18 +22,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas.",
+                "El calentamiento que acumula fatiga local en los glúteos."
+              ],
               "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.2,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón abducción / estabilización para completar la repetición."
+                "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
               ],
-              "description": "Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas. El calentamiento que hace llorar a los glúteos.",
+              "description": "Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas. El calentamiento que acumula fatiga local en los glúteos.",
               "efc": 2.8,
               "equipmentId": "band",
               "executionCues": [
-                "Ejecuta «Caminata del Monstruo (Monster Walk) con Banda» siguiendo el patrón abducción / estabilización con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Abducción"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Pélvica"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación Del Miembro Inferior"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
@@ -41,7 +72,7 @@
               "muscleNotes": [
                 {
                   "muscleId": "gluteus_maximus",
-                  "note": "Principal: el glúteo mayor extiende la cadera y concentra la potencia del movimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. La banda se vuelve más exigente al final y hace más visible su participación en ese tramo. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "glutes_monster_walk_banda__band__caminata_del_monstruo_monster_walk_con_banda",
@@ -54,7 +85,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "hip_abduction_stability"
+                    "Abducción",
+                    "Estabilidad Pélvica",
+                    "Alineación Del Miembro Inferior"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Abducción"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Pélvica"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación Del Miembro Inferior"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -77,46 +136,56 @@
                   "movementPatternId": "hip_abduction_stability",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "hip",
-                    "knee",
-                    "ankle"
+                    "cadera",
+                    "sacroiliaca",
+                    "rodilla"
                   ],
                   "relevantTendons": [
-                    "hip_tendon",
-                    "knee_tendon",
-                    "ankle_tendon"
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "variable_band",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón abducción / estabilización para completar la repetición."
+                    "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
                   ],
                   "cues": [
-                    "Mantén el equipo band alineado con el patrón y controla la fase excéntrica."
+                    "Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Ejecuta «Caminata del Monstruo (Monster Walk) con Banda» siguiendo el patrón abducción / estabilización con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadera lateral y mejorar el control de la pelvis siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar separación de la pierna y estabilidad pélvica como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de hip según tolerancia y rango disponible.",
-                    "Movilidad de knee según tolerancia y rango disponible."
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura banda elástica y adopta la posición específica de «Caminata del Monstruo (Monster Walk) con Banda» antes de iniciar; conserva una base estable."
+                    "Preparación: Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas."
                   ]
                 },
                 "display": {
                   "displayName": "Caminata del Monstruo (Monster Walk) con Banda",
                   "displaySummary": "Banda Elástica",
                   "selectedOptions": {}
+                },
+                "editorial": {
+                  "benefits": [
+                    "Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas.",
+                    "El calentamiento que acumula fatiga local en los glúteos."
+                  ],
+                  "description": "Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas. El calentamiento que acumula fatiga local en los glúteos.",
+                  "technique": "Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas. El calentamiento que acumula fatiga local en los glúteos."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -129,7 +198,7 @@
                 },
                 "identity": {
                   "canonicalName": "Caminata del Monstruo (Monster Walk) con Banda",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "glutes_monster_walk_banda__default",
                   "definitionId": "glutes_monster_walk_banda",
                   "familyId": "lower_hip_abduction_stability",
@@ -146,8 +215,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar gluteus_maximus dentro del patrón hip_abduction_stability.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el glúteo mayor mediante Caminata del Monstruo (Monster Walk) con Banda en la variante Banda Elástica.",
+                    "Priorizar fortalecer la cadera lateral y mejorar el control de la pelvis con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -169,7 +238,8 @@
                     "band"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón hip_abduction_stability y el objetivo gluteus_maximus."
+                    "Conserva separación de la pierna y estabilidad pélvica y el objetivo de el glúteo mayor.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, articulación sacroilíaca, rodilla."
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
@@ -184,25 +254,27 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Configura banda elástica y adopta la posición específica de «Caminata del Monstruo (Monster Walk) con Banda» antes de iniciar; conserva una base estable."
+                "Preparación: Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas."
               ],
               "setupTimeSeconds": 10,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "techniqueSummary": "Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 2.0,
+              "variantRationale": "Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas. El calentamiento que acumula fatiga local en los glúteos."
             },
             "selectedOptions": {}
           }
         ],
         "defaultConfigurationId": "glutes_monster_walk_banda__default",
-        "description": "Caminata del monstruo con banda: con la banda alrededor de las rodillas o tobillos, caminas de lado sin dejar que la banda te cierre. El calentamiento favorito para despertar el glúteo.",
+        "description": "Caminata del monstruo con banda: con la banda alrededor de las rodillas o tobillos, caminas de lado sin dejar que la banda te cierre. El calentamiento muy utilizado para despertar el glúteo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:glutes_monster_walk_banda"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_hip_abduction_stability",
@@ -218,9 +290,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:lower_hip_abduction_stability"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_hip_abduction_stability",
@@ -229,6 +301,6 @@
       "hip_abduction_stability"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }

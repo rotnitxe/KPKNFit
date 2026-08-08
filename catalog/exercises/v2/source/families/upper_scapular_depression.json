@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-02-c",
+  "catalogRevision": "v2-approved-2026-08-08-c",
   "family": {
     "canonicalName": "Tren superior · latissimus dorsi · scapular depression",
     "definitions": [
@@ -12,9 +12,9 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_dominadas_escapulares",
-                "editorial:catalog-v2-full-2026-08-02"
+                "editorial:catalog-v6-dedicated-copy-2026-08-08"
               ],
-              "rationale": "Aprobado por decisión explícita de catálogo v2; la configuración está materializada y no depende de inferencia runtime.",
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "back_dominadas_escapulares__default",
@@ -22,18 +22,49 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
+              "benefits": [
+                "Colgado de la barra moviendo solo los omóplatos: la espalda se activa sin doblarte.",
+                "El ejercicio de preparación que puede utilizarse para preparar la tracción escapular."
+              ],
               "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-08-c",
               "cnc": 2.0,
               "commonMistakes": [
-                "Usar impulso, perder la posición de inicio o transformar el patrón depresión escapular para completar la repetición."
+                "Encoger el cuello, doblar los codos o balancear el tronco."
               ],
-              "description": "Colgado de la barra moviendo solo los omóplatos: la espalda se activa sin doblarte. El ejercicio de preparación que todo el mundo debería hacer.",
+              "description": "Colgado de la barra moviendo solo los omóplatos: la espalda se activa sin doblarte. El ejercicio de preparación que puede utilizarse para preparar la tracción escapular.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Ejecuta «Dominadas Escapulares» siguiendo el patrón depresión escapular con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                "Colgado de la barra moviendo solo los omóplatos: la espalda se activa sin doblarte. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
               "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Elevación O Depresión"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se desplaza sobre el tórax y concentra la acción del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Centrado Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El hombro mantiene la cabeza del brazo organizada mientras la escápula se mueve. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Posición Cervical"
+                  ],
+                  "jointId": "columna-cervical",
+                  "note": "Estabilizadora: La columna cervical conserva un cuello largo y evita que el trapecio tire de la cabeza. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                  "role": "STABILIZER"
+                }
+              ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
@@ -41,19 +72,19 @@
               "muscleNotes": [
                 {
                   "muscleId": "latissimus_dorsi",
-                  "note": "Principal: el dorsal tracciona el brazo y concentra el trabajo del movimiento; por eso suma la serie completa (1.0)."
+                  "note": "Principal: El dorsal extiende o aproxima el brazo al tronco desde la espalda. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "trapezius",
-                  "note": "Secundario: el trapecio asiste el movimiento escapular y la postura del hombro; por eso suma 0.5."
+                  "note": "Secundaria: El trapecio coordina la posición de la escápula y reparte la fuerza en la cintura escapular. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "deltoid",
-                  "note": "Secundario: el deltoides asiste el movimiento del brazo y la estabilidad del hombro; por eso suma 0.5."
+                  "note": "Secundaria: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 },
                 {
                   "muscleId": "biceps",
-                  "note": "Secundario: el bíceps asiste la tracción o flexión con contribución real al movimiento; por eso suma 0.5."
+                  "note": "Secundaria: El bíceps flexiona el codo y, con agarre supino, ayuda a supinar el antebrazo. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
                 }
               ],
               "performanceProfileId": "back_dominadas_escapulares__bodyweight__dominadas_escapulares",
@@ -66,7 +97,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "scapular_depression"
+                    "Elevación O Depresión",
+                    "Centrado Del Hombro",
+                    "Posición Cervical"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Elevación O Depresión"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se desplaza sobre el tórax y concentra la acción del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Centrado Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El hombro mantiene la cabeza del brazo organizada mientras la escápula se mueve. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Posición Cervical"
+                      ],
+                      "jointId": "columna-cervical",
+                      "note": "Estabilizadora: La columna cervical conserva un cuello largo y evita que el trapecio tire de la cabeza. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
+                      "role": "STABILIZER"
+                    }
                   ],
                   "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
@@ -93,45 +152,55 @@
                   "movementPatternId": "scapular_depression",
                   "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
-                    "shoulder",
-                    "elbow",
-                    "scapulothoracic"
+                    "escapulotoracica",
+                    "glenohumeral",
+                    "columna-cervical"
                   ],
                   "relevantTendons": [
-                    "shoulder_tendon",
-                    "elbow_tendon"
+                    "tendon-supraespinoso",
+                    "tendon-infraespinoso",
+                    "tendon-bíceps-largo"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
-                    "Usar impulso, perder la posición de inicio o transformar el patrón depresión escapular para completar la repetición."
+                    "Encoger el cuello, doblar los codos o balancear el tronco."
                   ],
                   "cues": [
-                    "Mantén el equipo bodyweight alineado con el patrón y controla la fase excéntrica."
+                    "Colgado de la barra moviendo solo los omóplatos: la espalda se activa sin doblarte. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "execution": [
-                    "Ejecuta «Dominadas Escapulares» siguiendo el patrón depresión escapular con recorrido controlado y sin cambiar la trayectoria bajo carga."
+                    "Colgado de la barra moviendo solo los omóplatos: la espalda se activa sin doblarte. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
                   ],
                   "progressions": [
-                    "Aumentar gradualmente la carga solo si se conserva la configuración exacta."
+                    "Aumentar la carga o el ángulo solo cuando mejorar el control de la cintura escapular para empujes y tirones siga siendo perceptible sin compensaciones."
                   ],
                   "regressions": [
-                    "Reducir carga o rango manteniendo la misma configuración y el mismo patrón."
+                    "Reducir la carga o el rango y conservar movimiento de la escápula y estabilidad del hombro como referencia técnica."
                   ],
                   "relevantMobility": [
-                    "Movilidad de shoulder según tolerancia y rango disponible.",
-                    "Movilidad de elbow según tolerancia y rango disponible."
+                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible.",
+                    "Movilidad de hombro según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Configura peso corporal y adopta la posición específica de «Dominadas Escapulares» antes de iniciar; conserva una base estable."
+                    "Preparación: Colgado de la barra moviendo solo los omóplatos: la espalda se activa sin doblarte."
                   ]
                 },
                 "display": {
                   "displayName": "Dominadas Escapulares",
                   "displaySummary": "Peso Corporal",
                   "selectedOptions": {}
+                },
+                "editorial": {
+                  "benefits": [
+                    "Colgado de la barra moviendo solo los omóplatos: la espalda se activa sin doblarte.",
+                    "El ejercicio de preparación que puede utilizarse para preparar la tracción escapular."
+                  ],
+                  "description": "Colgado de la barra moviendo solo los omóplatos: la espalda se activa sin doblarte. El ejercicio de preparación que puede utilizarse para preparar la tracción escapular.",
+                  "technique": "Colgado de la barra moviendo solo los omóplatos: la espalda se activa sin doblarte. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+                  "variantRationale": "Colgado de la barra moviendo solo los omóplatos: la espalda se activa sin doblarte. El ejercicio de preparación que puede utilizarse para preparar la tracción escapular."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -144,7 +213,7 @@
                 },
                 "identity": {
                   "canonicalName": "Dominadas Escapulares",
-                  "catalogRevision": "v2-approved-2026-08-02-c",
+                  "catalogRevision": "v2-approved-2026-08-08-c",
                   "configurationId": "back_dominadas_escapulares__default",
                   "definitionId": "back_dominadas_escapulares",
                   "familyId": "upper_scapular_depression",
@@ -161,8 +230,8 @@
                     "min": 60
                   },
                   "objectives": [
-                    "Desarrollar latissimus_dorsi dentro del patrón scapular_depression.",
-                    "Mantener la técnica de la configuración seleccionada."
+                    "Desarrollar el dorsal mediante Dominadas Escapulares en la variante Peso Corporal.",
+                    "Priorizar mejorar el control de la cintura escapular para empujes y tirones con la línea de resistencia elegida."
                   ],
                   "recoveryCost": "moderate",
                   "requiredEquipment": [
@@ -184,7 +253,8 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva el patrón scapular_depression y el objetivo latissimus_dorsi."
+                    "Conserva movimiento de la escápula y estabilidad del hombro y el objetivo de el dorsal.",
+                    "La sustitución debe respetar las articulaciones relevantes: articulación escapulotorácica, hombro, columna cervical."
                   ],
                   "replacementGroup": "back_pullup_scapular",
                   "replacementPriority": 3
@@ -203,25 +273,27 @@
                 "biceps"
               ],
               "setupCues": [
-                "Configura peso corporal y adopta la posición específica de «Dominadas Escapulares» antes de iniciar; conserva una base estable."
+                "Preparación: Colgado de la barra moviendo solo los omóplatos: la espalda se activa sin doblarte."
               ],
               "setupTimeSeconds": 10,
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "techniqueSummary": "Colgado de la barra moviendo solo los omóplatos: la espalda se activa sin doblarte. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "ttc": 1.8,
+              "variantRationale": "Colgado de la barra moviendo solo los omóplatos: la espalda se activa sin doblarte. El ejercicio de preparación que puede utilizarse para preparar la tracción escapular."
             },
             "selectedOptions": {}
           }
         ],
         "defaultConfigurationId": "back_dominadas_escapulares__default",
-        "description": "Dominadas escapulares: te cuelgas de la barra y solo mueves los omóplatos, sin doblar los codos. El ejercicio de activación de la espalda que todo el mundo necesita.",
+        "description": "Te cuelgas de la barra y solo mueves los omóplatos, sin doblar los codos. El ejercicio de activación de la espalda útil para preparar la tracción escapular.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:definition:back_dominadas_escapulares"
+            "editorial:catalog-v6-dedicated-copy-2026-08-08"
           ],
-          "rationale": "Revisada; las configuraciones válidas están enumeradas de forma explícita.",
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "upper_scapular_depression",
@@ -237,9 +309,9 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:family:upper_scapular_depression"
+        "editorial:catalog-v6-dedicated-copy-2026-08-08"
       ],
-      "rationale": "Aprobada para runtime tras validación de identidad, metadata y configuraciones.",
+      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "upper_scapular_depression",
@@ -248,6 +320,6 @@
       "scapular_depression"
     ]
   },
-  "ontologyRevision": "wikilab-v2-2026-08-02",
+  "ontologyRevision": "wikilab-v3-2026-08-08",
   "schemaVersion": 2
 }
