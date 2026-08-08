@@ -12,10 +12,14 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import com.example.kpkn.data.db.KpknDatabase
+import com.example.kpkn.data.db.toCompetitionRecord
 import com.example.kpkn.data.models.CompetitionRecord
 import com.example.kpkn.data.models.CompetitionRecordStatus
-import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.navigation.KpknDeepLinks
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -160,14 +164,47 @@ class CompetitionReminderReceiver : BroadcastReceiver() {
             }
         }
     }
+}
 
-    private fun hasPermission(context: Context): Boolean =
+/** Rebuilds all future competition alarms after a reboot or package replacement. */
+class CompetitionReminderBootReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action != Intent.ACTION_BOOT_COMPLETED &&
+            intent.action != Intent.ACTION_MY_PACKAGE_REPLACED
+        ) return
+
+        val pendingResult = goAsync()
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                reschedulePersistedRecords(context)
+            } finally {
+                pendingResult.finish()
+            }
+        }
+    }
+
+    companion object {
+        suspend fun reschedulePersistedRecords(
+            context: Context,
+            database: KpknDatabase = KpknDatabase.getInstance(context),
+        ) {
+            val manager = CompetitionReminderManager(context)
+            manager.createChannels()
+            database.competitionRecordDao()
+                .getAll()
+                .map { it.toCompetitionRecord() }
+                .filterNot { it.status == CompetitionRecordStatus.ARCHIVED }
+                .forEach(manager::schedule)
+        }
+    }
+}
+
+private fun hasPermission(context: Context): Boolean =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
         } else {
             true
         }
-}
 
 private fun String.toEventDateTime(startTime: String?): LocalDateTime? {
     val date = runCatching { LocalDate.parse(this) }.getOrNull() ?: return null
