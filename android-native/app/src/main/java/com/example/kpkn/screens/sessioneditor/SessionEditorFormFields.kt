@@ -61,6 +61,7 @@ internal fun EditorMiniField(
     stateKey: String = label,
     keyboardType: KeyboardType = KeyboardType.Text,
     enabled: Boolean = true,
+    accentColor: Color? = null,
     modifier: Modifier = Modifier,
     onCommit: (String) -> Unit,
 ) {
@@ -95,14 +96,14 @@ internal fun EditorMiniField(
             fontWeight = FontWeight.Bold,
             color = Color.White.copy(alpha = 0.92f),
         ),
-        colors = kpknEditorFieldColors(),
+        colors = kpknEditorFieldColors(accentColor),
     )
 }
 
 @Composable
-internal fun kpknEditorFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedContainerColor = Color.White.copy(alpha = 0.16f),
-    unfocusedContainerColor = Color.White.copy(alpha = 0.12f),
+internal fun kpknEditorFieldColors(accentColor: Color? = null) = OutlinedTextFieldDefaults.colors(
+    focusedContainerColor = accentColor?.copy(alpha = 0.20f) ?: Color.White.copy(alpha = 0.16f),
+    unfocusedContainerColor = accentColor?.copy(alpha = 0.12f) ?: Color.White.copy(alpha = 0.12f),
     disabledContainerColor = Color.White.copy(alpha = 0.07f),
     focusedTextColor = Color.White.copy(alpha = 0.96f),
     unfocusedTextColor = Color.White.copy(alpha = 0.92f),
@@ -110,9 +111,9 @@ internal fun kpknEditorFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedLabelColor = Color.White.copy(alpha = 0.78f),
     unfocusedLabelColor = Color.White.copy(alpha = 0.62f),
     disabledLabelColor = Color.White.copy(alpha = 0.35f),
-    cursorColor = Color.White.copy(alpha = 0.9f),
-    focusedBorderColor = Color.White.copy(alpha = 0.30f),
-    unfocusedBorderColor = Color.White.copy(alpha = 0.10f),
+    cursorColor = accentColor ?: Color.White.copy(alpha = 0.9f),
+    focusedBorderColor = accentColor?.copy(alpha = 0.82f) ?: Color.White.copy(alpha = 0.30f),
+    unfocusedBorderColor = accentColor?.copy(alpha = 0.42f) ?: Color.White.copy(alpha = 0.10f),
     disabledBorderColor = Color.Transparent,
     focusedPlaceholderColor = Color.White.copy(alpha = 0.35f),
     unfocusedPlaceholderColor = Color.White.copy(alpha = 0.35f),

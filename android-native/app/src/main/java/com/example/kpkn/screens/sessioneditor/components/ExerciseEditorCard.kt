@@ -120,7 +120,6 @@ internal fun ExerciseEditorCard(
     onRemoveMobility: (String) -> Unit,
     onOpenQuickActions: () -> Unit,
     onOpenSuperset: () -> Unit = {},
-    onOpenWarmup: () -> Unit = {},
     onOpenMobility: () -> Unit = {},
     relationshipAnchorName: String?,
     onOpenRelationshipPicker: () -> Unit,
@@ -396,100 +395,111 @@ internal fun ExerciseEditorCard(
                     )
                 }
                 if (exercise.cardioDetails == null) {
-                InlineEditorBlock(
-                    title = "MOVILIDAD",
-                    summary = if (exercise.mobilitySeries.isEmpty()) "Sin series asociadas" else "${exercise.mobilitySeries.size} movimiento${if (exercise.mobilitySeries.size == 1) "" else "s"}",
-                    expanded = mobilityBlockExpanded,
-                    accentColor = accentColor,
-                    onToggle = { mobilityBlockExpanded = !mobilityBlockExpanded },
-                ) {
-                    if (exercise.mobilitySeries.isEmpty()) {
-                        TextButton(onClick = onOpenMobility) { Text("+ Agregar movilidad") }
-                    } else {
-                        exercise.mobilitySeries.forEach { mobility ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            ) {
-                                Text(
-                                    listOfNotNull(
-                                        mobility.name,
-                                        "${mobility.sets} serie${if (mobility.sets == 1) "" else "s"}",
-                                        mobility.reps?.let { "$it reps" },
-                                        mobility.durationSeconds?.let { "${it}s" },
-                                    ).joinToString(" · "),
-                                    modifier = Modifier.weight(1f),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = Color.White.copy(alpha = 0.82f),
-                                    maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                                IconButton(onClick = { onRemoveMobility(mobility.id) }, modifier = Modifier.size(28.dp)) {
-                                    Icon(Icons.Default.Close, contentDescription = "Quitar movilidad", modifier = Modifier.size(15.dp))
-                                }
-                            }
-                        }
-                        TextButton(onClick = onOpenMobility) { Text("+ Agregar otra") }
-                    }
-                }
-
-                val warmupWarnings = warmupValidationMessages(exercise.warmupSets, exercise.sets.size)
-                InlineEditorBlock(
-                    title = "APROXIMACIÓN",
-                    summary = if (exercise.warmupSets.isEmpty()) "Sin series de aproximación" else "${exercise.warmupSets.size} serie${if (exercise.warmupSets.size == 1) "" else "s"}",
-                    expanded = warmupBlockExpanded,
-                    accentColor = accentColor,
-                    onToggle = { warmupBlockExpanded = !warmupBlockExpanded },
-                ) {
-                    if (exercise.warmupSets.isEmpty()) {
-                        TextButton(
-                            onClick = {
-                                onUpdateExercise { current ->
-                                    current.copy(
-                                        warmupSets = listOf(
-                                            WarmupSetDefinition(
-                                                id = UUID.randomUUID().toString(),
-                                                percentageOfWorkingWeight = 0.5,
-                                                targetReps = 8,
-                                                restBetween = 60,
-                                            ),
-                                        ),
-                                    )
-                                }
-                            },
-                        ) { Text("+ Añadir aproximación") }
-                    } else {
-                        exercise.warmupSets.forEachIndexed { index, warmup ->
-                            Text(
-                                "${index + 1}. ${(warmup.percentageOfWorkingWeight * 100).toInt()}% · ${warmup.targetReps} reps · ${warmup.restBetween ?: 60}s",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = Color.White.copy(alpha = 0.82f),
+                    InlineEditorBlock(
+                        title = "MOVILIDAD",
+                        summary = if (exercise.mobilitySeries.isEmpty()) {
+                            "Sin series asociadas"
+                        } else {
+                            "${exercise.mobilitySeries.size} movimiento${if (exercise.mobilitySeries.size == 1) "" else "s"}"
+                        },
+                        expanded = mobilityBlockExpanded,
+                        accentColor = accentColor,
+                        onToggle = { mobilityBlockExpanded = !mobilityBlockExpanded },
+                    ) {
+                        if (exercise.mobilitySeries.isEmpty()) {
+                            TextButton(
+                                onClick = onOpenMobility,
+                                colors = androidx.compose.material3.ButtonDefaults.textButtonColors(contentColor = accentColor),
+                            ) { Text("+ Agregar movilidad") }
+                        } else {
+                            MobilityPreparationCarousel(
+                                series = exercise.mobilitySeries,
+                                accentColor = accentColor,
+                                onUpdate = { mobilityId, transform ->
+                                    onUpdateExercise { current ->
+                                        current.copy(
+                                            mobilitySeries = current.mobilitySeries.map { mobility ->
+                                                if (mobility.id == mobilityId) transform(mobility) else mobility
+                                            },
+                                        )
+                                    }
+                                },
+                                onRemove = onRemoveMobility,
+                                onAdd = onOpenMobility,
                             )
                         }
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    }
+
+                    val warmupWarnings = warmupValidationMessages(exercise.warmupSets, exercise.sets.size)
+                    InlineEditorBlock(
+                        title = "APROXIMACIÓN",
+                        summary = if (exercise.warmupSets.isEmpty()) {
+                            "Sin series de aproximación"
+                        } else {
+                            "${exercise.warmupSets.size} serie${if (exercise.warmupSets.size == 1) "" else "s"}"
+                        },
+                        expanded = warmupBlockExpanded,
+                        accentColor = accentColor,
+                        onToggle = { warmupBlockExpanded = !warmupBlockExpanded },
+                    ) {
+                        if (exercise.warmupSets.isEmpty()) {
                             TextButton(
                                 onClick = {
+                                    onUpdateExercise { current ->
+                                        current.copy(
+                                            warmupSets = listOf(
+                                                WarmupSetDefinition(
+                                                    id = UUID.randomUUID().toString(),
+                                                    percentageOfWorkingWeight = 0.5,
+                                                    targetReps = 8,
+                                                    restBetween = 60,
+                                                ),
+                                            ),
+                                        )
+                                    }
+                                },
+                                colors = androidx.compose.material3.ButtonDefaults.textButtonColors(contentColor = accentColor),
+                            ) { Text("+ Añadir aproximación") }
+                        } else {
+                            WarmupPreparationCarousel(
+                                sets = exercise.warmupSets,
+                                resolved1RM = resolved1RM,
+                                accentColor = accentColor,
+                                onUpdate = { warmupId, transform ->
+                                    onUpdateExercise { current ->
+                                        current.copy(
+                                            warmupSets = current.warmupSets.map { warmup ->
+                                                if (warmup.id == warmupId) transform(warmup) else warmup
+                                            },
+                                        )
+                                    }
+                                },
+                                onRemove = { warmupId ->
+                                    onUpdateExercise { current ->
+                                        current.copy(warmupSets = current.warmupSets.filterNot { it.id == warmupId })
+                                    }
+                                },
+                                onAdd = {
                                     onUpdateExercise { current ->
                                         val previous = current.warmupSets.lastOrNull()
                                         current.copy(
                                             warmupSets = current.warmupSets + WarmupSetDefinition(
                                                 id = UUID.randomUUID().toString(),
-                                                percentageOfWorkingWeight = ((previous?.percentageOfWorkingWeight ?: 0.5) + 0.1).coerceAtMost(0.9),
+                                                percentageOfWorkingWeight = (
+                                                    normalizeWarmupPercentageForEditor(previous?.percentageOfWorkingWeight ?: 0.5) + 0.1
+                                                ).coerceAtMost(0.9),
                                                 targetReps = previous?.targetReps ?: 6,
                                                 restBetween = previous?.restBetween ?: 60,
                                             ),
                                         )
                                     }
                                 },
-                            ) { Text("+ Añadir") }
-                            TextButton(onClick = onOpenWarmup) { Text("Editar detalle") }
+                            )
+                        }
+                        warmupWarnings.forEach { warning ->
+                            Text(warning, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
                         }
                     }
-                    warmupWarnings.forEach { warning ->
-                        Text(warning, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
-                    }
-                }
 
                 // Keep the primary controls stable; secondary configuration lives in overflow.
                 Row(
@@ -624,21 +634,6 @@ internal fun ExerciseEditorCard(
                                 onClick = {
                                     showExerciseOptionsMenu = false
                                     onOpenSuperset()
-                                },
-                            )
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        if (exercise.warmupSets.isEmpty()) {
-                                            "Series de aproximación"
-                                        } else {
-                                            "Series de aproximación (${exercise.warmupSets.size})"
-                                        },
-                                    )
-                                },
-                                onClick = {
-                                    showExerciseOptionsMenu = false
-                                    onOpenWarmup()
                                 },
                             )
                             DropdownMenuItem(
@@ -915,6 +910,11 @@ private fun cardioCollapsedSummary(details: CardioDetails): String {
         CardioIntensity.MUY_ALTA -> "Muy alta"
     }
     return "Cardio · $type · ${(details.targetDurationSeconds / 60).coerceAtLeast(1)} min · $intensity"
+}
+
+private fun normalizeWarmupPercentageForEditor(rawPercentage: Double): Double {
+    val asFraction = if (rawPercentage > 1.0) rawPercentage / 100.0 else rawPercentage
+    return asFraction.coerceIn(0.1, 0.95)
 }
 
 @Composable

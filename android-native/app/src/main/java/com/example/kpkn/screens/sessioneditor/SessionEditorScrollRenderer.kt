@@ -446,7 +446,6 @@ private fun LooseExerciseItem(
                 if (groupId == null) viewModel.openSupersetCreator(null, listOf(exercise.id))
                 else viewModel.openSupersetManager(null, groupId)
             },
-            onOpenWarmup = { viewModel.openWarmup(exercise.id) },
             onOpenMobility = { viewModel.openMobilityPicker(null, exercise.id) },
             relationshipAnchorName = resolveRelationshipAnchorName(session, exercise),
             onOpenRelationshipPicker = { viewModel.openRelationshipPicker(null, exercise.id) },
@@ -528,7 +527,6 @@ private fun PartExerciseItem(
                 if (groupId == null) viewModel.openSupersetCreator(part.id, listOf(exercise.id))
                 else viewModel.openSupersetManager(part.id, groupId)
             },
-            onOpenWarmup = { viewModel.openWarmup(exercise.id) },
             onOpenMobility = { viewModel.openMobilityPicker(part.id, exercise.id) },
             relationshipAnchorName = resolveRelationshipAnchorName(session, exercise),
             onOpenRelationshipPicker = { viewModel.openRelationshipPicker(part.id, exercise.id) },
@@ -658,7 +656,6 @@ private fun LooseSupersetItem(
                         if (groupId == null) viewModel.openSupersetCreator(null, listOf(member.id))
                         else viewModel.openSupersetManager(null, groupId)
                     },
-                    onOpenWarmup = { viewModel.openWarmup(member.id) },
                     onOpenMobility = { viewModel.openMobilityPicker(null, member.id) },
                     relationshipAnchorName = resolveRelationshipAnchorName(session, member),
                     onOpenRelationshipPicker = { viewModel.openRelationshipPicker(null, member.id) },
@@ -790,7 +787,6 @@ private fun PartSupersetItem(
                         if (groupId == null) viewModel.openSupersetCreator(part.id, listOf(member.id))
                         else viewModel.openSupersetManager(part.id, groupId)
                     },
-                    onOpenWarmup = { viewModel.openWarmup(member.id) },
                     onOpenMobility = { viewModel.openMobilityPicker(part.id, member.id) },
                     relationshipAnchorName = resolveRelationshipAnchorName(session, member),
                     onOpenRelationshipPicker = { viewModel.openRelationshipPicker(part.id, member.id) },

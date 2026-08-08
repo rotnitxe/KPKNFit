@@ -13,7 +13,7 @@ fun warmupValidationMessages(
         if (warmupSets.size > maxWarmupSets) {
             add("Demasiadas aproximaciones: máximo recomendado $maxWarmupSets para $effectiveSetCount series efectivas.")
         }
-        if (warmupSets.any { it.percentageOfWorkingWeight !in 0.1..1.0 }) {
+        if (warmupSets.any { normalizeWarmupPercentage(it.percentageOfWorkingWeight) !in 0.1..1.0 }) {
             add("Cada aproximación debe estar entre 10% y 100% de la carga efectiva.")
         }
         if (warmupSets.any { it.targetReps <= 0 }) {
@@ -21,3 +21,7 @@ fun warmupValidationMessages(
         }
     }
 }
+
+/** Accepts the legacy 50.0 representation while keeping new editor values as 0.50. */
+private fun normalizeWarmupPercentage(rawPercentage: Double): Double =
+    if (rawPercentage > 1.0) rawPercentage / 100.0 else rawPercentage

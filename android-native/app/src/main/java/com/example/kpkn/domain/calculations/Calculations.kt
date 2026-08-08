@@ -494,7 +494,8 @@ data class SessionTimeBreakdown(
  * - Series de aproximación por ejercicio ([com.example.kpkn.data.models.WarmupSetDefinition]):
  *   ~30 s de ejecución + descanso propio de cada serie de aproximación.
  * - Series de movilidad por ejercicio ([com.example.kpkn.data.models.MobilitySeries]):
- *   usa [MobilitySeries.durationSeconds] si está disponible, o estima 30 s por serie.
+ *   usa [MobilitySeries.durationSeconds] o las repeticiones si están disponibles, e incluye
+ *   el descanso programado entre series.
  */
 fun calculateSessionTimeBreakdown(
     exercises: List<Exercise>,
@@ -529,8 +530,13 @@ fun calculateSessionTimeBreakdown(
 
     // ── Grupos globales de movilidad (SessionPart.isMobilityGroup) ───────────
     globalMobilitySeries.forEach { mobility ->
-        val mobilityDuration = mobility.durationSeconds?.takeIf { it > 0 } ?: 30
-        warmupSec += mobilityDuration * mobility.sets.coerceAtLeast(1)
+        val setCount = mobility.sets.coerceAtLeast(1)
+        val repsEstimate = mobility.reps?.filter { it.isDigit() }?.toIntOrNull()?.coerceAtLeast(1)
+        val secondsPerSet = mobility.durationSeconds?.takeIf { it > 0 }
+            ?: repsEstimate?.times(4)
+            ?: 30
+        warmupSec += secondsPerSet * setCount
+        warmupSec += mobility.restBetweenSeconds.coerceAtLeast(0) * (setCount - 1)
     }
 
     // IDs de supersets ya procesados (para no duplicar descanso intra-superset)
@@ -547,14 +553,18 @@ fun calculateSessionTimeBreakdown(
         }
 
         // ── Series de movilidad por ejercicio (exercise.mobilitySeries) ───────
-        // Usa durationSeconds si está definido, o estima 30 s × número de sets.
+        // Usa durationSeconds/repeticiones si están definidos y suma descansos entre series.
         exercise.mobilitySeries.forEach { mobility ->
+            val setCount = mobility.sets.coerceAtLeast(1)
+            val repsEstimate = mobility.reps?.filter { it.isDigit() }?.toIntOrNull()?.coerceAtLeast(1)
             val mobilityDuration = when {
                 mobility.durationSeconds != null && mobility.durationSeconds > 0 ->
-                    mobility.durationSeconds * mobility.sets.coerceAtLeast(1)
-                else -> 30 * mobility.sets.coerceAtLeast(1)
+                    mobility.durationSeconds * setCount
+                repsEstimate != null -> repsEstimate * 4 * setCount
+                else -> 30 * setCount
             }
             warmupSec += mobilityDuration
+            warmupSec += mobility.restBetweenSeconds.coerceAtLeast(0) * (setCount - 1)
         }
 
         // Cardio is one continuous execution block. Use the embedded target as

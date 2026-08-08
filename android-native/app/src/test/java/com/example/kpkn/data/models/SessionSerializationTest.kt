@@ -59,6 +59,39 @@ class SessionSerializationTest {
     }
 
     @Test
+    fun mobility_series_without_rest_field_keeps_zero_default() {
+        val mobility = json.decodeFromString<MobilitySeries>("""
+            {
+              "id": "mob-legacy",
+              "name": "Movilidad legado",
+              "sets": 2,
+              "durationSeconds": 30
+            }
+        """.trimIndent())
+
+        assertEquals(0, mobility.restBetweenSeconds)
+    }
+
+    @Test
+    fun mobility_series_round_trip_preserves_rest_between_seconds() {
+        val original = MobilitySeries(
+            id = "mob-round-trip",
+            name = "Movilidad con pausa",
+            sets = 3,
+            reps = "8",
+            restBetweenSeconds = 25,
+        )
+
+        val decoded = json.decodeFromString<MobilitySeries>(
+            json.encodeToString(MobilitySeries.serializer(), original),
+        )
+
+        assertEquals(25, decoded.restBetweenSeconds)
+        assertEquals(3, decoded.sets)
+        assertEquals("8", decoded.reps)
+    }
+
+    @Test
     fun encode_and_decode_rich_session_payload_preserves_new_editor_fields() {
         val session = Session(
             id = "session-rich",

@@ -3,6 +3,7 @@ package com.example.kpkn.domain.calculations
 import com.example.kpkn.data.models.CardioDetails
 import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.MobilitySeries
 import com.example.kpkn.data.models.Session
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -25,5 +26,29 @@ class CardioTimeCalculationTest {
         )
 
         assertEquals(1_200, breakdown.executionSeconds)
+    }
+
+    @Test
+    fun mobilitySeriesCountsDurationAndRestBetweenConfiguredSets() {
+        val exercise = Exercise(
+            id = "squat-1",
+            name = "Sentadilla",
+            mobilitySeries = listOf(
+                MobilitySeries(
+                    id = "ankle-1",
+                    name = "Movilidad de tobillo",
+                    sets = 3,
+                    durationSeconds = 20,
+                    restBetweenSeconds = 15,
+                ),
+            ),
+        )
+
+        val breakdown = calculateSessionTimeBreakdown(
+            exercises = Session("s1", "Movilidad", exercises = listOf(exercise)).allExercises(),
+            supersetGroups = emptyList(),
+        )
+
+        assertEquals(90, breakdown.warmupSeconds)
     }
 }

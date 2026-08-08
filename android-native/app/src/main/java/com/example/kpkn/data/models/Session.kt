@@ -286,6 +286,8 @@ data class MobilitySeries(
     val sets: Int = 1,
     val reps: String? = null,
     val durationSeconds: Int? = null,
+    /** Rest inserted between repetitions of this mobility series. */
+    val restBetweenSeconds: Int = 0,
     val notes: String? = null,
     val associatedDiscomforts: List<String> = emptyList(),
     val bodyZones: List<String> = emptyList(),
