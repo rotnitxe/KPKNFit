@@ -13,10 +13,12 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
+import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowAlarmManager
 import java.time.LocalDate
 
 @RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
 class CompetitionReminderManagerTest {
 
     private val context = ApplicationProvider.getApplicationContext<android.content.Context>()

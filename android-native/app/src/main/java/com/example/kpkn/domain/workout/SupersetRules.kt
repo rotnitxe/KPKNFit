@@ -361,7 +361,10 @@ object SupersetRules {
                 supersetId = null,
                 supersetRestBetween = null,
                 supersetRestAfter = null,
-                restTime = exercise.restTime ?: copiedRoundRest,
+                // Dissolving a superset turns the round-level rest into the
+                // individual rest for every member. Keep the old exercise
+                // value only when the group has no usable round rest.
+                restTime = copiedRoundRest ?: exercise.restTime,
             )
         }
         return session.copy(
