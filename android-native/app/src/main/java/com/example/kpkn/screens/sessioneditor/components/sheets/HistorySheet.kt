@@ -67,21 +67,6 @@ internal fun HistorySheet(
                         currentSession,
                         snapshot.session,
                     )
-                // #region agent log
-                com.example.kpkn.screens.sessioneditor.SessionEditorDebugLog.log(
-                    hypothesisId = "H-C",
-                    location = "HistorySheet.kt:isCurrent",
-                    message = "Version row current flags",
-                    data = mapOf(
-                        "index" to index,
-                        "isCurrentRaw" to isCurrentRaw,
-                        "isCurrentStructural" to isCurrent,
-                        "mismatch" to (isCurrentRaw != isCurrent),
-                        "uiUsesStructural" to true,
-                    ),
-                    runId = "post-fix",
-                )
-                // #endregion
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()

@@ -13,7 +13,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Runtime audit probes for session-editor regressions (writes NDJSON to debug-9ba5f2.log).
+ * Runtime audit probes for session-editor regressions (no debug logging).
  */
 class SessionEditorAuditDebugTest {
 
@@ -21,23 +21,6 @@ class SessionEditorAuditDebugTest {
     fun `H-B token contrast ControlFill is solid and ControlLabel is dark`() {
         val fill = KpknSheetTokens.ControlFill
         val label = KpknSheetTokens.ControlLabel
-        SessionEditorDebugLog.log(
-            hypothesisId = "H-B",
-            location = "SessionEditorAuditDebugTest.kt:tokens",
-            message = "KpknSheetWhiteButton token snapshot",
-            data = mapOf(
-                "controlFillAlpha" to fill.alpha,
-                "controlLabelAlpha" to label.alpha,
-                "controlLabelIsNearWhite" to (label.red > 0.9f && label.green > 0.9f && label.blue > 0.9f),
-                "controlLabelIsNearBlack" to (label.red < 0.1f && label.green < 0.1f && label.blue < 0.1f),
-                "chipIdleAlpha" to KpknSheetTokens.ChipIdle.alpha,
-                "chipLabelIsNearWhite" to (
-                    KpknSheetTokens.ChipLabel.red > 0.9f &&
-                        KpknSheetTokens.ChipLabel.green > 0.9f &&
-                        KpknSheetTokens.ChipLabel.blue > 0.9f
-                    ),
-            ),
-        )
         // Primary sheet controls deliberately use a high-contrast white/black treatment.
         assertTrue("ControlFill should remain visibly solid", fill.alpha > 0.75f)
         assertTrue("ControlLabel should remain near-black", label.red < 0.1f)
@@ -57,19 +40,6 @@ class SessionEditorAuditDebugTest {
         val snapshotSession = TrainedSessionVersionStore.sessionForVersioning(live)
         val rawEqual = live == snapshotSession
         val structural = TrainedSessionVersionStore.structuralEquals(live, snapshotSession)
-        SessionEditorDebugLog.log(
-            hypothesisId = "H-C",
-            location = "SessionEditorAuditDebugTest.kt:isCurrent",
-            message = "History isCurrent comparison modes",
-            data = mapOf(
-                "rawEquality" to rawEqual,
-                "structuralEquals" to structural,
-                "liveHasBackground" to (live.background != null),
-                "snapBackgroundCleared" to (snapshotSession.background == null),
-                "liveLastModified" to live.lastModifiedAtMs,
-                "snapLastModified" to snapshotSession.lastModifiedAtMs,
-            ),
-        )
         assertFalse("Raw == should fail due to cosmetic fields", rawEqual)
         assertTrue("structuralEquals should pass", structural)
     }
@@ -103,18 +73,6 @@ class SessionEditorAuditDebugTest {
         )
         val aCompound = SessionTemplateQualityRules.isCompound(ambiguous)
         val aIso = SessionTemplateQualityRules.isIsolation(ambiguous)
-        SessionEditorDebugLog.log(
-            hypothesisId = "H-D",
-            location = "SessionEditorAuditDebugTest.kt:classify",
-            message = "Compound/isolation classification coverage",
-            data = mapOf(
-                "ambiguousCompound" to aCompound,
-                "ambiguousIsolation" to aIso,
-                "ambiguousUnclassified" to (!aCompound && !aIso),
-                "basicCompound" to SessionTemplateQualityRules.isCompound(basic),
-                "isolationIsIso" to SessionTemplateQualityRules.isIsolation(isolation),
-            ),
-        )
         assertTrue("Ambiguous Accesorio falls through classification", !aCompound && !aIso)
         assertTrue(SessionTemplateQualityRules.isCompound(basic))
         assertTrue(SessionTemplateQualityRules.isIsolation(isolation))
@@ -134,18 +92,6 @@ class SessionEditorAuditDebugTest {
             isolationIntensityType = DefaultIntensityType.RIR,
         )
         val wouldExpandOnInit = afterTemplate.hasCompoundOverrides || afterTemplate.hasIsolationOverrides
-        val rememberKeyUnchanged = true // scopePartId unchanged in applyRuleTemplate path
-        SessionEditorDebugLog.log(
-            hypothesisId = "H-E",
-            location = "SessionEditorAuditDebugTest.kt:expand",
-            message = "Template apply vs compoundIsolationExpanded remember key",
-            data = mapOf(
-                "beforeHasOverrides" to (before.hasCompoundOverrides || before.hasIsolationOverrides),
-                "afterHasOverrides" to wouldExpandOnInit,
-                "rememberKeyUnchanged" to rememberKeyUnchanged,
-                "uiWouldStayCollapsed" to (rememberKeyUnchanged && wouldExpandOnInit),
-            ),
-        )
         assertFalse(before.hasCompoundOverrides)
         assertTrue(wouldExpandOnInit)
     }

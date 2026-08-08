@@ -287,23 +287,7 @@ private fun AssistantMainTab(uiState: SessionEditorUiState) {
     }
     var volumeExpanded by rememberSaveable { mutableStateOf(false) }
     fun toggleVolumeExpanded() {
-        val next = !volumeExpanded
-        // #region agent log
-        com.example.kpkn.screens.sessioneditor.SessionEditorDebugLog.log(
-            hypothesisId = "H-A",
-            location = "AssistantSheet.kt:volumeHeaderClick",
-            message = "Volume panel header clickable fired",
-            data = mapOf(
-                "wasExpanded" to volumeExpanded,
-                "willExpand" to next,
-                "rowCount" to volumeRows.size,
-                "clickOnFullColumn" to false,
-                "clickOnHeaderOnly" to true,
-            ),
-            runId = "post-fix",
-        )
-        // #endregion
-        volumeExpanded = next
+        volumeExpanded = !volumeExpanded
     }
     Column(
         modifier = Modifier

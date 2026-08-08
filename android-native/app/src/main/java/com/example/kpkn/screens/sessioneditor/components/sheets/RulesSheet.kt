@@ -703,42 +703,12 @@ internal fun RulesSheet(
                                 selected = false,
                                 modifier = Modifier.weight(1f),
                                 onClick = {
-                                    // #region agent log
-                                    com.example.kpkn.screens.sessioneditor.SessionEditorDebugLog.log(
-                                        hypothesisId = "H-E",
-                                        location = "RulesSheet.kt:applyTemplate",
-                                        message = "Applying rule template",
-                                        data = mapOf(
-                                            "templateId" to template.id,
-                                            "templateName" to template.name,
-                                            "compoundIsolationExpandedBefore" to compoundIsolationExpanded,
-                                            "templateHasCompound" to template.defaults.hasCompoundOverrides,
-                                            "templateHasIsolation" to template.defaults.hasIsolationOverrides,
-                                        ),
-                                        runId = "post-fix",
-                                    )
-                                    // #endregion
                                     onApplyRuleTemplate(template.id, scopePartId)
                                     if (template.defaults.hasCompoundOverrides ||
                                         template.defaults.hasIsolationOverrides
                                     ) {
                                         compoundIsolationExpanded = true
                                     }
-                                    // #region agent log
-                                    com.example.kpkn.screens.sessioneditor.SessionEditorDebugLog.log(
-                                        hypothesisId = "H-E",
-                                        location = "RulesSheet.kt:applyTemplate:after",
-                                        message = "Template applied; compound section expand state",
-                                        data = mapOf(
-                                            "compoundIsolationExpandedAfter" to compoundIsolationExpanded,
-                                            "templateHasOverrides" to (
-                                                template.defaults.hasCompoundOverrides ||
-                                                    template.defaults.hasIsolationOverrides
-                                                ),
-                                        ),
-                                        runId = "post-fix",
-                                    )
-                                    // #endregion
                                 },
                             )
                             if (!template.isFactory) {
@@ -766,22 +736,6 @@ internal fun RulesSheet(
             KpknSheetWhiteButton(
                 text = "Aplicar",
                 onClick = {
-                    // #region agent log
-                    com.example.kpkn.screens.sessioneditor.SessionEditorDebugLog.log(
-                        hypothesisId = "H-B",
-                        location = "RulesSheet.kt:Aplicar",
-                        message = "Apply button token snapshot at click",
-                        data = mapOf(
-                            "controlFillAlpha" to com.example.kpkn.ui.components.KpknSheetTokens.ControlFill.alpha,
-                            "controlLabelR" to com.example.kpkn.ui.components.KpknSheetTokens.ControlLabel.red,
-                            "controlLabelG" to com.example.kpkn.ui.components.KpknSheetTokens.ControlLabel.green,
-                            "controlLabelB" to com.example.kpkn.ui.components.KpknSheetTokens.ControlLabel.blue,
-                            "hasCompoundOverrides" to defaults.hasCompoundOverrides,
-                            "compoundIsolationExpanded" to compoundIsolationExpanded,
-                        ),
-                        runId = "post-fix",
-                    )
-                    // #endregion
                     onApplyRules(scopePartId)
                 },
             )
