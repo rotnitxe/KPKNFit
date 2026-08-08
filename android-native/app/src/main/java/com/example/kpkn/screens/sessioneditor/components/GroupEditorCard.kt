@@ -354,6 +354,9 @@ internal fun GroupEditorCard(
     onDrag: (Float) -> Unit,
     onDragEnd: () -> Unit,
     onAddExercise: () -> Unit,
+    onToggleMobilityGroup: () -> Unit = {},
+    onOpenMobilityPicker: () -> Unit = {},
+    onRemoveMobility: (String) -> Unit = {},
     headerOnly: Boolean = false,
     content: @Composable () -> Unit,
 ) {
@@ -424,7 +427,8 @@ internal fun GroupEditorCard(
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(48.dp)
+                                .width(32.dp)
+                                .height(44.dp)
                                 .pointerInput(part.id) {
                                     detectDragGestures(
                                         onDragStart = { onDragStart() },
@@ -492,6 +496,14 @@ internal fun GroupEditorCard(
                                 modifier = Modifier.weight(1f),
                             )
                         }
+                        if (part.isMobilityGroup) {
+                            Text(
+                                "MOVILIDAD",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Black,
+                                color = partColor,
+                            )
+                        }
                         IconButton(
                             onClick = onToggleCollapse,
                             modifier = Modifier.size(30.dp),
@@ -554,6 +566,28 @@ internal fun GroupEditorCard(
                             }
                         }
                     }
+                }
+
+                if (!part.isMobilityGroup && part.exercises.isEmpty()) {
+                    FilledTonalButton(
+                        onClick = onToggleMobilityGroup,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 7.dp),
+                    ) {
+                        Icon(Icons.Default.FitnessCenter, null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("Convertir en grupo global de movilidad", fontWeight = FontWeight.Bold)
+                    }
+                }
+
+                AnimatedVisibility(!collapsed && part.isMobilityGroup) {
+                    MobilityGroupInlineEditor(
+                        mobilitySeries = part.mobilitySeries,
+                        onAdd = onOpenMobilityPicker,
+                        onRemove = onRemoveMobility,
+                    )
                 }
 
                     AnimatedVisibility(!collapsed && !headerOnly) {
@@ -643,6 +677,60 @@ internal fun GroupEditorCard(
                 )
             },
         )
+    }
+}
+
+@Composable
+private fun MobilityGroupInlineEditor(
+    mobilitySeries: List<MobilitySeries>,
+    onAdd: () -> Unit,
+    onRemove: (String) -> Unit,
+) {
+    Column(
+        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text(
+            "Movilidad global · ${mobilitySeries.size} movimiento${if (mobilitySeries.size == 1) "" else "s"}",
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Black,
+            color = Color.White.copy(alpha = 0.76f),
+        )
+        mobilitySeries.forEach { mobility ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(10.dp))
+                    .padding(start = 10.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(mobility.name, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.9f))
+                    Text(
+                        listOfNotNull(
+                            "${mobility.sets} serie${if (mobility.sets == 1) "" else "s"}",
+                            mobility.durationSeconds?.let { "${it}s" },
+                            mobility.bodyZones.firstOrNull(),
+                        ).joinToString(" · "),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.55f),
+                    )
+                }
+                IconButton(onClick = { onRemove(mobility.id) }, modifier = Modifier.size(30.dp)) {
+                    Icon(Icons.Default.Delete, contentDescription = "Quitar movilidad", tint = Color.White.copy(alpha = 0.62f))
+                }
+            }
+        }
+        FilledTonalButton(
+            onClick = onAdd,
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 7.dp),
+        ) {
+            Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
+            Spacer(Modifier.width(6.dp))
+            Text("Añadir movilidad", fontWeight = FontWeight.Bold)
+        }
     }
 }
 

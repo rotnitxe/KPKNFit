@@ -74,6 +74,7 @@ val PROTOCOL_LIBRARY: List<Protocol> = listOf(
             ProtocolBlock("Fase 5s", 4, "Intensificación", 75, 87, 0.9),
             ProtocolBlock("Fase 3s", 4, "Realización", 85, 95, 0.6),
         ),
+        defaultSplit = "pl_sbd_x3",
     ),
     Protocol(
         id = "westside-base",
@@ -102,6 +103,7 @@ val PROTOCOL_LIBRARY: List<Protocol> = listOf(
             ProtocolBlock("Pivote", 2, "Intensificación", 82, 92),
             ProtocolBlock("Pico", 2, "Realización", 90, 100),
         ),
+        defaultSplit = "texas_method",
     ),
     Protocol(
         id = "texas-method",

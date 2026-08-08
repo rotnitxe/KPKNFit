@@ -9,6 +9,10 @@ import com.example.kpkn.data.models.resolveMuscleVolumeContribution
 import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
+import com.example.kpkn.domain.workout.WarmupCalibrationEngine
+import com.example.kpkn.domain.workout.CardioProgressionEngine
+import com.example.kpkn.domain.workout.CardioProgressionInput
+import com.example.kpkn.domain.workout.CardioProgressionSuggestion
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.workout.BaseLoadPolicy
 import com.example.kpkn.domain.workout.LoadSuggestionEngine
@@ -52,6 +56,35 @@ class WorkoutLoadSuggestionController(
         return state.loadSuggestions[key]
             ?: if (side != null) state.loadSuggestions[workoutSetKey(exercise.id, setIdx)] else null
             ?: buildLoadSuggestionForSet(exercise, setIdx, activeTag, side)
+    }
+
+    /**
+     * Cardio has no load suggestion, but it still participates in the same
+     * contextual suggestion surface. Keep the 10% rule in the domain engine
+     * and use the current mesocycle as the alternating progression index.
+     */
+    fun getCardioProgressionSuggestion(exercise: Exercise): CardioProgressionSuggestion? {
+        val details = exercise.cardioDetails ?: return null
+        val state = getState()
+        val lastCompleted = state.completedSets
+            .filterKeys { key ->
+                key.startsWith("${exercise.id}_") && !key.contains("_warmup_")
+            }
+            .maxByOrNull { (key, _) ->
+                key.substringAfter("${exercise.id}_")
+                    .takeWhile(Char::isDigit)
+                    .toIntOrNull() ?: -1
+            }
+            ?.value
+        return CardioProgressionEngine.suggest(
+            CardioProgressionInput(
+                durationSeconds = details.targetDurationSeconds,
+                distanceKm = details.targetDistanceKm,
+                intensity = details.intensity,
+                rpe = lastCompleted?.rpe,
+                weekIndex = state.mesoIndex,
+            ),
+        )
     }
 
     fun refreshLoadSuggestions(
@@ -113,7 +146,19 @@ class WorkoutLoadSuggestionController(
     ): WeightSuggestion? {
         val currentLoadMode = ports.effectiveLoadModeForExercise(exercise, setIdx)
         val suggestion = computeWeightSuggestionWithAutoRegulation(exercise, setIdx, activeTag, side, currentLoadMode)
-        return applyTaggedBaseLoadFloor(exercise, activeTag, currentLoadMode, suggestion)
+        val floored = applyTaggedBaseLoadFloor(exercise, activeTag, currentLoadMode, suggestion)
+        if (floored == null || floored.suggestedWeight <= 0.0) return floored
+        val warmupRpe = getState().completedSets
+            .filterKeys { it.startsWith("${exercise.id}_warmup_") }
+            .values
+            .mapNotNull { it.rpe }
+            .lastOrNull()
+        val adjusted = WarmupCalibrationEngine.adjustWorkingLoad(floored.suggestedWeight, warmupRpe)
+        return floored.copy(
+            suggestedWeight = adjusted,
+            reason = listOfNotNull(floored.reason, WarmupCalibrationEngine.explanation(warmupRpe))
+                .joinToString(" · "),
+        )
     }
 
     private fun applyTaggedBaseLoadFloor(

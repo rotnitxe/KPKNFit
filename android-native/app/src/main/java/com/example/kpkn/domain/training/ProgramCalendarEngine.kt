@@ -78,13 +78,14 @@ object ProgramCalendarEngine {
 
     fun isCalendarized(program: Program): Boolean {
         val calendar = program.calendarization ?: return false
+        val plan = program.resolvedSchedulePlan()
         return when (calendar.mode) {
             ProgramCalendarizationMode.ADVANCED_COMPETITION ->
-                !program.isSimpleProgram && !program.timelineStartDate.isNullOrBlank()
+                !program.isSimpleProgram && !plan.anchorDate.isNullOrBlank()
             ProgramCalendarizationMode.SIMPLE_DATED ->
                 program.isSimpleProgram &&
                     program.simpleProgramKind == SimpleProgramKind.CALENDARIZED &&
-                    !program.timelineStartDate.isNullOrBlank()
+                    !plan.anchorDate.isNullOrBlank()
         }
     }
 
@@ -113,7 +114,7 @@ object ProgramCalendarEngine {
     fun project(program: Program): ProgramCalendarProjection {
         val calendar = program.calendarization
         val plan = program.resolvedSchedulePlan()
-        val anchorDate = parseIsoDate(program.timelineStartDate) ?: parseIsoDate(plan.anchorDate)
+        val anchorDate = parseIsoDate(plan.anchorDate)
         if (calendar == null || anchorDate == null) {
             return ProgramCalendarProjection(
                 enabled = false,

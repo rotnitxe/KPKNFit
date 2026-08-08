@@ -693,6 +693,7 @@ class SessionEditorViewModel(
                 exercises = exercises,
                 supersetGroups = session.allSupersetGroups(),
                 sessionWarmup = session.warmup,
+                globalMobilitySeries = session.parts.filter { it.isMobilityGroup }.flatMap { it.mobilitySeries },
                 restTimerDefaultSeconds = settingsVal.restTimerDefaultSeconds,
             )
         }.getOrNull()
@@ -937,6 +938,7 @@ class SessionEditorViewModel(
                     exercises = session.allExercises(),
                     supersetGroups = session.allSupersetGroups(),
                     sessionWarmup = session.warmup,
+                    globalMobilitySeries = session.parts.filter { it.isMobilityGroup }.flatMap { it.mobilitySeries },
                     restTimerDefaultSeconds = settingsForBreakdown.restTimerDefaultSeconds,
                 )
             }.getOrNull() ?: return@launch
@@ -1019,6 +1021,7 @@ class SessionEditorViewModel(
                 pickerTargetPartId = null,
                 pickerTargetExerciseId = null,
                 warmupExerciseId = null,
+                mobilityPartId = null,
                 quickActionsPartId = null,
                 quickActionsExerciseId = null,
                 supersetManagerPartId = null,

@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.domain.sessionassistant.TimeCoachFatigueDelta
 import com.example.kpkn.screens.sessioneditor.DefaultIntensityType
+import com.example.kpkn.screens.sessioneditor.RuleScope
 import com.example.kpkn.screens.sessioneditor.SessionEditorUiState
 import com.example.kpkn.screens.sessioneditor.SheetHeader
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
@@ -207,16 +208,28 @@ internal fun RulesSheet(
         if (activeTab == 1) onRefreshTimeCoach()
     }
     var scopePartId by remember { mutableStateOf<String?>(null) }
+    var selectedScope by remember(uiState.ruleDefaults.scope) { mutableStateOf(uiState.ruleDefaults.scope) }
     var saveTemplateName by remember { mutableStateOf<String?>(null) }
     var renameTemplate by remember { mutableStateOf<Pair<String, String>?>(null) }
     var templatesExpanded by remember { mutableStateOf(false) }
     var groupTimesExpanded by remember { mutableStateOf(false) }
 
-    val defaults = remember(scopePartId, uiState.ruleDefaults, uiState.partRuleDefaults) {
-        if (scopePartId == null) uiState.ruleDefaults
-        else (uiState.partRuleDefaults[scopePartId] ?: uiState.ruleDefaults)
+    val activeScopePartId = scopePartId.takeIf { selectedScope == RuleScope.PER_GROUP }
+    val defaults = remember(selectedScope, activeScopePartId, uiState.ruleDefaults, uiState.partRuleDefaults) {
+        val source = if (activeScopePartId == null) uiState.ruleDefaults
+        else (uiState.partRuleDefaults[activeScopePartId] ?: uiState.ruleDefaults)
+        source.copy(scope = selectedScope)
     }
-    var compoundIsolationExpanded by remember(scopePartId) {
+    fun selectScope(scope: RuleScope) {
+        selectedScope = scope
+        if (scope != RuleScope.PER_GROUP) scopePartId = null
+        if (scope == RuleScope.PER_GROUP && scopePartId == null) {
+            scopePartId = (uiState.activeVariantSession ?: uiState.session)?.parts?.firstOrNull()?.id
+        }
+        val targetPart = scopePartId.takeIf { scope == RuleScope.PER_GROUP }
+        onPatchRuleDefaults(targetPart) { it.copy(scope = scope) }
+    }
+    var compoundIsolationExpanded by remember(selectedScope, activeScopePartId) {
         mutableStateOf(defaults.hasCompoundOverrides || defaults.hasIsolationOverrides)
     }
 
@@ -290,14 +303,16 @@ internal fun RulesSheet(
         )
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
-            .imePadding()
-            .padding(horizontal = 18.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
-    ) {
+    Box(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .imePadding()
+                .padding(horizontal = 18.dp, vertical = 8.dp)
+                .padding(bottom = 84.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
         SheetHeader(
             title = "Reglas y tiempo",
             subtitle = if (activeTab == 0) {
@@ -327,7 +342,7 @@ internal fun RulesSheet(
 
         if (activeTab == 0) {
             Text(
-                "Configurar reglas por grupo:",
+                "Alcance de las reglas:",
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Black,
                 color = Color.White,
@@ -338,15 +353,32 @@ internal fun RulesSheet(
             ) {
                 KpknSheetGlassChip(
                     label = "Toda la sesión",
-                    selected = scopePartId == null,
-                    onClick = { scopePartId = null },
+                    selected = selectedScope == RuleScope.ALL_SESSION,
+                    onClick = { selectScope(RuleScope.ALL_SESSION) },
                 )
-                uiState.session?.parts?.forEach { part ->
+                KpknSheetGlassChip(
+                    label = "Por grupo",
+                    selected = selectedScope == RuleScope.PER_GROUP,
+                    onClick = { selectScope(RuleScope.PER_GROUP) },
+                )
+                KpknSheetGlassChip(
+                    label = "Comp. / ais.",
+                    selected = selectedScope == RuleScope.COMPOUND_ISOLATION,
+                    onClick = { selectScope(RuleScope.COMPOUND_ISOLATION) },
+                )
+            }
+            if (selectedScope == RuleScope.PER_GROUP) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                ) {
+                    (uiState.activeVariantSession ?: uiState.session)?.parts?.forEach { part ->
                     KpknSheetGlassChip(
                         label = part.name,
                         selected = scopePartId == part.id,
                         onClick = { scopePartId = part.id },
                     )
+                    }
                 }
             }
 
@@ -733,14 +765,8 @@ internal fun RulesSheet(
                 }
             }
 
-            KpknSheetWhiteButton(
-                text = "Aplicar",
-                onClick = {
-                    onApplyRules(scopePartId)
-                },
-            )
         } else {
-            val session = uiState.session
+            val session = uiState.activeVariantSession ?: uiState.session
             if (session != null) {
                 val assignedMinutes = session.parts.sumOf { part ->
                     part.targetDurationMinutes
@@ -1114,15 +1140,33 @@ internal fun RulesSheet(
 
                 } // groupTimesExpanded
 
-                Spacer(modifier = Modifier.height(4.dp))
-                KpknSheetWhiteButton(
-                    text = "Listo",
-                    onClick = {
-                        onSave()
-                        onDismiss()
-                    },
-                )
             }
+        }
+        }
+
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .background(KpknSheetTokens.Panel)
+                .padding(horizontal = 18.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            KpknSheetLightChip(
+                label = "Aplicar",
+                selected = false,
+                modifier = Modifier.weight(1f),
+                onClick = { onApplyRules(activeScopePartId) },
+            )
+            KpknSheetWhiteButton(
+                text = "Listo",
+                modifier = Modifier.weight(1f),
+                onClick = {
+                    onSave()
+                    onDismiss()
+                },
+            )
         }
     }
 

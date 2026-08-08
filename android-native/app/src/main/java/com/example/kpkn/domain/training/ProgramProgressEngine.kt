@@ -36,29 +36,8 @@ object ProgramProgressEngine {
         val advancedWeek: Boolean = false,
     )
 
-    fun resolveCurrentWeekInstances(program: Program, cycleNumber: Int): List<WeekInstance> {
-        if (!program.isSimpleProgram) return emptyList()
-        val hierarchy = ProgramHierarchyIndex(program)
-        val base = hierarchy.orderedWeeks()
-            .filterNot { it.week.isLoopWeek }
-            .map { location ->
-                val week = location.week
-                WeekInstance(
-                    instanceId = instanceIdFor(cycleNumber, week.id),
-                    templateWeekId = week.id,
-                    cycleNumber = cycleNumber,
-                    week = week.copy(
-                        id = instanceIdFor(cycleNumber, week.id),
-                        name = if (cycleNumber > 1) "${week.name} (C$cycleNumber)" else week.name,
-                    ),
-                    macroIndex = location.macroIndex,
-                    blockIndex = location.blockIndex,
-                    mesoIndex = location.globalMesoIndex,
-                )
-            }
-        val loopTail = resolveLoopWeekInstancesForCycle(program, cycleNumber, hierarchy)
-        return base + loopTail
-    }
+    fun resolveCurrentWeekInstances(program: Program, cycleNumber: Int): List<WeekInstance> =
+        ProgramCurrentWeekResolver.cyclicInstances(program, cycleNumber)
 
     /**
      * Semanas de loop que deben entrenarse al cerrar el ciclo [cycleNumber]
@@ -69,7 +48,9 @@ object ProgramProgressEngine {
         cycleNumber: Int,
         hierarchy: ProgramHierarchyIndex = ProgramHierarchyIndex(program),
     ): List<WeekInstance> {
-        if (program.loops.isEmpty() || cycleNumber <= 0) return emptyList()
+        // A dated simple program is a paused calendar break. Its loop rules live
+        // in pausedCyclicSnapshot and must not create actionable loop weeks here.
+        if (program.simpleProgramKind != SimpleProgramKind.CYCLIC || program.loops.isEmpty() || cycleNumber <= 0) return emptyList()
         val synced = LoopEngine.syncOccurrences(program)
         val actionable = synced.loopOccurrences
             .filter {

@@ -83,57 +83,20 @@ object HomeSessionResolver {
         dayOfWeek: Int,
         today: LocalDate = SystemAppClock.today(java.time.ZoneId.systemDefault()),
     ): WeekLocation? {
-        val locations = program.allWeekLocations()
-        if (locations.isEmpty()) return null
-
-        if (program.isSimpleProgram && program.simpleProgramKind == SimpleProgramKind.CYCLIC) {
-            val cycle = program.runState?.cycleNumber ?: active?.currentCycleNumber ?: 1
-            val instances = ProgramProgressEngine.resolveCurrentWeekInstances(program, cycle)
-            val activeInstanceId = active?.currentWeekInstanceId ?: active?.currentWeekId
-            val instance = instances.firstOrNull { it.instanceId == activeInstanceId }
-                ?: instances.firstOrNull { it.templateWeekId == active?.currentWeekId }
-                ?: instances.firstOrNull()
-            if (instance != null) {
-                return WeekLocation(
-                    macroIndex = instance.macroIndex,
-                    blockIndex = instance.blockIndex,
-                    mesocycleIndex = instance.mesoIndex,
-                    week = instance.week,
-                )
-            }
-        }
-
-        if (ProgramCalendarEngine.isCalendarized(program)) {
-            val projection = ProgramCalendarEngine.project(program)
-            val calendarWeek = projection.weekForDate(today)
-            if (calendarWeek != null) {
-                val resolved = locations.firstOrNull { it.week.id == calendarWeek.weekId }
-                if (resolved != null) return resolved
-            }
-        }
-
-        val exactMatch = active?.takeIf { it.programId == program.id }?.let { state ->
-            locations.firstOrNull { location ->
-                location.macroIndex == state.currentMacrocycleIndex &&
-                    location.blockIndex == state.currentBlockIndex &&
-                    location.mesocycleIndex == state.currentMesocycleIndex &&
-                    (location.week.id == state.currentWeekId || location.week.id == state.currentWeekInstanceId)
-            }
-        }
-        if (exactMatch != null) return exactMatch
-
-        val sameContainer = active?.takeIf { it.programId == program.id }?.let { state ->
-            locations.firstOrNull { location ->
-                location.macroIndex == state.currentMacrocycleIndex &&
-                    location.blockIndex == state.currentBlockIndex &&
-                    location.mesocycleIndex == state.currentMesocycleIndex
-            }
-        }
-        if (sameContainer != null) return sameContainer
-
-        return locations.firstOrNull { location ->
-            location.week.sessions.any { it.matchesDay(dayOfWeek) }
-        } ?: locations.first()
+        val item = ProgramCurrentWeekResolver.todayItem(
+            program = program,
+            activeState = active,
+            history = emptyList(),
+            today = today,
+            ongoing = null,
+            dayOfWeek = dayOfWeek,
+        ) ?: return null
+        return WeekLocation(
+            macroIndex = item.macroIndex,
+            blockIndex = item.blockIndex,
+            mesocycleIndex = item.mesoIndex,
+            week = item.week,
+        )
     }
 
     fun resolveTodaySessions(
@@ -144,7 +107,20 @@ object HomeSessionResolver {
         ongoing: OngoingWorkoutState?,
         today: LocalDate = SystemAppClock.today(java.time.ZoneId.systemDefault()),
     ): List<TodaySessionItem> {
-        val weekLocation = resolveWeekLocation(program, active, currentDayOfWeek, today) ?: return emptyList()
+        val currentItem = ProgramCurrentWeekResolver.todayItem(
+            program = program,
+            activeState = active,
+            history = history,
+            today = today,
+            ongoing = ongoing,
+            dayOfWeek = currentDayOfWeek,
+        ) ?: return emptyList()
+        val weekLocation = WeekLocation(
+            macroIndex = currentItem.macroIndex,
+            blockIndex = currentItem.blockIndex,
+            mesocycleIndex = currentItem.mesoIndex,
+            week = currentItem.week,
+        )
         val expectedCycle = when {
             program.isSimpleProgram && program.simpleProgramKind == SimpleProgramKind.CYCLIC ->
                 program.runState?.cycleNumber ?: active?.currentCycleNumber ?: 1

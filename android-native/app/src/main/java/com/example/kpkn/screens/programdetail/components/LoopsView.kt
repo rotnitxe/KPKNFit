@@ -156,7 +156,10 @@ fun LoopsView(
                                             durationType = com.example.kpkn.data.models.DurationType.WEEK,
                                         )
                                     }
-                                    onUpdateProgram(LoopEngine.materializeLoopWeeks(program.copy(loops = program.loops + newLoops)))
+                                    val updated = newLoops.fold(program) { current, loop ->
+                                        LoopEngine.upsertLoop(current, loop)
+                                    }
+                                    onUpdateProgram(updated)
                                     showTemplates = false
                                 },
                                 shape = RoundedCornerShape(10.dp),

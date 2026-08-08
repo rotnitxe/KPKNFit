@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -36,6 +37,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -69,6 +71,7 @@ import com.example.kpkn.screens.sessioneditor.safeIntOrNull
 import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
 import com.example.kpkn.screens.sessioneditor.formatEstimatedMetric
 import com.example.kpkn.screens.sessioneditor.DarkEditorChip
+import com.example.kpkn.domain.workout.PropagationSide
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 
@@ -92,12 +95,32 @@ internal fun InlineSetRow(
     onRemove: () -> Unit,
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
+    onPropagateValue: (PropagationSide) -> Unit = {},
     onTechniqueConfigExpandedChange: (Boolean) -> Unit = {},
     fillHeight: Boolean = true,
 ) {
+    if (set.isEmptySlot) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            color = accentColor.copy(alpha = 0.06f),
+            border = BorderStroke(1.dp, accentColor.copy(alpha = 0.42f)),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text("RONDA ${index + 1} · HUECO VACÍO", fontWeight = FontWeight.Black, color = accentColor)
+                Text("No reindexa las rondas siguientes", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.58f))
+            }
+        }
+        return
+    }
     var showAmrapDialog by remember(set.id) { mutableStateOf(false) }
     var showIntensityMenu by remember(set.id) { mutableStateOf(false) }
     var showLoadModeMenu by remember(set.id) { mutableStateOf(false) }
+    var showPropagationDialog by remember(set.id) { mutableStateOf(false) }
     // La intensidad es opcional: siempre se parte desde "Programar intensidad".
     var showPlannedIntensity by rememberSaveable(set.id) { mutableStateOf(false) }
     val isNarrowScreen = LocalConfiguration.current.screenWidthDp <= 380
@@ -301,6 +324,19 @@ internal fun InlineSetRow(
                 }
             }
             if (showSetActions) {
+                Surface(
+                    shape = RoundedCornerShape(999.dp),
+                    color = DarkEditorChip,
+                    modifier = Modifier.clickable { showPropagationDialog = true },
+                ) {
+                    Text(
+                        "Todos",
+                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 3.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White.copy(alpha = 0.86f),
+                    )
+                }
                 IconButton(onClick = onRemove, modifier = Modifier.size(26.dp)) {
                     Icon(
                         Icons.Default.Close,
@@ -608,6 +644,43 @@ internal fun InlineSetRow(
             )
         }
     }
+    }
+
+    if (showPropagationDialog) {
+        AlertDialog(
+            onDismissRequest = { showPropagationDialog = false },
+            title = { Text("Aplicar valor de esta serie") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    TextButton(
+                        onClick = {
+                            showPropagationDialog = false
+                            onPropagateValue(PropagationSide.BOTH)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text("Todas las rondas") }
+                    if (isUnilateral) {
+                        TextButton(
+                            onClick = {
+                                showPropagationDialog = false
+                                onPropagateValue(PropagationSide.LEFT)
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { Text("Solo lado izquierdo") }
+                        TextButton(
+                            onClick = {
+                                showPropagationDialog = false
+                                onPropagateValue(PropagationSide.RIGHT)
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { Text("Solo lado derecho") }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showPropagationDialog = false }) { Text("Cancelar") }
+            },
+        )
     }
 }
 

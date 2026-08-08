@@ -4,6 +4,7 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
+import com.example.kpkn.data.models.MobilitySeries
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.data.models.WorkoutLog
@@ -499,6 +500,7 @@ fun calculateSessionTimeBreakdown(
     exercises: List<Exercise>,
     supersetGroups: List<com.example.kpkn.data.models.SupersetGroup>,
     sessionWarmup: List<com.example.kpkn.data.models.WarmupExercise> = emptyList(),
+    globalMobilitySeries: List<MobilitySeries> = emptyList(),
     averageSetupSeconds: Int = 60,
     averageWorkSeconds: Int = 45,
     restTimerDefaultSeconds: Int = 90,
@@ -525,6 +527,12 @@ fun calculateSessionTimeBreakdown(
         warmupSec += exerciseDuration + 15  // +15 s de transición entre ejercicios de movilidad
     }
 
+    // ── Grupos globales de movilidad (SessionPart.isMobilityGroup) ───────────
+    globalMobilitySeries.forEach { mobility ->
+        val mobilityDuration = mobility.durationSeconds?.takeIf { it > 0 } ?: 30
+        warmupSec += mobilityDuration * mobility.sets.coerceAtLeast(1)
+    }
+
     // IDs de supersets ya procesados (para no duplicar descanso intra-superset)
     val supersetGroupsProcessed = mutableSetOf<String>()
 
@@ -547,6 +555,14 @@ fun calculateSessionTimeBreakdown(
                 else -> 30 * mobility.sets.coerceAtLeast(1)
             }
             warmupSec += mobilityDuration
+        }
+
+        // Cardio is one continuous execution block. Use the embedded target as
+        // the source of truth even when a legacy/edited session has no sets or
+        // stale ExerciseSet.targetDuration values.
+        exercise.cardioDetails?.let { cardio ->
+            executionSec += cardio.targetDurationSeconds.coerceAtLeast(0)
+            return@forEach
         }
 
         val sets = exercise.sets.ifEmpty {

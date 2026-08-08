@@ -24,8 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import com.example.kpkn.R
 import com.example.kpkn.data.models.Session
-import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
-import com.example.kpkn.data.exercises.buildExerciseCatalogLookup
+import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.domain.exercises.exerciseDisplayName
 
 @Composable
@@ -42,7 +41,7 @@ fun SessionCard(
     var isExpanded by remember { mutableStateOf(false) }
 
     val exercises = session.allExercises()
-    val exerciseLookup = buildExerciseCatalogLookup(exerciseCatalogSnapshot())
+    val exerciseLookup = catalogExerciseIndex()
     val totalSets = exercises.sumOf { it.sets.size }
     val estimatedMinutes = totalSets * 3
 

@@ -107,7 +107,7 @@ fun buildSessionListItems(
                     session = session,
                     partId = part.id,
                 )
-                items += SessionListItem.PartAddExercise(part.id)
+                if (!part.isMobilityGroup) items += SessionListItem.PartAddExercise(part.id)
             }
         }
         items += SessionListItem.AddActions

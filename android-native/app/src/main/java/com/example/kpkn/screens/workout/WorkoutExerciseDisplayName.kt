@@ -1,12 +1,18 @@
 package com.example.kpkn.screens.workout
 
-import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
-import com.example.kpkn.data.exercises.buildExerciseCatalogLookup
+import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.Exercise
-import com.example.kpkn.domain.exercises.exerciseDisplayName
+import com.example.kpkn.domain.exercises.exerciseDisplayParts
 
-internal fun displayWorkoutExerciseName(exercise: Exercise): String =
-    exerciseDisplayName(exercise, buildExerciseCatalogLookup(exerciseCatalogSnapshot()))
+internal fun displayWorkoutExerciseName(exercise: Exercise): String {
+    val info = resolveCatalogExerciseInfo(
+        catalogConfigurationId = exercise.catalogConfigurationId,
+        exerciseDbId = exercise.exerciseDbId,
+        exerciseId = exercise.exerciseId,
+        exerciseName = exercise.name,
+    )
+    return exerciseDisplayParts(exercise, info).text
+}
 
 /** Traduce cada chip conocido a una frase hablada natural ("con mancuernas",
  *  "en polea alta", "con agarre supino"...). Los desconocidos se mantienen. */

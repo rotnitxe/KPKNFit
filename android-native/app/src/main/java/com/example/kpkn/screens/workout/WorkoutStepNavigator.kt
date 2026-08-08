@@ -672,8 +672,10 @@ class WorkoutStepNavigator(
         warmupCompletedExerciseIds: Set<String>,
         mobilityCompletedExerciseIds: Set<String>,
     ): Boolean {
+        if (step.isEmptySlot) return true
         return when (step.type) {
-            WorkoutStepType.MOBILITY -> {
+            WorkoutStepType.MOBILITY,
+            WorkoutStepType.MOBILITY_GROUP -> {
                 val mobilityId = step.mobilitySeriesId ?: return true
                 mobilityCompletionKey(step.exerciseId, mobilityId) in mobilityCompletedExerciseIds
             }

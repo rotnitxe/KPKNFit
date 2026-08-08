@@ -24,7 +24,7 @@ object ProgramActiveStateEngine {
 
         if (program.isSimpleProgram && program.simpleProgramKind == SimpleProgramKind.CYCLIC) {
             val cycle = program.runState?.cycleNumber ?: state.currentCycleNumber ?: 1
-            val instances = ProgramProgressEngine.resolveCurrentWeekInstances(program, cycle)
+            val instances = ProgramCurrentWeekResolver.cyclicInstances(program, cycle)
             val instance = instances.firstOrNull { it.instanceId == state.currentWeekInstanceId }
                 ?: instances.firstOrNull { it.instanceId == state.currentWeekId }
                 ?: instances.firstOrNull { it.templateWeekId == state.currentWeekId }

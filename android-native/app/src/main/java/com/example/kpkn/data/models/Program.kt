@@ -5,6 +5,7 @@ import java.time.LocalDate
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.AppClock
 import com.example.kpkn.domain.training.IdProvider
+import com.example.kpkn.domain.training.LoopEngine
 import com.example.kpkn.domain.training.SystemAppClock
 import com.example.kpkn.domain.training.UuidIdProvider
 
@@ -272,7 +273,7 @@ val Program.activeCalendarBreakId: String?
     get() {
         if (!isSimpleCalendarizedProgram) return null
         return calendarBreaks.lastOrNull()?.id
-            ?: timelineStartDate?.let { "cal_${id}_$it" }
+            ?: resolvedSchedulePlan().anchorDate?.let { "cal_${id}_$it" }
             ?: "cal_$id"
     }
 
@@ -296,7 +297,15 @@ val Program.primaryLoopLengthWeeks: Int?
     }
 
 fun Program.resolvedSchedulePlan(): ProgramSchedulePlan {
-    if (schedulePlan != null) return schedulePlan
+    schedulePlan?.let { existing ->
+        // schedulePlan is the SSoT. Legacy fields only fill nulls while a record
+        // is in memory; ProgramMigrationEngine persists the same reconciliation.
+        return existing.copy(
+            anchorDate = existing.anchorDate ?: timelineStartDate,
+            weekStartDay = existing.weekStartDay ?: startDay,
+            targetEndDate = existing.targetEndDate ?: calendarization?.manualEndDate,
+        )
+    }
     return ProgramSchedulePlan(
         anchorDate = timelineStartDate,
         weekStartDay = startDay,
@@ -331,6 +340,12 @@ fun Program.validateTemporalStructure(): List<TemporalStructureIssue> {
             )
         }
     }
+    LoopEngine.validate(this).forEach { loopIssue ->
+        issues += TemporalStructureIssue(
+            TemporalStructureIssueType.LOOP_INCONSISTENCY,
+            "${loopIssue.type}: ${loopIssue.message}",
+        )
+    }
     if (structure == ProgramStructure.COMPLEX && macrocycles.isEmpty()) {
         issues += TemporalStructureIssue(
             TemporalStructureIssueType.COMPLEX_MISSING_STRUCTURE,
@@ -355,7 +370,7 @@ fun Program.alignTemporalMetadata(): Program {
     val isSimple = isSimpleProgram
     val normalizedSimpleKind = when {
         !isSimple -> SimpleProgramKind.CYCLIC
-        calendarization?.mode == ProgramCalendarizationMode.SIMPLE_DATED && !timelineStartDate.isNullOrBlank() ->
+        calendarization?.mode == ProgramCalendarizationMode.SIMPLE_DATED && !resolvedSchedulePlan().anchorDate.isNullOrBlank() ->
             SimpleProgramKind.CALENDARIZED
         else -> simpleProgramKind
     }
@@ -593,7 +608,7 @@ fun Program.calendarizeSimpleCycle(
 }
 
 fun Program.restorePausedCyclicProgram(): Program {
-    val snapshot = pausedCyclicSnapshot ?: return copy(
+    val snapshot = pausedCyclicSnapshot ?: return LoopEngine.syncOccurrences(copy(
         calendarization = null,
         simpleProgramKind = SimpleProgramKind.CYCLIC,
         pausedCyclicSnapshot = null,
@@ -604,9 +619,9 @@ fun Program.restorePausedCyclicProgram(): Program {
             anchorDate = null,
             targetEndDate = null,
         ),
-    )
+    ))
     val restoredRun = (snapshot.runState ?: runState)?.copy(status = ProgramRunStatus.ACTIVE)
-    return copy(
+    return LoopEngine.syncOccurrences(copy(
         structure = ProgramStructure.SIMPLE,
         calendarization = null,
         simpleProgramKind = SimpleProgramKind.CYCLIC,
@@ -626,7 +641,7 @@ fun Program.restorePausedCyclicProgram(): Program {
             ?: schedulePlan?.copy(mode = ScheduleMode.FLOATING, anchorDate = null, targetEndDate = null),
         loopOccurrences = snapshot.loopOccurrences,
         pausedCyclicSnapshot = null,
-    )
+    ))
 }
 
 fun Program.startFreshSimpleCycle(
@@ -688,9 +703,9 @@ fun Program.nextSimpleCalendarStart(
         .flatMap { it.blocks }
         .flatMap { it.mesocycles }
         .flatMap { it.weeks }
-        .mapNotNull { week -> week.endDate?.let { java.time.LocalDate.parse(it) } }
+        .mapNotNull { week -> week.endDate?.let(ProgramCalendarEngine::parseIsoDate) }
         .maxOrNull()
-    return lastEnd?.plusDays(1) ?: timelineStartDate?.let { java.time.LocalDate.parse(it) } ?: today
+    return lastEnd?.plusDays(1) ?: resolvedSchedulePlan().anchorDate?.let(ProgramCalendarEngine::parseIsoDate) ?: today
 }
 
 fun Program.suggestCalendarTrainingDays(): Set<Int> {

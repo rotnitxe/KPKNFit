@@ -48,7 +48,9 @@ class WorkoutPacingController(
         when (alertMode()) {
             PacingAlertMode.OFF -> return
             PacingAlertMode.FINAL -> if (kind != "final" && kind != "exhausted") return
-            PacingAlertMode.SOFT -> Unit
+            PacingAlertMode.SOFT,
+            PacingAlertMode.STRICT,
+            -> Unit
         }
         val now = System.currentTimeMillis()
         val sameKind = lastPaceNotifyKind == kind
@@ -91,7 +93,7 @@ class WorkoutPacingController(
             90 -> "Vas al 90 por ciento del presupuesto de $kind $scopeLabel. Ajusta el ritmo si hace falta."
             else -> "Presupuesto de $kind $scopeLabel agotado. Continúa con calma; es una guía, no un corte."
         }
-        if (alertMode() == PacingAlertMode.SOFT || threshold == 100) {
+        if (alertMode() == PacingAlertMode.SOFT || alertMode() == PacingAlertMode.STRICT || threshold == 100) {
             speakPacing(message)
         }
         maybeNotify(
@@ -124,7 +126,7 @@ class WorkoutPacingController(
                         speakPacing("Quedan 5 minutos para completar la sesión.")
                         maybeNotify("final", "Quedan 5 minutos", force = true)
                     }
-                    if (mode == PacingAlertMode.SOFT && remaining == 60) {
+                    if ((mode == PacingAlertMode.SOFT || mode == PacingAlertMode.STRICT) && remaining == 60) {
                         speakPacing("Queda un minuto para completar la sesión de entrenamiento.")
                     }
                     if (remaining == 0) {
@@ -233,7 +235,7 @@ class WorkoutPacingController(
                 val safeRemainingMin = remainingMin.coerceAtLeast(0)
                 val message = "Ritmo lento · $remainingSets series · $safeRemainingMin min"
                 // Stable kind so minute ticks do not re-spam notifications.
-                if (alertMode() == PacingAlertMode.SOFT && (alertChanged || !fromTimer)) {
+                if ((alertMode() == PacingAlertMode.SOFT || alertMode() == PacingAlertMode.STRICT) && (alertChanged || !fromTimer)) {
                     maybeNotify("slow", message)
                 }
                 updateState { it.copy(pacingAlertMessage = message) }

@@ -255,6 +255,7 @@ import com.example.kpkn.screens.sessioneditor.SessionCloneApplyMode
 import com.example.kpkn.screens.sessioneditor.SupersetDraft
 import com.example.kpkn.screens.sessioneditor.DefaultIntensityType
 import com.example.kpkn.screens.sessioneditor.components.ExercisePickerSheet
+import com.example.kpkn.screens.sessioneditor.components.CardioCatalogSheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.CoverSheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.HistorySheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.RulesSheet
@@ -388,6 +389,8 @@ internal fun SessionEditorSheets(
     onQuickActionOpenWarmup: () -> Unit,
     onQuickActionOpenMobility: () -> Unit,
     onAddMobilityExercise: (MobilityExercise) -> Unit,
+    onAddMobilityToPart: (MobilityExercise) -> Unit = {},
+    onAddCardio: (CardioCatalogItem) -> Unit = {},
     onQuickActionDelete: () -> Unit,
     onQuickActionCreateSuperset: () -> Unit,
     onQuickActionManageSuperset: () -> Unit,
@@ -432,9 +435,10 @@ internal fun SessionEditorSheets(
          KpknSheet(
              onDismissRequest = requestPickerDismiss,
              safeTopInset = true,
-             maxHeightFraction = 1f,
-             stableHeightFraction = 1f,
-         ) {
+           maxHeightFraction = 1f,
+           stableHeightFraction = 1f,
+           additionalGlassScrim = Color.Black.copy(alpha = 0.22f),
+       ) {
               Column(
                  modifier = Modifier.fillMaxSize(),
               ) {
@@ -442,7 +446,9 @@ internal fun SessionEditorSheets(
                        session.allExercises().firstOrNull { it.id == targetId }
                    }
                    ExercisePickerSheet(
-                       query = uiState.searchQuery,
+                        query = uiState.searchQuery.ifBlank {
+                            pickerTargetExercise?.takeIf { it.catalogDefinitionId == null }?.name.orEmpty()
+                        },
                        catalog = exerciseCatalogSnapshot(),
                        workoutLogs = uiState.workoutLogs,
                        editingExisting = uiState.pickerTargetExerciseId != null,
@@ -587,9 +593,10 @@ internal fun SessionEditorSheets(
             SessionEditorSheet.AUGE -> Unit // handled as glass overlay in SessionEditorScreen
             SessionEditorSheet.WARMUP -> WarmupSheet(exercise = warmupExercise, onSave = onWarmupSave)
             SessionEditorSheet.MOBILITY_PICKER -> MobilityPickerSheet(
-                onAdd = onAddMobilityExercise,
+                onAdd = if (uiState.mobilityPartId != null) onAddMobilityToPart else onAddMobilityExercise,
                 onDismiss = onDismiss,
             )
+            SessionEditorSheet.CARDIO_PICKER -> CardioCatalogSheet(onAdd = onAddCardio)
             SessionEditorSheet.SUPERSERIE_MANAGER -> {
                 val supersetExercises = uiState.supersetManagerSupersetId
                     ?.let { SupersetRules.orderedMembers(session, it) }

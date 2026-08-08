@@ -64,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.ScheduleIssue
@@ -137,6 +138,7 @@ fun DayView(
     onApplySessionsLayout: (List<Session>) -> Unit,
     onUpdateStartDay: (Int, StartDayTemporalScope, StartDaySessionMode) -> Unit,
     onUpdateWeekMetadata: (String, String, String?) -> Unit,
+    onCreateCompetitionSession: (() -> Unit)? = null,
     onUpdateTrainingDayDate: (weekId: String, dayOfWeek: Int, isoDate: String?) -> Unit = { _, _, _ -> },
     modifier: Modifier = Modifier,
 ) {
@@ -197,12 +199,13 @@ fun DayView(
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (selectedWeek != null) {
-                WeekIdentityCard(
-                    week = selectedWeek,
-                    onSave = { name, description ->
-                        onUpdateWeekMetadata(selectedWeek.id, name, description)
-                    },
-                )
+                    WeekIdentityCard(
+                        week = selectedWeek,
+                        onSave = { name, description ->
+                            onUpdateWeekMetadata(selectedWeek.id, name, description)
+                        },
+                        onCreateCompetitionSession = onCreateCompetitionSession,
+                    )
             }
 
             days.forEach { day ->
@@ -494,6 +497,7 @@ private fun StartDayConfirmDialog(
 private fun WeekIdentityCard(
     week: WeekWithMeta,
     onSave: (String, String?) -> Unit,
+    onCreateCompetitionSession: (() -> Unit)? = null,
 ) {
     var isEditing by remember(week.id) { mutableStateOf(false) }
     var descriptionExpanded by remember(week.id) { mutableStateOf(false) }
@@ -596,6 +600,18 @@ private fun WeekIdentityCard(
                     ) {
                         Text("Guardar")
                     }
+                }
+            }
+
+            if (week.keyDateType == KeyDateType.COMPETITION &&
+                onCreateCompetitionSession != null &&
+                week.sessions.none { it.isMeetDay || it.isCompetitionSession }
+            ) {
+                Button(
+                    onClick = onCreateCompetitionSession,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("Crear sesión de competición")
                 }
             }
         }

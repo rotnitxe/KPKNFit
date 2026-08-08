@@ -12,6 +12,7 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.isSimpleProgram
+import com.example.kpkn.data.models.resolvedSchedulePlan
 import com.example.kpkn.domain.calculations.getTotalWeeks
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -225,7 +226,7 @@ object ProgramDetailHelpers {
                 .groupBy { it.blockId }
                 .mapValues { (_, weeks) -> formatDateRange(weeks.first().startDate, weeks.last().endDate) }
         }
-        var cursor = parseProgramDate(program.timelineStartDate) ?: return emptyMap()
+        var cursor = parseProgramDate(program.resolvedSchedulePlan().anchorDate) ?: return emptyMap()
         val ranges = mutableMapOf<String, String>()
         program.macrocycles.forEach { macro ->
             macro.blocks.forEach { block ->
@@ -257,7 +258,7 @@ object ProgramDetailHelpers {
                 )
             }
         }
-        var cursor = parseProgramDate(program.timelineStartDate) ?: return emptyMap()
+        var cursor = parseProgramDate(program.resolvedSchedulePlan().anchorDate) ?: return emptyMap()
         val meta = mutableMapOf<String, WeekDateMeta>()
         program.macrocycles.forEach { macro ->
             macro.blocks.forEach { block ->

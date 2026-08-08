@@ -31,20 +31,28 @@ object SessionPrefillBridge {
         protocolDefaultSplitId: String? = null,
         fallbackTrackLabel: String? = null,
     ): SplitTemplate? {
-        val splitId = protocolDefaultSplitId
+        val rawSplitId = protocolDefaultSplitId
             ?: program.selectedSplitId
             ?: resolveDefaultSplitId(fallbackTrackLabel)
+        val splitId = ProgramProtocolEngine.resolveSplitId(rawSplitId)
         return SPLIT_TEMPLATES.firstOrNull { it.id == splitId }
     }
 
     /**
-     * Si el programa no tiene sesiones ejecutables, las rellena con sugerencias
-     * reales del split resuelto (PREBUILT). Si ya tiene contenido (p.ej. lo
-     * generó el propio protocolo), no toca nada.
+     * Rellena únicamente las semanas que todavía no tienen sesiones con
+     * sugerencias reales del split resuelto (PREBUILT). Las semanas que ya
+     * tienen contenido quedan byte-a-byte fuera del alcance de la aplicación.
      */
-    fun prefillIfEmpty(program: Program, split: SplitTemplate?): Program {
+    fun prefillEmptyWeeks(program: Program, split: SplitTemplate?): Program {
         if (split == null) return program
-        if (ProgramTemplateEngine.hasSessionContent(program)) return program
+        val emptyWeekIds = program.macrocycles
+            .flatMap { macro -> macro.blocks }
+            .flatMap { block -> block.mesocycles }
+            .flatMap { meso -> meso.weeks }
+            .filter { week -> week.sessions.isEmpty() }
+            .map { week -> week.id }
+            .toSet()
+        if (emptyWeekIds.isEmpty()) return program
 
         val request = SplitApplicationRequest(
             program = program,
@@ -52,9 +60,14 @@ object SessionPrefillBridge {
             selectedBlockId = null,
             selectedWeekId = null,
             startDay = program.startDay ?: 1,
-            temporalScope = SplitTemporalScope.WHOLE_PROGRAM,
+            temporalScope = SplitTemporalScope.SELECTED_WEEKS,
+            selectedWeekIds = emptyWeekIds,
             migrationMode = SessionMigrationMode.PREBUILT,
         )
         return SplitApplicationEngine.apply(request).copy(selectedSplitId = split.id)
     }
+
+    /** Compatibilidad semántica para los callers existentes; ahora cubre semanas parciales. */
+    fun prefillIfEmpty(program: Program, split: SplitTemplate?): Program =
+        prefillEmptyWeeks(program, split)
 }

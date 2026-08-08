@@ -67,6 +67,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
+import com.example.kpkn.domain.workout.PropagationSide
+import com.example.kpkn.domain.workout.copyPlannedValueFrom
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.min
@@ -84,6 +86,7 @@ internal fun CompactRestBundleButton(
     sideSeconds: Int?,
     accentColor: Color,
     modifier: Modifier = Modifier,
+    accentTinted: Boolean = false,
     onConfirm: (Int, Int?) -> Unit,
 ) {
     var showPicker by remember { mutableStateOf(false) }
@@ -98,15 +101,26 @@ internal fun CompactRestBundleButton(
             .clip(RoundedCornerShape(999.dp))
             .clickable { showPicker = true },
         shape = RoundedCornerShape(999.dp),
-        color = DarkEditorChip,
+        color = if (accentTinted) accentColor.copy(alpha = 0.15f) else DarkEditorChip,
+        border = if (accentTinted) BorderStroke(1.dp, accentColor.copy(alpha = 0.35f)) else null,
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 12.dp),
+            modifier = Modifier
+                .then(if (accentTinted) Modifier.fillMaxWidth() else Modifier)
+                .padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Icon(Icons.Default.Timer, contentDescription = "Configurar descansos", tint = Color.White, modifier = Modifier.size(18.dp))
-            Text(summary, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = Color.White, maxLines = 1)
+            Icon(Icons.Default.Timer, contentDescription = "Configurar descansos", tint = if (accentTinted) accentColor else Color.White, modifier = Modifier.size(18.dp))
+            Text(
+                summary,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = if (accentTinted) accentColor else Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = if (accentTinted) Modifier.weight(1f, fill = false) else Modifier,
+            )
         }
     }
 
@@ -205,20 +219,25 @@ internal fun CompactRestPickerButton(
 internal fun CompactModeSelector(
     currentMode: TrainingMode,
     accentColor: Color,
+    modifier: Modifier = Modifier,
+    accentTinted: Boolean = false,
     onModeSelected: (TrainingMode) -> Unit,
 ) {
     var showMenu by remember { mutableStateOf(false) }
     
-    Box {
+    Box(modifier = modifier) {
         Surface(
         modifier = Modifier
+            .then(if (modifier !== Modifier) Modifier.fillMaxWidth() else Modifier)
             .height(40.dp)
             .clip(RoundedCornerShape(999.dp))
             .clickable { showMenu = true },
-            color = DarkEditorChip,
+            color = if (accentTinted) accentColor.copy(alpha = 0.15f) else DarkEditorChip,
+            border = if (accentTinted) BorderStroke(1.dp, accentColor.copy(alpha = 0.35f)) else null,
         ) {
             Row(
                 modifier = Modifier
+                    .then(if (modifier !== Modifier) Modifier.fillMaxWidth() else Modifier)
                     .padding(horizontal = 10.dp, vertical = 6.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
@@ -227,16 +246,16 @@ internal fun CompactModeSelector(
                     trainingModeLabel(currentMode),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White,
+                    color = if (accentTinted) accentColor else Color.White,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.widthIn(max = 90.dp),
+                    modifier = if (modifier !== Modifier) Modifier.weight(1f, fill = false) else Modifier.widthIn(max = 90.dp),
                 )
                 Spacer(Modifier.width(4.dp))
                 Icon(
                     Icons.Default.KeyboardArrowDown,
                     contentDescription = null,
-                    tint = Color.White,
+                    tint = if (accentTinted) accentColor else Color.White,
                     modifier = Modifier.size(16.dp),
                 )
             }
@@ -433,6 +452,14 @@ internal fun ExerciseSetsCarousel(
     var currentSetIndex by remember(exercise.id) { mutableStateOf(0) }
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = currentSetIndex)
     val coroutineScope = rememberCoroutineScope()
+    fun propagateSetValue(sourceId: String, side: PropagationSide) {
+        val source = exercise.sets.firstOrNull { it.id == sourceId } ?: return
+        exercise.sets
+            .filter { it.id != sourceId && !it.isEmptySlot }
+            .forEach { target ->
+                onUpdateSet(target.id) { current -> current.copyPlannedValueFrom(source, side) }
+            }
+    }
     var techniqueConfigExpandedBySetId by remember(exercise.id) {
         mutableStateOf<Map<String, Boolean>>(emptyMap())
     }
@@ -533,11 +560,12 @@ internal fun ExerciseSetsCarousel(
                                                 fixedUnilateralSide = side,
                                                 showSetActions = isFirstVisible,
                                                 unilateralIntensityMode = exercise.unilateralIntensityMode,
-                                                onUpdate = { updater -> onUpdateSet(set.id, updater) },
-                                                onRemove = { onRemoveSet(set.id) },
-                                                onMoveUp = { onMoveSet(set.id, -1) },
-                                                onMoveDown = { onMoveSet(set.id, 1) },
-                                                onTechniqueConfigExpandedChange = { expanded ->
+                                                 onUpdate = { updater -> onUpdateSet(set.id, updater) },
+                                                 onRemove = { onRemoveSet(set.id) },
+                                                 onMoveUp = { onMoveSet(set.id, -1) },
+                                                 onMoveDown = { onMoveSet(set.id, 1) },
+                                                 onPropagateValue = { side -> propagateSetValue(set.id, side) },
+                                                 onTechniqueConfigExpandedChange = { expanded ->
                                                     techniqueConfigExpandedBySetId =
                                                         techniqueConfigExpandedBySetId + (set.id to expanded)
                                                 },
@@ -587,11 +615,12 @@ internal fun ExerciseSetsCarousel(
                                 isUnilateral = exercise.isEffectivelyUnilateral(),
                                 fillHeight = false,
                                 unilateralIntensityMode = exercise.unilateralIntensityMode,
-                                onUpdate = { updater -> onUpdateSet(set.id, updater) },
-                                onRemove = { onRemoveSet(set.id) },
-                                onMoveUp = { onMoveSet(set.id, -1) },
-                                onMoveDown = { onMoveSet(set.id, 1) },
-                                onTechniqueConfigExpandedChange = { expanded ->
+                                 onUpdate = { updater -> onUpdateSet(set.id, updater) },
+                                 onRemove = { onRemoveSet(set.id) },
+                                 onMoveUp = { onMoveSet(set.id, -1) },
+                                 onMoveDown = { onMoveSet(set.id, 1) },
+                                 onPropagateValue = { side -> propagateSetValue(set.id, side) },
+                                 onTechniqueConfigExpandedChange = { expanded ->
                                     techniqueConfigExpandedBySetId =
                                         techniqueConfigExpandedBySetId + (set.id to expanded)
                                 },

@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DirectionsRun
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -40,6 +41,7 @@ import com.example.kpkn.R
 internal fun SessionEditorEmptyState(
     onAddExercise: () -> Unit,
     onAddGroup: () -> Unit,
+    onAddCardio: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -109,6 +111,17 @@ internal fun SessionEditorEmptyState(
                 Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))
                 Text("Nuevo grupo", fontWeight = FontWeight.SemiBold, maxLines = 1)
+            }
+            FilledTonalButton(
+                onClick = onAddCardio,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(46.dp),
+                shape = RoundedCornerShape(14.dp),
+            ) {
+                Icon(Icons.Default.DirectionsRun, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+                Text("Cardio", fontWeight = FontWeight.SemiBold, maxLines = 1)
             }
         }
     }

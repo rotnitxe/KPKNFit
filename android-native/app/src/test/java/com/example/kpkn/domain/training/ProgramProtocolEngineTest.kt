@@ -111,6 +111,51 @@ class ProgramProtocolEngineTest {
     }
 
     @Test
+    fun enhanced_day_differentiation_uses_focus_specific_accessory_recipes() {
+        val protocol = PROTOCOL_LIBRARY.first { it.id == "gzcl-base" }
+        val applied = ProgramProtocolEngine.applyProtocol(
+            program = Program(id = "p", name = "A"),
+            protocol = protocol,
+            idProvider = SeqIds(),
+            enhancedDayDifferentiation = true,
+        )
+        val sessions = applied.macrocycles.first().blocks.first().mesocycles.first().weeks.first().sessions
+        fun exerciseCount(session: com.example.kpkn.data.models.Session): Int =
+            session.parts.sumOf { part -> part.exercises.size }
+
+        assertEquals(4, exerciseCount(sessions.first { it.name == "Torso" }))
+        assertEquals(5, exerciseCount(sessions.first { it.name == "Pierna" }))
+        assertTrue(sessions.first { it.name == "Torso" }.parts.any { it.exercises.size == 2 })
+        assertTrue(sessions.first { it.name == "Pierna" }.parts.any { it.exercises.size == 3 })
+    }
+
+    @Test
+    fun five_three_one_uses_real_main_lift_reps_by_cycle_week() {
+        val protocol = PROTOCOL_LIBRARY.first { it.id == "531-base" }
+        val applied = ProgramProtocolEngine.applyProtocol(
+            program = Program(id = "p", name = "A"),
+            protocol = protocol,
+            idProvider = SeqIds(),
+        )
+        val reps = applied.macrocycles.first().blocks.map { block ->
+            block.mesocycles.first().weeks.first().sessions.first()
+                .parts.first().exercises.first().sets.first().targetReps
+        }
+        assertEquals(listOf(5, 3, 1, 5), reps)
+    }
+
+    @Test
+    fun split_aliases_resolve_and_unknown_ids_fail_loudly() {
+        assertEquals("ul_x4", ProgramProtocolEngine.resolveSplitId("UL"))
+        try {
+            ProgramProtocolEngine.resolveSplitId("split-no-existe")
+            error("Se esperaba un error para un split desconocido")
+        } catch (error: IllegalStateException) {
+            assertTrue(error.message.orEmpty().contains("no existe"))
+        }
+    }
+
+    @Test
     fun applyProtocol_resolves_defaultSplit_to_a_real_split_template() {
         PROTOCOL_LIBRARY.filter { it.defaultSplit != null }.forEach { protocol ->
             val applied = ProgramProtocolEngine.applyProtocol(Program(id = "p", name = "A"), protocol, SeqIds())

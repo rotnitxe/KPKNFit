@@ -149,6 +149,10 @@ data class CompletedSet(
     val setOutcomeV2: SetOutcomeV2? = null,
     val rom: Int? = null,
     val assistedReps: Int? = null,
+    /** Cardio-only telemetry; null keeps strength logs compact and backward compatible. */
+    val distanceKm: Double? = null,
+    val avgHeartRate: Int? = null,
+    val calories: Double? = null,
 )
 
 fun CompletedSet.effectiveRepEquivalent(): Double =
@@ -209,7 +213,7 @@ data class OngoingWorkoutState(
     val persistedLoadModeBySet: Map<String, LoadModeV2> = emptyMap(),
     val persistedLoadModeByExercise: Map<String, LoadModeV2> = emptyMap(),
     val customTargetDurationMinutes: Int? = null,
-    val pacingAlertMode: String = "final", // off | final | soft
+    val pacingAlertMode: String = "final", // off | final | soft | strict
     val exerciseNotes: Map<String, String> = emptyMap(),
     val exercisePhotos: Map<String, List<String>> = emptyMap(),
     val sessionMilestones: List<SessionMilestone> = emptyList(),

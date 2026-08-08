@@ -12,6 +12,7 @@ enum class SessionEditorSheet {
     AUGE,
     WARMUP,
     MOBILITY_PICKER,
+    CARDIO_PICKER,
     SUPERSERIE_MANAGER,
     SUPERSET_CREATOR,
     RELATIONSHIP_PICKER,

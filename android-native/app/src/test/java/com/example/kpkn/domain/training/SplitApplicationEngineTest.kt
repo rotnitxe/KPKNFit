@@ -205,6 +205,38 @@ class SplitApplicationEngineTest {
     }
 
     @Test
+    fun prebuilt_missing_day_label_returns_blank_session_and_visible_warning() {
+        val split = SplitTemplate(
+            id = "missing-day-test",
+            name = "Split con día sin plantilla",
+            description = "Test",
+            pattern = listOf("Día sin catálogo", "Descanso", "Descanso", "Descanso", "Descanso", "Descanso", "Descanso"),
+        )
+
+        val preview = SplitApplicationEngine.prebuiltWeekPreview(
+            split = split,
+            templates = emptyList(),
+            exerciseIndex = emptyMap(),
+        )
+        val sessions = SplitApplicationEngine.buildSessionsForSplit(
+            splitId = split.id,
+            pattern = split.pattern,
+            startDay = 1,
+            existingSessions = emptyList(),
+            migrationMode = SessionMigrationMode.PREBUILT,
+            templates = emptyList(),
+            exerciseIndex = emptyMap(),
+        )
+
+        assertEquals(1, preview.days.size)
+        assertTrue(preview.days.single().templateId == null)
+        assertTrue(preview.warnings.any { it.contains("Día sin catálogo") })
+        assertEquals(1, sessions.size)
+        assertTrue(sessions.single().exercises.isEmpty())
+        assertTrue(sessions.single().parts.isEmpty())
+    }
+
+    @Test
     fun current_week_records_override_without_destroying_global_or_block_selection() {
         val base = programWithWeeks(listOf(ProgramWeek("w1", "W1"), ProgramWeek("w2", "W2"))).copy(
             selectedSplitId = "global_split",

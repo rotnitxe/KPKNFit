@@ -19,11 +19,28 @@ import com.example.kpkn.data.protocols.Protocol
 import com.example.kpkn.data.protocols.ProtocolBlock
 import com.example.kpkn.data.protocols.ProtocolExerciseLibrary
 import com.example.kpkn.data.protocols.ProtocolLift
+import com.example.kpkn.data.protocols.ProtocolLiftFocus
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
+
+data class ProtocolSessionPartRecipe(
+    val name: String,
+    val exerciseCount: Int,
+)
+
+/** Receta explícita día → foco → partes para que un protocolo no sea una copia del mismo día. */
+data class ProtocolSessionRecipe(
+    val dayLabel: String,
+    val focus: ProtocolLiftFocus,
+    val mainLift: ProtocolLift,
+    val accessoryCount: Int,
+    val parts: List<ProtocolSessionPartRecipe>,
+)
 
 /**
  * Compilador único de protocolos → estructura de programa ejecutable.
- * Usado por ProtocolsView y MacrocycleEditor para evitar constructores divergentes.
+ * Usado por la sheet de plantillas/protocolos dentro de MacrocycleEditor; no existe
+ * una ruta independiente ProtocolsView. Así ambas superficies futuras comparten
+ * el mismo compilador y no crean estructuras divergentes.
  */
 object ProgramProtocolEngine {
 
@@ -31,13 +48,29 @@ object ProgramProtocolEngine {
         program: Program,
         protocol: Protocol,
         idProvider: IdProvider = UuidIdProvider,
+        enhancedDayDifferentiation: Boolean = false,
     ): Program {
-        val splitPattern = resolveSplitPattern(protocol.defaultSplit)
+        val resolvedSplitId = protocol.defaultSplit
+            ?.let(::resolveSplitId)
+            ?: program.selectedSplitId?.let(::resolveSplitId)
+            ?: error("El protocolo '${protocol.id}' debe declarar defaultSplit o el programa debe tener selectedSplitId")
+        val splitPattern = SPLIT_TEMPLATES.first { it.id == resolvedSplitId }.pattern
         val sessionParts = protocol.sessionCategories.ifEmpty {
             listOf("Parte principal", "Suplementario", "Accesorios")
         }
+        var cycleWeekOffset = 0
         val blocks = protocol.blocks.map { protocolBlock ->
-            buildBlock(protocolBlock, splitPattern, sessionParts, protocol, idProvider)
+            buildBlock(
+                protocolBlock = protocolBlock,
+                splitPattern = splitPattern,
+                sessionParts = sessionParts,
+                protocol = protocol,
+                idProvider = idProvider,
+                cycleWeekOffset = cycleWeekOffset,
+                enhancedDayDifferentiation = enhancedDayDifferentiation,
+            ).also {
+                cycleWeekOffset += protocolBlock.weeks.coerceAtLeast(1)
+            }
         }
         val structure = if (blocks.size > 1) ProgramStructure.COMPLEX else ProgramStructure.SIMPLE
         val applied = program.copy(
@@ -54,13 +87,13 @@ object ProgramProtocolEngine {
             loopState = if (structure == ProgramStructure.SIMPLE) null else program.loopState,
             loopOccurrences = if (structure == ProgramStructure.SIMPLE) emptyList() else program.loopOccurrences,
             schedulePlan = program.resolvedSchedulePlan().copy(
-                mode = if (program.timelineStartDate.isNullOrBlank()) {
+                mode = if (program.resolvedSchedulePlan().anchorDate.isNullOrBlank()) {
                     ScheduleMode.FLOATING
                 } else {
                     program.resolvedSchedulePlan().mode
                 },
             ),
-            selectedSplitId = protocol.defaultSplit?.let { resolveSplitId(it) } ?: program.selectedSplitId,
+            selectedSplitId = resolvedSplitId,
             blockSplitSelections = emptyMap(),
             weekSplitSelections = emptyMap(),
             macrocycles = listOf(
@@ -84,6 +117,8 @@ object ProgramProtocolEngine {
         sessionParts: List<String>,
         protocol: Protocol,
         idProvider: IdProvider,
+        cycleWeekOffset: Int,
+        enhancedDayDifferentiation: Boolean,
     ): Block {
         val goal = resolveGoal(protocolBlock.goal)
         val totalWeeksInBlock = protocolBlock.weeks.coerceAtLeast(1)
@@ -105,14 +140,16 @@ object ProgramProtocolEngine {
                             name = "Semana $weekNumber",
                             description = "Objetivo ${protocolBlock.goal} · ${protocolBlock.intensityMin}-${protocolBlock.intensityMax}% 1RM",
                             sessions = buildSessions(
-                                splitPattern = splitPattern,
-                                parts = sessionParts,
-                                protocol = protocol,
-                                protocolBlock = protocolBlock,
-                                goal = goal,
-                                weekNumber = weekNumber,
-                                totalWeeksInBlock = totalWeeksInBlock,
-                                idProvider = idProvider,
+                                splitPattern,
+                                sessionParts,
+                                protocol,
+                                protocolBlock,
+                                goal,
+                                weekNumber,
+                                totalWeeksInBlock,
+                                idProvider,
+                                cycleWeekOffset + weekNumber,
+                                enhancedDayDifferentiation,
                             ),
                         )
                     },
@@ -130,6 +167,8 @@ object ProgramProtocolEngine {
         weekNumber: Int,
         totalWeeksInBlock: Int,
         idProvider: IdProvider,
+        absoluteWeekNumber: Int,
+        enhancedDayDifferentiation: Boolean,
     ): List<Session> {
         val trainingDays = splitPattern
             .mapIndexedNotNull { index, label ->
@@ -137,12 +176,26 @@ object ProgramProtocolEngine {
             }
             .ifEmpty { listOf(1 to protocol.name) }
 
+        val effectiveParts = if (enhancedDayDifferentiation && parts.size < 3) {
+            parts + "Accesorios"
+        } else {
+            parts
+        }
+
         return trainingDays.mapIndexed { sessionIndex, (dayOfWeek, label) ->
             val isMain = sessionIndex == 0
-            val focus = ProtocolExerciseLibrary.focusForDayLabel(label)
-            val mainLift = ProtocolExerciseLibrary.mainLiftFor(focus, sessionIndex)
-            val accessoryCount = (parts.size - 2).coerceAtLeast(0)
-            val accessories = ProtocolExerciseLibrary.accessoriesFor(mainLift, weekNumber, accessoryCount)
+            val recipe = sessionRecipeForDay(
+                dayLabel = label,
+                sessionIndex = sessionIndex,
+                partNames = effectiveParts,
+                enhancedDayDifferentiation = enhancedDayDifferentiation,
+            )
+            val accessories = ProtocolExerciseLibrary.accessoriesFor(
+                recipe.mainLift,
+                weekNumber,
+                recipe.accessoryCount,
+            )
+            var accessoryCursor = 0
             Session(
                 id = idProvider.newId(),
                 name = label,
@@ -152,26 +205,82 @@ object ProgramProtocolEngine {
                 assignedDays = listOf(dayOfWeek),
                 isMainSession = isMain,
                 focus = protocolBlock.goal,
-                parts = parts.mapIndexed { partIndex, partName ->
-                    val lift = liftForPart(partIndex, mainLift, accessories)
+                parts = effectiveParts.mapIndexed { partIndex, partName ->
+                    val recipePart = recipe.parts[partIndex]
+                    val lifts = when {
+                        partIndex < 2 -> listOf(recipe.mainLift)
+                        !enhancedDayDifferentiation -> listOf(
+                            liftForPart(partIndex, recipe.mainLift, accessories),
+                        )
+                        else -> accessories
+                            .drop(accessoryCursor)
+                            .take(recipePart.exerciseCount)
+                            .also { accessoryCursor += it.size }
+                    }
                     SessionPart(
                         id = idProvider.newId(),
                         name = partName,
-                        exercises = listOf(
+                        exercises = lifts.map { lift ->
                             prescribedExercise(
                                 lift = lift,
                                 partIndex = partIndex,
                                 goal = goal,
+                                protocol = protocol,
                                 protocolBlock = protocolBlock,
                                 weekNumber = weekNumber,
                                 totalWeeksInBlock = totalWeeksInBlock,
+                                absoluteWeekNumber = absoluteWeekNumber,
                                 idProvider = idProvider,
-                            ),
-                        ),
+                            )
+                        },
                     )
                 },
             )
         }
+    }
+
+    fun sessionRecipeForDay(
+        dayLabel: String,
+        sessionIndex: Int,
+        partNames: List<String>,
+        enhancedDayDifferentiation: Boolean = true,
+    ): ProtocolSessionRecipe {
+        val focus = ProtocolExerciseLibrary.focusForDayLabel(dayLabel)
+        val mainLift = ProtocolExerciseLibrary.mainLiftFor(focus, sessionIndex)
+        val accessoryCount = if (enhancedDayDifferentiation) {
+            when (focus) {
+                ProtocolLiftFocus.SQUAT, ProtocolLiftFocus.DEADLIFT -> 3
+                ProtocolLiftFocus.BENCH,
+                ProtocolLiftFocus.OVERHEAD_PRESS,
+                ProtocolLiftFocus.PULL -> 2
+                ProtocolLiftFocus.GENERAL -> 1
+            }
+        } else {
+            (partNames.size - 2).coerceAtLeast(0)
+        }
+        val safeParts = if (enhancedDayDifferentiation && partNames.size < 3) {
+            partNames + "Accesorios"
+        } else {
+            partNames
+        }
+        var remainingAccessories = accessoryCount
+        val parts = safeParts.mapIndexed { index, name ->
+            val exerciseCount = when {
+                index < 2 -> 1
+                !enhancedDayDifferentiation -> 1
+                index == safeParts.lastIndex -> remainingAccessories
+                else -> 1.coerceAtMost(remainingAccessories)
+            }
+            if (index >= 2) remainingAccessories = (remainingAccessories - exerciseCount).coerceAtLeast(0)
+            ProtocolSessionPartRecipe(name = name, exerciseCount = exerciseCount)
+        }
+        return ProtocolSessionRecipe(
+            dayLabel = dayLabel,
+            focus = focus,
+            mainLift = mainLift,
+            accessoryCount = accessoryCount,
+            parts = parts,
+        )
     }
 
     /** Parte 0 = movimiento principal (o su variante técnica en acumulación), parte 1 = mismo movimiento, resto = accesorios reales. */
@@ -188,9 +297,11 @@ object ProgramProtocolEngine {
         lift: ProtocolLift,
         partIndex: Int,
         goal: MesocycleGoal,
+        protocol: Protocol,
         protocolBlock: ProtocolBlock,
         weekNumber: Int,
         totalWeeksInBlock: Int,
+        absoluteWeekNumber: Int,
         idProvider: IdProvider,
     ): Exercise {
         val resolvedLift = if (partIndex == 0 && goal == MesocycleGoal.ACCUMULATION) {
@@ -210,8 +321,13 @@ object ProgramProtocolEngine {
             volumeModifier = protocolBlock.volumeModifier,
             intensityMin = protocolBlock.intensityMin,
             intensityMax = protocolBlock.intensityMax,
-            weekNumber = weekNumber,
+            weekNumber = if (protocol.id == "531-base" && partIndex == 0) absoluteWeekNumber else weekNumber,
             totalWeeksInBlock = totalWeeksInBlock,
+            repScheme = if (protocol.id == "531-base" && partIndex == 0) {
+                listOf(5, 3, 1, 5)
+            } else {
+                null
+            },
         )
         val sets = (1..prescription.sets).map {
             ExerciseSet(
@@ -245,20 +361,21 @@ object ProgramProtocolEngine {
         else -> MesocycleGoal.CUSTOM
     }
 
-    private fun resolveSplitId(raw: String): String {
-        if (SPLIT_TEMPLATES.any { it.id == raw }) return raw
-        return when (raw.lowercase()) {
+    fun resolveSplitId(raw: String): String {
+        val normalized = raw.trim().lowercase()
+        val resolved = when {
+            SPLIT_TEMPLATES.any { it.id == normalized } -> normalized
+            else -> when (normalized) {
             "upper-lower", "ul", "4-day", "4day" -> "ul_x4"
             "ppl" -> "ppl_x6"
             "fullbody", "full-body" -> "fullbody_x3"
             "texas_method", "texas" -> "texas_method"
-            else -> raw
+                else -> error("Split '$raw' no existe en SPLIT_TEMPLATES y no tiene alias válido")
+            }
         }
-    }
-
-    private fun resolveSplitPattern(defaultSplit: String?): List<String> {
-        val resolvedId = defaultSplit?.let { resolveSplitId(it) }
-        return SPLIT_TEMPLATES.firstOrNull { it.id == resolvedId }?.pattern
-            ?: SPLIT_TEMPLATES.firstOrNull { it.id == "ul_x4" }?.pattern.orEmpty()
+        require(SPLIT_TEMPLATES.any { it.id == resolved }) {
+            "Split resuelto '$resolved' no existe en SPLIT_TEMPLATES"
+        }
+        return resolved
     }
 }

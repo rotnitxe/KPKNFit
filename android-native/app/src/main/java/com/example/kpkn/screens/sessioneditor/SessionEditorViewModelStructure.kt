@@ -73,6 +73,7 @@ fun SessionEditorViewModel.openPicker(partId: String?, exerciseId: String? = nul
             sheet = SessionEditorSheet.EXERCISE_PICKER,
             pickerTargetPartId = partId,
             pickerTargetExerciseId = exerciseId,
+            mobilityPartId = null,
             searchQuery = searchQuery,
             quickActionsPartId = null,
             quickActionsExerciseId = null,
@@ -440,7 +441,16 @@ fun SessionEditorViewModel.addSet(partId: String?, exerciseId: String, side: Str
 
 fun SessionEditorViewModel.removeSet(partId: String?, exerciseId: String, setId: String) = updateExercise(partId, exerciseId) { exercise ->
     if (exercise.sets.size <= 1) return@updateExercise exercise
-    exercise.copy(sets = exercise.sets.filterNot { it.id == setId })
+    val target = exercise.sets.firstOrNull { it.id == setId } ?: return@updateExercise exercise
+    if (exercise.supersetGroupRefOrLegacyId() != null) {
+        // Superset rounds share their positional index. Removing an item would move
+        // every later round up, so keep a serialized empty slot instead.
+        exercise.copy(sets = exercise.sets.map { set ->
+            if (set.id == target.id) ExerciseSet(id = set.id, isEmptySlot = true) else set
+        })
+    } else {
+        exercise.copy(sets = exercise.sets.filterNot { it.id == setId })
+    }
 }
 
 fun SessionEditorViewModel.moveSet(partId: String?, exerciseId: String, setId: String, direction: Int) = updateExercise(partId, exerciseId) { exercise ->
@@ -591,17 +601,29 @@ fun SessionEditorViewModel.triggerQuickActionUnlinkSuperset() {
 
 fun SessionEditorViewModel.updateWarmupSets(partId: String?, exerciseId: String, sets: List<WarmupSetDefinition>) = updateExercise(partId, exerciseId) { it.copy(warmupSets = sets) }
 
-fun SessionEditorViewModel.applyRuleDefaultsToSession(partId: String? = null) {
+fun SessionEditorViewModel.applyRuleDefaultsToSession(partId: String? = null): ApplyRulesOutcome {
+    val state = currentUiState
+    val target = state.activeVariantSession ?: return ApplyRulesOutcome.NoChanges
     val defaults = getRuleDefaultsForPart(partId)
-    updateSession { session ->
-        SessionEditorRulesEngine.applyDefaults(
-            session = session,
-            defaults = defaults,
-            partId = partId,
-            exerciseIndex = exerciseIndex,
-        )
+    val outcome = SessionEditorRulesEngine.evaluateApply(
+        session = target,
+        defaults = defaults,
+        partId = partId,
+        exerciseIndex = exerciseIndex,
+    )
+    if (outcome is ApplyRulesOutcome.Applied) {
+        updateSession { session ->
+            SessionEditorRulesEngine.applyDefaults(
+                session = session,
+                defaults = defaults,
+                partId = partId,
+                exerciseIndex = exerciseIndex,
+            )
+        }
+        closeSheet()
     }
-    closeSheet()
+    // En NoChanges / ScopeNotFound la sheet queda abierta para que el usuario ajuste valores.
+    return outcome
 }
 
 fun SessionEditorViewModel.patchRuleDefaults(
@@ -677,6 +699,7 @@ fun SessionEditorViewModel.openMobilityPicker(partId: String?, exerciseId: Strin
             sheet = SessionEditorSheet.MOBILITY_PICKER,
             quickActionsPartId = partId,
             quickActionsExerciseId = exerciseId,
+            mobilityPartId = null,
             pickerTargetPartId = null,
             pickerTargetExerciseId = null,
             warmupExerciseId = null,

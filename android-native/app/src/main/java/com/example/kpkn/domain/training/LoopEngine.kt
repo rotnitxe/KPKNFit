@@ -11,10 +11,29 @@ data class LoopProjection(
     val weekInCycle: Int,
 )
 
+enum class LoopIssueType {
+    DUPLICATE_ID,
+    INVALID_CADENCE,
+    MISSING_MATERIALIZED_WEEK,
+    ORPHAN_MATERIALIZED_WEEK,
+    UNKNOWN_OCCURRENCE_LOOP,
+    DUPLICATE_OCCURRENCE,
+    STALE_OCCURRENCES,
+    UNKNOWN_STATE_REFERENCE,
+    CALENDARIZED_LOOP_STATE,
+}
+
+/** Diagnóstico estructural de la representación triplicada de loops. */
+data class LoopIssue(
+    val type: LoopIssueType,
+    val message: String,
+    val loopId: String? = null,
+)
+
 object LoopEngine {
 
     fun materializeLoopWeeks(program: Program): Program {
-        if (!program.isSimpleProgram || program.loops.isEmpty()) return program
+        if (!program.isSimpleProgram || program.simpleProgramKind != SimpleProgramKind.CYCLIC || program.loops.isEmpty()) return program
         val firstMacro = program.macrocycles.firstOrNull() ?: return program
         val firstBlock = firstMacro.blocks.firstOrNull() ?: return program
         val firstMeso = firstBlock.mesocycles.firstOrNull() ?: return program
@@ -125,6 +144,7 @@ object LoopEngine {
         fromCycle: Int,
         lookAheadCycles: Int = 12,
     ): List<LoopProjection> {
+        if (!program.isSimpleProgram || program.simpleProgramKind != SimpleProgramKind.CYCLIC) return emptyList()
         val loops = program.loops
         if (loops.isEmpty()) return emptyList()
 
@@ -286,7 +306,7 @@ object LoopEngine {
      * Conserva ocurrencias históricas COMPLETED / CANCELLED y el ciclo de origen al posponer.
      */
     fun syncOccurrences(program: Program, lookAheadCycles: Int = 24): Program {
-        if (!program.isSimpleProgram || program.loops.isEmpty()) {
+        if (!program.isSimpleProgram || program.simpleProgramKind != SimpleProgramKind.CYCLIC || program.loops.isEmpty()) {
             return if (program.loopOccurrences.isEmpty()) program else program.copy(loopOccurrences = emptyList())
         }
         val current = getCurrentCycle(program).coerceAtLeast(0)
@@ -343,6 +363,117 @@ object LoopEngine {
                 .distinctBy { "${it.loopId}_${it.originCycle}" }
                 .sortedWith(compareBy({ it.scheduledCycle }, { it.loopId })),
         )
+    }
+
+    /**
+     * Comprueba que las tres representaciones de loops siguen reconciliadas.
+     * No muta el programa: la reparación queda explícitamente en [syncOccurrences]
+     * y en las operaciones de mutación de este motor.
+     */
+    fun validate(program: Program): List<LoopIssue> {
+        val issues = mutableListOf<LoopIssue>()
+        val loopsById = program.loops.groupBy { it.id }
+        loopsById.filterValues { it.size > 1 }.forEach { (loopId, matches) ->
+            issues += LoopIssue(
+                type = LoopIssueType.DUPLICATE_ID,
+                loopId = loopId,
+                message = "El loop $loopId aparece ${matches.size} veces en loops[].",
+            )
+        }
+        program.loops.filter { it.repeatEveryXLoops < 1 }.forEach { loop ->
+            issues += LoopIssue(
+                type = LoopIssueType.INVALID_CADENCE,
+                loopId = loop.id,
+                message = "El loop ${loop.id} tiene una cadencia inválida: ${loop.repeatEveryXLoops}.",
+            )
+        }
+
+        val loopWeeks = program.macrocycles
+            .flatMap { it.blocks }
+            .flatMap { it.mesocycles }
+            .flatMap { it.weeks }
+            .filter { it.isLoopWeek }
+        val loopIds = loopsById.keys
+        loopWeeks.filter { it.loopId.isNullOrBlank() || it.loopId !in loopIds }.forEach { week ->
+            issues += LoopIssue(
+                type = LoopIssueType.ORPHAN_MATERIALIZED_WEEK,
+                loopId = week.loopId,
+                message = "La semana de loop ${week.id} no referencia una regla existente.",
+            )
+        }
+        program.loops.forEach { loop ->
+            val matches = loopWeeks.count { it.loopId == loop.id }
+            if (program.isSimpleProgram && program.simpleProgramKind == SimpleProgramKind.CYCLIC && matches == 0) {
+                issues += LoopIssue(
+                    type = LoopIssueType.MISSING_MATERIALIZED_WEEK,
+                    loopId = loop.id,
+                    message = "El loop ${loop.id} no tiene semana materializada.",
+                )
+            }
+            if (matches > 1) {
+                issues += LoopIssue(
+                    type = LoopIssueType.DUPLICATE_ID,
+                    loopId = loop.id,
+                    message = "El loop ${loop.id} tiene $matches semanas materializadas.",
+                )
+            }
+        }
+
+        val state = program.loopState
+        val referencedStateLoopIds = buildSet {
+            addAll(state?.cancelled.orEmpty())
+            state?.postponed.orEmpty().forEach { add(it.loopId) }
+        }
+        referencedStateLoopIds.filterNot { it in loopIds }.forEach { loopId ->
+            issues += LoopIssue(
+                type = LoopIssueType.UNKNOWN_STATE_REFERENCE,
+                loopId = loopId,
+                message = "loopState referencia un loop inexistente: $loopId.",
+            )
+        }
+
+        val occurrenceGroups = program.loopOccurrences.groupBy { occurrenceKey(it.loopId, it.originCycle) }
+        occurrenceGroups.filterValues { it.size > 1 }.forEach { (key, matches) ->
+            issues += LoopIssue(
+                type = LoopIssueType.DUPLICATE_OCCURRENCE,
+                loopId = matches.firstOrNull()?.loopId,
+                message = "La ocurrencia $key está duplicada ${matches.size} veces.",
+            )
+        }
+        program.loopOccurrences.filter { it.loopId !in loopIds }.forEach { occurrence ->
+            issues += LoopIssue(
+                type = LoopIssueType.UNKNOWN_OCCURRENCE_LOOP,
+                loopId = occurrence.loopId,
+                message = "loopOccurrences referencia un loop inexistente: ${occurrence.loopId}.",
+            )
+        }
+
+        if (program.simpleProgramKind == SimpleProgramKind.CALENDARIZED &&
+            (program.loops.isNotEmpty() || program.loopState != null || program.loopOccurrences.isNotEmpty())
+        ) {
+            issues += LoopIssue(
+                type = LoopIssueType.CALENDARIZED_LOOP_STATE,
+                message = "Los loops deben quedar en pausedCyclicSnapshot durante un break calendarizado.",
+            )
+        }
+
+        if (program.isSimpleProgram && program.simpleProgramKind == SimpleProgramKind.CYCLIC && program.loops.isNotEmpty()) {
+            val currentKeys = program.loopOccurrences
+                .map { occurrenceKey(it.loopId, it.originCycle) }
+                .toSet()
+            val expected = syncOccurrences(program).loopOccurrences
+            expected
+                .filter { occurrenceKey(it.loopId, it.originCycle) !in currentKeys }
+                .groupBy { it.loopId }
+                .forEach { (loopId, missing) ->
+                    issues += LoopIssue(
+                        type = LoopIssueType.STALE_OCCURRENCES,
+                        loopId = loopId,
+                        message = "Faltan ${missing.size} ocurrencias materializadas para el loop $loopId.",
+                    )
+                }
+        }
+        return issues.distinct()
     }
 
     fun migrateEventsToLoops(program: Program): Program {

@@ -15,6 +15,7 @@ class ProtocolLibraryTest {
 
     @Test
     fun declared_defaultSplit_resolves_to_a_real_split_template() {
+        assertTrue("Cada protocolo debe declarar un defaultSplit explícito", PROTOCOL_LIBRARY.all { !it.defaultSplit.isNullOrBlank() })
         PROTOCOL_LIBRARY.mapNotNull { it.defaultSplit }.forEach { splitId ->
             assertTrue("$splitId debe existir en SPLIT_TEMPLATES", SPLIT_TEMPLATES.any { it.id == splitId })
         }

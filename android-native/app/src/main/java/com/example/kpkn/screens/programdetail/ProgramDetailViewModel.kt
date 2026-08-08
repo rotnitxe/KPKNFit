@@ -23,6 +23,7 @@ import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.isSimpleTemporalProgram
 import com.example.kpkn.data.models.nextSimpleCalendarStart
 import com.example.kpkn.data.models.normalizedTemporalStructure
+import com.example.kpkn.data.models.resolvedSchedulePlan
 import com.example.kpkn.data.models.resolveMuscleVolumeContribution
 import com.example.kpkn.data.models.restorePausedCyclicProgram
 import com.example.kpkn.data.models.startFreshSimpleCycle
@@ -85,6 +86,13 @@ data class ProgramDetailUiState(
     val analyticsSubTab: AnalyticsSubTab = AnalyticsSubTab.VOLUMEN,
     val selectedBlockId: String? = null,
     val selectedWeekId: String? = null,
+    val macrocycleRoadmapExpanded: Boolean? = null,
+    val macrocycleKeyDatesSheetOpen: Boolean? = null,
+    val macrocycleLibrarySheetOpen: Boolean? = null,
+    val macrocycleLoopsSheetOpen: Boolean? = null,
+    val macrocycleTimelineStartDate: String? = null,
+    val macrocycleManualEndDate: String? = null,
+    val macrocycleCompetitionDate: String? = null,
 )
 
 data class WeekCopyConflict(
@@ -424,6 +432,34 @@ class ProgramDetailViewModel(
 
     fun setAnalyticsSubTab(tab: AnalyticsSubTab) {
         _uiState.update { it.copy(analyticsSubTab = tab) }
+    }
+
+    fun setMacrocycleRoadmapExpanded(expanded: Boolean) {
+        _uiState.update { it.copy(macrocycleRoadmapExpanded = expanded) }
+    }
+
+    fun setMacrocycleKeyDatesSheetOpen(open: Boolean) {
+        _uiState.update { it.copy(macrocycleKeyDatesSheetOpen = open) }
+    }
+
+    fun setMacrocycleLibrarySheetOpen(open: Boolean) {
+        _uiState.update { it.copy(macrocycleLibrarySheetOpen = open) }
+    }
+
+    fun setMacrocycleLoopsSheetOpen(open: Boolean) {
+        _uiState.update { it.copy(macrocycleLoopsSheetOpen = open) }
+    }
+
+    fun setMacrocycleTimelineStartDate(date: String) {
+        _uiState.update { it.copy(macrocycleTimelineStartDate = date) }
+    }
+
+    fun setMacrocycleManualEndDate(date: String) {
+        _uiState.update { it.copy(macrocycleManualEndDate = date) }
+    }
+
+    fun setMacrocycleCompetitionDate(date: String) {
+        _uiState.update { it.copy(macrocycleCompetitionDate = date) }
     }
 
     fun selectBlock(blockId: String) {
@@ -1124,14 +1160,26 @@ class ProgramDetailViewModel(
         val mesoIndex = block.mesocycles.indexOfLast { true }.takeIf { it >= 0 } ?: return
         val offset = ProgramDetailHelpers.getTotalWeeks(current)
         val newWeeks = buildCalendarWeeks(startDate, weekCount, trainingDays, offset, current.startDay ?: 1)
+        val anchorDate = current.resolvedSchedulePlan().anchorDate
+            ?: current.timelineStartDate
+            ?: startDate.toString()
+        val targetEndDate = newWeeks.lastOrNull()?.endDate
+            ?: current.resolvedSchedulePlan().targetEndDate
+        val schedulePlan = current.resolvedSchedulePlan().copy(
+            anchorDate = anchorDate,
+            weekStartDay = current.resolvedSchedulePlan().weekStartDay ?: current.startDay ?: 1,
+            trainingDays = trainingDays,
+            targetEndDate = targetEndDate,
+            mode = com.example.kpkn.data.models.ScheduleMode.DATED,
+        )
         val updated = current.copy(
-            timelineStartDate = current.timelineStartDate ?: startDate.toString(),
-            calendarization = current.calendarization ?: ProgramCalendarEngine.defaultSimpleDatedCalendarization(),
+            timelineStartDate = schedulePlan.anchorDate,
+            calendarization = (current.calendarization ?: ProgramCalendarEngine.defaultSimpleDatedCalendarization()).copy(
+                manualEndDate = schedulePlan.targetEndDate,
+            ),
             simpleProgramKind = SimpleProgramKind.CALENDARIZED,
             pausedCyclicSnapshot = current.pausedCyclicSnapshot ?: current.toSimpleProgramSnapshot(appClock),
-            loops = emptyList(),
-            loopState = null,
-            events = emptyList(),
+            schedulePlan = schedulePlan,
             macrocycles = current.macrocycles.mapIndexed { currentMacroIndex, macro ->
                 if (currentMacroIndex != macroIndex) macro else macro.copy(
                     blocks = macro.blocks.mapIndexed { blockIndex, currentBlock ->

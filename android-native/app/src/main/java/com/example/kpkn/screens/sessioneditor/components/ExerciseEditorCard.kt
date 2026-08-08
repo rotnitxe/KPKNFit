@@ -31,11 +31,11 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -78,20 +78,19 @@ import com.example.kpkn.screens.sessioneditor.DarkEditorSurfaceSoft
 import com.example.kpkn.screens.sessioneditor.DarkChoiceChip
 import com.example.kpkn.screens.sessioneditor.EditorMiniField
 import com.example.kpkn.screens.sessioneditor.CompactModeSelector
-import com.example.kpkn.screens.sessioneditor.CompactGoalTrackingButton
 import com.example.kpkn.screens.sessioneditor.CompactRestBundleButton
 import com.example.kpkn.screens.sessioneditor.SideOrderChip
 import com.example.kpkn.screens.sessioneditor.ExerciseSetsCarousel
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
 import com.example.kpkn.screens.sessioneditor.formatRestSummary
 import com.example.kpkn.screens.sessioneditor.formatExerciseCollapsedSummary
-import com.example.kpkn.screens.sessioneditor.formatExerciseConfigSummary
 import com.example.kpkn.screens.sessioneditor.trainingModeLabel
 import com.example.kpkn.screens.sessioneditor.safeIntOrNull
 import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
 import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
-import com.example.kpkn.screens.sessioneditor.DarkEditorChip
 import com.example.kpkn.ui.components.KpknDropdownMenu
+import com.example.kpkn.domain.workout.warmupValidationMessages
+import java.util.UUID
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 
@@ -134,6 +133,9 @@ internal fun ExerciseEditorCard(
     var showSmartLoadSheet by remember { mutableStateOf(false) }
     var showGoalSheet by remember { mutableStateOf(false) }
     var showExerciseOptionsMenu by remember { mutableStateOf(false) }
+    var mobilityBlockExpanded by rememberSaveable(exercise.id) { mutableStateOf(exercise.mobilitySeries.isNotEmpty()) }
+    var warmupBlockExpanded by rememberSaveable(exercise.id) { mutableStateOf(exercise.warmupSets.isNotEmpty()) }
+    var effectiveBlockExpanded by rememberSaveable(exercise.id) { mutableStateOf(false) }
 
     val resolved1RM = remember(exercise.trainingMode, exercise.reference1RM, exercise.prFor1RM) {
         resolveReferenceCapacity(exercise)
@@ -240,14 +242,15 @@ internal fun ExerciseEditorCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 8.dp),
+                .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            // Drag handle — exclusive drag zone, minimum 48dp touch target
+            // Drag handle — caja angosta para no empujar el título; altura táctil conservada.
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .width(28.dp)
+                    .height(44.dp)
                     .pointerInput(exercise.id) {
                         detectDragGestures(
                             onDragStart = { offset -> onDragStart(offset) },
@@ -331,6 +334,23 @@ internal fun ExerciseEditorCard(
                     )
                 }
             }
+            Box(
+                modifier = Modifier
+                    .size(30.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .combinedClickable(
+                        onClick = { showGoalSheet = true },
+                        onLongClick = { onUpdateExercise { ex -> ex.copy(isStarTarget = !ex.isStarTarget) } },
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = if (exercise.isStarTarget) Icons.Default.Star else Icons.Default.StarBorder,
+                    contentDescription = "Meta del ejercicio",
+                    tint = if (exercise.isStarTarget) Color(0xFFFFB300) else Color.White.copy(alpha = 0.6f),
+                    modifier = Modifier.size(18.dp),
+                )
+            }
             Icon(
                 imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                 contentDescription = if (expanded) "Plegar" else "Desplegar",
@@ -349,51 +369,120 @@ internal fun ExerciseEditorCard(
                     .padding(start = 14.dp, end = 14.dp, bottom = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                // Info chips
-                if (exerciseInfo != null) {
-                    val infoText = listOfNotNull(exerciseInfo.category, exerciseInfo.type, exerciseInfo.equipment).joinToString(" · ")
-                    if (infoText.isNotBlank()) {
-                        Text(infoText, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
+                exercise.cardioDetails?.let { details ->
+                    CardioEditorCard(
+                        details = details,
+                        accentColor = accentColor,
+                        onChange = { updated -> onUpdateExercise { current -> current.copy(cardioDetails = updated) } },
+                    )
                 }
-
-                if (exercise.mobilitySeries.isNotEmpty()) {
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("Movilidad asociada", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                InlineEditorBlock(
+                    title = "MOVILIDAD",
+                    summary = if (exercise.mobilitySeries.isEmpty()) "Sin series asociadas" else "${exercise.mobilitySeries.size} movimiento${if (exercise.mobilitySeries.size == 1) "" else "s"}",
+                    expanded = mobilityBlockExpanded,
+                    accentColor = accentColor,
+                    onToggle = { mobilityBlockExpanded = !mobilityBlockExpanded },
+                ) {
+                    if (exercise.mobilitySeries.isEmpty()) {
+                        TextButton(onClick = onOpenMobility) { Text("+ Agregar movilidad") }
+                    } else {
                         exercise.mobilitySeries.forEach { mobility ->
-                            Surface(
-                                shape = RoundedCornerShape(10.dp),
-                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.42f),
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
                             ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 10.dp, vertical = 8.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                ) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(mobility.name, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
-                                        Text(
-                                            listOfNotNull(
-                                                "${mobility.sets} serie${if (mobility.sets == 1) "" else "s"}",
-                                                mobility.reps?.let { "$it reps" },
-                                                mobility.durationSeconds?.let { "${it}s" },
-                                                mobility.notes,
-                                            ).joinToString(" · "),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            maxLines = 2,
-                                            overflow = TextOverflow.Ellipsis,
-                                        )
-                                    }
-                                    IconButton(onClick = { onRemoveMobility(mobility.id) }, modifier = Modifier.size(32.dp)) {
-                                        Icon(Icons.Default.Close, contentDescription = "Quitar movilidad", modifier = Modifier.size(16.dp))
-                                    }
+                                Text(
+                                    listOfNotNull(
+                                        mobility.name,
+                                        "${mobility.sets} serie${if (mobility.sets == 1) "" else "s"}",
+                                        mobility.reps?.let { "$it reps" },
+                                        mobility.durationSeconds?.let { "${it}s" },
+                                    ).joinToString(" · "),
+                                    modifier = Modifier.weight(1f),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.White.copy(alpha = 0.82f),
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                                IconButton(onClick = { onRemoveMobility(mobility.id) }, modifier = Modifier.size(28.dp)) {
+                                    Icon(Icons.Default.Close, contentDescription = "Quitar movilidad", modifier = Modifier.size(15.dp))
                                 }
                             }
                         }
+                        TextButton(onClick = onOpenMobility) { Text("+ Agregar otra") }
                     }
+                }
+
+                val warmupWarnings = warmupValidationMessages(exercise.warmupSets, exercise.sets.size)
+                InlineEditorBlock(
+                    title = "APROXIMACIÓN",
+                    summary = if (exercise.warmupSets.isEmpty()) "Sin series de aproximación" else "${exercise.warmupSets.size} serie${if (exercise.warmupSets.size == 1) "" else "s"}",
+                    expanded = warmupBlockExpanded,
+                    accentColor = accentColor,
+                    onToggle = { warmupBlockExpanded = !warmupBlockExpanded },
+                ) {
+                    if (exercise.warmupSets.isEmpty()) {
+                        TextButton(
+                            onClick = {
+                                onUpdateExercise { current ->
+                                    current.copy(
+                                        warmupSets = listOf(
+                                            WarmupSetDefinition(
+                                                id = UUID.randomUUID().toString(),
+                                                percentageOfWorkingWeight = 0.5,
+                                                targetReps = 8,
+                                                restBetween = 60,
+                                            ),
+                                        ),
+                                    )
+                                }
+                            },
+                        ) { Text("+ Añadir aproximación") }
+                    } else {
+                        exercise.warmupSets.forEachIndexed { index, warmup ->
+                            Text(
+                                "${index + 1}. ${(warmup.percentageOfWorkingWeight * 100).toInt()}% · ${warmup.targetReps} reps · ${warmup.restBetween ?: 60}s",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.White.copy(alpha = 0.82f),
+                            )
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            TextButton(
+                                onClick = {
+                                    onUpdateExercise { current ->
+                                        val previous = current.warmupSets.lastOrNull()
+                                        current.copy(
+                                            warmupSets = current.warmupSets + WarmupSetDefinition(
+                                                id = UUID.randomUUID().toString(),
+                                                percentageOfWorkingWeight = ((previous?.percentageOfWorkingWeight ?: 0.5) + 0.1).coerceAtMost(0.9),
+                                                targetReps = previous?.targetReps ?: 6,
+                                                restBetween = previous?.restBetween ?: 60,
+                                            ),
+                                        )
+                                    }
+                                },
+                            ) { Text("+ Añadir") }
+                            TextButton(onClick = onOpenWarmup) { Text("Editar detalle") }
+                        }
+                    }
+                    warmupWarnings.forEach { warning ->
+                        Text(warning, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
+                    }
+                }
+
+                InlineEditorBlock(
+                    title = "EFECTIVA",
+                    summary = "${exercise.sets.count { !it.isEmptySlot }} series · ${trainingModeLabel(exercise.trainingMode)}",
+                    expanded = effectiveBlockExpanded,
+                    accentColor = accentColor,
+                    onToggle = { effectiveBlockExpanded = !effectiveBlockExpanded },
+                ) {
+                    Text(
+                        "Las series efectivas son las que se ejecutan y reciben carga, RPE y descanso.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.72f),
+                    )
                 }
 
                 // Keep the primary controls stable; secondary configuration lives in overflow.
@@ -408,6 +497,8 @@ internal fun ExerciseEditorCard(
                             primarySeconds = restSelectionSeconds,
                             sideSeconds = if (exercise.isEffectivelyUnilateral() && !isSupersetExercise) exercise.restBetweenSidesSeconds ?: 0 else null,
                             accentColor = accentColor,
+                            modifier = Modifier.weight(1f),
+                            accentTinted = true,
                             onConfirm = { primary, side ->
                                 restSelectionSeconds = primary
                                 onUpdateExercise { draft ->
@@ -428,18 +519,44 @@ internal fun ExerciseEditorCard(
                     CompactModeSelector(
                         currentMode = exercise.trainingMode,
                         accentColor = accentColor,
+                        modifier = Modifier.weight(1f),
+                        accentTinted = true,
                     ) { mode ->
                         onUpdateExercise { current -> current.copy(trainingMode = mode) }
                     }
 
-                    CompactGoalTrackingButton(
-                        isActive = exercise.isStarTarget,
-                        accentColor = accentColor,
-                        onToggle = { onUpdateExercise { ex -> ex.copy(isStarTarget = !ex.isStarTarget) } },
-                        onOpenSheet = { showGoalSheet = true },
-                    )
+                    if (exercise.trainingMode != TrainingMode.SOLO_RPE) {
+                        Surface(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(40.dp)
+                                .clip(RoundedCornerShape(999.dp))
+                                .clickable { showSmartLoadSheet = true },
+                            shape = RoundedCornerShape(999.dp),
+                            color = accentColor.copy(alpha = 0.15f),
+                            border = BorderStroke(1.dp, accentColor.copy(alpha = 0.35f)),
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(Icons.Default.FitnessCenter, contentDescription = null, tint = accentColor, modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text(
+                                    "Carga inteligente",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = accentColor,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                        }
+                    }
 
-                    Spacer(Modifier.weight(1f))
                     Box {
                         IconButton(
                             onClick = { showExerciseOptionsMenu = true },
@@ -525,14 +642,6 @@ internal fun ExerciseEditorCard(
                         }
                     }
                 }
-
-                Text(
-                    formatExerciseConfigSummary(exercise),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.78f),
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
 
                 if (exercise.isEffectivelyUnilateral()) {
                     Surface(
@@ -647,22 +756,6 @@ internal fun ExerciseEditorCard(
                                 fontWeight = if (customUnitInput.isBlank()) FontWeight.Normal else FontWeight.Bold,
                             )
                         }
-                    }
-                }
-
-                if (exercise.trainingMode != TrainingMode.SOLO_RPE) {
-                    FilledTonalButton(
-                        onClick = { showSmartLoadSheet = true },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.filledTonalButtonColors(
-                            containerColor = DarkEditorChip,
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Icon(Icons.Default.FitnessCenter, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text("Carga inteligente", fontWeight = FontWeight.Black)
                     }
                 }
 
@@ -781,5 +874,45 @@ internal fun ExerciseEditorCard(
             onUpdateExercise = onUpdateExercise,
             onDismiss = { showCustomUnitModal = false },
         )
+    }
+}
+
+@Composable
+private fun InlineEditorBlock(
+    title: String,
+    summary: String,
+    expanded: Boolean,
+    accentColor: Color,
+    onToggle: () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        color = accentColor.copy(alpha = 0.07f),
+        border = BorderStroke(1.dp, accentColor.copy(alpha = if (expanded) 0.34f else 0.18f)),
+    ) {
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 9.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth().clickable(onClick = onToggle),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(title, fontWeight = FontWeight.Black, color = accentColor, style = MaterialTheme.typography.labelSmall)
+                Text(summary, modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.66f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Icon(
+                    imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = if (expanded) "Plegar $title" else "Desplegar $title",
+                    tint = Color.White.copy(alpha = 0.72f),
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+            AnimatedVisibility(visible = expanded) {
+                Column(
+                    modifier = Modifier.padding(top = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(5.dp),
+                ) { content() }
+            }
+        }
     }
 }

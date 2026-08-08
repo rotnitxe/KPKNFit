@@ -68,9 +68,13 @@ object PeriodizationEngine {
         intensityMax: Int,
         weekNumber: Int,
         totalWeeksInBlock: Int,
+        repScheme: List<Int>? = null,
     ): SetPrescription = SetPrescription(
         sets = scaleSets(baseSets, goal, volumeModifier),
-        reps = repsForGoal(baseReps, goal),
+        reps = repScheme
+            ?.getOrNull((weekNumber - 1).coerceAtLeast(0))
+            ?.coerceIn(1, 20)
+            ?: repsForGoal(baseReps, goal),
         percentageRM = percentageForWeek(intensityMin, intensityMax, weekNumber, totalWeeksInBlock),
         rpe = rpeForGoal(goal),
     )

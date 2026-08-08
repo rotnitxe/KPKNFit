@@ -250,6 +250,7 @@ internal fun WorkoutStructureSheetsHost(
                     OutlinedButton(
                         onClick = {
                             state.replaceTargetExerciseId = member.id
+                            state.replaceSearchQuery = if (member.catalogDefinitionId == null) member.name else ""
                             state.showReplaceExercisePicker = true
                             state.exerciseContextExerciseId = null
                         },

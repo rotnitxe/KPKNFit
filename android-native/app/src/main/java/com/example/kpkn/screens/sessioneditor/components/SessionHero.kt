@@ -2,6 +2,10 @@ package com.example.kpkn.screens.sessioneditor.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -27,15 +31,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.SaveAlt
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -47,11 +50,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -74,6 +84,9 @@ import com.example.kpkn.ui.components.KpknDropdownMenu
 import com.example.kpkn.ui.components.kpknGlass
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 
 /** Same corner language as the roadmap dock (28dp) — reads as a real pill, not a card. */
 private val HeroPillShape = RoundedCornerShape(28.dp)
@@ -95,6 +108,9 @@ internal fun SessionHero(
     onOpenHistory: () -> Unit,
     onOpenRules: () -> Unit,
     roadmapContent: @Composable () -> Unit = {},
+    activeDayOfWeek: Int? = null,
+    weekStartDay: Int = 1,
+    onSelectDay: ((Int) -> Unit)? = null,
 ) {
     // Local HazeState: glass samples ONLY the cover under the pill.
     // Screen-level hazeState stays reserved for dock/FAB chrome (Blur KPKN.md).
@@ -102,6 +118,19 @@ internal fun SessionHero(
     val background = session.background
     val glowColor = remember(background?.value) { resolveHeroGlowColor(background) }
     var roadmapExpanded by remember { mutableStateOf(false) }
+    val orderedDaysForSwipe = remember(weekStartDay) {
+        val safeStart = weekStartDay.coerceIn(1, 7)
+        val base = listOf(1, 2, 3, 4, 5, 6, 7)
+        val offset = safeStart - 1
+        base.drop(offset) + base.take(offset)
+    }
+
+    // ── Swipe-to-change-day animation ─────────────────────────────────────
+    val swipeScope = rememberCoroutineScope()
+    val heroDragOffset = remember { Animatable(0f) }
+    val heroWidthPx = remember { mutableStateOf(0) }
+    // Tracks the latest target day so the transition coroutine can wait for the switch.
+    val currentDayOfWeek by rememberUpdatedState(activeDayOfWeek)
 
     Column(
         modifier = Modifier
@@ -115,7 +144,69 @@ internal fun SessionHero(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 148.dp),
+                .heightIn(min = 148.dp)
+                .onSizeChanged { heroWidthPx.value = it.width }
+                .graphicsLayer { translationX = heroDragOffset.value }
+                .pointerInput(activeDayOfWeek, weekStartDay, onSelectDay) {
+                    if (onSelectDay == null) return@pointerInput
+                    var dragX = 0f
+                    detectHorizontalDragGestures(
+                        onDragStart = { dragX = 0f },
+                        onHorizontalDrag = { _, dragAmount ->
+                            dragX += dragAmount
+                            // Follow the finger while dragging.
+                            swipeScope.launch { heroDragOffset.snapTo(dragX) }
+                        },
+                        onDragEnd = {
+                            val threshold = 80f
+                            val width = heroWidthPx.value.toFloat().coerceAtLeast(1f)
+                            var targetDay: Int? = null
+                            var direction = 0
+                            val idx = activeDayOfWeek?.let { orderedDaysForSwipe.indexOf(it) } ?: -1
+                            when {
+                                dragX < -threshold -> {
+                                    // swipe left -> día siguiente
+                                    if (idx in 0 until orderedDaysForSwipe.lastIndex) {
+                                        targetDay = orderedDaysForSwipe[idx + 1]
+                                        direction = -1
+                                    }
+                                }
+                                dragX > threshold -> {
+                                    // swipe right -> día anterior
+                                    if (idx > 0) {
+                                        targetDay = orderedDaysForSwipe[idx - 1]
+                                        direction = 1
+                                    }
+                                }
+                            }
+                            if (targetDay != null && direction != 0) {
+                                swipeScope.launch {
+                                    // Slide out in the swipe direction, switch day, then slide in from the opposite side.
+                                    heroDragOffset.animateTo(direction * width, tween(180))
+                                    onSelectDay(targetDay)
+                                    try {
+                                        withTimeout(2500) {
+                                            while (currentDayOfWeek != targetDay) { delay(16) }
+                                        }
+                                    } catch (_: Exception) {
+                                        // Fallthrough: if the switch didn't happen, just bounce back.
+                                    }
+                                    heroDragOffset.snapTo(-direction * width)
+                                    heroDragOffset.animateTo(0f, tween(220))
+                                }
+                            } else {
+                                // Not enough to switch: spring back to center.
+                                swipeScope.launch {
+                                    heroDragOffset.animateTo(
+                                        0f,
+                                        spring(stiffness = Spring.StiffnessMediumLow),
+                                    )
+                                }
+                            }
+                            dragX = 0f
+                        },
+                    )
+                },
         ) {
             Box(
                 modifier = Modifier
@@ -127,7 +218,7 @@ internal fun SessionHero(
             )
             Box(
                 modifier = Modifier
-                    .matchParentSize()
+                    .fillMaxWidth()
                     .clip(HeroPillShape),
             ) {
                 Box(
@@ -139,9 +230,9 @@ internal fun SessionHero(
                 }
                 Box(
                     modifier = Modifier
-                        .matchParentSize()
+                        .fillMaxWidth()
                         .kpknGlass(heroHazeState, HeroPillShape)
-                        .padding(horizontal = 22.dp, vertical = 26.dp),
+                        .padding(horizontal = 22.dp, vertical = 16.dp),
                     contentAlignment = Alignment.CenterStart,
                 ) {
                     Column(
@@ -157,7 +248,7 @@ internal fun SessionHero(
                                 .align(Alignment.CenterHorizontally)
                                 .clip(HeroCompactShape)
                                 .clickable { roadmapExpanded = !roadmapExpanded }
-                                .padding(horizontal = 14.dp, vertical = 4.dp),
+                                .padding(horizontal = 10.dp, vertical = 2.dp),
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = Color.White.copy(alpha = 0.82f),
@@ -169,12 +260,16 @@ internal fun SessionHero(
                             enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
                             exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(),
                         ) {
-                            Column(modifier = Modifier.fillMaxWidth()) {
-                                roadmapContent()
-                                HorizontalDivider(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    color = Color.White.copy(alpha = 0.10f),
-                                )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(glowColor.copy(alpha = 0.10f))
+                                    .padding(vertical = 4.dp)
+                            ) {
+                                Column(modifier = Modifier.fillMaxWidth()) {
+                                    roadmapContent()
+                                }
                             }
                         }
                         // Título/descripción.
@@ -272,6 +367,12 @@ internal fun SessionHero(
                         )
                     }
                 }
+                Text(
+                    text = sessionSaveStatusLabel(session, hasChanges),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White.copy(alpha = 0.62f),
+                    maxLines = 1,
+                )
                 Spacer(modifier = Modifier.weight(1f))
                 HeroSolidActionIcon(
                     icon = Icons.Default.Palette,
@@ -279,7 +380,7 @@ internal fun SessionHero(
                     onClick = onOpenCoverSheet,
                 )
                 HeroGlassIconButton(
-                    icon = if (autoSaveEnabled) Icons.Default.CloudDone else Icons.Default.Save,
+                    icon = if (autoSaveEnabled) Icons.Default.SaveAlt else Icons.Default.Save,
                     contentDescription = if (autoSaveEnabled) {
                         "Guardado automático activo"
                     } else {
@@ -300,6 +401,12 @@ internal fun SessionHero(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
+                    Text(
+                        text = sessionSaveStatusLabel(session, hasChanges),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.62f),
+                        maxLines = 1,
+                    )
                     SessionHeroActionChip("Transferir", Icons.Default.SwapHoriz, onOpenTransfer)
                     SessionHeroActionChip("Versiones", Icons.Default.History, onOpenHistory)
                     SessionHeroActionChip("Reglas", Icons.Default.Settings, onOpenRules)
@@ -314,7 +421,7 @@ internal fun SessionHero(
                         onClick = onOpenCoverSheet,
                     )
                     HeroGlassIconButton(
-                        icon = if (autoSaveEnabled) Icons.Default.CloudDone else Icons.Default.Save,
+                        icon = if (autoSaveEnabled) Icons.Default.SaveAlt else Icons.Default.Save,
                         contentDescription = if (autoSaveEnabled) {
                             "Guardado automático activo"
                         } else {
@@ -335,6 +442,19 @@ internal fun SessionHero(
                 onSyncMeetBodyweight = onSyncMeetBodyweight,
             )
         }
+    }
+}
+
+private fun sessionSaveStatusLabel(session: Session, hasChanges: Boolean): String {
+    if (hasChanges) return "Cambios locales pendientes"
+    val timestamp = session.lastModifiedAtMs
+    if (timestamp <= 0L) return "Aún no guardada localmente"
+    val ageMinutes = ((System.currentTimeMillis() - timestamp).coerceAtLeast(0L) / 60_000L)
+    return when {
+        ageMinutes == 0L -> "Guardada localmente · ahora"
+        ageMinutes == 1L -> "Guardada localmente · hace 1 min"
+        ageMinutes < 60L -> "Guardada localmente · hace $ageMinutes min"
+        else -> "Guardada localmente · hace ${ageMinutes / 60L} h"
     }
 }
 
@@ -380,7 +500,7 @@ internal fun SessionHeroCompactOverlay(
                 onClick = onOpenCoverSheet,
             )
             HeroGlassIconButton(
-                icon = if (autoSaveEnabled) Icons.Default.CloudDone else Icons.Default.Save,
+                icon = if (autoSaveEnabled) Icons.Default.SaveAlt else Icons.Default.Save,
                 contentDescription = if (autoSaveEnabled) "Guardado automático activo" else "Guardar sesión",
                 onClick = onSave,
                 showUnsavedDot = hasChanges,

@@ -1,9 +1,5 @@
 package com.example.kpkn.screens.sessioneditor.components
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -81,6 +77,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.exercises.catalogv2.toLegacySelection
@@ -101,6 +99,8 @@ import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogStateV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseConfigurationV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseDefinitionV2
+import com.example.kpkn.domain.exercises.catalogv2.JointInvolvementV2
+import com.example.kpkn.domain.exercises.catalogv2.JointRoleV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseSearchFiltersV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseSearchHitV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseSelectionV2
@@ -113,6 +113,9 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.runtime.rememberCoroutineScope
+import com.example.kpkn.ui.components.kpknGlass
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeSource
 
 /**
  * The only runtime exercise picker. It deliberately has no legacy fallback:
@@ -282,7 +285,6 @@ private fun ColumnScope.CatalogReadyContent(
     var filterRegion by rememberSaveable { mutableStateOf<String?>(null) }
     var filterMuscle by rememberSaveable { mutableStateOf<String?>(null) }
     var muscleFilterExpanded by rememberSaveable { mutableStateOf(false) }
-    var chipsVisible by remember { mutableStateOf(true) }
     val searchFilters = remember(filterRegion, filterMuscle) {
         ExerciseSearchFiltersV2(
             bodyRegions = filterRegion?.let { setOf(ExerciseBodyRegionV2.valueOf(it)) }.orEmpty(),
@@ -383,7 +385,7 @@ private fun ColumnScope.CatalogReadyContent(
         // recompondría y el reorden no se vería.
         mutableStateOf<Map<String, ExerciseMuscleInfo>>(emptyMap(), neverEqualPolicy())
     }
-    var expandedDefinitionId by rememberSaveable { mutableStateOf<String?>(null) }
+    var expandedDefinitionId by rememberSaveable { mutableStateOf(initialCatalogDefinitionId) }
     val customExercises by CustomExerciseRepository.customExercises.collectAsStateWithLifecycle()
     val editingCustomExercise = remember { mutableStateOf<ExerciseMuscleInfo?>(null) }
     val deletingCustomExercise = remember { mutableStateOf<ExerciseMuscleInfo?>(null) }
@@ -420,6 +422,9 @@ private fun ColumnScope.CatalogReadyContent(
     }
 
     val listState = rememberLazyListState()
+    LaunchedEffect(searchHits) {
+        if (query.isNotBlank()) listState.scrollToItem(0)
+    }
     LaunchedEffect(expandedDefinitionId, definitions, visibleCustomExercises) {
         val targetId = expandedDefinitionId ?: return@LaunchedEffect
         val customOffset = if (visibleCustomExercises.isNotEmpty()) visibleCustomExercises.size + 1 else 0
@@ -437,92 +442,28 @@ private fun ColumnScope.CatalogReadyContent(
         if (delta != 0) listState.animateScrollBy(delta.toFloat())
     }
 
-    // Los chips de filtro se ocultan al hacer scroll para no tapar el catálogo.
-    LaunchedEffect(listState) {
-        snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
-            .collect { (index, offset) ->
-                chipsVisible = index == 0 && offset < 48
-            }
-    }
-
-    // Ocultar los chips sin animar su altura: una animación de tamaño contra el
-    // scroll se siente artificial. El colapso es instantáneo y solo se funde el alpha.
-    AnimatedVisibility(visible = chipsVisible, enter = fadeIn(tween(140)), exit = fadeOut(tween(90))) {
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                FilterChip(
-                    selected = filterRegion == null && filterMuscle == null,
-                    onClick = {
-                        filterRegion = null
-                        filterMuscle = null
-                        muscleFilterExpanded = false
-                    },
-                    label = { Text("Todos") },
-                    colors = catalogFilterChipColors(),
-                )
-                FilterChip(
-                    selected = filterRegion == "UPPER",
-                    onClick = {
-                        filterRegion = if (filterRegion == "UPPER") null else "UPPER"
-                        filterMuscle = null
-                    },
-                    label = { Text("Tren Superior") },
-                    colors = catalogFilterChipColors(),
-                )
-                FilterChip(
-                    selected = filterRegion == "LOWER",
-                    onClick = {
-                        filterRegion = if (filterRegion == "LOWER") null else "LOWER"
-                        filterMuscle = null
-                    },
-                    label = { Text("Tren Inferior") },
-                    colors = catalogFilterChipColors(),
-                )
-                FilterChip(
-                    selected = muscleFilterExpanded || filterMuscle != null,
-                    onClick = { muscleFilterExpanded = !muscleFilterExpanded },
-                    label = { Text(if (filterMuscle != null) exerciseCatalogMuscleLabel(filterMuscle!!) else "Músculo") },
-                    colors = catalogFilterChipColors(),
-                )
-            }
-            if (muscleFilterExpanded) {
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    CATALOG_FILTER_MUSCLE_IDS.forEach { muscleId ->
-                        FilterChip(
-                            selected = filterMuscle == muscleId,
-                            onClick = { filterMuscle = if (filterMuscle == muscleId) null else muscleId },
-                            label = { Text(exerciseCatalogMuscleLabel(muscleId)) },
-                            colors = catalogFilterChipColors(),
-                        )
-                    }
-                }
-            }
-        }
-    }
-
+    val pickerHaze = remember { HazeState() }
+    var filterBarHeight by remember { mutableStateOf(0) }
+    var selectionPanelHeight by remember { mutableStateOf(84) }
+    val density = LocalDensity.current
     Box(Modifier.fillMaxWidth().weight(1f)) {
-    LazyColumn(
-        state = listState,
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        contentPadding = PaddingValues(bottom = 84.dp),
-    ) {
-        item("result-count") {
-            Text(
-                if (query.isBlank()) "Todos los ejercicios" else "Resultados para «$query»",
-                color = Color.White.copy(alpha = 0.74f),
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-            )
-        }
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize().hazeSource(pickerHaze),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = PaddingValues(
+                top = with(density) { filterBarHeight.toDp() },
+                bottom = with(density) { selectionPanelHeight.toDp() },
+            ),
+        ) {
+            item("result-count") {
+                Text(
+                    if (query.isBlank()) "Todos los ejercicios" else "Resultados para «$query»",
+                    color = Color.White.copy(alpha = 0.74f),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
         if (visibleCustomExercises.isNotEmpty()) {
             item("custom-heading") {
                 Text("Ejercicios personalizados", color = Color.White, fontWeight = FontWeight.Bold)
@@ -562,6 +503,11 @@ private fun ColumnScope.CatalogReadyContent(
                     definition.configurations.firstOrNull { it.id == id }
                 }
             }
+// Fallback: si el draft del usuario tiene opciones seleccionadas pero no
+            // colapsa a una configuración exacta, resolver la mejor configuración
+            // compatible en lugar de caer en silencio a la configuración por defecto.
+            val resolvedConfigurationId = selectedConfigurationId
+                ?: bestMatchingConfigurationId(definition, selectedOptions, default)
             // A compatible partial draft can resolve to exactly one materialized
             // configuration (for example implement=cable implies station=standing).
             // Render all implied axis values as selected so the chips never show
@@ -585,8 +531,13 @@ private fun ColumnScope.CatalogReadyContent(
 
             Card(
                 colors = CardDefaults.cardColors(
-                    containerColor = if (isSelected) Color(0xFF153A2E) else Color.White.copy(alpha = 0.08f),
+                    containerColor = if (isSelected) Color(0xFF1E5A44) else Color.White.copy(alpha = 0.12f),
                 ),
+                border = BorderStroke(
+                    1.dp,
+                    if (isSelected) Color(0xFF4ADE80).copy(alpha = 0.75f) else Color.White.copy(alpha = 0.10f),
+                ),
+                shape = RoundedCornerShape(16.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
@@ -607,7 +558,7 @@ private fun ColumnScope.CatalogReadyContent(
                             !hasOptions || definition.id in suggestedDrafts -> {
                                 // 2B/2C: sin opciones o ya pre-configurado por la búsqueda
                                 // → se agrega al instante, sin pasar por opciones.
-                                exactInfo(catalog, definition, selectedConfigurationId ?: default?.id)?.let { info ->
+                                exactInfo(catalog, definition, resolvedConfigurationId)?.let { info ->
                                     val next = selectedRows.value + (definition.id to info)
                                     selectedRows.value = next
                                     onSelectionChange(next.values.toList())
@@ -737,12 +688,6 @@ private fun ColumnScope.CatalogReadyContent(
                     }
 
                     if (isExpanded) {
-                        CatalogDescription(
-                            definition = definition,
-                            configuration = effectiveConfiguration,
-                            catalog = catalog,
-                        )
-
                         if (hasOptions) {
                             Text(
                                 "Selecciona las opciones",
@@ -849,6 +794,12 @@ private fun ColumnScope.CatalogReadyContent(
                             }
                         }
 
+                        CatalogDescription(
+                            definition = definition,
+                            configuration = effectiveConfiguration,
+                            catalog = catalog,
+                        )
+
                         Text(
                             effectiveConfiguration?.let { exerciseCatalogConfigurationSummary(it, definition.id) }
                                 ?: "Configuración incompleta: selecciona los chips restantes",
@@ -863,7 +814,7 @@ private fun ColumnScope.CatalogReadyContent(
                                 val info = if (editingExisting) {
                                     exactInfo(catalog, definition, selectedConfigurationId)
                                 } else {
-                                    exactInfo(catalog, definition, selectedConfigurationId ?: default?.id)
+                                    exactInfo(catalog, definition, resolvedConfigurationId)
                                 }
                                 if (info != null) {
                                     if (editingExisting) {
@@ -876,7 +827,7 @@ private fun ColumnScope.CatalogReadyContent(
                                 }
                                 expandedDefinitionId = null
                             },
-                            enabled = selectedConfiguration != null || !hasOptions,
+                            enabled = resolvedConfigurationId != null || !hasOptions,
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Text(if (editingExisting) "Usar este ejercicio" else "Seleccionar ejercicio")
@@ -904,7 +855,43 @@ private fun ColumnScope.CatalogReadyContent(
             }
         }
         item { Spacer(Modifier.height(4.dp)) }
-    }
+        }
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .onSizeChanged { filterBarHeight = it.height }
+                .kpknGlass(pickerHaze, RoundedCornerShape(16.dp))
+                .padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                FilterChip(filterRegion == null && filterMuscle == null, {
+                    filterRegion = null; filterMuscle = null; muscleFilterExpanded = false
+                }, label = { Text("Todos") }, colors = catalogFilterChipColors())
+                FilterChip(filterRegion == "UPPER", {
+                    filterRegion = if (filterRegion == "UPPER") null else "UPPER"; filterMuscle = null
+                }, label = { Text("Tren Superior") }, colors = catalogFilterChipColors())
+                FilterChip(filterRegion == "LOWER", {
+                    filterRegion = if (filterRegion == "LOWER") null else "LOWER"; filterMuscle = null
+                }, label = { Text("Tren Inferior") }, colors = catalogFilterChipColors())
+                FilterChip(muscleFilterExpanded || filterMuscle != null, {
+                    muscleFilterExpanded = !muscleFilterExpanded
+                }, label = { Text(filterMuscle?.let(::exerciseCatalogMuscleLabel) ?: "Músculo") }, colors = catalogFilterChipColors())
+            }
+            if (muscleFilterExpanded) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    CATALOG_FILTER_MUSCLE_IDS.forEach { muscleId ->
+                        FilterChip(filterMuscle == muscleId, {
+                            filterMuscle = if (filterMuscle == muscleId) null else muscleId
+                        }, label = { Text(exerciseCatalogMuscleLabel(muscleId)) }, colors = catalogFilterChipColors())
+                    }
+                }
+            }
+        }
 
     // Franja flotante de seleccionados + buscador, anclados al borde inferior.
     Column(
@@ -916,6 +903,7 @@ private fun ColumnScope.CatalogReadyContent(
         if (!editingExisting && selectedRows.value.isNotEmpty()) {
             SelectedExercisesAccordion(
                 selected = selectedRows.value.entries.toList(),
+                modifier = Modifier.onSizeChanged { selectionPanelHeight = it.height + 16 },
                 onRemove = { id ->
                     val next = selectedRows.value - id
                     selectedRows.value = next
@@ -1031,26 +1019,260 @@ private fun CatalogDescription(
     configuration: com.example.kpkn.domain.exercises.catalogv2.ExerciseConfigurationV2?,
     catalog: ExerciseCatalogV2?,
 ) {
+    val configurationId = configuration?.id
+    var descriptionExpanded by remember(definition.id, configurationId) { mutableStateOf(false) }
+    var techniqueExpanded by remember(definition.id, configurationId) { mutableStateOf(false) }
+    var muscleExpanded by remember(definition.id, configurationId) { mutableStateOf(false) }
+    var jointExpanded by remember(definition.id, configurationId) { mutableStateOf(false) }
+    val legacyInfo = remember(catalog, definition.id, configurationId) {
+        if (catalog != null && configuration != null) {
+            exactInfo(catalog, definition, configuration.id)
+        } else {
+            null
+        }
+    }
+    val description = configuration?.profile?.description
+        ?.takeIf { it.isNotBlank() }
+        ?: definition.description
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 2.dp),
-        verticalArrangement = Arrangement.spacedBy(5.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Text("Descripción", color = Color.White, fontWeight = FontWeight.Bold)
-        Text(
-            configuration?.profile?.description?.takeIf { it.isNotBlank() }
-                ?: definition.description,
-            color = Color.White.copy(alpha = 0.82f),
-            style = MaterialTheme.typography.bodySmall,
-        )
-        configuration?.let { selected ->
-            if (catalog != null) {
-                val legacyInfo = remember(catalog, definition, selected.id) {
-                    exactInfo(catalog, definition, selected.id)
+        CatalogInfoAccordion(
+            title = "Descripción",
+            expanded = descriptionExpanded,
+            onToggle = { descriptionExpanded = !descriptionExpanded },
+        ) {
+            Text(
+                description,
+                color = Color.White.copy(alpha = 0.82f),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            configuration?.profile?.benefits?.takeIf { it.isNotEmpty() }?.let { benefits ->
+                Text(
+                    "Qué aporta",
+                    color = Color.White.copy(alpha = 0.9f),
+                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.labelMedium,
+                )
+                benefits.forEach { benefit ->
+                    EditorialBullet(text = benefit, color = Color(0xFF4ADE80))
                 }
-                if (legacyInfo != null && legacyInfo.involvedMuscles.isNotEmpty()) {
-                    MuscleInvolvementSection(legacyInfo)
+            }
+        }
+
+        if (configuration?.profile?.techniqueSummary?.isNotBlank() == true) {
+            CatalogInfoAccordion(
+                title = "Técnica",
+                expanded = techniqueExpanded,
+                onToggle = { techniqueExpanded = !techniqueExpanded },
+            ) {
+                Text(
+                    configuration.profile.techniqueSummary,
+                    color = Color.White.copy(alpha = 0.78f),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
+
+        if (legacyInfo?.involvedMuscles?.isNotEmpty() == true) {
+            CatalogInfoAccordion(
+                title = "Involucramiento Muscular",
+                expanded = muscleExpanded,
+                onToggle = { muscleExpanded = !muscleExpanded },
+            ) {
+                MuscleInvolvementSection(legacyInfo, showHeader = false)
+            }
+        }
+
+        if (configuration?.profile?.jointInvolvement?.isNotEmpty() == true) {
+            CatalogInfoAccordion(
+                title = "Involucramiento Articular",
+                expanded = jointExpanded,
+                onToggle = { jointExpanded = !jointExpanded },
+            ) {
+                JointInvolvementSection(configuration.profile.jointInvolvement, showHeader = false)
+            }
+        }
+    }
+}
+
+@Composable
+private fun CatalogInfoAccordion(
+    title: String,
+    expanded: Boolean,
+    onToggle: () -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .background(Color.White.copy(alpha = 0.05f)),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onToggle)
+                .padding(horizontal = 10.dp, vertical = 9.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                title,
+                color = Color.White,
+                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Spacer(Modifier.weight(1f))
+            Icon(
+                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                contentDescription = if (expanded) "Contraer $title" else "Expandir $title",
+                tint = Color.White.copy(alpha = 0.68f),
+                modifier = Modifier.size(18.dp),
+            )
+        }
+        if (expanded) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+                content = content,
+            )
+        }
+    }
+}
+
+@Composable
+private fun EditorialBullet(text: String, color: Color) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Box(
+            modifier = Modifier
+                .padding(top = 5.dp)
+                .size(6.dp)
+                .clip(CircleShape)
+                .background(color),
+        )
+        Text(
+            text,
+            color = Color.White.copy(alpha = 0.76f),
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+private val JOINT_LABELS = mapOf(
+    "glenohumeral" to "Hombro",
+    "acromioclavicular" to "Acromioclavicular",
+    "esternoclavicular" to "Esternoclavicular",
+    "escapulotoracica" to "Escapulotorácica",
+    "codo" to "Codo",
+    "radiocubital-proximal" to "Radiocubital proximal",
+    "muñeca" to "Muñeca",
+    "columna-cervical" to "Columna cervical",
+    "columna-toracica" to "Columna torácica",
+    "columna-lumbar" to "Columna lumbar",
+    "sacroiliaca" to "Sacroilíaca",
+    "cadera" to "Cadera",
+    "rodilla" to "Rodilla",
+    "tobillo" to "Tobillo",
+    "subtalar" to "Subastragalina",
+)
+
+private fun catalogTitleLabel(value: String): String = value
+    .split(" ")
+    .joinToString(" ") { word ->
+        word.replaceFirstChar { character -> character.uppercaseChar() }
+    }
+
+private fun jointLabel(id: String): String = JOINT_LABELS[id] ?: id.replace('-', ' ').replaceFirstChar { it.uppercaseChar() }
+
+private fun jointRoleLabel(role: JointRoleV2): String = when (role) {
+    JointRoleV2.PRIMARY -> "Principal"
+    JointRoleV2.SECONDARY -> "Secundaria"
+    JointRoleV2.STABILIZER -> "Estabilizadora"
+}
+
+@Composable
+private fun JointInvolvementSection(
+    joints: List<JointInvolvementV2>,
+    showHeader: Boolean = true,
+) {
+    val expandedJoint = remember { mutableStateOf<String?>(null) }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = if (showHeader) 4.dp else 0.dp),
+        verticalArrangement = Arrangement.spacedBy(3.dp),
+    ) {
+        if (showHeader) {
+            Text("Involucramiento Articular", color = Color.White, fontWeight = FontWeight.Bold)
+            Text(
+                "Qué articulación mueve, transmite o estabiliza la carga en la configuración elegida.",
+                color = Color.White.copy(alpha = 0.62f),
+                style = MaterialTheme.typography.labelSmall,
+            )
+        }
+        joints.forEach { joint ->
+            val isExpanded = expandedJoint.value == joint.jointId
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable { expandedJoint.value = if (isExpanded) null else joint.jointId }
+                    .background(Color.White.copy(alpha = 0.05f))
+                    .padding(horizontal = 10.dp, vertical = 7.dp),
+                verticalArrangement = Arrangement.spacedBy(3.dp),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFF59E0B)),
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        jointLabel(joint.jointId),
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        jointRoleLabel(joint.role),
+                        color = Color(0xFFFBBF24),
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                    Spacer(Modifier.weight(1f))
+                    Text(
+                        if (isExpanded) "▴" else "▾",
+                        color = Color.White.copy(alpha = 0.5f),
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                }
+                    Text(
+                        joint.actions.joinToString(" · ") { catalogTitleLabel(it) },
+                        color = Color.White.copy(alpha = 0.64f),
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                if (isExpanded) {
+                    Text(
+                        joint.note,
+                        color = Color.White.copy(alpha = 0.76f),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
                 }
             }
         }
@@ -1058,16 +1280,21 @@ private fun CatalogDescription(
 }
 
 @Composable
-private fun MuscleInvolvementSection(exercise: ExerciseMuscleInfo) {
+private fun MuscleInvolvementSection(
+    exercise: ExerciseMuscleInfo,
+    showHeader: Boolean = true,
+) {
     val expandedMuscle = remember { mutableStateOf<String?>(null) }
     val contributions = remember(exercise) { oneSeriesVolumeContributions(exercise) }
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 4.dp),
+            .padding(top = if (showHeader) 4.dp else 0.dp),
         verticalArrangement = Arrangement.spacedBy(3.dp),
     ) {
-        Text("Involucramiento muscular", color = Color.White, fontWeight = FontWeight.Bold)
+        if (showHeader) {
+            Text("Involucramiento Muscular", color = Color.White, fontWeight = FontWeight.Bold)
+        }
         contributions.forEach { contribution ->
             val muscleName = contribution.muscle
             val involvement = contribution.sourceInvolvement
@@ -1093,13 +1320,13 @@ private fun MuscleInvolvementSection(exercise: ExerciseMuscleInfo) {
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        muscleName,
+                        catalogTitleLabel(muscleName),
                         color = Color.White,
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.SemiBold,
                     )
                     val emphasisCode = contribution.emphasis?.trim()?.lowercase()?.takeIf { it.isNotBlank() }
-                    val emphasisLabel = emphasisCode?.replaceFirstChar { it.uppercaseChar() }
+                    val emphasisLabel = emphasisCode?.let(::catalogTitleLabel)
                     if (emphasisLabel != null && !muscleName.lowercase().contains(emphasisCode)) {
                         Spacer(Modifier.width(6.dp))
                         EmphasisChip(emphasisLabel)
@@ -1163,8 +1390,13 @@ private fun CustomExerciseCard(
     }
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = if (selected) Color(0xFF153A2E) else Color.White.copy(alpha = 0.08f),
+            containerColor = if (selected) Color(0xFF1E5A44) else Color.White.copy(alpha = 0.12f),
         ),
+        border = BorderStroke(
+            1.dp,
+            if (selected) Color(0xFF4ADE80).copy(alpha = 0.75f) else Color.White.copy(alpha = 0.10f),
+        ),
+        shape = RoundedCornerShape(16.dp),
         modifier = Modifier
             .fillMaxWidth()
             .clickable { if (editingExisting) onSelect() else onToggle() },
@@ -1332,10 +1564,11 @@ private fun SelectedExercisesAccordion(
     onRemove: (String) -> Unit,
     onMove: (Int, Int) -> Unit,
     onTap: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Surface(
@@ -1369,22 +1602,13 @@ private fun SelectedExercisesAccordion(
             }
         }
 
-        AnimatedVisibility(
-            visible = expanded,
-            enter = fadeIn(tween(140)),
-            exit = fadeOut(tween(90)),
-        ) {
+        if (expanded) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(0.dp),
             ) {
                 selected.forEachIndexed { index, (id, info) ->
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = Color(0xFF1E2129),
-                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.14f)),
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
                         Row(
                             modifier = Modifier.padding(start = 4.dp, end = 4.dp, top = 2.dp, bottom = 2.dp),
                             verticalAlignment = Alignment.CenterVertically,
@@ -1439,6 +1663,9 @@ private fun SelectedExercisesAccordion(
                                 )
                             }
                         }
+                        if (index < selected.lastIndex) {
+                            androidx.compose.material3.Divider(color = Color.White.copy(alpha = 0.08f))
+                        }
                     }
                 }
             }
@@ -1446,6 +1673,28 @@ private fun SelectedExercisesAccordion(
     }
 }
 
+/**
+ * Fallback resolution for a partial draft that doesn't collapse to exactly one
+ * configuration. Returns the first configuration that satisfies every selected
+ * option, preferring the catalog default on unspecified axes (i.e. the row with
+ * the fewest deviations from the default). This avoids silently falling back to
+ * the default configuration when the user explicitly picked a non-default value.
+ */
+internal fun bestMatchingConfigurationId(
+    definition: ExerciseDefinitionV2,
+    selectedOptions: Map<String, String>,
+    default: ExerciseConfigurationV2?,
+): String? {
+    val compatible = definition.configurations.filter { configuration ->
+        selectedOptions.all { (axis, value) -> configuration.selectedOptions[axis] == value }
+    }
+    if (compatible.isEmpty()) return null
+    compatible.firstOrNull { it.id == default?.id }?.let { return it.id }
+    val defaultOptions = default?.selectedOptions.orEmpty()
+    return compatible.minByOrNull { configuration ->
+        configuration.selectedOptions.count { (axis, value) -> defaultOptions[axis] != value }
+    }?.id
+}
 private fun exactInfo(
     catalog: ExerciseCatalogV2,
     definition: ExerciseDefinitionV2,

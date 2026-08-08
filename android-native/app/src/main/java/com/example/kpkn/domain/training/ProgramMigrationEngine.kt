@@ -15,6 +15,7 @@ import com.example.kpkn.data.models.TemporalStructureIssue
 import com.example.kpkn.data.models.alignTemporalMetadata
 import com.example.kpkn.data.models.isSimpleProgram
 import com.example.kpkn.data.models.restorePausedCyclicProgram
+import com.example.kpkn.data.models.resolvedSchedulePlan
 import com.example.kpkn.data.models.suggestCalendarTrainingDays
 import com.example.kpkn.data.models.totalBlockCount
 import com.example.kpkn.data.models.validateTemporalStructure
@@ -43,12 +44,12 @@ object ProgramMigrationEngine {
         program: Program,
         clock: AppClock = SystemAppClock,
     ): MigrationResult {
-        val issues = program.validateTemporalStructure()
         var migrated = false
         var current = program
 
-        if (current.schedulePlan == null) {
-            current = current.copy(schedulePlan = buildSchedulePlanFromLegacy(current))
+        val reconciledSchedule = reconcileSchedulePlan(current)
+        if (reconciledSchedule != current) {
+            current = reconciledSchedule
             migrated = true
         }
 
@@ -97,7 +98,11 @@ object ProgramMigrationEngine {
             migrated = true
         }
 
-        return MigrationResult(program = current, issues = issues, migrated = migrated)
+        return MigrationResult(
+            program = current,
+            issues = current.validateTemporalStructure(),
+            migrated = migrated,
+        )
     }
 
     fun loadProgramsSafely(rawPrograms: List<Pair<String, Program?>>): LoadResult {
@@ -155,6 +160,34 @@ object ProgramMigrationEngine {
     }
 
     /**
+     * Makes schedulePlan authoritative while keeping legacy JSON fields readable.
+     * If both fields exist and disagree, the explicit plan wins and the legacy
+     * mirror is rewritten to the same anchor so a future load cannot diverge.
+     */
+    private fun reconcileSchedulePlan(program: Program): Program {
+        val legacyAnchor = program.timelineStartDate?.trim()?.takeIf { it.isNotBlank() }
+        val existing = program.schedulePlan
+        val base = existing ?: buildSchedulePlanFromLegacy(program)
+        val anchor = base.anchorDate?.trim()?.takeIf { it.isNotBlank() } ?: legacyAnchor
+        val targetEnd = base.targetEndDate?.trim()?.takeIf { it.isNotBlank() }
+            ?: program.calendarization?.manualEndDate?.trim()?.takeIf { it.isNotBlank() }
+        val normalizedPlan = base.copy(
+            anchorDate = anchor,
+            weekStartDay = base.weekStartDay ?: program.startDay,
+            targetEndDate = targetEnd,
+            mode = if (anchor == null) ScheduleMode.FLOATING else ScheduleMode.DATED,
+        )
+        val normalizedCalendarization = program.calendarization?.let { calendar ->
+            if (calendar.manualEndDate == targetEnd) calendar else calendar.copy(manualEndDate = targetEnd)
+        }
+        return program.copy(
+            timelineStartDate = anchor,
+            calendarization = normalizedCalendarization,
+            schedulePlan = normalizedPlan,
+        )
+    }
+
+    /**
      * Reaplica migraciones temporales (p. ej. calendarización expirada) sin reiniciar el proceso.
      * Idempotente: solo persiste cuando el programa cambia.
      */
@@ -174,7 +207,7 @@ object ProgramMigrationEngine {
     ): Program? {
         val snapshot = program.pausedCyclicSnapshot ?: return null
         if (program.calendarization?.mode != ProgramCalendarizationMode.SIMPLE_DATED) return null
-        val start = program.timelineStartDate ?: return null
+        val start = program.resolvedSchedulePlan().anchorDate ?: return null
         val endRaw = resolveCalendarizedEndDate(program) ?: return null
         val endDate = parseIsoDate(endRaw) ?: return null
         val today = clock.today(ZoneId.systemDefault())

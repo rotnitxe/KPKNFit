@@ -47,12 +47,14 @@ enum class PacingAlertMode {
     OFF,
     FINAL,
     SOFT,
+    STRICT,
     ;
 
     companion object {
         fun fromStored(raw: String?): PacingAlertMode = when (raw?.lowercase()) {
             "off" -> OFF
             "soft" -> SOFT
+            "strict" -> STRICT
             else -> FINAL
         }
     }

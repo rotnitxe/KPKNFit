@@ -205,6 +205,106 @@ class SessionEditorRulesEngineTest {
     }
 
     @Test
+    fun applyDefaults_preserves_rest_between_sides_when_rule_is_zero() {
+        val session = Session(
+            id = "session-f1",
+            name = "Sesion",
+            exercises = listOf(
+                Exercise(
+                    id = "ex-1",
+                    name = "Lunge",
+                    restBetweenSidesSeconds = 45,
+                    sets = listOf(ExerciseSet(id = "s-1", targetReps = 10, targetRPE = 8.0, intensityMode = IntensityMode.RPE)),
+                )
+            ),
+        )
+        val keep = SessionEditorRulesEngine.applyDefaults(
+            session = session,
+            defaults = SessionEditorRuleDefaults(betweenSidesRestSeconds = 0),
+            partId = null,
+        )
+        assertEquals(45, keep.exercises.first().restBetweenSidesSeconds)
+
+        val overwrite = SessionEditorRulesEngine.applyDefaults(
+            session = session,
+            defaults = SessionEditorRuleDefaults(betweenSidesRestSeconds = 30),
+            partId = null,
+        )
+        assertEquals(30, overwrite.exercises.first().restBetweenSidesSeconds)
+    }
+
+    @Test
+    fun evaluateApply_returns_NoChanges_when_defaults_match_session() {
+        val session = Session(
+            id = "session-noop",
+            name = "Sesion",
+            exercises = listOf(
+                Exercise(
+                    id = "ex-1",
+                    name = "Back Squat",
+                    exerciseDbId = "squat",
+                    restTime = 90,
+                    restBetweenSidesSeconds = 0,
+                    sets = listOf(
+                        ExerciseSet(id = "s-1", targetReps = 10, targetRPE = 8.0, intensityMode = IntensityMode.RPE),
+                        ExerciseSet(id = "s-2", targetReps = 10, targetRPE = 8.0, intensityMode = IntensityMode.RPE),
+                        ExerciseSet(id = "s-3", targetReps = 10, targetRPE = 8.0, intensityMode = IntensityMode.RPE),
+                    ),
+                )
+            ),
+        )
+        val defaults = SessionEditorRuleDefaults(
+            setCount = 3, reps = 10, rpe = 8.0, normalRestSeconds = 90, betweenSidesRestSeconds = 0,
+            intensityType = DefaultIntensityType.RPE,
+        )
+        val outcome = SessionEditorRulesEngine.evaluateApply(session, defaults, partId = null, exerciseIndex = exerciseIndex)
+        assertTrue(outcome is ApplyRulesOutcome.NoChanges)
+        // applyDefaults itself must also be a no-op (equals)
+        assertEquals(session, SessionEditorRulesEngine.applyDefaults(session, defaults, partId = null, exerciseIndex = exerciseIndex))
+    }
+
+    @Test
+    fun evaluateApply_returns_ScopeNotFound_for_missing_or_empty_part() {
+        val emptyPart = com.example.kpkn.data.models.SessionPart(id = "part-empty", name = "Vacío", exercises = emptyList())
+        val partWithEx = com.example.kpkn.data.models.SessionPart(
+            id = "part-full", name = "Grupo A",
+            exercises = listOf(Exercise(id = "ex-1", name = "Back Squat", exerciseDbId = "squat", sets = listOf(ExerciseSet(id = "s-1")))),
+        )
+        val session = Session(
+            id = "session-scope",
+            name = "Sesion",
+            parts = listOf(emptyPart, partWithEx),
+            exercises = emptyList(),
+        )
+        val defaults = SessionEditorRuleDefaults(setCount = 3)
+        assertTrue(SessionEditorRulesEngine.evaluateApply(session, defaults, partId = "no-existe") is ApplyRulesOutcome.ScopeNotFound)
+        assertTrue(SessionEditorRulesEngine.evaluateApply(session, defaults, partId = "part-empty") is ApplyRulesOutcome.ScopeNotFound)
+        // applyDefaults with missing/empty scope must return identical session
+        assertEquals(session, SessionEditorRulesEngine.applyDefaults(session, defaults, partId = "no-existe"))
+        assertEquals(session, SessionEditorRulesEngine.applyDefaults(session, defaults, partId = "part-empty"))
+    }
+
+    @Test
+    fun evaluateApply_returns_Applied_with_changed_exercise_count() {
+        val session = Session(
+            id = "session-applied",
+            name = "Sesion",
+            exercises = listOf(
+                Exercise(id = "ex-1", name = "Back Squat", exerciseDbId = "squat", restTime = 90, sets = listOf(ExerciseSet(id = "s-1", targetReps = 8, targetRPE = 8.0, intensityMode = IntensityMode.RPE))),
+                Exercise(id = "ex-2", name = "Bench Press", exerciseDbId = "bench", restTime = 90, sets = listOf(ExerciseSet(id = "s-2", targetReps = 8, targetRPE = 8.0, intensityMode = IntensityMode.RPE))),
+            ),
+        )
+        val defaults = SessionEditorRuleDefaults(setCount = 4, reps = 6, rpe = 7.5, normalRestSeconds = 60, betweenSidesRestSeconds = 0)
+        val outcome = SessionEditorRulesEngine.evaluateApply(session, defaults, partId = null, exerciseIndex = exerciseIndex)
+        assertTrue(outcome is ApplyRulesOutcome.Applied)
+        assertEquals(2, (outcome as ApplyRulesOutcome.Applied).exercisesChanged)
+        val applied = SessionEditorRulesEngine.applyDefaults(session, defaults, partId = null, exerciseIndex = exerciseIndex)
+        assertEquals(4, applied.exercises.first().sets.size)
+        assertEquals(6, applied.exercises.first().sets.first().targetReps)
+        assertEquals(60, applied.exercises.first().restTime)
+    }
+
+    @Test
     fun buildSessionExerciseEditorBlocks_keepsSupersetExercisesEditableIndividually() {
         val a = Exercise(id = "a", name = "A", sets = listOf(ExerciseSet("a1")))
         val b = Exercise(id = "b", name = "B", sets = listOf(ExerciseSet("b1")))

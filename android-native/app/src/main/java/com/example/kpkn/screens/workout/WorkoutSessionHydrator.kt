@@ -123,7 +123,7 @@ class WorkoutSessionHydrator(
         val restoredSkippedExerciseIds = resumedState?.skippedExerciseIds ?: emptySet()
         val restoredWarmupCompletedExerciseIds = resumedState?.warmupCompletedExerciseIds ?: emptySet()
         val restoredMobilityCompletedExerciseIds = resumedState?.mobilityCompletedExerciseIds ?: emptySet()
-        val exercisesForMode = ports.sessionForActiveMode(restoredSession, restoredMode).allExercises()
+        val exercisesForMode = ports.sessionForActiveMode(restoredSession, restoredMode).materializedWorkoutExercises()
         val hydratedProfiles = ports.hydrateContextProfiles(
             exercises = exercisesForMode,
             resumedState = resumedState,

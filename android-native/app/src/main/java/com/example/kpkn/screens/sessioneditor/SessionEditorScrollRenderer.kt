@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DirectionsRun
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -63,6 +64,7 @@ import com.example.kpkn.screens.sessioneditor.components.GroupEditorCard
 import com.example.kpkn.screens.sessioneditor.components.ExerciseEditorCard
 import com.example.kpkn.screens.sessioneditor.components.SupersetGroupEditorCard
 import com.example.kpkn.screens.sessioneditor.components.matchesCompetitionMovement
+import com.example.kpkn.ui.components.SwipeToDeleteCard
 
 private fun Modifier.drawPartBorder(partAccent: Color): Modifier = this
 
@@ -135,6 +137,9 @@ internal fun SessionEditorListItem(
                     }
                 },
                 onAddExercise = { viewModel.openPicker(part.id) },
+                onToggleMobilityGroup = { viewModel.togglePartMobilityGroup(part.id) },
+                onOpenMobilityPicker = { viewModel.openMobilityPickerForPart(part.id) },
+                onRemoveMobility = { mobilityId -> viewModel.removeMobilityFromPart(part.id, mobilityId) },
                 headerOnly = true,
                 content = {},
             )
@@ -154,10 +159,10 @@ internal fun SessionEditorListItem(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                    .padding(horizontal = 16.dp, vertical = 2.dp)
                     .graphicsLayer { translationY = shiftY }
                     .onGloballyPositioned { onLooseBoundsReport(it.boundsInWindow()) },
-                verticalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 LooseExerciseItem(
                     exercise = exercise,
@@ -203,7 +208,7 @@ internal fun SessionEditorListItem(
                     .padding(horizontal = 16.dp)
                     .background(partAccent.brush(alpha = 0.06f))
                     .drawPartBorder(partAccent.primary)
-                    .padding(horizontal = 4.dp, vertical = 4.dp)
+                    .padding(horizontal = 4.dp, vertical = 2.dp)
                     .graphicsLayer { translationY = shiftY }
                     .onGloballyPositioned { onPartContentBoundsReport(part.id, it.boundsInWindow()) },
             ) {
@@ -250,10 +255,10 @@ internal fun SessionEditorListItem(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                    .padding(horizontal = 16.dp, vertical = 2.dp)
                     .graphicsLayer { translationY = looseSupersetShiftY }
                     .onGloballyPositioned { onLooseBoundsReport(it.boundsInWindow()) },
-                verticalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 LooseSupersetItem(
                     supersetGroup = supersetGroup,
@@ -304,7 +309,7 @@ internal fun SessionEditorListItem(
                     .padding(horizontal = 16.dp)
                     .background(partAccent.brush(alpha = 0.06f))
                     .drawPartBorder(partAccent.primary)
-                    .padding(horizontal = 4.dp, vertical = 4.dp)
+                    .padding(horizontal = 4.dp, vertical = 2.dp)
                     .graphicsLayer { translationY = partSupersetShiftY }
                     .onGloballyPositioned { onPartContentBoundsReport(part.id, it.boundsInWindow()) },
             ) {
@@ -348,22 +353,28 @@ internal fun SessionEditorListItem(
                     .padding(horizontal = 4.dp, vertical = 6.dp)
                     .onGloballyPositioned { onPartContentBoundsReport(part.id, it.boundsInWindow()) },
             ) {
-                FilledTonalButton(
-                    onClick = { viewModel.openPicker(part.id) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 4.dp, vertical = 2.dp),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 2.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        "Añadir ejercicio en $displayName",
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.labelMedium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+                    FilledTonalButton(
+                        onClick = { viewModel.openPicker(part.id) },
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 10.dp),
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("Ejercicio", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
+                    }
+                    FilledTonalButton(
+                        onClick = { viewModel.openCardioPicker(part.id) },
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 10.dp),
+                    ) {
+                        Icon(Icons.Default.DirectionsRun, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("Cardio", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
+                    }
                 }
             }
         }
@@ -399,6 +410,9 @@ private fun LooseExerciseItem(
     val partId = "__loose__"
     val accentHex = resolveExerciseAccentHex(session, partColor = null)
     key("loose|${exercise.id}") {
+        SwipeToDeleteCard(
+            onDelete = { viewModel.removeExercise(null, exercise.id) },
+        ) {
         ExerciseEditorCard(
             exercise = exercise,
             exerciseInfo = resolveCatalogInfoForDisplay(exercise, exerciseInfoById),
@@ -442,6 +456,7 @@ private fun LooseExerciseItem(
                 if (pendingAutoExpandExerciseId == exercise.id) onPendingAutoExpandHandled(exercise.id)
             },
         )
+        }
     }
     ExerciseListDivider(
         exercise = exercise,
@@ -475,6 +490,9 @@ private fun PartExerciseItem(
 ) {
     key("${part.id}|${exercise.id}") {
         val accentHex = resolveExerciseAccentHex(session, part.color)
+        SwipeToDeleteCard(
+            onDelete = { viewModel.removeExercise(part.id, exercise.id) },
+        ) {
         ExerciseEditorCard(
             exercise = exercise,
             exerciseInfo = resolveCatalogInfoForDisplay(exercise, exerciseInfoById),
@@ -518,6 +536,7 @@ private fun PartExerciseItem(
                 if (pendingAutoExpandExerciseId == exercise.id) onPendingAutoExpandHandled(exercise.id)
             },
         )
+        }
     }
     ExerciseListDivider(
         exercise = exercise,

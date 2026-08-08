@@ -495,8 +495,12 @@ class WorkoutViewModel(
                 override fun persistVoiceRuntimeState() = this@WorkoutViewModel.persistOngoingState()
                 override fun markWarmupComplete(exerciseId: String, warmupSetId: String) =
                     this@WorkoutViewModel.markWarmupComplete(exerciseId, warmupSetId)
+                override fun recordWarmupHeaviness(exerciseId: String, warmupSetId: String, rpe: Double) =
+                    this@WorkoutViewModel.recordWarmupHeaviness(exerciseId, warmupSetId, rpe)
                 override fun markMobilityComplete(exerciseId: String, mobilitySeriesId: String) =
                     this@WorkoutViewModel.markMobilityComplete(exerciseId, mobilitySeriesId)
+                override fun recordCardioSet(durationSeconds: Int, distanceKm: Double?, averageHeartRate: Int?) =
+                    this@WorkoutViewModel.recordCardioSet(durationSeconds, distanceKm, averageHeartRate)
                 override fun setVoiceExerciseQueue(exerciseIds: List<String>) {
                     _uiState.update { it.copy(voiceExerciseQueue = exerciseIds) }
                     this@WorkoutViewModel.persistOngoingState()
@@ -1529,7 +1533,7 @@ class WorkoutViewModel(
 
     private fun visibleExercises(state: WorkoutUiState): List<Exercise> {
         val base = state.session ?: return emptyList()
-        val byMode = sessionForActiveMode(base, state.activeMode).allExercises()
+        val byMode = sessionForActiveMode(base, state.activeMode).materializedWorkoutExercises()
         if (state.skippedExerciseIds.isEmpty()) return byMode
         return byMode.filterNot { it.id in state.skippedExerciseIds }
     }
@@ -2178,6 +2182,23 @@ class WorkoutViewModel(
         }
     }
 
+    fun recordWarmupHeaviness(exerciseId: String, warmupSetId: String, rpe: Double) {
+        val exercise = visibleExercises(_uiState.value).firstOrNull { it.id == exerciseId } ?: return
+        val warmup = exercise.warmupSets.firstOrNull { it.id == warmupSetId } ?: return
+        val key = warmupCompletionKey(exerciseId, warmupSetId)
+        val current = _uiState.value.completedSets[key]
+        val baseWeight = exercise.sets.firstOrNull { it.weight != null && it.weight > 0.0 }?.weight ?: 0.0
+        val targetWeight = baseWeight * (warmup.percentageOfWorkingWeight / 100.0)
+        val completed = (current ?: CompletedSet(id = key)).copy(
+            weight = if (targetWeight > 0.0) targetWeight else current?.weight ?: 0.0,
+            reps = warmup.targetReps,
+            rpe = rpe.coerceIn(1.0, 10.0),
+            isWarmup = true,
+        )
+        _uiState.update { it.copy(completedSets = it.completedSets + (key to completed)) }
+        persistOngoingState()
+    }
+
     fun markMobilityComplete(exerciseId: String, mobilityId: String, completed: Boolean = true) {
         val key = mobilityCompletionKey(exerciseId, mobilityId)
         val state = _uiState.value
@@ -2198,6 +2219,43 @@ class WorkoutViewModel(
             nextSet(stopRest = false)
         }
     }
+
+    fun recordCardioSet(
+        durationSeconds: Int,
+        distanceKm: Double?,
+        averageHeartRate: Int?,
+    ): Boolean {
+        val state = _uiState.value
+        val exercise = visibleExercises(state).getOrNull(state.currentExerciseIdx) ?: return false
+        val details = exercise.cardioDetails ?: return false
+        val key = "${exercise.id}_${state.currentSetIdx}"
+        val calories = currentBodyWeight()?.takeIf { it > 0 }?.let { weight ->
+            com.example.kpkn.domain.calculations.CardioCalorieEngine.estimate(
+                com.example.kpkn.domain.calculations.CardioCalorieInput(
+                details = details,
+                weightKg = weight,
+                durationSeconds = durationSeconds,
+                averageHeartRate = averageHeartRate,
+                ),
+            )
+        }
+        val completed = CompletedSet(
+            id = key,
+            timeSeconds = durationSeconds,
+            distanceKm = distanceKm,
+            avgHeartRate = averageHeartRate,
+            calories = calories,
+            rpe = details.intensity.defaultRpe,
+        )
+        val alreadyCompleted = state.completedSets.containsKey(key)
+        _uiState.update { it.copy(completedSets = it.completedSets + (key to completed)) }
+        persistOngoingState()
+        if (!alreadyCompleted) stepNavigator.nextSet()
+        return true
+    }
+
+    fun getCardioProgressionSuggestion(exercise: Exercise) =
+        loadSuggestionController.getCardioProgressionSuggestion(exercise)
 
     fun resolvePendingRestSuggestion(useAdaptive: Boolean) {
         val pending = _uiState.value.pendingRestSuggestion ?: return

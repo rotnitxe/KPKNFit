@@ -59,7 +59,7 @@ object ProgramTemplateEngine {
         // la rellenamos con sugerencias reales del split (actual o por defecto según track).
         val prefilled = if (applySplitPrefill) {
             val split = SessionPrefillBridge.resolveSplit(draft, fallbackTrackLabel = template.trackLabel)
-            SessionPrefillBridge.prefillIfEmpty(draft, split)
+            SessionPrefillBridge.prefillEmptyWeeks(draft, split)
         } else {
             draft
         }

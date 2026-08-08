@@ -9,7 +9,11 @@ import kotlinx.serialization.Serializable
 enum class DefaultIntensityType { RPE, FALLO, RIR }
 
 @Serializable
+enum class RuleScope { ALL_SESSION, PER_GROUP, COMPOUND_ISOLATION }
+
+@Serializable
 data class SessionEditorRuleDefaults(
+    val scope: RuleScope = RuleScope.ALL_SESSION,
     val setCount: Int = 3,
     val reps: Int = 10,
     val rpe: Double = 8.0,
@@ -175,6 +179,8 @@ data class SessionEditorUiState(
     val pickerTargetPartId: String? = null,
     val pickerTargetExerciseId: String? = null,
     val warmupExerciseId: String? = null,
+    /** Part currently receiving an unbound mobility series from the picker. */
+    val mobilityPartId: String? = null,
     val quickActionsPartId: String? = null,
     val quickActionsExerciseId: String? = null,
     val collapsedPartIds: Set<String> = emptySet(),

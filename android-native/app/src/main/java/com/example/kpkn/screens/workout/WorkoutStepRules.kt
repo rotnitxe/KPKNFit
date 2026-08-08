@@ -10,6 +10,7 @@ import com.example.kpkn.domain.workout.SupersetRules
 
 enum class WorkoutStepType {
     MOBILITY,
+    MOBILITY_GROUP,
     WARMUP,
     WORKING_SET,
 }
@@ -26,6 +27,7 @@ data class WorkoutStep(
     val supersetGroupId: String? = null,
     val supersetRoundIndex: Int? = null,
     val mobilitySeries: List<MobilitySeries> = emptyList(),
+    val isEmptySlot: Boolean = false,
     val restAfterKind: RestTimerKind = RestTimerKind.STANDARD,
 )
 
@@ -33,8 +35,14 @@ object WorkoutStepRules {
     fun buildSteps(session: Session, visibleExercises: List<Exercise> = session.allExercises()): List<WorkoutStep> {
         val steps = mutableListOf<WorkoutStep>()
         val emittedSupersets = mutableSetOf<String>()
+        val globalMobility = session.globalMobilityExercises()
+        val globalIds = globalMobility.map { it.id }.toSet()
 
-        visibleExercises.forEach { exercise ->
+        globalMobility.forEach { exercise ->
+            appendMobilityGroupSteps(exercise, steps)
+        }
+
+        visibleExercises.filterNot { it.id in globalIds }.forEach { exercise ->
             val groupId = exercise.supersetGroupRefOrLegacyId()
             if (groupId != null) {
                 if (emittedSupersets.add(groupId)) {
@@ -153,6 +161,23 @@ object WorkoutStepRules {
         }
     }
 
+    private fun appendMobilityGroupSteps(
+        exercise: Exercise,
+        steps: MutableList<WorkoutStep>,
+    ) {
+        exercise.mobilitySeries.forEach { mobility ->
+            steps += WorkoutStep(
+                type = WorkoutStepType.MOBILITY_GROUP,
+                exerciseId = exercise.id,
+                exerciseName = exercise.name,
+                stepKey = mobilityStepKey(exercise.id, mobility.id),
+                mobilitySeriesId = mobility.id,
+                mobilitySeries = listOf(mobility),
+                restAfterKind = RestTimerKind.STANDARD,
+            )
+        }
+    }
+
     private fun appendPreparationSteps(
         exercise: Exercise,
         groupId: String?,
@@ -226,6 +251,20 @@ object WorkoutStepRules {
         }
 
         val set = exercise.sets.getOrNull(setIndex)
+        if (set?.isEmptySlot == true) {
+            steps += WorkoutStep(
+                type = WorkoutStepType.WORKING_SET,
+                exerciseId = exercise.id,
+                exerciseName = spokenWorkoutExerciseName(exercise),
+                stepKey = workingStepKey(exercise.id, setIndex),
+                setIndex = setIndex,
+                supersetGroupId = groupId,
+                supersetRoundIndex = roundIndex,
+                isEmptySlot = true,
+                restAfterKind = restAfterKind,
+            )
+            return
+        }
         val hasLeftOnly = set?.leftTarget != null && set.rightTarget == null
         val hasRightOnly = set?.rightTarget != null && set.leftTarget == null
         val sides = when {

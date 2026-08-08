@@ -4,6 +4,7 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.MobilitySeries
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.UnilateralMode
 import com.example.kpkn.data.models.UnilateralSideOrder
 import com.example.kpkn.data.models.UnilateralTarget
@@ -13,6 +14,31 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class WorkoutStepRulesTest {
+    @Test
+    fun buildSteps_places_global_mobility_parts_before_strength_without_affecting_strength_order() {
+        val mobility = SessionPart(
+            id = "mobility-part",
+            name = "Movilidad global",
+            isMobilityGroup = true,
+            mobilitySeries = listOf(
+                MobilitySeries(id = "hips", name = "Cadera", durationSeconds = 45),
+                MobilitySeries(id = "ankles", name = "Tobillo", durationSeconds = 30),
+            ),
+        )
+        val strength = Exercise(id = "squat", name = "Sentadilla", sets = listOf(ExerciseSet("s1")))
+
+        val steps = WorkoutStepRules.buildSteps(
+            Session(id = "s", name = "Sesion", parts = listOf(mobility), exercises = listOf(strength)),
+        )
+
+        assertEquals(
+            listOf(WorkoutStepType.MOBILITY_GROUP, WorkoutStepType.MOBILITY_GROUP, WorkoutStepType.WORKING_SET),
+            steps.map { it.type },
+        )
+        assertEquals(listOf("hips", "ankles", "squat"), steps.map { it.mobilitySeriesId ?: it.exerciseId })
+        assertEquals("squat_0", steps.last().stepKey)
+    }
+
     @Test
     fun buildSteps_ordersMobilityWarmupBeforeWorkingSets() {
         val exercise = Exercise(

@@ -35,6 +35,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.DirectionsRun
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
@@ -89,7 +90,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
+import com.example.kpkn.screens.sessioneditor.sessionBackgroundPresets
+import com.example.kpkn.screens.sessioneditor.sessionGradients
 import com.example.kpkn.screens.sessioneditor.components.SessionHero
+import com.example.kpkn.screens.sessioneditor.sessionBackgroundPresets
+import com.example.kpkn.screens.sessioneditor.sessionGradients
 import com.example.kpkn.screens.sessioneditor.components.SessionHeroCompactOverlay
 import com.example.kpkn.screens.sessioneditor.components.SessionContextNavigator
 import com.example.kpkn.screens.sessioneditor.components.SessionEditorEmptyState
@@ -459,7 +464,17 @@ fun SessionEditorScreen(
                     onOpenTransfer = { viewModel.openSheet(SessionEditorSheet.TRANSFER) },
                     onOpenHistory = { viewModel.openSheet(SessionEditorSheet.HISTORY) },
                     onOpenRules = { viewModel.openSheet(SessionEditorSheet.RULES) },
+                    activeDayOfWeek = uiState.dayOfWeek,
+                    weekStartDay = uiState.weekStartDay,
+                    onSelectDay = { day -> viewModel.selectRoadmapDay(day) },
                     roadmapContent = {
+                        val heroAccent = remember(session.background?.value) {
+                            val preset = sessionBackgroundPresets.firstOrNull { it.id == session.background?.value } ?: sessionGradients.first()
+                            val a = preset.colors.firstOrNull() ?: Color.White
+                            val b = preset.colors.getOrNull(preset.colors.lastIndex / 2) ?: a
+                            val c = preset.colors.lastOrNull() ?: b
+                            Color((a.red + b.red + c.red)/3f, (a.green + b.green + c.green)/3f, (a.blue + b.blue + c.blue)/3f, 1f)
+                        }
                         SessionContextNavigator(
                             sessions = uiState.siblingSessions,
                             selectedSessionId = uiState.selectedSiblingSessionId ?: session.id,
@@ -494,6 +509,7 @@ fun SessionEditorScreen(
                                 viewModel.switchVariant(it)
                             },
                             embedded = true,
+                            accentColor = heroAccent,
                         )
                     },
                 )
@@ -581,6 +597,7 @@ fun SessionEditorScreen(
                         SessionEditorEmptyState(
                             onAddExercise = viewModel::openPickerForUncategorized,
                             onAddGroup = viewModel::addPart,
+                            onAddCardio = { viewModel.openCardioPicker(null) },
                         )
                     } else {
                         Row(
@@ -595,6 +612,15 @@ fun SessionEditorScreen(
                                 Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                                 Spacer(Modifier.width(6.dp))
                                 Text("Añadir ejercicio", fontWeight = FontWeight.Bold)
+                            }
+                            FilledTonalButton(
+                                onClick = { viewModel.openCardioPicker(null) },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(18.dp),
+                            ) {
+                                Icon(Icons.Default.DirectionsRun, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text("Añadir cardio", fontWeight = FontWeight.Bold)
                             }
                             FilledTonalButton(
                                 onClick = viewModel::addPart,
@@ -752,14 +778,26 @@ fun SessionEditorScreen(
         onToggleExerciseSelection = viewModel::toggleExerciseSelection,
         onClearExerciseSelection = viewModel::clearExerciseSelection,
         onApplyRules = { partId ->
-            viewModel.applyRuleDefaultsToSession(partId)
+            val outcome = viewModel.applyRuleDefaultsToSession(partId)
             scope.launch {
-                val message = if (partId == null) {
-                    "Defaults aplicados a la sesión"
-                } else {
-                    "Defaults aplicados al grupo"
+                when (outcome) {
+                    is ApplyRulesOutcome.Applied -> {
+                        val target = if (partId == null) "la sesión" else "el grupo"
+                        val noun = if (outcome.exercisesChanged == 1) "ejercicio" else "ejercicios"
+                        snackbarHostState.showKpknSnackbar(
+                            "Defaults aplicados a $target (${outcome.exercisesChanged} $noun)",
+                            SnackbarType.SUCCESS,
+                        )
+                    }
+                    ApplyRulesOutcome.NoChanges -> snackbarHostState.showKpknSnackbar(
+                        "Sin cambios: las tarjetas ya tienen estos valores",
+                        SnackbarType.SUGGESTION,
+                    )
+                    is ApplyRulesOutcome.ScopeNotFound -> snackbarHostState.showKpknSnackbar(
+                        "Ese grupo no existe en esta sesión",
+                        SnackbarType.DANGER,
+                    )
                 }
-                snackbarHostState.showKpknSnackbar(message, SnackbarType.SUCCESS)
             }
         },
         onCloneCurrentToTargets = { targetKeys, selectedExerciseIds, applyMode ->
@@ -846,6 +884,8 @@ fun SessionEditorScreen(
         onQuickActionOpenWarmup = viewModel::triggerQuickActionOpenWarmup,
         onQuickActionOpenMobility = viewModel::triggerQuickActionOpenMobility,
         onAddMobilityExercise = viewModel::addMobilityToQuickActionExercise,
+        onAddMobilityToPart = viewModel::addMobilityToPart,
+        onAddCardio = viewModel::addCardioToPart,
         onQuickActionDelete = viewModel::triggerQuickActionDelete,
         onQuickActionCreateSuperset = viewModel::triggerQuickActionCreateSuperset,
         onQuickActionManageSuperset = viewModel::triggerQuickActionManageSuperset,
@@ -929,4 +969,3 @@ fun SessionEditorScreen(
         )
     }
 }
-

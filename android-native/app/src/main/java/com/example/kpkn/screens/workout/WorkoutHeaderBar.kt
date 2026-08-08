@@ -189,6 +189,7 @@ internal fun WorkoutChronometer(
                             PacingAlertMode.OFF to "Sin alertas",
                             PacingAlertMode.FINAL to "Solo aviso final (15/5 min)",
                             PacingAlertMode.SOFT to "Ritmo suave",
+                            PacingAlertMode.STRICT to "Modo estricto (aviso por ejercicio)",
                         ).forEach { (mode, label) ->
                             FilterChip(
                                 selected = pacingAlertMode == mode,

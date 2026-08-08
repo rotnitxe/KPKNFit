@@ -92,7 +92,7 @@ object ProgramKeyDateEngine {
      */
     fun fitBlocksToKeyDate(program: Program, keyDate: ProgramKeyDate): KeyDateFitReport {
         val currentTotalWeeks = program.totalProgramWeeks
-        val startDate = parseDate(program.timelineStartDate)
+        val startDate = parseDate(program.resolvedSchedulePlan().anchorDate)
         val eventDate = parseDate(keyDate.eventDate ?: keyDate.startDate)
         if (startDate == null || eventDate == null) {
             return KeyDateFitReport(

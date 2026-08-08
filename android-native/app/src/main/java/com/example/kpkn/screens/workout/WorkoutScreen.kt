@@ -628,6 +628,7 @@ fun WorkoutScreen(
             onExpandReplace = {
                 currentExercise?.id?.let {
                     structureSheets.replaceTargetExerciseId = it
+                    structureSheets.replaceSearchQuery = if (currentExercise.catalogDefinitionId == null) currentExercise.name else ""
                     structureSheets.showReplaceExercisePicker = true
                 }
             },

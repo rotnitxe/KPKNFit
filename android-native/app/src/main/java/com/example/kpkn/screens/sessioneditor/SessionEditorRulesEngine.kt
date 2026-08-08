@@ -18,6 +18,13 @@ data class SessionRulesValidationResult(
     val warnings: List<String> = emptyList(),
 )
 
+/** Resultado honesto de aplicar los defaults de reglas sobre una sesión. */
+sealed interface ApplyRulesOutcome {
+    data class Applied(val exercisesChanged: Int) : ApplyRulesOutcome
+    data object NoChanges : ApplyRulesOutcome
+    data class ScopeNotFound(val partId: String) : ApplyRulesOutcome
+}
+
 object SessionEditorRulesEngine {
 
     fun applyDefaults(
@@ -36,9 +43,10 @@ object SessionEditorRulesEngine {
 
         fun Exercise.applyRuleDefaults(): Exercise {
             val info = resolveExerciseInfo(this, exerciseIndex)
-            val isCompound = defaults.hasCompoundOverrides &&
+            val usesCompoundIsolation = defaults.scope == RuleScope.COMPOUND_ISOLATION
+            val isCompound = usesCompoundIsolation && defaults.hasCompoundOverrides &&
                 com.example.kpkn.domain.templates.SessionTemplateQualityRules.isCompound(info)
-            val isIsolation = !isCompound && defaults.hasIsolationOverrides &&
+            val isIsolation = usesCompoundIsolation && !isCompound && defaults.hasIsolationOverrides &&
                 com.example.kpkn.domain.templates.SessionTemplateQualityRules.isIsolation(info)
 
             val intensityType = when {
@@ -76,6 +84,7 @@ object SessionEditorRulesEngine {
             }
             val nextSets = List(safeSetCount) { index ->
                 val existing = sets.getOrNull(index)
+                if (existing?.isEmptySlot == true) return@List existing
                 val target = (existing ?: ExerciseSet(id = UUID.randomUUID().toString())).copy(
                     targetReps = effectiveReps,
                     targetRPE = if (mode == IntensityMode.RPE) effectiveIntensity else null,
@@ -115,6 +124,35 @@ object SessionEditorRulesEngine {
             },
             supersetGroups = updatedGroups,
         )
+    }
+
+    /**
+     * Evalúa qué produciría [applyDefaults] sin mutar estado.
+     * - Scope a grupo inexistente/vacío -> [ApplyRulesOutcome.ScopeNotFound].
+     * - Sesión resultante idéntica (o sin ejercicios/grupos realmente cambiados) -> [ApplyRulesOutcome.NoChanges].
+     * - En otro caso -> [ApplyRulesOutcome.Applied] con el conteo de ejercicios modificados.
+     */
+    fun evaluateApply(
+        session: Session,
+        defaults: SessionEditorRuleDefaults,
+        partId: String?,
+        exerciseIndex: Map<String, ExerciseMuscleInfo> = emptyMap(),
+    ): ApplyRulesOutcome {
+        if (partId != null) {
+            val part = session.parts.firstOrNull { it.id == partId }
+            if (part == null || part.exercises.isEmpty()) return ApplyRulesOutcome.ScopeNotFound(partId)
+        }
+        val transformed = applyDefaults(session, defaults, partId, exerciseIndex)
+        if (transformed == session) return ApplyRulesOutcome.NoChanges
+        val exercisesBeforeById = session.allExercises().associateBy { it.id }
+        val exercisesChanged = transformed.allExercises().count { ex -> exercisesBeforeById[ex.id] != ex }
+        val groupsBeforeById = session.allSupersetGroups().associateBy { it.id }
+        val groupsChanged = transformed.allSupersetGroups().count { g -> groupsBeforeById[g.id] != g }
+        return if (exercisesChanged == 0 && groupsChanged == 0) {
+            ApplyRulesOutcome.NoChanges
+        } else {
+            ApplyRulesOutcome.Applied(exercisesChanged)
+        }
     }
 
     fun normalizeRuleLimits(

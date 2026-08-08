@@ -1,6 +1,11 @@
 package com.example.kpkn.domain.training
 
+import com.example.kpkn.data.models.Block
+import com.example.kpkn.data.models.Macrocycle
+import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramWeek
+import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -53,5 +58,51 @@ class SessionPrefillBridgeTest {
         val result = SessionPrefillBridge.prefillIfEmpty(program, null)
         assertEquals(program, result)
         assertNull(result.selectedSplitId)
+    }
+
+    @Test
+    fun prefillEmptyWeeks_only_fills_empty_weeks_in_a_partial_program() {
+        val emptyWeekIds = setOf("w3", "w12")
+        val weeks = (1..16).map { index ->
+            val id = "w$index"
+            ProgramWeek(
+                id = id,
+                name = "Semana $index",
+                sessions = if (id in emptyWeekIds) {
+                    emptyList()
+                } else {
+                    listOf(Session(id = "existing-$index", name = "Contenido existente $index"))
+                },
+            )
+        }
+        val program = Program(
+            id = "partial",
+            name = "Parcial",
+            macrocycles = listOf(
+                Macrocycle(
+                    id = "macro",
+                    name = "Macro",
+                    blocks = listOf(
+                        Block(
+                            id = "block",
+                            name = "Block",
+                            mesocycles = listOf(Mesocycle(id = "meso", name = "Meso", weeks = weeks)),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val split = SPLIT_TEMPLATES.first { it.id == "ul_x4" }
+
+        val result = SessionPrefillBridge.prefillEmptyWeeks(program, split)
+        val resultWeeks = result.macrocycles.first().blocks.first().mesocycles.first().weeks
+
+        assertTrue(emptyWeekIds.all { id -> resultWeeks.first { it.id == id }.sessions.isNotEmpty() })
+        weeks.filterNot { it.id in emptyWeekIds }.forEach { original ->
+            assertEquals(
+                original.sessions,
+                resultWeeks.first { it.id == original.id }.sessions,
+            )
+        }
     }
 }

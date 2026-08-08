@@ -38,9 +38,7 @@ import com.example.kpkn.data.models.isCompetitionMeet
 import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.ringScore
 import com.example.kpkn.data.models.CompetitionDetails
-import com.example.kpkn.data.models.CompetitionRecord
 import com.example.kpkn.data.models.CompetitionRecordMode
-import com.example.kpkn.data.models.CompetitionRecordStatus
 import com.example.kpkn.data.models.CompetitionTemplateType
 import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.isSimpleTemporalProgram
@@ -48,6 +46,7 @@ import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.training.LoopEngine
 import com.example.kpkn.domain.training.ProgramAnalyticsEngine
+import com.example.kpkn.domain.training.CompetitionSessionSync
 import com.example.kpkn.screens.auge.AugeViewModel
 import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.KpknGlassDialog
@@ -429,11 +428,19 @@ private fun TrainingPanel(
     onOpenProgram: (String) -> Unit = {},
 ) {
     val currentWeekId by viewModel.activeProgramState.collectAsState()
+    val editorUiState by viewModel.uiState.collectAsState()
     val showSimpleCalendarizationSheet by viewModel.showSimpleCalendarizationSheet.collectAsState()
     val calendarizationStartDate by viewModel.calendarizationStartDate.collectAsState()
     val calendarizationEndDate by viewModel.calendarizationEndDate.collectAsState()
     val calendarizationStartDayOfWeek by viewModel.calendarizationStartDayOfWeek.collectAsState()
     val calendarizationTrainingDays by viewModel.calendarizationTrainingDays.collectAsState()
+    val competitionKeyDateForSelectedWeek = remember(program, selectedWeekMeta?.id) {
+        if (selectedWeekMeta?.keyDateType == KeyDateType.COMPETITION) {
+            program.keyDates.firstOrNull { it.type == KeyDateType.COMPETITION }
+        } else {
+            null
+        }
+    }
     var copiedRoadmapWeekId by remember(program.id) { mutableStateOf<String?>(null) }
     var pendingCompetitionCreation by remember { mutableStateOf<PendingCompetitionSessionCreation?>(null) }
     var pendingCompetitionModeSelection by remember { mutableStateOf<PendingCompetitionModeSelection?>(null) }
@@ -484,16 +491,13 @@ private fun TrainingPanel(
             session = session,
         )
         if (competitionKey != null && recordId != null) {
-            CompetitionRepository.getInstance().upsert(
-                createCompetitionRecordForSession(
-                    recordId = recordId,
-                    sessionId = sessionId,
-                    weekId = located.weekId,
-                    keyDate = competitionKey,
-                    program = program,
-                    competitionRecordMode = competitionRecordMode,
-                )
-            )
+            val repository = CompetitionRepository.getInstance()
+            CompetitionSessionSync.merge(
+                session = session,
+                existingRecord = repository.getById(recordId),
+                programId = program.id,
+                weekId = located.weekId,
+            )?.let(repository::upsert)
         }
         onCreateSession(
             sessionId,
@@ -631,6 +635,23 @@ private fun TrainingPanel(
                     onUpdateWeekMetadata = { weekId, name, description ->
                         viewModel.updateWeekMetadata(weekId, name, description)
                     },
+                    onCreateCompetitionSession = if (
+                        competitionKeyDateForSelectedWeek != null && selectedWeekMeta != null
+                    ) {
+                        {
+                            val keyDate = competitionKeyDateForSelectedWeek
+                            val weekMeta = selectedWeekMeta
+                            val preferredDay = locateCompetitionWeekDay(program, keyDate)?.second
+                                ?: weekMeta.trainingDayDates.keys.firstOrNull()
+                                ?: program.startDay
+                                ?: 1
+                            createSessionForWeek(
+                                weekId = weekMeta.id,
+                                preferredDayOfWeek = preferredDay,
+                                keyDateId = keyDate.id,
+                            )
+                        }
+                    } else null,
                     onUpdateTrainingDayDate = { weekId, dayOfWeek, isoDate ->
                         viewModel.updateWeekTrainingDayDate(weekId, dayOfWeek, isoDate)
                     },
@@ -662,6 +683,20 @@ private fun TrainingPanel(
                 onCalendarizeSimpleCycle = { viewModel.calendarizeSimpleCycle() },
                 onRecoverCyclicProgram = { viewModel.recoverCyclicProgram() },
                 onStartFreshCyclicProgram = { viewModel.startFreshCyclicProgram() },
+                macrocycleRoadmapExpanded = editorUiState.macrocycleRoadmapExpanded,
+                onMacrocycleRoadmapExpandedChange = { viewModel.setMacrocycleRoadmapExpanded(it) },
+                macrocycleKeyDatesSheetOpen = editorUiState.macrocycleKeyDatesSheetOpen,
+                onMacrocycleKeyDatesSheetOpenChange = { viewModel.setMacrocycleKeyDatesSheetOpen(it) },
+                macrocycleLibrarySheetOpen = editorUiState.macrocycleLibrarySheetOpen,
+                onMacrocycleLibrarySheetOpenChange = { viewModel.setMacrocycleLibrarySheetOpen(it) },
+                macrocycleLoopsSheetOpen = editorUiState.macrocycleLoopsSheetOpen,
+                onMacrocycleLoopsSheetOpenChange = { viewModel.setMacrocycleLoopsSheetOpen(it) },
+                macrocycleTimelineStartDate = editorUiState.macrocycleTimelineStartDate,
+                onMacrocycleTimelineStartDateChange = { viewModel.setMacrocycleTimelineStartDate(it) },
+                macrocycleManualEndDate = editorUiState.macrocycleManualEndDate,
+                onMacrocycleManualEndDateChange = { viewModel.setMacrocycleManualEndDate(it) },
+                macrocycleCompetitionDate = editorUiState.macrocycleCompetitionDate,
+                onMacrocycleCompetitionDateChange = { viewModel.setMacrocycleCompetitionDate(it) },
                 onAddProgramCopy = { copy ->
                     viewModel.addProgramCopy(copy)
                     onOpenProgram(copy.id)
@@ -687,6 +722,20 @@ private fun TrainingPanel(
                 onCalendarizeSimpleCycle = { viewModel.calendarizeSimpleCycle() },
                 onRecoverCyclicProgram = { viewModel.recoverCyclicProgram() },
                 onStartFreshCyclicProgram = { viewModel.startFreshCyclicProgram() },
+                macrocycleRoadmapExpanded = editorUiState.macrocycleRoadmapExpanded,
+                onMacrocycleRoadmapExpandedChange = { viewModel.setMacrocycleRoadmapExpanded(it) },
+                macrocycleKeyDatesSheetOpen = editorUiState.macrocycleKeyDatesSheetOpen,
+                onMacrocycleKeyDatesSheetOpenChange = { viewModel.setMacrocycleKeyDatesSheetOpen(it) },
+                macrocycleLibrarySheetOpen = editorUiState.macrocycleLibrarySheetOpen,
+                onMacrocycleLibrarySheetOpenChange = { viewModel.setMacrocycleLibrarySheetOpen(it) },
+                macrocycleLoopsSheetOpen = editorUiState.macrocycleLoopsSheetOpen,
+                onMacrocycleLoopsSheetOpenChange = { viewModel.setMacrocycleLoopsSheetOpen(it) },
+                macrocycleTimelineStartDate = editorUiState.macrocycleTimelineStartDate,
+                onMacrocycleTimelineStartDateChange = { viewModel.setMacrocycleTimelineStartDate(it) },
+                macrocycleManualEndDate = editorUiState.macrocycleManualEndDate,
+                onMacrocycleManualEndDateChange = { viewModel.setMacrocycleManualEndDate(it) },
+                macrocycleCompetitionDate = editorUiState.macrocycleCompetitionDate,
+                onMacrocycleCompetitionDateChange = { viewModel.setMacrocycleCompetitionDate(it) },
                 onAddProgramCopy = { copy ->
                     viewModel.addProgramCopy(copy)
                     onOpenProgram(copy.id)
@@ -1102,31 +1151,6 @@ private fun createCompetitionRoadmapSession(
         competitionKeyDateId = keyDate.id,
         competitionSportType = sportType,
         competitionRecordMode = competitionRecordMode,
-    )
-}
-
-private fun createCompetitionRecordForSession(
-    recordId: String,
-    sessionId: String,
-    weekId: String,
-    keyDate: ProgramKeyDate,
-    program: Program,
-    competitionRecordMode: CompetitionRecordMode = CompetitionRecordMode.HYBRID,
-): CompetitionRecord {
-    val eventDate = keyDate.eventDate ?: keyDate.startDate
-    val sportType = defaultCompetitionSportType(program)
-    return CompetitionRecord(
-        id = recordId,
-        title = keyDate.title.ifBlank { "Competición" },
-        eventDate = eventDate,
-        sportType = sportType,
-        recordMode = competitionRecordMode,
-        status = CompetitionRecordStatus.PLANNED,
-        notes = keyDate.notes,
-        plannedProgramId = program.id,
-        plannedSessionId = sessionId,
-        plannedWeekId = weekId,
-        keyDateId = keyDate.id,
     )
 }
 

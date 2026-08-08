@@ -115,6 +115,10 @@ data class SessionPart(
     val exercises: List<Exercise> = emptyList(),
     val color: String? = null,
     val targetDurationMinutes: Int? = null,
+    /** True when this part contains mobility movements not tied to a strength exercise. */
+    val isMobilityGroup: Boolean = false,
+    /** Mobility movements owned by this part rather than attached to an exercise. */
+    val mobilitySeries: List<MobilitySeries> = emptyList(),
 )
 
 @Serializable
@@ -224,6 +228,8 @@ data class Exercise(
     val restTime: Int? = null,
     val isFavorite: Boolean = false,
     val trainingMode: TrainingMode = TrainingMode.REPS,
+    /** Embedded cardio metadata. Null keeps legacy strength/exercise JSON unchanged. */
+    val cardioDetails: CardioDetails? = null,
     val customUnit: String? = null,
     val reference1RM: Double? = null,
     val targetSessionGoal: String? = null,
@@ -286,6 +292,40 @@ data class MobilitySeries(
     val movementPatterns: List<String> = emptyList(),
 )
 
+/**
+ * Cardio is deliberately embedded in the session JSON. It does not require a Room
+ * migration and remains compatible with sessions created before Beta 10.
+ */
+@Serializable
+data class CardioDetails(
+    val type: CardioType,
+    val intensity: CardioIntensity = CardioIntensity.MEDIA,
+    val targetDurationSeconds: Int = 20 * 60,
+    val targetDistanceKm: Double? = null,
+    val requiresGps: Boolean = false,
+    val supportsDistance: Boolean = true,
+    /** 0 delegates to [CardioCalorieEngine] type defaults; explicit values remain supported. */
+    val metBase: Double = 0.0,
+)
+
+enum class CardioType {
+    TREADMILL,
+    ELLIPTICAL,
+    ROW_MACHINE,
+    BIKE_STATIONARY,
+    RUN_OUTDOOR,
+    BIKE_OUTDOOR,
+    WALK,
+    STAIR_CLIMBER,
+}
+
+enum class CardioIntensity(val defaultRpe: Double) {
+    BAJA(5.0),
+    MEDIA(7.0),
+    ALTA(8.5),
+    MUY_ALTA(9.5),
+}
+
 enum class TrainingMode { REPS, TIME, RM, CUSTOM, DISTANCE, SOLO_RPE, AMRAP }
 enum class TimeStrategy { COUNTDOWN, CHRONOMETER, FREE }
 enum class DamageProfile { STRETCH, SQUEEZE, NORMAL }
@@ -316,6 +356,8 @@ data class UnilateralTarget(
 @Serializable
 data class ExerciseSet(
     val id: String,
+    /** Preserves a deleted superset round without reindexing later rounds. */
+    val isEmptySlot: Boolean = false,
     val targetReps: Int? = null,
     val targetDuration: Int? = null,
     val targetRPE: Double? = null,
@@ -447,6 +489,10 @@ fun Session.effectiveSupersetGroupFor(exercise: Exercise): SupersetGroup? {
     val ref = exercise.supersetGroupRef ?: exercise.supersetId ?: return null
     return allSupersetGroups().firstOrNull { it.id == ref }
 }
+
+/** Cardio can be recognized without introducing a second boolean source of truth. */
+val Exercise.isCardio: Boolean
+    get() = cardioDetails != null
 
 fun Exercise.supersetGroupRefOrLegacyId(): String? =
     supersetGroupRef?.takeIf { it.isNotBlank() } ?: supersetId?.takeIf { it.isNotBlank() }

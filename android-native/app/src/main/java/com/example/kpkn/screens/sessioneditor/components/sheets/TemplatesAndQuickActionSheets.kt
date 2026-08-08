@@ -59,6 +59,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.models.discomfortLabel
@@ -265,9 +266,8 @@ internal fun ExerciseQuickActionsSheet(
         return
     }
 
-    var showDeleteConfirm by rememberSaveable(exercise.id) { mutableStateOf(false) }
     var showInfoDialog by rememberSaveable(exercise.id) { mutableStateOf(false) }
-    val catalogLookup = remember(catalog) { buildExerciseCatalogLookup(catalog) }
+    val catalogLookup = catalogExerciseIndex()
     val selectedInfo = remember(exercise.id, catalogLookup) {
         resolveCatalogExerciseInfo(exercise, catalogLookup)
     }
@@ -301,47 +301,11 @@ internal fun ExerciseQuickActionsSheet(
             Spacer(Modifier.width(8.dp))
             Text("Cambiar ejercicio")
         }
-        OutlinedButton(onClick = onOpenWarmup, modifier = Modifier.fillMaxWidth()) {
-            Icon(Icons.Default.Timer, null, modifier = Modifier.size(16.dp))
-            Spacer(Modifier.width(8.dp))
-            Text("Series de aproximación")
-        }
-        OutlinedButton(onClick = onOpenMobility, modifier = Modifier.fillMaxWidth()) {
-            Icon(Icons.Default.AutoAwesome, null, modifier = Modifier.size(16.dp))
-            Spacer(Modifier.width(8.dp))
-            Text("Agregar series de movilidad")
-        }
         OutlinedButton(onClick = onManageSuperset, modifier = Modifier.fillMaxWidth()) {
             Icon(Icons.Default.Link, null, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(8.dp))
             Text(if (exercise.isInSuperset()) "Gestionar superserie" else "Crear superserie")
         }
-        Button(
-            onClick = { showDeleteConfirm = true },
-            modifier = Modifier.fillMaxWidth(),
-            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.error,
-                contentColor = MaterialTheme.colorScheme.onError,
-            ),
-        ) {
-            Icon(Icons.Default.Close, null, modifier = Modifier.size(16.dp))
-            Spacer(Modifier.width(8.dp))
-            Text("Eliminar")
-        }
-    }
-
-    if (showDeleteConfirm) {
-        KpknAlertDialog(
-            onDismissRequest = { showDeleteConfirm = false },
-            title = { Text("Eliminar ejercicio", fontWeight = FontWeight.Black) },
-            text = { Text("¿Quieres borrar este ejercicio de la sesión?") },
-            confirmButton = {
-                Button(onClick = { showDeleteConfirm = false; onDelete() }) { Text("Eliminar") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancelar") }
-            },
-        )
     }
 
     if (showInfoDialog && selectedInfo != null) {

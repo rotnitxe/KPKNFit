@@ -354,6 +354,7 @@ internal fun SessionContextNavigator(
     onDeleteVariant: (WeekVariant) -> Unit = {},
     onSwitchVariant: (WeekVariant) -> Unit = {},
     embedded: Boolean = false,
+    accentColor: Color? = null,
 ) {
     val orderedDays = remember(weekStartDay) {
         val safeStart = weekStartDay.coerceIn(1, 7)
@@ -473,7 +474,8 @@ internal fun SessionContextNavigator(
                 }
             }
 
-            // Day circles row
+            // Day circles row — responsive sizing to avoid overflow on narrow screens
+            val circleSize = if (LocalConfiguration.current.screenWidthDp < 360) 40.dp else 42.dp
             Box(modifier = Modifier.fillMaxWidth()) {
                 Box(
                     modifier = Modifier.fillMaxWidth(),
@@ -481,7 +483,7 @@ internal fun SessionContextNavigator(
                 ) {
                     Row(
                         modifier = Modifier.horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         orderedDays.forEach { day ->
@@ -491,7 +493,7 @@ internal fun SessionContextNavigator(
                             val sessionCount = daySessions.size
                             val isMultiSession = sessionCount > 1
                             val selectedDayChip = selectedDay == day
-                            val selectedDayColor = Color(0xFF2563EB)
+                            val selectedDayColor = accentColor ?: Color(0xFF2563EB)
                             val isDimmed = !hasSession
                             val alphaFactor = if (isDimmed) 0.35f else 1f
 
@@ -521,7 +523,7 @@ internal fun SessionContextNavigator(
                             Box {
                                 Box(
                                     modifier = Modifier
-                                        .size(38.dp)
+                                        .size(circleSize)
                                         .clip(CircleShape)
                                         .background(backgroundColor)
                                         .border(
@@ -662,7 +664,7 @@ internal fun SessionContextNavigator(
                         if (showRoadmapMenuButton) {
                             Box(
                                 modifier = Modifier
-                                    .size(38.dp)
+                                    .size(circleSize)
                                     .clip(CircleShape)
                                     .clickable { showRoadmapMenu = true },
                                 contentAlignment = Alignment.Center,

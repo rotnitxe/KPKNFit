@@ -829,6 +829,37 @@ internal fun WorkoutV2Body(
                                             fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.onSurface,
                                         )
+                                        currentExercise.warmupSets.getOrNull(pageSpec.setIndex)?.let { activeWarmup ->
+                                            val warmupKey = "${currentExercise.id}_warmup_${activeWarmup.id}"
+                                            val savedRpe = uiState.completedSets[warmupKey]?.rpe
+                                            var localRpe by remember(warmupKey, savedRpe) {
+                                                mutableFloatStateOf(savedRpe?.toFloat() ?: 6f)
+                                            }
+                                            Text(
+                                                text = "¿Qué tan pesada se sintió? RPE ${"%.1f".format(localRpe)} / 10",
+                                                style = MaterialTheme.typography.labelMedium,
+                                                fontWeight = FontWeight.Bold,
+                                                color = sessionAccentColor,
+                                            )
+                                            Slider(
+                                                value = localRpe,
+                                                onValueChange = { localRpe = it },
+                                                onValueChangeFinished = {
+                                                    viewModel.recordWarmupHeaviness(
+                                                        exerciseId = currentExercise.id,
+                                                        warmupSetId = activeWarmup.id,
+                                                        rpe = localRpe.toDouble(),
+                                                    )
+                                                },
+                                                valueRange = 1f..10f,
+                                                steps = 8,
+                                            )
+                                            Text(
+                                                "La primera carga efectiva se ajustará ±2,5% según este esfuerzo.",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.56f),
+                                            )
+                                        }
                                         currentExercise.warmupSets.forEachIndexed { warmIdx, ws ->
                                             val wsDone = "${currentExercise.id}_warmup_${ws.id}" in uiState.warmupCompletedExerciseIds ||
                                                     currentExercise.id in uiState.warmupCompletedExerciseIds
@@ -921,7 +952,19 @@ internal fun WorkoutV2Body(
                                         "${currentExercise.id}_${activeSetIndex}"
                                     }
                                 ]
-                                SetInputCardV2(
+                                if (currentExercise.isCardio) {
+                                    val cardioProgressionSuggestion = viewModel.getCardioProgressionSuggestion(currentExercise)
+                                    CardioLiveCard(
+                                        details = currentExercise.cardioDetails!!,
+                                        completedSet = sessionCompletedSet,
+                                        bodyWeightKg = viewModel.currentBodyWeight(),
+                                        accentColor = sessionAccentColor,
+                                        progressionSuggestion = cardioProgressionSuggestion,
+                                        onRecord = { duration, distance, heartRate ->
+                                            viewModel.recordCardioSet(duration, distance, heartRate)
+                                        },
+                                    )
+                                } else SetInputCardV2(
                                     exercise = currentExercise,
                                     setIndex = activeSetIndex,
                                     currentSet = activeSet,

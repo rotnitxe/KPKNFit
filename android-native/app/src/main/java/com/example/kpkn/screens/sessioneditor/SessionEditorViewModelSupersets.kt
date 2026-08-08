@@ -210,20 +210,23 @@ fun SessionEditorViewModel.updateSupersetRoundRest(groupId: String, roundIndex: 
 fun SessionEditorViewModel.removeSupersetRound(groupId: String, partId: String?, roundIndex: Int) = updateSession { session ->
     val group = session.allSupersetGroups().firstOrNull { it.id == groupId } ?: return@updateSession session
     val memberIds = group.exerciseOrder.toSet()
+    val targetRoundCount = maxOf(
+        roundIndex + 1,
+        group.rounds ?: SupersetRules.roundCount(session, groupId),
+    )
     fun updateList(exercises: List<Exercise>): List<Exercise> = exercises.map { exercise ->
-        if (exercise.id !in memberIds || roundIndex !in exercise.sets.indices) exercise
-        else exercise.copy(sets = exercise.sets.toMutableList().also { it.removeAt(roundIndex) })
+        if (exercise.id !in memberIds) return@map exercise
+        val nextSets = exercise.sets.toMutableList()
+        while (nextSets.size < targetRoundCount) {
+            nextSets += ExerciseSet(id = UUID.randomUUID().toString())
+        }
+        nextSets[roundIndex] = ExerciseSet(id = nextSets[roundIndex].id, isEmptySlot = true)
+        exercise.copy(sets = nextSets)
     }
-    val nextRounds = ((group.rounds ?: SupersetRules.roundCount(session, groupId)) - 1).coerceAtLeast(1)
     val updatedGroups = session.supersetGroups.map { current ->
         if (current.id != groupId) current else current.copy(
-            rounds = nextRounds,
-            roundRestBetweenExercises = current.roundRestBetweenExercises
-                .filterKeys { it != roundIndex }
-                .mapKeys { (idx, _) -> if (idx > roundIndex) idx - 1 else idx },
-            roundRestAfterSuperset = current.roundRestAfterSuperset
-                .filterKeys { it != roundIndex }
-                .mapKeys { (idx, _) -> if (idx > roundIndex) idx - 1 else idx },
+            // Keep the round index stable. Later rounds must not avalanche upward.
+            rounds = maxOf(current.rounds ?: 0, targetRoundCount),
         )
     }
     if (partId == null) {
