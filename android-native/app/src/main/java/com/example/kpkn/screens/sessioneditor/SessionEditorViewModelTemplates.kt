@@ -106,15 +106,7 @@ internal fun SessionEditorViewModel.applyTemplateInternal(template: SessionTempl
         updateUi { it.copy(sheet = SessionEditorSheet.NONE, templateApplyDecision = null, templateSearchQuery = "") }
         return@launch
     }
-    // fallback for tests without scope - keep original sync path for now
-    
-    val result = SessionTemplateEngine.applyTemplate(template, session, mode)
-    updateSession { result }
-    updateUi {
-        it.copy(
-            sheet = SessionEditorSheet.NONE,
-            templateApplyDecision = null,
-            templateSearchQuery = "",
-        )
-    }
+    // Fallback eliminado: producción usa solo el path asíncrono.
+    // Tests deben usar runTest/TestScope con viewModelScope.
+    return
 }

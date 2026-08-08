@@ -1,24 +1,16 @@
 package com.example.kpkn.screens.sessioneditor
 
 import com.example.kpkn.data.models.*
+import com.example.kpkn.domain.templates.SessionTemplateEngine
 
 fun SessionEditorViewModel.setTargetDuration(minutes: Int?) {
-    updateUi { state ->
-        val updatedSession = state.session?.copy(targetDurationMinutes = minutes)
-        state.copy(
-            session = updatedSession,
-            targetDurationMinutes = minutes,
-            hasUnsavedChanges = true,
-            dismissedTimeCoachIds = emptySet(),
-        )
-    }
-    scheduleAutoSave()
-    scheduleAugeRecalc()
+    updateActiveVariantSession { it.copy(targetDurationMinutes = minutes) }
+    updateUi { it.copy(targetDurationMinutes = minutes, dismissedTimeCoachIds = emptySet()) }
 }
 
 /** Actualiza la duración objetivo de una categoría/parte específica. */
 fun SessionEditorViewModel.setPartTargetDuration(partId: String, minutes: Int?) {
-    updateCurrentSession { session ->
+    updateActiveVariantSession { session ->
         session.copy(parts = session.parts.map {
             if (it.id == partId) it.copy(targetDurationMinutes = minutes) else it
         })
@@ -27,7 +19,7 @@ fun SessionEditorViewModel.setPartTargetDuration(partId: String, minutes: Int?) 
 
 /** Actualiza la duración objetivo de un ejercicio específico. */
 fun SessionEditorViewModel.setExerciseTargetDuration(exerciseId: String, minutes: Int?) {
-    updateCurrentSession { session ->
+    updateActiveVariantSession { session ->
         val updatedExercises = session.exercises.map {
             if (it.id == exerciseId) it.copy(targetDurationMinutes = minutes) else it
         }
@@ -42,7 +34,7 @@ fun SessionEditorViewModel.setExerciseTargetDuration(exerciseId: String, minutes
 
 /** Splits the session global budget across parts by set-count weight. */
 fun SessionEditorViewModel.distributeTargetDurationAcrossParts() {
-    val session = currentUiState.session ?: return
+    val session = currentUiState.activeVariantSession ?: currentUiState.session ?: return
     val total = session.targetDurationMinutes ?: return
     if (total <= 0 || session.parts.isEmpty()) return
     val weights = session.parts.map { part ->
@@ -50,7 +42,7 @@ fun SessionEditorViewModel.distributeTargetDurationAcrossParts() {
     }
     val weightSum = weights.sum().coerceAtLeast(1)
     var allocated = 0
-    updateCurrentSession { current ->
+    updateActiveVariantSession { current ->
         current.copy(
             parts = current.parts.mapIndexed { index, part ->
                 val share = if (index == current.parts.lastIndex) {
@@ -84,7 +76,9 @@ fun SessionEditorViewModel.createVariant(variant: WeekVariant, variantName: Stri
         else -> false
     }
     if (alreadyExists) return false
-    val copy = base.copy(
+    // Deep clone con IDs regenerados (evita colisión A↔B)
+    val cloned = SessionTemplateEngine.cloneSessionContent(base)
+    val copy = cloned.copy(
         id = java.util.UUID.randomUUID().toString(),
         name = variantName,
         sessionB = null, sessionC = null, sessionD = null,
@@ -163,5 +157,25 @@ internal fun SessionEditorViewModel.computeAvailableVariants(session: Session): 
     if (session.sessionB != null) add(WeekVariant.B)
     if (session.sessionC != null) add(WeekVariant.C)
     if (session.sessionD != null) add(WeekVariant.D)
+}
+
+internal fun SessionEditorViewModel.updateActiveVariantSession(transform: (Session) -> Session) {
+    val variant = currentUiState.activeVariant
+    if (variant == WeekVariant.A) {
+        updateSession(transform = transform)
+        return
+    }
+    val base = currentUiState.session ?: return
+    val currentVariant = currentUiState.activeVariantSession ?: return
+    val updatedVariant = transform(currentVariant)
+    val updatedBase = when (variant) {
+        WeekVariant.B -> base.copy(sessionB = updatedVariant)
+        WeekVariant.C -> base.copy(sessionC = updatedVariant)
+        WeekVariant.D -> base.copy(sessionD = updatedVariant)
+        else -> base
+    }
+    updateUi { it.copy(session = updatedBase, hasUnsavedChanges = true) }
+    scheduleAutoSave()
+    scheduleAugeRecalc()
 }
 

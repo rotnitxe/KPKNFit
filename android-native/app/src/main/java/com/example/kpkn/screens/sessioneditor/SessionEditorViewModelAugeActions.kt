@@ -133,6 +133,17 @@ fun SessionEditorViewModel.applyAssistantSuggestion(
         updateSession { session ->
             var next = session
             details.forEach { detail ->
+                // A4b: skip superset si ya está agrupado (evita solapamiento ex₁ en 2 sugerencias)
+                if (detail.action is AssistantDetailAction.ConvertToSuperset) {
+                    val exId = detail.action.exerciseId
+                    val all = next.allExercises()
+                    val idx = all.indexOfFirst { it.id == exId }
+                    val target = all.getOrNull(idx)
+                    val partner = all.getOrNull(idx + 1)
+                    if (target?.supersetGroupRefOrLegacyId() != null || partner?.supersetGroupRefOrLegacyId() != null) {
+                        return@forEach
+                    }
+                }
                 next = applyAssistantDetail(next, detail)
             }
             next
@@ -266,8 +277,10 @@ internal fun SessionEditorViewModel.convertToSupersetWithNext(session: Session, 
     val allExercises = session.allExercises()
     val targetIdx = allExercises.indexOfFirst { it.id == targetExerciseId }
     if (targetIdx < 0) return session
+    val target = allExercises.getOrNull(targetIdx) ?: return session
     val partner = allExercises.getOrNull(targetIdx + 1) ?: return session
     if (partner.id == targetExerciseId) return session
+    if (target.supersetGroupRefOrLegacyId() != null || partner.supersetGroupRefOrLegacyId() != null) return session
     val defaults = currentUiState.ruleDefaults
     val groupId = "superset_group_${System.currentTimeMillis()}"
     val anchorPartId = session.parts.firstOrNull { part ->

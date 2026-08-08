@@ -504,7 +504,7 @@ internal fun SessionEditorViewModel.applySessionToMesocycle(program: Program, st
                     globalMesoIndex += 1
                     if (!matchesMeso) return@map meso
                     meso.copy(weeks = meso.weeks.map { week ->
-                        val cloneForWeek = if (week.id == state.weekId) draft else draft.copy(id = UUID.randomUUID().toString())
+                        val cloneForWeek = if (week.id == state.weekId) draft else com.example.kpkn.domain.templates.SessionTemplateEngine.cloneSessionContent(draft).copy(id = UUID.randomUUID().toString())
                         val updatedSessions = week.sessions.toMutableList()
                         val sameDayIndex = updatedSessions.indexOfFirst { it.dayOfWeek == draft.dayOfWeek && it.isMainSession == draft.isMainSession }
                         when {

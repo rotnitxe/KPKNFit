@@ -115,8 +115,6 @@ internal fun AssistantGlassOverlay(
     templates: List<SessionTemplate>,
     @Suppress("UNUSED_PARAMETER") hazeState: HazeState,
     onDismiss: () -> Unit,
-    onApplyAugeCorrection: (String) -> Unit,
-    onAddGhostExercise: (String) -> Unit,
     onApplyAssistantSuggestion: (suggestionId: String, acceptedDetailIds: List<String>) -> Unit,
     onTemplateSearchChange: (String) -> Unit,
     onSelectTemplate: (SessionTemplate) -> Unit,
@@ -129,8 +127,6 @@ internal fun AssistantGlassOverlay(
         AssistantSheet(
             uiState = uiState,
             templates = templates,
-            onApplyAugeCorrection = onApplyAugeCorrection,
-            onAddGhostExercise = onAddGhostExercise,
             onApplyAssistantSuggestion = onApplyAssistantSuggestion,
             onTemplateSearchChange = onTemplateSearchChange,
             onSelectTemplate = onSelectTemplate,
@@ -144,20 +140,12 @@ internal fun AssistantGlassOverlay(
 internal fun AssistantSheet(
     uiState: SessionEditorUiState,
     templates: List<SessionTemplate>,
-    onApplyAugeCorrection: (String) -> Unit,
-    onAddGhostExercise: (String) -> Unit,
     onApplyAssistantSuggestion: (suggestionId: String, acceptedDetailIds: List<String>) -> Unit,
     onTemplateSearchChange: (String) -> Unit,
     onSelectTemplate: (SessionTemplate) -> Unit,
     onConfirmApplyTemplate: (SessionTemplateApplyMode) -> Unit,
     onCancelTemplateApply: () -> Unit,
 ) {
-    // Keep unused callbacks referenced so signature stays stable for callers.
-    @Suppress("UNUSED_EXPRESSION")
-    onApplyAugeCorrection
-    @Suppress("UNUSED_EXPRESSION")
-    onAddGhostExercise
-
     val report = uiState.assistantReport
     val summary = uiState.augeSummary
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }

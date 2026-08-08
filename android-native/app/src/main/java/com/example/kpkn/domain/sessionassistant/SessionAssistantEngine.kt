@@ -98,7 +98,7 @@ object SessionAssistantEngine {
         }
 
         if (exercises.size >= 2) {
-            for (i in 0 until minOf(exercises.size - 1, MAX_SUPERSET_SUGGESTIONS)) {
+            for (i in 0 until minOf(exercises.size - 1, MAX_SUPERSET_SUGGESTIONS) step 2) {
                 val ex = exercises[i]
                 val next = exercises[i + 1]
                 if (ex.sets.any { it.isDropSet || it.isRestPause }) continue

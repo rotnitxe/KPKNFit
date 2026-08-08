@@ -144,7 +144,7 @@ fun SessionEditorScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val allTemplates by viewModel.allTemplates.collectAsStateWithLifecycle()
-    val session = uiState.session
+    val session = uiState.activeVariantSession ?: uiState.session
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -703,18 +703,6 @@ fun SessionEditorScreen(
                 templates = allTemplates,
                 hazeState = hazeState,
                 onDismiss = viewModel::closeSheet,
-                onApplyAugeCorrection = { alertId ->
-                    viewModel.applyAugeCorrection(alertId)
-                    scope.launch {
-                        snackbarHostState.showKpknSnackbar("Ajuste aplicado", SnackbarType.SUCCESS)
-                    }
-                },
-                onAddGhostExercise = { cardId ->
-                    viewModel.addGhostExercise(cardId)
-                    scope.launch {
-                        snackbarHostState.showKpknSnackbar("Ejercicio añadido a la sesión", SnackbarType.SUCCESS)
-                    }
-                },
                 onApplyAssistantSuggestion = { suggestionId, detailIds ->
                     viewModel.applyAssistantSuggestion(suggestionId, detailIds)
                     scope.launch {
@@ -805,18 +793,6 @@ fun SessionEditorScreen(
                         if (saveResult.success) SnackbarType.SUCCESS else SnackbarType.DANGER,
                     )
                 }
-            }
-        },
-        onApplyAugeCorrection = { alertId ->
-            viewModel.applyAugeCorrection(alertId)
-            scope.launch {
-                snackbarHostState.showKpknSnackbar("Ajuste aplicado", SnackbarType.SUCCESS)
-            }
-        },
-        onAddGhostExercise = { cardId ->
-            viewModel.addGhostExercise(cardId)
-            scope.launch {
-                snackbarHostState.showKpknSnackbar("Ejercicio añadido a la sesión", SnackbarType.SUCCESS)
             }
         },
         onApplyAssistantSuggestion = { suggestionId, detailIds ->

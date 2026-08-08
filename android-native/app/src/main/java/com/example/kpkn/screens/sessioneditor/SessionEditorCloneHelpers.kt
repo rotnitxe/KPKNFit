@@ -149,6 +149,7 @@ internal fun createSessionFromPayload(
     val identity = preserveIdentityFrom
     return if (identity != null) {
         // REPLACE into an existing day: keep destination identity/metadata, swap structure.
+        // B6: limpiar variantes y metadatos de competición desincronizados.
         identity.copy(
             name = if (selectedExerciseIds == null) name else identity.name,
             dayOfWeek = dayOfWeek ?: identity.dayOfWeek,
@@ -161,6 +162,15 @@ internal fun createSessionFromPayload(
                 identity.warmup
             },
             isMainSession = true,
+            sessionB = null,
+            sessionC = null,
+            sessionD = null,
+            trainingBackup = null,
+            isMeetDay = false,
+            isCompetitionSession = false,
+            competitionDetails = null,
+            competitionRecordId = null,
+            competitionKeyDateId = null,
         )
     } else {
         source.copy(

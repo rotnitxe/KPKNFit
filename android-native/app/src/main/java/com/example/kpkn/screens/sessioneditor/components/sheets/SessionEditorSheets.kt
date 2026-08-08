@@ -260,7 +260,6 @@ import com.example.kpkn.screens.sessioneditor.components.sheets.HistorySheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.RulesSheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.SessionClonerSheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.SaveSheet
-import com.example.kpkn.screens.sessioneditor.components.sheets.AssistantSheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.WarmupSheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.MobilityPickerSheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.SupersetManagerSheet
@@ -364,8 +363,6 @@ internal fun SessionEditorSheets(
     onCloneCurrentToTargets: (Set<String>, Set<String>?, SessionCloneApplyMode) -> Unit,
     onImportFromSource: (String, Set<String>?, SessionCloneApplyMode) -> Unit,
     onSave: (SessionSaveScope) -> Unit,
-    onApplyAugeCorrection: (String) -> Unit,
-    onAddGhostExercise: (String) -> Unit,
     onApplyAssistantSuggestion: (suggestionId: String, acceptedDetailIds: List<String>) -> Unit,
     onDiscardSwitch: (() -> Unit)?,
     onWarmupSave: (String, List<WarmupSetDefinition>) -> Unit,

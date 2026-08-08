@@ -257,8 +257,11 @@ class WorkoutPacingController(
         val elapsedMin = ((System.currentTimeMillis() - state.startTimeMs) / 60000).toInt()
         val remainingMin = targetMin - elapsedMin
         val totalSets = visibleExercises(state).sumOf { it.sets.size }
-        val completedSets = state.completedSets.size
-        val progress = if (totalSets > 0) completedSets.toFloat() / totalSets else 0f
+        val dedupCompletedSets = state.completedSets.keys.map { key ->
+            val parts = key.split("_")
+            if (parts.size >= 2) "${parts[0]}_${parts[1]}" else key
+        }.distinct().size
+        val progress = if (totalSets > 0) dedupCompletedSets.toFloat() / totalSets else 0f
 
         val needsHurry = remainingMin <= 15 && progress < 0.50f
         if (needsHurry && baseSeconds > 60) {

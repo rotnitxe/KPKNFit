@@ -548,16 +548,39 @@ class SessionEditorViewModel(
     }
 
     internal fun updateSession(reason: String = "Edición", transform: (Session) -> Session) {
-        val current = _uiState.value.session ?: return
-        val transformed = transform(current)
-        if (transformed == current) return
-        val updated = transformed.copy(lastModifiedAtMs = System.currentTimeMillis())
-        _uiState.update { state ->
-            state.copy(
-                session = updated,
-                dayOfWeek = updated.dayOfWeek ?: state.dayOfWeek,
-                hasUnsavedChanges = updated != state.originalSession,
-            )
+        val state = _uiState.value
+        val variant = state.activeVariant
+        if (variant == WeekVariant.A) {
+            val current = state.session ?: return
+            val transformed = transform(current)
+            if (transformed == current) return
+            val updated = transformed.copy(lastModifiedAtMs = System.currentTimeMillis())
+            _uiState.update { s ->
+                s.copy(
+                    session = updated,
+                    dayOfWeek = updated.dayOfWeek ?: s.dayOfWeek,
+                    hasUnsavedChanges = updated != s.originalSession,
+                )
+            }
+        } else {
+            val currentVariant = state.activeVariantSession ?: return
+            val transformedVariant = transform(currentVariant)
+            if (transformedVariant == currentVariant) return
+            val updatedVariant = transformedVariant.copy(lastModifiedAtMs = System.currentTimeMillis())
+            val base = state.session ?: return
+            val updatedBase = when (variant) {
+                WeekVariant.B -> base.copy(sessionB = updatedVariant)
+                WeekVariant.C -> base.copy(sessionC = updatedVariant)
+                WeekVariant.D -> base.copy(sessionD = updatedVariant)
+                else -> base
+            }
+            _uiState.update { s ->
+                s.copy(
+                    session = updatedBase,
+                    dayOfWeek = updatedVariant.dayOfWeek ?: s.dayOfWeek,
+                    hasUnsavedChanges = updatedBase != s.originalSession,
+                )
+            }
         }
         scheduleAugeRecalc()
         scheduleAutoSave()
@@ -575,7 +598,7 @@ class SessionEditorViewModel(
             delay(300)
             withContext(Dispatchers.Default) {
                 val state = _uiState.value
-                val session = state.session ?: return@withContext
+                val session = state.activeVariantSession ?: state.session ?: return@withContext
                 recalcAndPushAuge(state, session)
             }
         }
@@ -585,7 +608,7 @@ class SessionEditorViewModel(
         augeJob?.cancel()
         augeJob = null
         val state = _uiState.value
-        val session = state.session ?: return
+        val session = state.activeVariantSession ?: state.session ?: return
         viewModelScope.launch(Dispatchers.Default) {
             recalcAndPushAuge(state, session)
         }
