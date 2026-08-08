@@ -17,14 +17,14 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -69,7 +69,6 @@ import com.example.kpkn.data.sessions.SessionTemplateApplyMode
 import com.example.kpkn.domain.exercises.*
 import com.example.kpkn.screens.sessioneditor.CatalogSearchField
 import com.example.kpkn.screens.sessioneditor.CompactCatalogFilterChip
-import com.example.kpkn.screens.sessioneditor.components.ExerciseCatalogInfoDialog
 import com.example.kpkn.screens.sessioneditor.components.TemplateCatalogBrowser
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
@@ -266,58 +265,116 @@ internal fun ExerciseQuickActionsSheet(
         return
     }
 
-    var showInfoDialog by rememberSaveable(exercise.id) { mutableStateOf(false) }
     val catalogLookup = catalogExerciseIndex()
     val selectedInfo = remember(exercise.id, catalogLookup) {
         resolveCatalogExerciseInfo(exercise, catalogLookup)
     }
-    val discomfortByExercise = remember(workoutLogs) {
-        buildDiscomfortByExercise(workoutLogs)
+    val muscles = remember(exercise.id, selectedInfo) {
+        (selectedInfo?.involvedMuscles?.map { it.muscle }
+            ?: exercise.effectiveMuscles?.map { it.muscle }.orEmpty())
+            .filter { it.isNotBlank() }
+            .distinct()
+            .take(8)
     }
+    val articularProfile = remember(exercise.id, selectedInfo) {
+        listOfNotNull(
+            selectedInfo?.articulationType?.let { "Tipo: ${articulationLabel(it)}" },
+            selectedInfo?.movementPattern?.takeIf { it.isNotBlank() }?.let { "Patrón: $it" },
+            selectedInfo?.force?.takeIf { it.isNotBlank() }?.let { "Dirección: $it" },
+            selectedInfo?.anatomicalConsiderations?.firstOrNull()?.trait?.takeIf { it.isNotBlank() }?.let { "Consideración: $it" },
+        )
+    }
+    val tags = listOfNotNull(
+        selectedInfo?.equipment,
+        selectedInfo?.category,
+        selectedInfo?.type,
+        selectedInfo?.variantName,
+    ).filter { it.isNotBlank() }.distinct()
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .heightIn(max = 620.dp)
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Text("Acciones rápidas", fontWeight = FontWeight.Black, fontSize = 18.sp)
+        Text("Información del ejercicio", fontWeight = FontWeight.Black, fontSize = 18.sp)
         Text(
             exercise.name,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
         )
-
-        if (selectedInfo != null) {
-            OutlinedButton(onClick = { showInfoDialog = true }, modifier = Modifier.fillMaxWidth()) {
-                Icon(Icons.Default.Visibility, null, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(8.dp))
-                Text("Ver información")
+        if (tags.isNotEmpty()) {
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                items(tags, key = { it }) { tag ->
+                    Surface(
+                        shape = RoundedCornerShape(999.dp),
+                        color = Color.White.copy(alpha = 0.09f),
+                    ) {
+                        Text(
+                            tag,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White.copy(alpha = 0.84f),
+                        )
+                    }
+                }
             }
         }
 
-        OutlinedButton(onClick = onOpenPicker, modifier = Modifier.fillMaxWidth()) {
+        QuickInfoBlock(
+            title = "Descripción",
+            value = selectedInfo?.description?.takeIf { !it.isNullOrBlank() }
+                ?: "No hay una descripción editorial disponible para esta configuración.",
+        )
+        QuickInfoBlock(
+            title = "Músculos involucrados",
+            value = muscles.joinToString(" · ").ifBlank { "Información muscular no disponible" },
+        )
+        QuickInfoBlock(
+            title = "Involucramiento articular",
+            value = articularProfile.joinToString(" · ").ifBlank { "Perfil articular no disponible" },
+        )
+
+        FilledTonalButton(
+            onClick = onOpenPicker,
+            modifier = Modifier.fillMaxWidth(),
+            colors = kpknSheetWhiteTonalButtonColors(),
+        ) {
             Icon(Icons.Default.Search, null, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(8.dp))
             Text("Cambiar ejercicio")
         }
-        OutlinedButton(onClick = onManageSuperset, modifier = Modifier.fillMaxWidth()) {
-            Icon(Icons.Default.Link, null, modifier = Modifier.size(16.dp))
-            Spacer(Modifier.width(8.dp))
-            Text(if (exercise.isInSuperset()) "Gestionar superserie" else "Crear superserie")
+    }
+}
+
+@Composable
+private fun QuickInfoBlock(
+    title: String,
+    value: String,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        color = Color.White.copy(alpha = 0.07f),
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(title, fontWeight = FontWeight.Black, color = Color.White.copy(alpha = 0.92f))
+            Text(value, style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.72f))
         }
     }
+}
 
-    if (showInfoDialog && selectedInfo != null) {
-        ExerciseCatalogInfoDialog(
-            exercise = selectedInfo,
-            catalog = catalog,
-            associatedDiscomforts = discomfortByExercise[selectedInfo.id].orEmpty(),
-            onOpenExercise = onOpenExerciseDetail,
-            onDismiss = { showInfoDialog = false },
-        )
-    }
-
+private fun articulationLabel(value: String): String = when (value.uppercase()) {
+    "MULTIARTICULAR" -> "Multiarticular"
+    "AISLADO" -> "Aislado"
+    else -> value.replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() }
 }
 
 

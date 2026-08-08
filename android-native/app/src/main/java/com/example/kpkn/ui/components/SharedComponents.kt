@@ -14,12 +14,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 // ─── SectionHeader ───────────────────────────────────────────────────────────
@@ -49,9 +52,24 @@ fun SwipeToDeleteCard(
     shape: Shape = RoundedCornerShape(28.dp),
     content: @Composable () -> Unit,
 ) {
-    val deleteThreshold = 80.dp
+    val deleteThreshold = 80.dp.value
+    val maxReveal = 128.dp.value
     var offsetX by remember { mutableFloatStateOf(0f) }
-    val animatedOffset by animateFloatAsState(targetValue = offsetX, label = "swipe")
+    var deleting by remember { mutableStateOf(false) }
+    val animatedOffset by animateFloatAsState(
+        targetValue = if (deleting) -maxReveal * 1.35f else offsetX,
+        label = "swipe-offset",
+    )
+    val animatedAlpha by animateFloatAsState(
+        targetValue = if (deleting) 0f else 1f,
+        label = "swipe-alpha",
+    )
+
+    LaunchedEffect(deleting) {
+        if (!deleting) return@LaunchedEffect
+        delay(180)
+        onDelete()
+    }
 
     Box(
         modifier = modifier
@@ -63,15 +81,35 @@ fun SwipeToDeleteCard(
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .background(MaterialTheme.colorScheme.error),
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(
+                                Color(0xFF21090D),
+                                Color(0xFF641722),
+                                MaterialTheme.colorScheme.error.copy(alpha = 0.94f),
+                            ),
+                        ),
+                    ),
                 contentAlignment = Alignment.CenterEnd,
             ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Eliminar",
-                    tint = Color.White,
-                    modifier = Modifier.padding(end = 24.dp),
-                )
+                Row(
+                    modifier = Modifier.padding(end = 20.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Eliminar",
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Text(
+                        "Eliminar",
+                        color = Color.White,
+                        fontWeight = FontWeight.Black,
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                }
             }
         }
 
@@ -79,18 +117,20 @@ fun SwipeToDeleteCard(
         Box(
             modifier = Modifier
                 .offset { IntOffset(animatedOffset.roundToInt(), 0) }
+                .graphicsLayer { alpha = animatedAlpha }
                 .draggable(
                     orientation = Orientation.Horizontal,
                     state = rememberDraggableState { delta ->
                         val newOffset = offsetX + delta
-                        // Only allow left swipe (negative), cap at -120dp
-                        offsetX = newOffset.coerceIn(-120.dp.value * 3, 0f)
+                        // Only allow left swipe; the header owns this gesture.
+                        offsetX = newOffset.coerceIn(-maxReveal, 0f)
                     },
                     onDragStopped = {
-                        if (offsetX <= -deleteThreshold.value * 3) {
-                            onDelete()
+                        if (offsetX <= -deleteThreshold) {
+                            deleting = true
+                        } else {
+                            offsetX = 0f
                         }
-                        offsetX = 0f
                     },
                 ),
         ) {

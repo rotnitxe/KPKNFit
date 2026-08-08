@@ -64,7 +64,6 @@ import com.example.kpkn.screens.sessioneditor.components.GroupEditorCard
 import com.example.kpkn.screens.sessioneditor.components.ExerciseEditorCard
 import com.example.kpkn.screens.sessioneditor.components.SupersetGroupEditorCard
 import com.example.kpkn.screens.sessioneditor.components.matchesCompetitionMovement
-import com.example.kpkn.ui.components.SwipeToDeleteCard
 
 private fun Modifier.drawPartBorder(partAccent: Color): Modifier = this
 
@@ -410,9 +409,6 @@ private fun LooseExerciseItem(
     val partId = "__loose__"
     val accentHex = resolveExerciseAccentHex(session, partColor = null)
     key("loose|${exercise.id}") {
-        SwipeToDeleteCard(
-            onDelete = { viewModel.removeExercise(null, exercise.id) },
-        ) {
         ExerciseEditorCard(
             exercise = exercise,
             exerciseInfo = resolveCatalogInfoForDisplay(exercise, exerciseInfoById),
@@ -438,12 +434,18 @@ private fun LooseExerciseItem(
             onDrag = updateExerciseDrag,
             onDragEnd = { endExerciseDrag() },
             onUpdateExercise = { updater -> viewModel.updateExercise(null, exercise.id, updater) },
+            onDeleteExercise = { viewModel.removeExercise(null, exercise.id) },
             onAddSet = { side -> viewModel.addSet(null, exercise.id, side) },
             onUpdateSet = { setId, updater -> viewModel.updateSet(null, exercise.id, setId, updater) },
             onRemoveSet = { setId -> viewModel.removeSet(null, exercise.id, setId) },
             onMoveSet = { setId, dir -> viewModel.moveSet(null, exercise.id, setId, dir) },
             onRemoveMobility = { mobilityId -> viewModel.removeMobilitySeries(null, exercise.id, mobilityId) },
             onOpenQuickActions = { viewModel.openExerciseQuickActions(null, exercise.id) },
+            onOpenSuperset = {
+                val groupId = exercise.supersetGroupRefOrLegacyId()
+                if (groupId == null) viewModel.openSupersetCreator(null, listOf(exercise.id))
+                else viewModel.openSupersetManager(null, groupId)
+            },
             onOpenWarmup = { viewModel.openWarmup(exercise.id) },
             onOpenMobility = { viewModel.openMobilityPicker(null, exercise.id) },
             relationshipAnchorName = resolveRelationshipAnchorName(session, exercise),
@@ -456,7 +458,6 @@ private fun LooseExerciseItem(
                 if (pendingAutoExpandExerciseId == exercise.id) onPendingAutoExpandHandled(exercise.id)
             },
         )
-        }
     }
     ExerciseListDivider(
         exercise = exercise,
@@ -490,9 +491,6 @@ private fun PartExerciseItem(
 ) {
     key("${part.id}|${exercise.id}") {
         val accentHex = resolveExerciseAccentHex(session, part.color)
-        SwipeToDeleteCard(
-            onDelete = { viewModel.removeExercise(part.id, exercise.id) },
-        ) {
         ExerciseEditorCard(
             exercise = exercise,
             exerciseInfo = resolveCatalogInfoForDisplay(exercise, exerciseInfoById),
@@ -518,12 +516,18 @@ private fun PartExerciseItem(
             onDrag = updateExerciseDrag,
             onDragEnd = { endExerciseDrag() },
             onUpdateExercise = { updater -> viewModel.updateExercise(part.id, exercise.id, updater) },
+            onDeleteExercise = { viewModel.removeExercise(part.id, exercise.id) },
             onAddSet = { side -> viewModel.addSet(part.id, exercise.id, side) },
             onUpdateSet = { setId, updater -> viewModel.updateSet(part.id, exercise.id, setId, updater) },
             onRemoveSet = { setId -> viewModel.removeSet(part.id, exercise.id, setId) },
             onMoveSet = { setId, dir -> viewModel.moveSet(part.id, exercise.id, setId, dir) },
             onRemoveMobility = { mobilityId -> viewModel.removeMobilitySeries(part.id, exercise.id, mobilityId) },
             onOpenQuickActions = { viewModel.openExerciseQuickActions(part.id, exercise.id) },
+            onOpenSuperset = {
+                val groupId = exercise.supersetGroupRefOrLegacyId()
+                if (groupId == null) viewModel.openSupersetCreator(part.id, listOf(exercise.id))
+                else viewModel.openSupersetManager(part.id, groupId)
+            },
             onOpenWarmup = { viewModel.openWarmup(exercise.id) },
             onOpenMobility = { viewModel.openMobilityPicker(part.id, exercise.id) },
             relationshipAnchorName = resolveRelationshipAnchorName(session, exercise),
@@ -536,7 +540,6 @@ private fun PartExerciseItem(
                 if (pendingAutoExpandExerciseId == exercise.id) onPendingAutoExpandHandled(exercise.id)
             },
         )
-        }
     }
     ExerciseListDivider(
         exercise = exercise,
@@ -643,12 +646,18 @@ private fun LooseSupersetItem(
                     onDrag = updateExerciseDrag,
                     onDragEnd = { endExerciseDrag() },
                     onUpdateExercise = { updater -> viewModel.updateExercise(null, member.id, updater) },
+                    onDeleteExercise = { viewModel.removeExerciseFromSupersetGroup(supersetGroup.id, null, member.id) },
                     onAddSet = { viewModel.addSet(null, member.id) },
                     onUpdateSet = { setId, updater -> viewModel.updateSet(null, member.id, setId, updater) },
                     onRemoveSet = { setId -> viewModel.removeSet(null, member.id, setId) },
                     onMoveSet = { setId, dir -> viewModel.moveSet(null, member.id, setId, dir) },
                     onRemoveMobility = { mobilityId -> viewModel.removeMobilitySeries(null, member.id, mobilityId) },
                     onOpenQuickActions = { viewModel.openExerciseQuickActions(null, member.id) },
+                    onOpenSuperset = {
+                        val groupId = member.supersetGroupRefOrLegacyId()
+                        if (groupId == null) viewModel.openSupersetCreator(null, listOf(member.id))
+                        else viewModel.openSupersetManager(null, groupId)
+                    },
                     onOpenWarmup = { viewModel.openWarmup(member.id) },
                     onOpenMobility = { viewModel.openMobilityPicker(null, member.id) },
                     relationshipAnchorName = resolveRelationshipAnchorName(session, member),
@@ -769,12 +778,18 @@ private fun PartSupersetItem(
                     onDrag = updateExerciseDrag,
                     onDragEnd = { endExerciseDrag() },
                     onUpdateExercise = { updater -> viewModel.updateExercise(part.id, member.id, updater) },
+                    onDeleteExercise = { viewModel.removeExerciseFromSupersetGroup(supersetGroup.id, part.id, member.id) },
                     onAddSet = { viewModel.addSet(part.id, member.id) },
                     onUpdateSet = { setId, updater -> viewModel.updateSet(part.id, member.id, setId, updater) },
                     onRemoveSet = { setId -> viewModel.removeSet(part.id, member.id, setId) },
                     onMoveSet = { setId, dir -> viewModel.moveSet(part.id, member.id, setId, dir) },
                     onRemoveMobility = { mobilityId -> viewModel.removeMobilitySeries(part.id, member.id, mobilityId) },
                     onOpenQuickActions = { viewModel.openExerciseQuickActions(part.id, member.id) },
+                    onOpenSuperset = {
+                        val groupId = member.supersetGroupRefOrLegacyId()
+                        if (groupId == null) viewModel.openSupersetCreator(part.id, listOf(member.id))
+                        else viewModel.openSupersetManager(part.id, groupId)
+                    },
                     onOpenWarmup = { viewModel.openWarmup(member.id) },
                     onOpenMobility = { viewModel.openMobilityPicker(part.id, member.id) },
                     relationshipAnchorName = resolveRelationshipAnchorName(session, member),

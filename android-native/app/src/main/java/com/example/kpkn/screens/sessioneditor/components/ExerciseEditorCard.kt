@@ -89,6 +89,7 @@ import com.example.kpkn.screens.sessioneditor.safeIntOrNull
 import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
 import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
 import com.example.kpkn.ui.components.KpknDropdownMenu
+import com.example.kpkn.ui.components.SwipeToDeleteCard
 import com.example.kpkn.domain.workout.warmupValidationMessages
 import java.util.UUID
 import androidx.compose.runtime.setValue
@@ -111,12 +112,14 @@ internal fun ExerciseEditorCard(
     onDrag: (Offset) -> Unit,
     onDragEnd: () -> Unit,
     onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
+    onDeleteExercise: () -> Unit,
     onAddSet: (String?) -> Unit,
     onUpdateSet: (String, (ExerciseSet) -> ExerciseSet) -> Unit,
     onRemoveSet: (String) -> Unit,
     onMoveSet: (String, Int) -> Unit,
     onRemoveMobility: (String) -> Unit,
     onOpenQuickActions: () -> Unit,
+    onOpenSuperset: () -> Unit = {},
     onOpenWarmup: () -> Unit = {},
     onOpenMobility: () -> Unit = {},
     relationshipAnchorName: String?,
@@ -237,7 +240,13 @@ internal fun ExerciseEditorCard(
                 .background(accentColor.copy(alpha = if (expanded) 0.45f else 0.18f)),
         )
 
-        // Header row — always visible, tap to expand/collapse
+        // Header row — always visible, tap to expand/collapse. The swipe target
+        // intentionally ends here so editing controls never delete the card.
+        SwipeToDeleteCard(
+            onDelete = onDeleteExercise,
+            modifier = Modifier.fillMaxWidth(),
+            shape = cardShape,
+        ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -361,6 +370,7 @@ internal fun ExerciseEditorCard(
                     .size(34.dp)
                     .clickable { expanded = !expanded },
             )
+        }
         }
 
         // Inline expanded editor
@@ -603,6 +613,17 @@ internal fun ExerciseEditorCard(
                                 onClick = {
                                     showExerciseOptionsMenu = false
                                     onUpdateExercise { current -> current.toggledBilateralUnilateral() }
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        if (exercise.isInSuperset()) "Gestionar superserie" else "Activar superserie",
+                                    )
+                                },
+                                onClick = {
+                                    showExerciseOptionsMenu = false
+                                    onOpenSuperset()
                                 },
                             )
                             DropdownMenuItem(
