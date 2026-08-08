@@ -161,6 +161,10 @@ class WorkoutVoiceController(
     private var pendingUndo: VoiceUndoPayload? = null
     private var announcedTenSecondsForRest = false
     private var clarificationMisses = 0
+    /** Re-preguntas de cortesía ya usadas por miss atribuible a la captura (tope anti-bucle). */
+    private var clarificationCaptureGraceUsed = 0
+    /** Último partial-fallback capturado dentro de la ventana post-TTS (habla del usuario o eco del TTS). */
+    private var lastPostTtsWindowPartialAtMs: Long = 0L
     private var lastSuggestedSetKey: String? = null
     private var lastUnilateralAnnouncedKey: String? = null
 
@@ -434,7 +438,11 @@ class WorkoutVoiceController(
             if (announcedFinalFeedbackPrompt) return
             announcedFinalFeedbackPrompt = true
             if (!allows(VoiceAnnouncementKind.ESSENTIAL)) return
-            speakWhilePaused { ttsManager.speakError("¿Alguna molestia o nota final? Di guardar cuando termines.") }
+            speakWhilePaused {
+                ttsManager.speakAskTechnicalQuality()
+                ttsManager.speakAskDiscomfort()
+                ttsManager.speakFeedbackSaveHint()
+            }
         } else {
             if (announcedPostFeedbackPrompt) return
             announcedPostFeedbackPrompt = true
@@ -444,6 +452,23 @@ class WorkoutVoiceController(
                 ttsManager.speakAskDiscomfort()
             }
         }
+    }
+
+    /**
+     * Prompt de feedback del ÚLTIMO descanso (sheet final visible, pendingPostExerciseIdx = -2):
+     * activa el parseo de feedback y anuncia la rama final (calidad 1-10 + molestias).
+     */
+    fun onVoicePendingFinalFeedbackPrompt(exerciseIds: Set<String>) {
+        if (!sessionWanted) return
+        voiceFeedbackPromptExerciseIds = exerciseIds
+        voiceFeedbackPromptActive = true
+        announcedFinalFeedbackPrompt = false
+        WorkoutVoiceDiagnosticLogger.event(
+            "feedback_prompt_shown",
+            mapOf("exerciseId" to exerciseIds.firstOrNull(), "origin" to "voice_final_rest"),
+        )
+        pushGrammar(VoicePipelineStage.LISTENING)
+        announceFeedbackSheetPrompt(isFinal = true)
     }
 
     fun onVoicePendingFeedbackPrompt(exerciseIds: Set<String>) {
@@ -661,7 +686,7 @@ class WorkoutVoiceController(
         _state.update { it.copy(pendingAction = VoicePendingAction.DiscomfortSelection(candidates = candidates)) }
         runSpeakingOrSkip(
             onComplete = { resumeListening() },
-            speak = { ttsManager.speakError("Elige una molestia: ${candidates.values.joinToString(", ")}.") },
+            speak = { ttsManager.speakError("¿Dónde exactamente? Opciones: ${candidates.values.joinToString(", ")}.") },
         )
     }
 
@@ -1349,11 +1374,18 @@ class WorkoutVoiceController(
         val nowMs = SystemClock.elapsedRealtime()
         val sinceTtsMs = nowMs - lastTtsCompletedAtMs
         if (shouldSuppressPartialFallbackAfterTts(lastTtsCompletedAtMs, nowMs, PARTIAL_FALLBACK_POST_TTS_WINDOW_MS)) {
-            WorkoutVoiceDiagnosticLogger.event(
-                "partial_fallback_suppressed_post_tts",
-                mapOf("transcript" to candidate, "sinceTtsMs" to sinceTtsMs),
-            )
-            return
+            // Evidencia de habla/eco dentro de la ventana post-TTS: sirve para no
+            // castigar misses de clarificación atribuibles a la captura.
+            lastPostTtsWindowPartialAtMs = nowMs
+            // Con una clarificación viva el partial puede ser la respuesta del
+            // usuario: no suprimir el fallback (la guardia del engine ya se acortó).
+            if (_state.value.pendingAction == null) {
+                WorkoutVoiceDiagnosticLogger.event(
+                    "partial_fallback_suppressed_post_tts",
+                    mapOf("transcript" to candidate, "sinceTtsMs" to sinceTtsMs),
+                )
+                return
+            }
         }
         partialFallbackJob?.cancel()
         partialFallbackJob = scope?.launch {
@@ -1452,21 +1484,44 @@ class WorkoutVoiceController(
         }
         if (epoch != captureEpoch) {
             val graceStage = _state.value.stage
-            if (isStaleConfirmGraceEligible(graceStage, earlySanitized)) {
-                WorkoutVoiceDiagnosticLogger.event(
-                    "stale_final_grace_accepted",
-                    mapOf("transcript" to text, "epoch" to epoch, "currentEpoch" to captureEpoch),
-                )
-                handleConfirmInput(earlySanitized)
-                return
+            // Las clarificaciones guiadas se resuelven en LISTENING: una respuesta
+            // plausible (número o sí/no) con epoch viejo no se descarta.
+            val plausibleClarificationReply = extractFirstVoiceDecimalNumber(earlySanitized) != null ||
+                extractFirstVoiceNumber(earlySanitized) != null ||
+                isAffirmativeReply(earlySanitized) ||
+                isNegativeReply(earlySanitized)
+            when (staleFinalGraceDecision(graceStage, _state.value.pendingAction, earlySanitized, plausibleClarificationReply)) {
+                StaleFinalGraceDecision.ACCEPT_AS_CONFIRM -> {
+                    WorkoutVoiceDiagnosticLogger.event(
+                        "stale_final_grace_accepted",
+                        mapOf("transcript" to text, "epoch" to epoch, "currentEpoch" to captureEpoch),
+                    )
+                    handleConfirmInput(earlySanitized)
+                    return
+                }
+                StaleFinalGraceDecision.ACCEPT_AS_CLARIFICATION -> {
+                    // La pregunta de clarificación sigue viva: reprocesar como final
+                    // normal (cae en processCommand) en vez de descartar como stale.
+                    WorkoutVoiceDiagnosticLogger.event(
+                        "stale_final_grace_accepted",
+                        mapOf(
+                            "transcript" to text,
+                            "epoch" to epoch,
+                            "currentEpoch" to captureEpoch,
+                            "mode" to "clarification",
+                        ),
+                    )
+                }
+                StaleFinalGraceDecision.DROP -> {
+                    // Final capturado en una ventana de conversación anterior (p.ej. el "no" de una
+                    // confirmación que llegó tarde): nunca procesarlo como comando nuevo.
+                    WorkoutVoiceDiagnosticLogger.event(
+                        "stale_final_discarded",
+                        mapOf("transcript" to text, "epoch" to epoch, "currentEpoch" to captureEpoch),
+                    )
+                    return
+                }
             }
-            // Final capturado en una ventana de conversación anterior (p.ej. el "no" de una
-            // confirmación que llegó tarde): nunca procesarlo como comando nuevo.
-            WorkoutVoiceDiagnosticLogger.event(
-                "stale_final_discarded",
-                mapOf("transcript" to text, "epoch" to epoch, "currentEpoch" to captureEpoch),
-            )
-            return
         }
         lastVoiceActivityAtMs = SystemClock.elapsedRealtime()
         val s = _state.value
@@ -1533,6 +1588,34 @@ class WorkoutVoiceController(
     }
 
     /**
+     * True si un miss de clarificación es atribuible a la captura (transcript
+     * ruido o habla reciente dentro de la ventana post-TTS que pudo decapitar la
+     * respuesta real) y quedan cortesías: el llamador re-pregunta sin consumir
+     * intento. El tope evita re-preguntar en bucle si el eco del TTS recurre.
+     */
+    private fun registerClarificationCaptureGrace(transcript: String): Boolean {
+        if (clarificationCaptureGraceUsed >= MAX_CLARIFICATION_CAPTURE_GRACE) return false
+        val noise = isNoiseTranscript(transcript)
+        val artifact = isClarificationMissCaptureArtifact(
+            noise = noise,
+            lastPostTtsWindowPartialAtMs = lastPostTtsWindowPartialAtMs,
+            nowMs = SystemClock.elapsedRealtime(),
+            graceWindowMs = CLARIFICATION_MISS_POST_TTS_GRACE_MS,
+        )
+        if (!artifact) return false
+        clarificationCaptureGraceUsed += 1
+        WorkoutVoiceDiagnosticLogger.event(
+            "guided_clarification_miss_graced",
+            mapOf(
+                "transcript" to transcript,
+                "noise" to noise,
+                "sincePostTtsPartialMs" to (SystemClock.elapsedRealtime() - lastPostTtsWindowPartialAtMs),
+            ),
+        )
+        return true
+    }
+
+    /**
      * Fase 4.2: aviso único por sesión si capturamos voz real con nivel bajo
      * (pico RMS de la frase por debajo del umbral). Devuelve true si dispachó el
      * aviso (y el llamador debe retornar). No se dispara en silencio.
@@ -1568,13 +1651,20 @@ class WorkoutVoiceController(
             return
         }
 
-        if (exerciseInfo?.showPostExerciseSheet == true) {
-            val feedbackCmd = WorkoutVoiceCommandParser.parseFeedbackCommand(transcript)
-            _state.update { it.copy(lastCommand = feedbackCmd) }
-            onCommandDetected?.invoke(feedbackCmd)
-            releaseDucking()
-            resumeListening()
-            return
+        val feedbackPromptOpen = (exerciseInfo?.showPostExerciseSheet == true) || voiceFeedbackPromptActive
+        if (feedbackPromptOpen) {
+            val feedbackCmd = WorkoutVoiceCommandParser.parseFeedbackCommand(
+                transcript,
+                bareNumberIsQuality = voiceFeedbackPromptActive,
+            )
+            // Serie dictada durante el prompt ("8 por 12"): no interceptar, sigue el parseo normal.
+            if (!feedbackCmd.isEmpty || !WorkoutVoiceCommandParser.looksLikeSetPattern(transcript)) {
+                _state.update { it.copy(lastCommand = feedbackCmd) }
+                onCommandDetected?.invoke(feedbackCmd)
+                releaseDucking()
+                resumeListening()
+                return
+            }
         }
 
         val isTimeMode = exerciseInfo?.isTimeMode ?: false
@@ -1613,6 +1703,14 @@ class WorkoutVoiceController(
                 val base = pendingClarification.baseInterpretation
                 val value = extractFirstVoiceNumber(transcript)
                 if (value == null || value > MAX_PLAUSIBLE_RIR) {
+                    if (value == null && registerClarificationCaptureGrace(transcript)) {
+                        // Miss atribuible a la captura: re-preguntar sin consumir intento.
+                        runSpeakingOrSkip(
+                            onComplete = { resumeListening() },
+                            speak = { ttsManager.speakAskRirValue() },
+                        )
+                        return
+                    }
                     clarificationMisses++
                     if (clarificationMisses >= MAX_CLARIFICATION_MISSES) {
                         clarificationMisses = 0
@@ -1669,9 +1767,9 @@ class WorkoutVoiceController(
             }
             is VoicePendingAction.ExerciseNavigation -> null
             is VoicePendingAction.ExerciseReplacement -> null
-            is VoicePendingAction.DiscomfortSelection -> pendingClarification.candidates.entries
-                .firstOrNull { normalizedClarification.contains(it.value.lowercase()) }
-                ?.let { VoiceSessionCommand.LogFeedback(null, it.key, null) }
+            is VoicePendingAction.DiscomfortSelection -> WorkoutVoiceCommandParser
+                .resolveDiscomfortCandidateId(transcript, pendingClarification.candidates)
+                ?.let { VoiceSessionCommand.LogFeedback(null, it, null) }
             is VoicePendingAction.TagCreation -> null
             is VoicePendingAction.FinishWithPending -> null
             is VoicePendingAction.TechniqueDetails -> WorkoutVoiceCommandParser.parseCommand(
@@ -1693,6 +1791,20 @@ class WorkoutVoiceController(
                     extractFirstVoiceNumber(transcript)
                 }
                 if (value == null) {
+                    if (registerClarificationCaptureGrace(transcript)) {
+                        // Miss atribuible a la captura: re-preguntar el mismo slot sin consumir intento.
+                        runSpeakingOrSkip(
+                            onComplete = { resumeListening() },
+                            speak = {
+                                if (pendingClarification.slot == WorkoutVoiceField.VALUE) {
+                                    ttsManager.speakAskReps()
+                                } else {
+                                    ttsManager.speakAskWeight()
+                                }
+                            },
+                        )
+                        return
+                    }
                     clarificationMisses++
                     if (clarificationMisses >= MAX_CLARIFICATION_MISSES) {
                         clarificationMisses = 0
@@ -1769,6 +1881,14 @@ class WorkoutVoiceController(
                     )
                     return
                 } else {
+                    if (registerClarificationCaptureGrace(transcript)) {
+                        // Miss atribuible a la captura: re-preguntar lo planificado sin consumir intento.
+                        runSpeakingOrSkip(
+                            onComplete = { resumeListening() },
+                            speak = { ttsManager.speakAskPlannedReps(pendingClarification.plannedValue.toInt()) },
+                        )
+                        return
+                    }
                     clarificationMisses++
                     _state.update {
                         it.copy(
@@ -1850,6 +1970,19 @@ class WorkoutVoiceController(
                             ),
                         )
                     } else {
+                        if (registerClarificationCaptureGrace(transcript)) {
+                            // Miss atribuible a la captura: re-preguntar la sugerencia sin consumir intento.
+                            runSpeakingOrSkip(
+                                onComplete = { resumeListening() },
+                                speak = {
+                                    ttsManager.speakAskSuggestedWeight(
+                                        pendingClarification.suggestedWeight,
+                                        pendingClarification.plannedReps,
+                                    )
+                                },
+                            )
+                            return
+                        }
                         clarificationMisses++
                         _state.update {
                             it.copy(
@@ -2021,8 +2154,9 @@ class WorkoutVoiceController(
             isTimeMode = isTimeMode,
             isUnilateral = isUnilateral,
             isRestTimerActive = exerciseInfo?.restSecondsRemaining != null,
-            showPostExerciseSheet = false,
-            showFinishSheet = false,
+            showPostExerciseSheet = exerciseInfo?.showPostExerciseSheet == true,
+            showFinishSheet = exerciseInfo?.showFinishSheet == true,
+            voiceFeedbackPromptActive = voiceFeedbackPromptActive,
             pendingAddSetPersistence = false,
             unitMode = exerciseInfo?.unitMode ?: if (isTimeMode) UnitModeV2.TIME else UnitModeV2.REPS,
             customUnit = exerciseInfo?.customUnit,
@@ -2455,6 +2589,7 @@ class WorkoutVoiceController(
                     ),
                 )
             }
+            clarificationCaptureGraceUsed = 0
             runSpeakingOrSkip(
                 onComplete = { resumeListening() },
                 speak = { ttsManager.speakAskRirValue() },
@@ -2501,6 +2636,10 @@ class WorkoutVoiceController(
             val suggestedWeight = exerciseInfo?.suggestedWeight
             when {
                 metricMissing && plannedMetric != null -> {
+                    // Acumulador limpio: fragmentos viejos ("diez repeticiones sesenta")
+                    // contaminarían la respuesta a la clarificación.
+                    voskAccumulator.reset()
+                    clarificationCaptureGraceUsed = 0
                     _state.update {
                         it.copy(pendingAction = VoicePendingAction.ConfirmPlannedValue(finalInterpretation, WorkoutVoiceField.VALUE, plannedMetric))
                     }
@@ -2515,6 +2654,9 @@ class WorkoutVoiceController(
                     return
                 }
                 metricMissing -> {
+                    // Acumulador limpio: fragmentos viejos contaminarían la respuesta.
+                    voskAccumulator.reset()
+                    clarificationCaptureGraceUsed = 0
                     _state.update {
                         it.copy(pendingAction = VoicePendingAction.MissingSlot(finalInterpretation, WorkoutVoiceField.VALUE))
                     }
@@ -2529,6 +2671,9 @@ class WorkoutVoiceController(
                     return
                 }
                 weightMissing && suggestedWeight != null -> {
+                    // Acumulador limpio: fragmentos viejos contaminarían la respuesta.
+                    voskAccumulator.reset()
+                    clarificationCaptureGraceUsed = 0
                     _state.update {
                         it.copy(pendingAction = VoicePendingAction.ConfirmSuggestedLoad(finalInterpretation, suggestedWeight, plannedMetric))
                     }
@@ -2543,6 +2688,9 @@ class WorkoutVoiceController(
                     return
                 }
                 weightMissing -> {
+                    // Acumulador limpio: fragmentos viejos contaminarían la respuesta.
+                    voskAccumulator.reset()
+                    clarificationCaptureGraceUsed = 0
                     _state.update {
                         it.copy(pendingAction = VoicePendingAction.MissingSlot(finalInterpretation, WorkoutVoiceField.WEIGHT))
                     }
@@ -3349,8 +3497,13 @@ class WorkoutVoiceController(
                 VoicePipelineStage.RECONNECTING
             },
         )
-        announceSuggestedLoadForCurrentSetOnce()
-        announcePendingUnilateralSideOnce()
+        // No pisar una pregunta de clarificación viva con anuncios encadenados:
+        // una segunda TTS pausa la captura y la respuesta del usuario se pierde.
+        // Las llaves "...Once" quedan sin marcar, así que se reagendan al resolver.
+        if (_state.value.pendingAction == null) {
+            announceSuggestedLoadForCurrentSetOnce()
+            announcePendingUnilateralSideOnce()
+        }
     }
 
     /** Anuncia el lado pendiente al entrar a una serie unilateral nueva (una vez por serie). */
@@ -3644,6 +3797,10 @@ class WorkoutVoiceController(
         const val PARTIAL_FALLBACK_POST_TTS_WINDOW_MS = 1_000L
         /** Intentos fallidos de respuesta a una clarificación guiada antes de cancelar. */
         const val MAX_CLARIFICATION_MISSES = 2
+        /** Ventana tras habla capturada post-TTS en la que un miss de clarificación se perdona. */
+        const val CLARIFICATION_MISS_POST_TTS_GRACE_MS = 1_200L
+        /** Re-preguntas de cortesía por clarificación; evita bucles si el eco del TTS recurre. */
+        const val MAX_CLARIFICATION_CAPTURE_GRACE = 2
         /** Un RIR mayor a esto es imposible (reserva en repeticiones ≤ 5): se re-pregunta. */
         const val MAX_PLAUSIBLE_RIR = 5.0
         const val REPORT_COMMAND = "reportar equipo"
@@ -3673,8 +3830,49 @@ private fun isConfirmOrCancelPhrase(text: String): Boolean {
     return confirmTokens.any { token -> normalized == token || normalized.startsWith("$token ") }
 }
 
-internal fun isStaleConfirmGraceEligible(stage: VoicePipelineStage, transcript: String): Boolean =
-    stage == VoicePipelineStage.CONFIRM_WAIT && isConfirmOrCancelPhrase(transcript)
+/** Decisión ante un final stale (epoch de una ventana anterior). */
+internal enum class StaleFinalGraceDecision {
+    ACCEPT_AS_CONFIRM,
+    ACCEPT_AS_CLARIFICATION,
+    DROP,
+}
+
+/**
+ * Las confirmaciones sí/no se aceptan en CONFIRM_WAIT; las clarificaciones
+ * guiadas (MissingSlot/ConfirmPlannedValue/ConfirmSuggestedLoad) se resuelven
+ * en LISTENING, así que una respuesta plausible con epoch viejo también se
+ * acepta y se reprocesa como final normal en lugar de descartarse.
+ */
+internal fun staleFinalGraceDecision(
+    stage: VoicePipelineStage,
+    pendingAction: VoicePendingAction?,
+    transcript: String,
+    plausibleClarificationReply: Boolean,
+): StaleFinalGraceDecision {
+    if (stage == VoicePipelineStage.CONFIRM_WAIT && isConfirmOrCancelPhrase(transcript)) {
+        return StaleFinalGraceDecision.ACCEPT_AS_CONFIRM
+    }
+    val clarificationPending = pendingAction is VoicePendingAction.MissingSlot ||
+        pendingAction is VoicePendingAction.ConfirmPlannedValue ||
+        pendingAction is VoicePendingAction.ConfirmSuggestedLoad
+    if (stage == VoicePipelineStage.LISTENING && clarificationPending && plausibleClarificationReply) {
+        return StaleFinalGraceDecision.ACCEPT_AS_CLARIFICATION
+    }
+    return StaleFinalGraceDecision.DROP
+}
+
+/**
+ * Un miss de clarificación no se castiga si el transcript es ruido o si hubo
+ * habla capturada dentro de la ventana post-TTS reciente (la guardia anti-eco
+ * pudo tragarse la respuesta real del usuario).
+ */
+internal fun isClarificationMissCaptureArtifact(
+    noise: Boolean,
+    lastPostTtsWindowPartialAtMs: Long,
+    nowMs: Long,
+    graceWindowMs: Long,
+): Boolean = noise ||
+    (lastPostTtsWindowPartialAtMs > 0L && nowMs - lastPostTtsWindowPartialAtMs <= graceWindowMs)
 
 internal data class VoiceConfirmationTarget(
     val exerciseId: String,

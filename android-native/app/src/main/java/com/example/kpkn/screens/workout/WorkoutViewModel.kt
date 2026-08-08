@@ -257,6 +257,7 @@ class WorkoutViewModel(
         updatePredictionBias = ::updatePredictionBiasFromClosingFeedback,
         deferOnComplete = { cb -> deferredOnComplete = cb },
         prepareVoiceDiagnosticExport = ::prepareVoiceDiagnosticExport,
+        onEmptySession = ::handleEmptySessionFinishBlocked,
     )
 
     private val structuralPersistence = WorkoutStructuralPersistenceController(
@@ -417,6 +418,7 @@ class WorkoutViewModel(
                 override fun skipRemainingCurrentExercise() = stepNavigator.skipRemainingCurrentExercise()
                 override fun prevSet() = stepNavigator.prevSet()
                 override fun finishUpToCurrentPoint() = this@WorkoutViewModel.finishUpToCurrentPoint()
+                override fun finalizeVoiceSession() = this@WorkoutViewModel.finalizeVoiceSession()
                 override fun cancelWorkout() = this@WorkoutViewModel.cancelWorkout()
                 override fun savePostExerciseFeedback(feedback: PostExerciseFeedback) = this@WorkoutViewModel.savePostExerciseFeedback(feedback)
                 override fun savePostExerciseFeedbacks(feedbacks: List<PostExerciseFeedback>) = this@WorkoutViewModel.savePostExerciseFeedbacks(feedbacks)
@@ -2751,6 +2753,7 @@ class WorkoutViewModel(
         closingFeedback: SessionClosingFeedback,
         onPendingQuestionnaire: ((PendingQuestionnaire) -> Unit)? = null,
         onComplete: () -> Unit = {},
+        onFailure: (Exception) -> Unit = {},
     ) {
         flushExerciseNotes()
         finishController.finish(
@@ -2765,7 +2768,91 @@ class WorkoutViewModel(
                     onComplete()
                 }
             },
+            onFailure = onFailure,
         )
+    }
+
+    /**
+     * Cierre de sesión disparado por voz (P0: save desacoplado de Compose).
+     * Construye el [SessionClosingFeedback] con lo dictado (voiceFinal*) y delega en
+     * [finishWorkout] en el acto; los guards de WorkoutFinishController.finish
+     * (isFinishingWorkout/isComplete) absorben el doble disparo del LaunchedEffect
+     * de la sheet, y finalizeWorkout es idempotente por log.id.
+     * El TTS «guardado» suena SOLO en onComplete, es decir, después del write real.
+     */
+    fun finalizeVoiceSession() {
+        val state = _uiState.value
+        if (state.isFinishingWorkout || state.isComplete) return
+        // Sin series no hay nada que guardar; el guard de finish da el feedback.
+        if (state.completedSets.isEmpty()) return
+        val unifiedEffort = calculateUnifiedSessionEffortSignal(state.completedSets.values.toList())
+        val inferredFatigue = when {
+            unifiedEffort >= 10.5 -> 5
+            unifiedEffort >= 9.2 -> 4
+            unifiedEffort >= 7.8 -> 3
+            unifiedEffort >= 6.4 -> 2
+            else -> 1
+        }
+        val averageTechnique = state.postExerciseFeedbackByExerciseId.values
+            .map { it.technicalQuality }
+            .average()
+            .takeIf { !it.isNaN() }
+            ?.coerceIn(1.0, 10.0)
+            ?: 8.0
+        val additionalNote = state.voiceFinalAdditionalDiscomfortNote?.trim()?.takeIf { it.isNotBlank() }
+        val closingFeedback = SessionClosingFeedback(
+            overallFatigue = inferredFatigue,
+            // Sin preview post-sesión en este camino (vive en la sheet): ajustes neutros
+            // para no doble-contar el drenaje que el engine calcula del log real.
+            systemAdjustment = 0,
+            muscularAdjustment = 0,
+            structureAdjustment = 0,
+            discomforts = (
+                state.voiceFinalDiscomforts.map { discomfortLabel(it) } +
+                    listOfNotNull(additionalNote)
+                ).distinct(),
+            clarityRating = averageTechnique.toInt().coerceIn(1, 10),
+            environmentTags = emptyList(),
+            finalNeuralBattery = state.voiceFinalNeural,
+            finalSpinalBattery = state.voiceFinalSpinal,
+            neuralEdited = state.voiceFinalNeural != null,
+            spinalEdited = state.voiceFinalSpinal != null,
+            additionalDiscomfortNote = additionalNote,
+            stillPresentDiscomfortIds = state.voiceFinalDiscomforts,
+        )
+        finishWorkout(
+            notes = state.voiceFinalNotes.orEmpty().trim(),
+            fatigueLevel = inferredFatigue,
+            closingFeedback = closingFeedback,
+            onComplete = {
+                // TTS post-write: suena recién cuando finalizeWorkout ya persistió el log.
+                voiceController.speakSessionSaved()
+            },
+            onFailure = {
+                voiceController.speakFeedbackUpdated(
+                    "No pude guardar la sesión. Intentá decir sesión terminada de nuevo o tocá guardar en pantalla."
+                )
+            },
+        )
+    }
+
+    /** Guard P0 de sesión vacía: finish abortó sin series; avisa por voz y por UI. */
+    private fun handleEmptySessionFinishBlocked() {
+        _uiState.update {
+            it.copy(
+                emptyFinishGuardNotice = "No registré ninguna serie; no guardé un entrenamiento vacío."
+            )
+        }
+        if (voiceController.isEnabled()) {
+            voiceController.speakFeedbackUpdated(
+                "No registré ninguna serie en esta sesión, así que no guardé nada. " +
+                    "Registrá series o decí cancelar sesión para descartarla."
+            )
+        }
+    }
+
+    fun consumeEmptyFinishGuardNotice() {
+        _uiState.update { it.copy(emptyFinishGuardNotice = null) }
     }
 
     fun acceptVolumeAdvance() {

@@ -13,6 +13,7 @@ import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.VoiceTimedSetState
 import com.example.kpkn.data.models.PostExerciseFeedback
 import com.example.kpkn.data.models.TrainingMode
+import com.example.kpkn.data.models.discomfortLabel
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.voice.VoiceState
 import com.example.kpkn.services.workout.VoiceSessionCommand
@@ -84,6 +85,8 @@ class WorkoutVoiceCommandHandler(
         fun skipRemainingCurrentExercise()
         fun prevSet()
         fun finishUpToCurrentPoint()
+        /** Cierra la sesión por voz: dispara finishWorkout con los voiceFinal* recogidos. */
+        fun finalizeVoiceSession()
         fun cancelWorkout()
         fun savePostExerciseFeedback(feedback: PostExerciseFeedback)
         fun savePostExerciseFeedbacks(feedbacks: List<PostExerciseFeedback>)
@@ -834,12 +837,28 @@ class WorkoutVoiceCommandHandler(
         val state = getState()
         if (command.isSaveAction) {
             if (state.voiceFinalConfirmTriggered || state.isFinishingWorkout || state.isComplete) return
+            // (P0) Guard de sesión vacía: sin series registradas no se dispara un save
+            // hueco; se avisa por voz y la sesión queda abierta para corregir o cancelar.
+            if (state.completedSets.isEmpty()) {
+                WorkoutVoiceDiagnosticLogger.event("voice_finalize_blocked_empty_session")
+                voiceController.speakFeedbackUpdated(
+                    "No registré ninguna serie en esta sesión, así que no guardé nada. " +
+                        "Registrá series o decí cancelar sesión para descartarla."
+                )
+                return
+            }
             updateState {
                 it.copy(
                     voiceFinalConfirmTriggered = true
                 )
             }
-            voiceController.speakSessionSaved()
+            // (P0) Save desacoplado de Compose: el cierre por voz invoca finishWorkout
+            // directo. El flag queda como fallback visual (el LaunchedEffect de la sheet
+            // puede re-gatillar, pero los guards isFinishingWorkout/isComplete de finish
+            // absorben el doble disparo) y el TTS «guardado» se habla en onComplete,
+            // DESPUÉS del write real de finalizeWorkout.
+            WorkoutVoiceDiagnosticLogger.event("voice_finalize_requested")
+            ports.finalizeVoiceSession()
             return
         }
 
@@ -891,18 +910,14 @@ class WorkoutVoiceCommandHandler(
                 )
             }
             voiceController.speakFeedbackUpdated(updates.joinToString(", "))
+        } else if (command.isEmpty) {
+            // (P0) Fallback hablado: la frase no aportó campos ni cierre → en vez de
+            // silencio total se instruye la keyword de cierre esperada.
+            voiceController.speakFeedbackUpdated(
+                "No entendí. Para guardar y cerrar, decí sesión terminada. " +
+                    "También podés dictar notas, molestias o baterías."
+            )
         }
-    }
-
-    private fun discomfortLabel(discomfortId: String): String = when (discomfortId) {
-        "shoulder_anterior" -> "hombro"
-        "knee_patellar" -> "rodilla"
-        "elbow_lateral" -> "codo"
-        "lower_back" -> "espalda baja"
-        "wrist" -> "muñeca"
-        "hip" -> "cadera"
-        "ankle" -> "tobillo"
-        else -> "articulación"
     }
 
     private fun handleVoiceRegisterSet(interpretation: WorkoutVoiceInterpretation) {

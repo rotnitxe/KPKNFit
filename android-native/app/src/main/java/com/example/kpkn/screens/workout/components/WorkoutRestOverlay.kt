@@ -179,9 +179,29 @@ private fun FeedbackContent(
         if (showTimerChrome) {
             Spacer(Modifier.height(8.dp))
 
-            val timerSize = if (feedbackExerciseCount <= 1) 152.dp else 132.dp
-            val strokeWidth = if (feedbackExerciseCount <= 1) 7.dp else 6.dp
-            val fontSize = if (feedbackExerciseCount <= 1) 34.sp else 30.sp
+            // Shrink ANIMADO: entra con el tamaño del timer de descanso normal (204.dp)
+            // y colapsa a su tamaño compacto mientras aparece el panel de feedback.
+            val shrinkTargetSize = if (feedbackExerciseCount <= 1) 152.dp else 132.dp
+            val shrinkTargetStroke = if (feedbackExerciseCount <= 1) 7.dp else 6.dp
+            val shrinkTargetFontSp = if (feedbackExerciseCount <= 1) 34f else 30f
+            var shrinkStarted by remember { mutableStateOf(false) }
+            LaunchedEffect(Unit) { shrinkStarted = true }
+            val timerSize by animateDpAsState(
+                targetValue = if (shrinkStarted) shrinkTargetSize else 204.dp,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioNoBouncy,
+                    stiffness = Spring.StiffnessMediumLow,
+                ),
+                label = "rest-timer-shrink",
+            )
+            val strokeWidth by animateDpAsState(
+                targetValue = if (shrinkStarted) shrinkTargetStroke else 8.dp,
+                label = "rest-timer-stroke",
+            )
+            val fontSize = animateFloatAsState(
+                targetValue = if (shrinkStarted) shrinkTargetFontSp else 45f,
+                label = "rest-timer-font",
+            ).value.sp
 
             Box(
                 modifier = Modifier.size(timerSize),

@@ -29,6 +29,7 @@ import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.workout.SupersetRules
 import com.example.kpkn.services.workout.ActiveWorkoutHolder
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -57,6 +58,8 @@ class WorkoutFinishController(
     private val updatePredictionBias: (SessionClosingFeedback) -> Unit,
     private val deferOnComplete: (() -> Unit) -> Unit,
     private val prepareVoiceDiagnosticExport: () -> Unit,
+    /** Aviso cuando finish aborta por sesión sin series (guard P0 de log hueco). */
+    private val onEmptySession: () -> Unit = {},
 ) {
     fun finish(
         notes: String,
@@ -64,6 +67,7 @@ class WorkoutFinishController(
         closingFeedback: SessionClosingFeedback,
         onPendingQuestionnaire: ((PendingQuestionnaire) -> Unit)? = null,
         onComplete: () -> Unit = {},
+        onFailure: (Exception) -> Unit = {},
     ) {
         val state = getState()
         if (state.isFinishingWorkout || state.isComplete) return
@@ -122,6 +126,14 @@ class WorkoutFinishController(
                 )
             }
         }.filter { it.sets.isNotEmpty() }
+
+        // Guard P0 de sesión vacía: sin series completadas no se persiste un log hueco
+        // (drenaría 0 y taparía el problema); se aborta con feedback al usuario.
+        if (completedExercises.isEmpty()) {
+            updateState { it.copy(isFinishingWorkout = false) }
+            onEmptySession()
+            return
+        }
 
         val skippedWithNoSets = allExercises.filter { exercise ->
             exercise.id in state.skippedExerciseIds &&
@@ -362,6 +374,8 @@ class WorkoutFinishController(
             } catch (error: Exception) {
                 error.printStackTrace()
                 updateState { it.copy(isFinishingWorkout = false) }
+                // (P0) El caller (p.ej. cierre por voz) puede avisar que el save falló.
+                if (error !is CancellationException) onFailure(error)
             }
         }
     }

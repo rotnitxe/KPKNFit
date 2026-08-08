@@ -146,6 +146,8 @@ data class WorkoutUiState(
     val voiceFinalNeural: Int? = null,
     val voiceFinalSpinal: Int? = null,
     val voiceFinalConfirmTriggered: Boolean = false,
+    // Aviso one-shot del guard P0 de sesión vacía (finish abortado sin series); la UI lo consume y limpia
+    val emptyFinishGuardNotice: String? = null,
     val continuityTransitionTarget: WorkoutContinuityTransitionTarget? = null,
     val continuityFeedbackExerciseId: String? = null,
     // EMA de estrés acumulado en el mesociclo actual

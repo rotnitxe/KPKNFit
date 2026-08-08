@@ -866,6 +866,14 @@ fun WorkoutScreen(
     }
 
     // ─── Finish sheet ─────────────────────────────────────────────────────────
+    // Aviso one-shot del guard P0 de sesión vacía (finish abortado sin series).
+    LaunchedEffect(uiState.emptyFinishGuardNotice) {
+        val notice = uiState.emptyFinishGuardNotice
+        if (notice != null) {
+            android.widget.Toast.makeText(context, notice, android.widget.Toast.LENGTH_LONG).show()
+            viewModel.consumeEmptyFinishGuardNotice()
+        }
+    }
     if (uiState.showFinishSheet) {
         val duration = ((System.currentTimeMillis() - uiState.startTimeMs) / 60000).toInt().coerceAtLeast(1)
         val sessionIntensityResult = remember(completedExercisesForSummary, visibleExercises) {
