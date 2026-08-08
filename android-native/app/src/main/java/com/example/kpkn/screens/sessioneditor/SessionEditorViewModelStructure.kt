@@ -110,17 +110,17 @@ fun SessionEditorViewModel.setSearchQuery(query: String) { updateUi { it.copy(se
 fun SessionEditorViewModel.toggleExerciseSelection(exerciseId: String) {
     val current = currentUiState.selectedExercisesIds
     updateUi { it.copy(selectedExercisesIds = if (exerciseId in current) current - exerciseId else current + exerciseId) }
-    scheduleAutoSave()
+    persistDraft()
 }
 
 fun SessionEditorViewModel.setExerciseSelection(ids: Set<String>) {
     updateUi { it.copy(selectedExercisesIds = ids) }
-    scheduleAutoSave()
+    persistDraft()
 }
 
 fun SessionEditorViewModel.clearExerciseSelection() {
     updateUi { it.copy(selectedExercisesIds = emptySet()) }
-    scheduleAutoSave()
+    persistDraft()
 }
 
 fun SessionEditorViewModel.linkExerciseRelativeTo(partId: String?, exerciseId: String, anchorExerciseId: String?) {

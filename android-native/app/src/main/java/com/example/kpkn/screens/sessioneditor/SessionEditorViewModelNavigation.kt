@@ -13,6 +13,7 @@ import com.example.kpkn.domain.sessionassistant.SessionAssistantInput
 import com.example.kpkn.domain.training.CompetitionSessionSync
 import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.workout.SupersetRules
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -54,10 +55,18 @@ fun SessionEditorViewModel.requestSessionSwitch(
         val state = currentUiState
         if (state.session?.id == targetSessionId) return
         if (state.hasUnsavedChanges) {
-            if (!persistRecoverableSession(state)) {
-                updateUi { it.copy(snackbarMessage = "Error al guardar el borrador de la sesión actual") }
-                return
+            // B4: persist (encode) en IO, no bloquear UI
+            viewModelScope.launch(Dispatchers.IO) {
+                val ok = persistRecoverableSession(state)
+                withContext(Dispatchers.Main) {
+                    if (!ok) {
+                        updateUi { it.copy(snackbarMessage = "Error al guardar el borrador de la sesión actual") }
+                        return@withContext
+                    }
+                    switchToSession(targetSessionId, targetWeekId, targetMacroIndex, targetMesoIndex)
+                }
             }
+            return
         }
         switchToSession(targetSessionId, targetWeekId, targetMacroIndex, targetMesoIndex)
     }
@@ -78,7 +87,8 @@ fun SessionEditorViewModel.selectRoadmapDay(dayOfWeek: Int): SessionEditorSaveRe
 fun SessionEditorViewModel.createSessionForDay(dayOfWeek: Int): SessionEditorSaveResult {
     val state = currentUiState
     if (state.hasUnsavedChanges) {
-        if (!persistRecoverableSession(state)) {
+        val ok = kotlinx.coroutines.runBlocking(Dispatchers.IO) { persistRecoverableSession(state) }
+        if (!ok) {
             updateUi { it.copy(snackbarMessage = "Error al guardar el borrador de la sesión actual") }
             return SessionEditorSaveResult(success = false, message = "")
         }
@@ -123,7 +133,8 @@ fun SessionEditorViewModel.createSessionForDay(dayOfWeek: Int): SessionEditorSav
 fun SessionEditorViewModel.createCompetitionSessionForDay(dayOfWeek: Int): SessionEditorSaveResult {
     val state = currentUiState
     if (state.hasUnsavedChanges) {
-        if (!persistRecoverableSession(state)) {
+        val ok = kotlinx.coroutines.runBlocking(Dispatchers.IO) { persistRecoverableSession(state) }
+        if (!ok) {
             updateUi { it.copy(snackbarMessage = "Error al guardar el borrador de la sesión actual") }
             return SessionEditorSaveResult(success = false, message = "")
         }
@@ -420,38 +431,6 @@ internal fun SessionEditorViewModel.syncCompetitionRecordFromSession(session: Se
     val existing = session.competitionRecordId?.let { repository.getById(it) }
     val merged = CompetitionSessionSync.merge(session, existing, program.id, weekId) ?: return
     repository.upsert(merged)
-}
-
-internal fun SessionEditorViewModel.appendDraftSnapshot(
-    history: List<SessionDraftSnapshot>,
-    snapshot: SessionDraftSnapshot,
-): List<SessionDraftSnapshot> {
-    val last = history.lastOrNull()
-    if (last != null && last.session == snapshot.session) return history
-    return (history + snapshot).takeLast(SessionEditorViewModel.MAX_LOCAL_DRAFT_SNAPSHOTS)
-}
-
-internal fun SessionEditorViewModel.buildDraftSnapshot(
-    session: Session,
-    previous: Session?,
-    reason: String,
-): SessionDraftSnapshot {
-    val changedFields = if (previous == null) {
-        listOf("base")
-    } else {
-        detectChangedFields(previous = previous, current = session)
-    }
-    val exercises = session.allExercises()
-    return SessionDraftSnapshot(
-        id = UUID.randomUUID().toString(),
-        session = session,
-        savedAtMs = System.currentTimeMillis(),
-        reason = reason,
-        changedFields = changedFields,
-        exerciseCount = exercises.size,
-        setCount = exercises.sumOf { it.sets.size.coerceAtLeast(1) },
-        partCount = session.parts.size,
-    )
 }
 
 internal fun detectChangedFields(previous: Session, current: Session): List<String> {

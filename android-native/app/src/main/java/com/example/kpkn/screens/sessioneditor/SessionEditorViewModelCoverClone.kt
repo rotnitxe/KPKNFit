@@ -72,27 +72,6 @@ fun SessionEditorViewModel.updateCoverMotion(enabled: Boolean) = updateSession {
     session.copy(coverStyle = style.copy(enableMotion = enabled))
 }
 
-    @Deprecated("Use cloneCurrentSessionToTargets")
-fun SessionEditorViewModel.exportToSession(targetSessionId: String) {
-    cloneCurrentSessionToTargets(
-        targetKeys = currentUiState.cloneDayOptions
-            .filter { it.existingSessionId == targetSessionId }
-            .map { it.key }
-            .toSet(),
-        selectedExerciseIds = null,
-        applyMode = SessionCloneApplyMode.APPEND,
-    )
-}
-
-    @Deprecated("Use importFromSourceSession")
-fun SessionEditorViewModel.importFromSession(sourceSessionId: String) {
-    importFromSourceSession(
-        sourceSessionId = sourceSessionId,
-        selectedExerciseIds = null,
-        applyMode = SessionCloneApplyMode.APPEND,
-    )
-}
-
 fun SessionEditorViewModel.cloneCurrentSessionToTargets(
     targetKeys: Set<String>,
     selectedExerciseIds: Set<String>?,
