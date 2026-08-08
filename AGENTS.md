@@ -5,10 +5,12 @@ KPKN Fit is a local-first native Android application with an iOS parity port and
 ## Validation
 
 - Run Android commands from `android-native/`.
-- Debug build: `gradlew.bat assembleDebug`.
-- Unit tests: `gradlew.bat test`.
-- Install locally: `gradlew.bat installDebug`.
+- Debug build: `powershell -NoProfile -File .opencode/scripts/run-gradle.ps1 -Tasks "assembleDebug"`  (anti-hang wrapper; equivalent to `gradlew.bat --no-daemon --console=plain assembleDebug`).
+- Unit tests: `powershell -NoProfile -File .opencode/scripts/run-gradle.ps1 -Tasks "test"`  or targeted `... -Tasks "testBaseDebugUnitTest --tests '*.SessionTemplateCatalogTest'"`.
+- Install locally: `powershell -NoProfile -File .opencode/scripts/run-gradle.ps1 -Tasks "installDebug"`.
+- Fallback directo (si el wrapper falla): `gradlew.bat --no-daemon --console=plain --warning-mode=summary <task>` con `timeout: 300000` (tests) / `600000` (assemble) y `workdir: "android-native"`.
 - Prefer targeted tests before a full build; the repository contains large offline datasets and a bundled Vosk model.
+- Windows hang note: nunca llames `gradlew.bat` sin `--no-daemon --console=plain`; el daemon deja pipes abiertos y el `bash` de OpenCode queda colgado aunque el build haya terminado. El plugin `gradle-guard` inyecta esos flags y reescribe tareas simples al wrapper automáticamente.
 
 ## Architecture Rules
 

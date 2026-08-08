@@ -36,7 +36,7 @@
 - Verify the real code and Room schema when older docs disagree.
 
 <!-- KAUPOLIKAN_DYNAMIC_MAP_START -->
-Generated at: 2026-08-07T03:08:37.410Z
+Generated at: 2026-08-08T02:12:43.508Z
 Kotlin files: 460
 Room version detected in KpknDatabase.kt: 20
 
