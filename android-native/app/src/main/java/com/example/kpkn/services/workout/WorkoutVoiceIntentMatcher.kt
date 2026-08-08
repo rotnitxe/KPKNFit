@@ -20,6 +20,7 @@ object WorkoutVoiceIntentMatcher {
         unitMode: UnitModeV2 = if (isTimeMode) UnitModeV2.TIME else UnitModeV2.REPS,
         customUnit: String? = null,
         trackRom: Boolean = false,
+        allowCardioMetrics: Boolean = false,
         tagNames: Set<String> = emptySet(),
         voiceFeedbackPromptActive: Boolean = false,
     ): VoiceSessionCommand {
@@ -47,6 +48,7 @@ object WorkoutVoiceIntentMatcher {
             unitMode = unitMode,
             customUnit = customUnit,
             trackRom = trackRom,
+            allowCardioMetrics = allowCardioMetrics,
             tagNames = tagNames,
         )
 

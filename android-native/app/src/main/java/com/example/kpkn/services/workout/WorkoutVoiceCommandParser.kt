@@ -279,6 +279,7 @@ object WorkoutVoiceCommandParser {
             "erre pe e", "erre i erre", "repeticiones en reserva",
         ))
         addAll(setOf("metro", "metros", "kilometro", "kilómetros", "milla", "millas"))
+        addAll(setOf("fc", "pulso", "pulsaciones", "bpm", "frecuencia", "cardiaca", "cardíaca"))
         addAll(setOf("unidad", "unidades", "caloria", "calorías", "vuelta", "vueltas", "etiqueta"))
         addAll(setOf("rom", "rango", "recorrido"))
         addAll(setOf(
@@ -318,10 +319,11 @@ object WorkoutVoiceCommandParser {
         hasPendingConfirmation: Boolean,
         isRestTimerActive: Boolean,
         pendingAddSetPersistence: Boolean = false,
-        unitMode: UnitModeV2 = if (isTimeMode) UnitModeV2.TIME else UnitModeV2.REPS,
-        customUnit: String? = null,
-        trackRom: Boolean = false,
-        tagNames: Set<String> = emptySet(),
+    unitMode: UnitModeV2 = if (isTimeMode) UnitModeV2.TIME else UnitModeV2.REPS,
+    customUnit: String? = null,
+    trackRom: Boolean = false,
+    allowCardioMetrics: Boolean = false,
+    tagNames: Set<String> = emptySet(),
     ): VoiceSessionCommand {
         // Los mishearings también afectan a los keywords de comandos ("metro corporal",
         // "reir", "la varra"); corregir antes de clasificar evita Unknowns evitables.
@@ -476,7 +478,13 @@ object WorkoutVoiceCommandParser {
         }
 
         val interpretation = com.example.kpkn.screens.workout.parseWorkoutVoiceTranscript(
-            transcript, isTimeMode, isUnilateral, unitMode, customUnit, trackRom,
+            transcript = transcript,
+            isTimeMode = isTimeMode,
+            isUnilateral = isUnilateral,
+            unitMode = unitMode,
+            customUnit = customUnit,
+            trackRom = trackRom,
+            allowCardioMetrics = allowCardioMetrics,
         )
         if (interpretation != null) {
             return VoiceSessionCommand.RegisterSet(

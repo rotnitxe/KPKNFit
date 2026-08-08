@@ -110,7 +110,9 @@ class WorkoutVoiceCommandHandler(
         fun selectExercise(index: Int)
         fun persistVoiceRuntimeState()
         fun markWarmupComplete(exerciseId: String, warmupSetId: String)
+        fun recordWarmupHeaviness(exerciseId: String, warmupSetId: String, rpe: Double)
         fun markMobilityComplete(exerciseId: String, mobilitySeriesId: String)
+        fun recordCardioSet(durationSeconds: Int, distanceKm: Double?, averageHeartRate: Int?): Boolean
         fun setVoiceExerciseQueue(exerciseIds: List<String>)
         /** Mueve el ejercicio actual ±1 posición (estructura en vivo). */
         fun moveCurrentExercise(direction: Int)
@@ -179,6 +181,7 @@ class WorkoutVoiceCommandHandler(
                             unitMode = unitMode,
                             customUnit = exercise?.customUnit,
                             trackRom = exercise?.trackRom == true,
+                            allowCardioMetrics = exercise?.cardioDetails != null,
                         )
                         updateState { current ->
                             if (interpretation == null) {
@@ -612,7 +615,8 @@ class WorkoutVoiceCommandHandler(
                     }
                 }
                 WorkoutStepType.WARMUP -> step.stepKey !in state.warmupCompletedExerciseIds && step.exerciseId !in state.warmupCompletedExerciseIds
-                WorkoutStepType.MOBILITY -> step.stepKey !in state.mobilityCompletedExerciseIds
+                WorkoutStepType.MOBILITY,
+                WorkoutStepType.MOBILITY_GROUP -> step.stepKey !in state.mobilityCompletedExerciseIds
             }
         }.map { it.exerciseName }.distinct()
     }
@@ -664,6 +668,35 @@ class WorkoutVoiceCommandHandler(
         timedSetJob?.cancel()
         timedSetJob = null
         updateState { it.copy(voiceTimedSet = timed.copy(isRunning = false)) }
+        val timedExercise = ports.visibleExercises(getState()).firstOrNull { it.id == timed.exerciseId }
+        if (timedExercise?.cardioDetails != null) {
+            val details = timedExercise.cardioDetails
+            val durationSeconds = timed.elapsedSeconds.coerceAtLeast(1)
+            val recorded = ports.recordCardioSet(
+                durationSeconds = durationSeconds,
+                distanceKm = details.targetDistanceKm,
+                averageHeartRate = null,
+            )
+            if (recorded) {
+                voiceController.onVoiceSetPersisted(
+                    interpretation = WorkoutVoiceInterpretation(
+                        transcript = "cronómetro cardio",
+                        metricValue = durationSeconds,
+                        metricDecimalValue = durationSeconds.toDouble(),
+                        fields = setOf(WorkoutVoiceField.VALUE),
+                    ),
+                    exerciseId = timed.exerciseId,
+                    setIdx = timed.setIndex,
+                    unitMode = UnitModeV2.TIME,
+                    isUnilateral = false,
+                    completedSidesBefore = 0,
+                )
+            } else {
+                voiceController.onVoiceSetPersistenceFailed("No pude registrar el bloque de cardio.")
+            }
+            ports.persistVoiceRuntimeState()
+            return
+        }
         val draft = ports.getSetDraft(timed.exerciseId, timed.setIndex, null) ?: WorkoutSetDraft()
         ports.updateSetDraft(timed.exerciseId, timed.setIndex, null, draft.copy(valueText = timed.elapsedSeconds.toString(), isDirty = true))
         ports.persistVoiceRuntimeState()
@@ -673,10 +706,26 @@ class WorkoutVoiceCommandHandler(
 
     private fun completePreparationStep() {
         val state = getState()
+        val currentExercise = ports.visibleExercises(state).getOrNull(state.currentExerciseIdx)
+        if (currentExercise?.cardioDetails != null) {
+            val details = currentExercise.cardioDetails
+            val recorded = ports.recordCardioSet(
+                durationSeconds = details.targetDurationSeconds.coerceAtLeast(1),
+                distanceKm = details.targetDistanceKm,
+                averageHeartRate = null,
+            )
+            if (recorded) {
+                voiceController.speakFeedbackUpdated("Cardio registrado: ${details.targetDurationSeconds / 60} minutos.")
+            } else {
+                voiceController.speakFeedbackUpdated("No pude registrar este bloque de cardio.")
+            }
+            return
+        }
         val step = state.activeStepKey?.let { key -> ports.workoutStepPositions(state).firstOrNull { it.stepKey == key } } ?: return
         when (step.type) {
             WorkoutStepType.WARMUP -> step.warmupSetId?.let { ports.markWarmupComplete(step.exerciseId, it) }
-            WorkoutStepType.MOBILITY -> step.mobilitySeriesId?.let { ports.markMobilityComplete(step.exerciseId, it) }
+            WorkoutStepType.MOBILITY,
+            WorkoutStepType.MOBILITY_GROUP -> step.mobilitySeriesId?.let { ports.markMobilityComplete(step.exerciseId, it) }
             WorkoutStepType.WORKING_SET -> return
         }
         WorkoutVoiceDiagnosticLogger.event("preparation_step_completed", mapOf("type" to step.type.name, "exerciseId" to step.exerciseId, "stepKey" to step.stepKey))
@@ -696,7 +745,7 @@ class WorkoutVoiceCommandHandler(
                 // Un pedido explícito (p. ej. omitir descanso) anuncia aunque sea el mismo paso.
                 if (prefix == null && stepKey != null && lastAnnouncedStepKey == stepKey) return
                 lastAnnouncedStepKey = stepKey
-                if (step?.type == WorkoutStepType.MOBILITY) {
+                if (step?.type == WorkoutStepType.MOBILITY || step?.type == WorkoutStepType.MOBILITY_GROUP) {
                     val mobility = nextEx.mobilitySeries.firstOrNull { it.id == step.mobilitySeriesId }
                     val target = mobility?.durationSeconds?.let { "$it segundos" }
                         ?: mobility?.reps?.let { "$it repeticiones" }
@@ -952,6 +1001,68 @@ class WorkoutVoiceCommandHandler(
             )
         }
         val setIdx = confirmationTarget?.setIndex ?: state.currentSetIdx
+        val activeStep = state.activeStepKey?.let { key ->
+            ports.workoutStepPositions(state).firstOrNull { it.stepKey == key }
+        }
+        if (
+            activeStep?.type == WorkoutStepType.WARMUP &&
+            activeStep.warmupSetId != null &&
+            acceptedIntensityIsWarmupRpe(interpretation) &&
+            interpretation.resolvedMetricValue == null &&
+            interpretation.weightKg == null
+        ) {
+            ports.recordWarmupHeaviness(
+                exerciseId = exercise.id,
+                warmupSetId = activeStep.warmupSetId,
+                rpe = interpretation.intensityValue!!.coerceIn(1.0, 10.0),
+            )
+            voiceController.speakFeedbackUpdated("Esfuerzo de aproximación guardado. Di hecha para continuar.")
+            return
+        }
+        if (exercise.cardioDetails != null) {
+            val details = exercise.cardioDetails
+            val durationSeconds = acceptedInterpretation.resolvedMetricValue
+                ?.takeIf { it > 0.0 }
+                ?.toInt()
+                ?.coerceAtLeast(1)
+                ?: details.targetDurationSeconds.coerceAtLeast(1)
+            val persistedInterpretation = acceptedInterpretation.copy(
+                metricValue = durationSeconds,
+                metricDecimalValue = durationSeconds.toDouble(),
+                fields = acceptedInterpretation.fields + WorkoutVoiceField.VALUE,
+            )
+            val recorded = ports.recordCardioSet(
+                durationSeconds = durationSeconds,
+                distanceKm = acceptedInterpretation.distanceKm ?: details.targetDistanceKm,
+                averageHeartRate = acceptedInterpretation.averageHeartRate,
+            )
+            if (recorded) {
+                voiceController.onVoiceSetPersisted(
+                    interpretation = persistedInterpretation,
+                    exerciseId = exercise.id,
+                    setIdx = setIdx,
+                    unitMode = UnitModeV2.TIME,
+                    isUnilateral = false,
+                    completedSidesBefore = 0,
+                )
+                updateState {
+                    it.copy(
+                        voiceUiState = WorkoutVoiceUiState.Applied(
+                            exercise.id,
+                            setIdx,
+                            null,
+                            persistedInterpretation,
+                            "Cardio registrado: ${durationSeconds / 60} min" +
+                                (persistedInterpretation.distanceKm?.let { km -> " · ${km.toTrimmedNumberString()} km" } ?: "") +
+                                (persistedInterpretation.averageHeartRate?.let { bpm -> " · FC $bpm" } ?: ""),
+                        ),
+                    )
+                }
+            } else {
+                voiceController.onVoiceSetPersistenceFailed("No pude registrar el bloque de cardio.")
+            }
+            return
+        }
         val side = if (exercise.isEffectivelyUnilateral()) {
             confirmationTarget?.side ?: acceptedInterpretation.side
         } else {
@@ -988,6 +1099,10 @@ class WorkoutVoiceCommandHandler(
         ) }
         scope.launch { persistVoiceSet(exercise, setIdx, resolvedSide, acceptedInterpretation, nextDraft, unitMode, loadMode) }
     }
+
+    private fun acceptedIntensityIsWarmupRpe(interpretation: WorkoutVoiceInterpretation): Boolean =
+        interpretation.intensityKind == WorkoutVoiceIntensityKind.RPE &&
+            interpretation.intensityValue != null
 
     private suspend fun persistVoiceSet(
         exercise: Exercise, setIdx: Int, resolvedSide: String?, interpretation: WorkoutVoiceInterpretation,

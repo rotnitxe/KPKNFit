@@ -2158,10 +2158,11 @@ class WorkoutVoiceController(
             showFinishSheet = exerciseInfo?.showFinishSheet == true,
             voiceFeedbackPromptActive = voiceFeedbackPromptActive,
             pendingAddSetPersistence = false,
-            unitMode = exerciseInfo?.unitMode ?: if (isTimeMode) UnitModeV2.TIME else UnitModeV2.REPS,
-            customUnit = exerciseInfo?.customUnit,
-            trackRom = exerciseInfo?.trackRom == true,
-            tagNames = exerciseInfo?.tagNames.orEmpty(),
+                unitMode = exerciseInfo?.unitMode ?: if (isTimeMode) UnitModeV2.TIME else UnitModeV2.REPS,
+                customUnit = exerciseInfo?.customUnit,
+                trackRom = exerciseInfo?.trackRom == true,
+                allowCardioMetrics = exerciseInfo?.exercise?.cardioDetails != null,
+                tagNames = exerciseInfo?.tagNames.orEmpty(),
         ).let { cmd ->
             if (cmd is VoiceSessionCommand.RegisterSet && isUnilateral && cmd.interpretation.side == null) {
                 val side = exerciseInfo?.pendingUnilateralSide
@@ -2491,6 +2492,8 @@ class WorkoutVoiceController(
                 intensityValue = interpretation.intensityValue ?: base.intensityValue,
                 intensityKind = interpretation.intensityKind ?: base.intensityKind,
                 loadModeOverride = interpretation.loadModeOverride ?: base.loadModeOverride,
+                distanceKm = interpretation.distanceKm ?: base.distanceKm,
+                averageHeartRate = interpretation.averageHeartRate ?: base.averageHeartRate,
                 dropSets = interpretation.dropSets.ifEmpty { base.dropSets },
                 restPauses = interpretation.restPauses.ifEmpty { base.restPauses },
                 incompleteTechnique = interpretation.incompleteTechnique,

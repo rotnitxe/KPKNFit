@@ -73,6 +73,10 @@ data class WorkoutVoiceInterpretation(
     val weightKg: Double? = null,
     val metricValue: Int? = null,
     val metricDecimalValue: Double? = null,
+    /** Cardio-only distance captured from phrases such as "cinco kilómetros". */
+    val distanceKm: Double? = null,
+    /** Cardio-only average heart rate captured from phrases such as "FC 150". */
+    val averageHeartRate: Int? = null,
     val intensityValue: Double? = null,
     val intensityKind: WorkoutVoiceIntensityKind? = null,
     val side: String? = null,
@@ -114,6 +118,7 @@ internal fun parseWorkoutVoiceTranscript(
     unitMode: UnitModeV2 = if (isTimeMode) UnitModeV2.TIME else UnitModeV2.REPS,
     customUnit: String? = null,
     trackRom: Boolean = false,
+    allowCardioMetrics: Boolean = false,
 ): WorkoutVoiceInterpretation? {
     val rawNormalized = normalizeWorkoutVoiceTranscriptString(transcript)
     val correctedText = com.example.kpkn.services.workout.WorkoutVoiceMishearingCorrections.correct(rawNormalized)
@@ -164,7 +169,24 @@ internal fun parseWorkoutVoiceTranscript(
                 ?.toSafeWholeNumber()
                 ?.times(60)
         }
-    val explicitDistance = tokens.indexOfFirst { it in DISTANCE_KEYWORDS }.takeIf { it >= 0 }?.let { nearestVoiceNumber(tokens, it, preferBackward = true) }
+    val distanceKeywordIndex = tokens.indexOfFirst { it in DISTANCE_KEYWORDS }.takeIf { it >= 0 }
+    val explicitDistance = distanceKeywordIndex?.let { nearestVoiceNumber(tokens, it, preferBackward = true) }
+    val cardioDistanceKm = if (allowCardioMetrics) {
+        explicitDistance?.let { value ->
+            if (tokens.getOrNull(distanceKeywordIndex ?: -1) in MILE_DISTANCE_KEYWORDS) value * MILES_TO_KM else value
+        }
+    } else {
+        null
+    }
+    val cardioHeartRate = if (allowCardioMetrics) {
+        tokens.indexOfFirst { it in HEART_RATE_KEYWORDS }
+            .takeIf { it >= 0 }
+            ?.let { nearestVoiceNumber(tokens, it, preferBackward = true, wholeNumberOnly = true) }
+            ?.toSafeWholeNumber()
+            ?.coerceIn(30, 240)
+    } else {
+        null
+    }
     val explicitCustom = tokens.indexOfFirst { it in customUnitKeywords }.takeIf { it >= 0 }?.let { nearestVoiceNumber(tokens, it, preferBackward = true) }
     val normalizedText = tokens.joinToString(" ")
     val barOnlyPhrase = BAR_ONLY_PHRASES.any(normalizedText::contains)
@@ -254,6 +276,7 @@ internal fun parseWorkoutVoiceTranscript(
     val fields = buildSet {
         if (weightKg != null || barWeightOnly) add(WorkoutVoiceField.WEIGHT)
         if (metricDecimalValue != null) add(WorkoutVoiceField.VALUE)
+        if (cardioDistanceKm != null || cardioHeartRate != null) add(WorkoutVoiceField.VALUE)
         if (intensityValue != null) add(WorkoutVoiceField.INTENSITY)
         if (side != null) add(WorkoutVoiceField.SIDE)
         if (reachedFailure) add(WorkoutVoiceField.FAILURE)
@@ -271,6 +294,8 @@ internal fun parseWorkoutVoiceTranscript(
         weightKg = weightKg,
         metricValue = metricValue,
         metricDecimalValue = metricDecimalValue,
+        distanceKm = cardioDistanceKm,
+        averageHeartRate = cardioHeartRate,
         intensityValue = intensityValue,
         intensityKind = intensityKind,
         side = side,
@@ -322,6 +347,8 @@ internal fun workoutVoiceSummary(
     interpretation.metricValue?.let { value ->
         add(if (isTimeMode) "$value s" else "$value reps")
     }
+    interpretation.distanceKm?.let { add("${it.toTrimmedNumberString()} km") }
+    interpretation.averageHeartRate?.let { add("FC $it") }
     interpretation.intensityValue?.let { value ->
         val label = when (interpretation.intensityKind) {
             WorkoutVoiceIntensityKind.RIR -> "RIR ${value.toTrimmedNumberString()}"
@@ -709,6 +736,9 @@ private val BODYWEIGHT_PHRASES = setOf(
 )
 private val FAILURE_DISTANCE_KEYWORDS = setOf("recamara", "recamaras", "reserva", "reservas")
 private val DISTANCE_KEYWORDS = setOf("metro", "metros", "kilometro", "kilometros", "km", "milla", "millas")
+private val MILE_DISTANCE_KEYWORDS = setOf("milla", "millas")
+private val HEART_RATE_KEYWORDS = setOf("fc", "pulso", "pulsaciones", "bpm", "frecuencia")
+private const val MILES_TO_KM = 1.609344
 private val CUSTOM_UNIT_KEYWORDS = setOf("unidad", "unidades", "caloria", "calorias", "vuelta", "vueltas", "piso", "pisos", "nivel", "niveles", "paso", "pasos")
 private val ROM_KEYWORDS = setOf("rom", "rango", "recorrido")
 private val LEFT_SIDE_KEYWORDS = setOf("izquierda", "izquierdo", "izq")

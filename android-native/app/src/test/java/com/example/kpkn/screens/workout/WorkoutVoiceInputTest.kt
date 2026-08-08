@@ -162,6 +162,22 @@ class WorkoutVoiceInputTest {
     }
 
     @Test
+    fun parses_cardio_time_distance_and_heart_rate_without_strength_load() {
+        val cardio = parseWorkoutVoiceTranscript(
+            transcript = "20 minutos 5 kilometros fc 150",
+            isTimeMode = true,
+            isUnilateral = false,
+            allowCardioMetrics = true,
+        )
+
+        assertEquals(1200, cardio?.metricValue)
+        assertEquals(5.0, cardio?.distanceKm ?: 0.0, 0.0)
+        assertEquals(150, cardio?.averageHeartRate)
+        assertTrue(cardio?.fields?.contains(WorkoutVoiceField.VALUE) == true)
+        assertFalse(cardio?.fields?.contains(WorkoutVoiceField.WEIGHT) == true)
+    }
+
+    @Test
     fun rom_is_only_accepted_when_exercise_tracks_it() {
         val enabled = parseWorkoutVoiceTranscript("80 por 8 rango 75", false, false, trackRom = true)
         val disabled = parseWorkoutVoiceTranscript("80 por 8 rango 75", false, false, trackRom = false)
