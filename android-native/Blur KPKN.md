@@ -168,6 +168,10 @@ KpknGlassDialog(onDismissRequest = ...) { /* dialog custom centrado */ }
 
 `kpknWindowGlass` queda **solo** para Popups/DropdownMenus (limitación de Haze).
 
+Para una superficie concreta que necesite más contraste, `KpknSheet` permite un
+`additionalGlassScrim` semitransparente. Se dibuja sobre el blur, antes del contenido, y no debe
+reemplazarse por un fondo opaco ni convertirse en un valor global.
+
 ### ❌ ANTI-PATRÓN #8 — sheet que no es sheet
 
 Un bottom sheet KPKN es full-bleed inferior, solo esquinas superiores redondeadas,
@@ -194,7 +198,7 @@ y resto de `KpknSheet`) para evitar vidrio lechoso.
 |-------------------|------------------------------------|-----------------------------------------------------------|
 | `blurRadius`      | `40.dp`                            | Fuerza del desenfoque. Alto = lectura clara de "vidrio".  |
 | `tint`            | `Color.White` alpha `0.015`        | Brillo esmerilado (… → 0.03 → 0.015).                     |
-| `backgroundColor` | `Color.Black` alpha `0.68`         | Scrim oscuro (… → 0.55 → 0.68).                           |
+| `backgroundColor` | `Color.Black` alpha `0.84`         | Scrim oscuro canónico (… → 0.68 → 0.84).                     |
 | `noiseFactor`     | `0.04`                             | Grano fino, evita banding en degradados planos.           |
 | borde             | `Color.White` alpha `0.08`, `1.dp` | Filo del vidrio (hairline).                               |
 

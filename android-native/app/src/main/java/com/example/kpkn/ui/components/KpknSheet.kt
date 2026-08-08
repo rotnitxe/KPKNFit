@@ -82,6 +82,8 @@ fun KpknSheet(
      */
     stableHeightFraction: Float? = null,
     @Suppress("UNUSED_PARAMETER") hazeState: HazeState? = null,
+    /** Optional black veil drawn over the blur for a scoped contrast adjustment. */
+    additionalGlassScrim: Color = Color.Transparent,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val rootHaze = LocalHazeState.current
@@ -96,6 +98,7 @@ fun KpknSheet(
             maxHeightFraction = cap,
             stableHeightFraction = stableHeightFraction?.coerceIn(0.35f, cap),
             hazeState = rootHaze,
+            additionalGlassScrim = additionalGlassScrim,
             content = content,
         )
     }
@@ -111,6 +114,7 @@ private fun KpknSheetBody(
     maxHeightFraction: Float,
     stableHeightFraction: Float?,
     hazeState: HazeState?,
+    additionalGlassScrim: Color,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val sheetShape = RoundedCornerShape(
@@ -277,7 +281,11 @@ private fun KpknSheetBody(
                     else Modifier.wrapContentHeight().heightIn(max = sheetCapDp),
                 )
                 .offset { IntOffset(0, totalOffsetPx.roundToInt()) }
-                .kpknGlassOrFallback(hazeState, sheetShape)
+                .kpknGlassOrFallback(
+                    hazeState = hazeState,
+                    shape = sheetShape,
+                    additionalScrim = additionalGlassScrim,
+                )
                 .clickable(
                     interactionSource = panelInteraction,
                     indication = null,

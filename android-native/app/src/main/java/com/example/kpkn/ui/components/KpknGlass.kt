@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
@@ -39,9 +40,9 @@ object KpknGlass {
 
     /**
      * Dark scrim baked into the blur. This is the "darkness" knob.
-     * History: 0.22 → 0.26 → 0.40 → 0.55 → 0.68.
+     * History: 0.22 → 0.26 → 0.40 → 0.55 → 0.68 → 0.84.
      */
-    val Scrim = Color.Black.copy(alpha = 0.68f)
+    val Scrim = Color.Black.copy(alpha = 0.84f)
 
     /** Fine grain that removes banding on flat gradients. */
     const val NoiseFactor = 0.04f
@@ -51,7 +52,7 @@ object KpknGlass {
     val BorderWidth = 1.dp
 
     /** Solid fallback when [HazeState] is unavailable (blur would be dead). */
-    val FallbackScrim = Color.Black.copy(alpha = 0.86f)
+    val FallbackScrim = Color.Black.copy(alpha = 0.92f)
 
     /**
      * Opaque-enough frosted fallback for Dialog/Popup windows. Haze cannot sample a source
@@ -90,9 +91,11 @@ fun Modifier.kpknGlass(
     hazeState: HazeState,
     shape: Shape,
     withBorder: Boolean = true,
+    additionalScrim: Color = Color.Transparent,
 ): Modifier = this
     .clip(shape)
     .hazeEffect(state = hazeState, style = kpknGlassStyle())
+    .then(additionalScrimModifier(additionalScrim))
     .then(
         if (withBorder) {
             Modifier.border(width = KpknGlass.BorderWidth, color = KpknGlass.BorderColor, shape = shape)
@@ -108,12 +111,19 @@ fun Modifier.kpknGlassOrFallback(
     hazeState: HazeState?,
     shape: Shape,
     withBorder: Boolean = true,
+    additionalScrim: Color = Color.Transparent,
 ): Modifier = if (hazeState != null) {
-    kpknGlass(hazeState, shape, withBorder = withBorder)
+    kpknGlass(
+        hazeState,
+        shape,
+        withBorder = withBorder,
+        additionalScrim = additionalScrim,
+    )
 } else {
     this
         .clip(shape)
         .background(KpknGlass.FallbackScrim)
+        .then(additionalScrimModifier(additionalScrim))
         .then(
             if (withBorder) {
                 Modifier.border(width = KpknGlass.BorderWidth, color = KpknGlass.BorderColor, shape = shape)
@@ -121,6 +131,19 @@ fun Modifier.kpknGlassOrFallback(
                 Modifier
             },
         )
+}
+
+/**
+ * Darkens the rendered glass without replacing the sampled blur with an opaque surface.
+ * The default is transparent; callers should use this only for a scoped contrast adjustment.
+ */
+private fun additionalScrimModifier(color: Color): Modifier = if (color.alpha > 0f) {
+    Modifier.drawWithContent {
+        drawRect(color = color)
+        drawContent()
+    }
+} else {
+    Modifier
 }
 
 /**
