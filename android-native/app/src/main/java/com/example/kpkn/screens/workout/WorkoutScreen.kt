@@ -154,6 +154,7 @@ import com.example.kpkn.services.workout.PermissionGuideHelper
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
 import com.example.kpkn.services.workout.WorkoutVoicePermissionHelper
 import com.example.kpkn.services.workout.WorkoutVoiceDiagnosticLogger
+import com.example.kpkn.services.cardio.CardioGpsTracker
 import com.example.kpkn.ui.components.KpknSnackbar
 import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.showKpknSnackbar
@@ -219,6 +220,22 @@ fun WorkoutScreen(
                 viewModel.enableVoice()
             }
         }
+    )
+    val gpsPermissionsLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions(),
+        onResult = { grants ->
+            val locationOk = ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+            ) == PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                ) == PackageManager.PERMISSION_GRANTED ||
+                grants[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                grants[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+            if (locationOk) viewModel.startCardioGps() else viewModel.cardioGpsPermissionDenied()
+        },
     )
     val voiceDiagnosticExportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/zip"),
@@ -634,6 +651,18 @@ fun WorkoutScreen(
             },
             onExpandEdit = {
                 currentExercise?.id?.let { structureSheets.editSheetExerciseId = it }
+            },
+            onRequestCardioGps = {
+                if (CardioGpsTracker.hasLocationPermission(context)) {
+                    viewModel.startCardioGps()
+                } else {
+                    gpsPermissionsLauncher.launch(
+                        arrayOf(
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                        ),
+                    )
+                }
             },
         )
     }

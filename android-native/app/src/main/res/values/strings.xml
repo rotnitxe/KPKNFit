@@ -201,6 +201,10 @@
     <string name="notif_voice_ongoing_title">Control por voz activo</string>
     <string name="notif_voice_ongoing_body">Di series, repeticiones e intensidad sin abrir la app</string>
     <string name="notif_voice_ongoing_stop">Detener voz</string>
+    <string name="notif_channel_cardio_gps_name">GPS de cardio</string>
+    <string name="notif_channel_cardio_gps_desc">Registro local de distancia y ritmo durante cardio exterior</string>
+    <string name="notif_cardio_gps_title">GPS de cardio activo</string>
+    <string name="notif_cardio_gps_body">Registrando distancia en este dispositivo</string>
 
      <string name="notif_channel_ai_inference_name">Procesamiento de IA</string>
      <string name="notif_channel_ai_inference_desc">Notificación temporal mientras Caupo AI procesa una solicitud</string>

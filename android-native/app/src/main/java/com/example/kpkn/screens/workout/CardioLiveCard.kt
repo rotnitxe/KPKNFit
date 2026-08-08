@@ -34,6 +34,8 @@ import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.domain.calculations.CardioCalorieInput
 import com.example.kpkn.domain.calculations.CardioCalorieEngine
 import com.example.kpkn.domain.workout.CardioProgressionSuggestion
+import com.example.kpkn.services.cardio.CardioGpsState
+import com.example.kpkn.services.cardio.CardioGpsStatus
 import com.example.kpkn.ui.components.KpknNativeTimePickerDialog
 import kotlinx.coroutines.delay
 
@@ -45,6 +47,10 @@ internal fun CardioLiveCard(
     accentColor: Color,
     progressionSuggestion: CardioProgressionSuggestion? = null,
     onRecord: (durationSeconds: Int, distanceKm: Double?, averageHeartRate: Int?) -> Unit,
+    gpsState: CardioGpsState? = null,
+    onRequestGps: () -> Unit = {},
+    onPauseGps: () -> Unit = {},
+    onResumeGps: () -> Unit = {},
 ) {
     var durationText by remember(details.targetDurationSeconds, completedSet?.timeSeconds) {
         mutableStateOf(((completedSet?.timeSeconds ?: details.targetDurationSeconds) / 60).coerceAtLeast(1).toString())
@@ -71,9 +77,14 @@ internal fun CardioLiveCard(
             if (timerRemainingSeconds == 0) timerRunning = false
         }
     }
-    val durationSeconds = (durationText.toIntOrNull()?.coerceAtLeast(1) ?: (details.targetDurationSeconds / 60)) * 60
+    val gpsMode = details.requiresGps
+    val gpsHasData = gpsMode && gpsState?.let { it.pointCount > 0 || it.distanceMeters >= 10.0 } == true
+    val gpsDurationSeconds = gpsState?.elapsedActiveSeconds?.takeIf { it > 0L }?.toInt()
+    val manualDurationSeconds = (durationText.toIntOrNull()?.coerceAtLeast(1) ?: (details.targetDurationSeconds / 60)) * 60
         .let { if (timerElapsedSeconds > 0) timerElapsedSeconds else it }
+    val durationSeconds = if (gpsMode && gpsDurationSeconds != null) gpsDurationSeconds else manualDurationSeconds
     val distanceKm = distanceText.replace(',', '.').toDoubleOrNull()
+    val recordedDistanceKm = if (gpsHasData) gpsState?.distanceMeters?.div(1_000.0) else distanceKm
     val heartRate = heartRateText.toIntOrNull()?.coerceIn(30, 240)
     val estimatedCalories = bodyWeightKg?.takeIf { it > 0 }?.let { weight ->
         CardioCalorieEngine.estimate(
@@ -84,6 +95,15 @@ internal fun CardioLiveCard(
             averageHeartRate = heartRate,
             ),
         )
+    }
+    val gpsButtonLabel = when {
+        !gpsMode -> if (timerRunning) "Pausar" else "Iniciar cardio"
+        gpsState?.status == CardioGpsStatus.RECORDING || gpsState?.status == CardioGpsStatus.SIGNAL_LOST -> "Pausar GPS"
+        gpsState?.status == CardioGpsStatus.PAUSED -> "Reanudar GPS"
+        gpsState?.status == CardioGpsStatus.REQUESTING_PERMISSION -> "Buscando señal..."
+        gpsState?.status == CardioGpsStatus.PERMISSION_DENIED -> "Reintentar GPS"
+        gpsState?.status == CardioGpsStatus.LOCATION_DISABLED -> "Activar ubicación"
+        else -> "Iniciar GPS"
     }
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -109,32 +129,60 @@ internal fun CardioLiveCard(
                     color = accentColor.copy(alpha = 0.9f),
                 )
             }
-            Text(
-                if (timerRunning) "En curso · ${formatCardioTime(timerRemainingSeconds)} restantes"
-                else if (timerElapsedSeconds > 0) "Pausado · ${formatCardioTime(timerElapsedSeconds)} realizados"
-                else "Listo para cronometrar ${formatCardioTime(plannedDurationSeconds)}",
-                color = if (timerRunning) accentColor else Color.White.copy(alpha = 0.7f),
-                fontWeight = FontWeight.Bold,
-            )
+            if (gpsMode) {
+                Text(
+                    when (gpsState?.status) {
+                        CardioGpsStatus.RECORDING -> "GPS grabando · ${formatCardioTime(durationSeconds)} · ${formatCardioDistance(recordedDistanceKm)}"
+                        CardioGpsStatus.SIGNAL_LOST -> "GPS sin señal · ${formatCardioDistance(recordedDistanceKm)} · puedes continuar o registrar manualmente"
+                        CardioGpsStatus.PAUSED -> "GPS pausado · ${formatCardioTime(durationSeconds)} · ${formatCardioDistance(recordedDistanceKm)}"
+                        CardioGpsStatus.REQUESTING_PERMISSION -> "Solicitando señal de ubicación..."
+                        CardioGpsStatus.PERMISSION_DENIED -> "Permiso de ubicación denegado · registro manual disponible"
+                        CardioGpsStatus.LOCATION_DISABLED -> "Ubicación desactivada · registro manual disponible"
+                        else -> "GPS listo · el registro manual sigue disponible"
+                    },
+                    color = if (gpsState?.status == CardioGpsStatus.RECORDING) accentColor else Color.White.copy(alpha = 0.7f),
+                    fontWeight = FontWeight.Bold,
+                )
+            } else {
+                Text(
+                    if (timerRunning) "En curso · ${formatCardioTime(timerRemainingSeconds)} restantes"
+                    else if (timerElapsedSeconds > 0) "Pausado · ${formatCardioTime(timerElapsedSeconds)} realizados"
+                    else "Listo para cronometrar ${formatCardioTime(plannedDurationSeconds)}",
+                    color = if (timerRunning) accentColor else Color.White.copy(alpha = 0.7f),
+                    fontWeight = FontWeight.Bold,
+                )
+            }
             Button(
                 onClick = {
-                    if (timerRunning) {
-                        timerRunning = false
-                        if (timerElapsedSeconds > 0) durationText = ((timerElapsedSeconds + 59) / 60).toString()
-                    } else {
-                        if (timerRemainingSeconds <= 0) {
-                            timerRemainingSeconds = plannedDurationSeconds
-                            timerElapsedSeconds = 0
+                    if (gpsMode) {
+                        when (gpsState?.status) {
+                            CardioGpsStatus.RECORDING,
+                            CardioGpsStatus.SIGNAL_LOST,
+                            -> onPauseGps()
+                            CardioGpsStatus.PAUSED -> onResumeGps()
+                            CardioGpsStatus.REQUESTING_PERMISSION -> Unit
+                            else -> onRequestGps()
                         }
-                        timerRunning = true
+                    } else {
+                        if (timerRunning) {
+                            timerRunning = false
+                            if (timerElapsedSeconds > 0) durationText = ((timerElapsedSeconds + 59) / 60).toString()
+                        } else {
+                            if (timerRemainingSeconds <= 0) {
+                                timerRemainingSeconds = plannedDurationSeconds
+                                timerElapsedSeconds = 0
+                            }
+                            timerRunning = true
+                        }
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
+                enabled = gpsState?.status != CardioGpsStatus.REQUESTING_PERMISSION,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = accentColor.copy(alpha = 0.76f),
                     contentColor = Color.White,
                 ),
-            ) { Text(if (timerRunning) "Pausar" else "Iniciar cardio") }
+            ) { Text(gpsButtonLabel) }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                 CardioLiveDurationField(
                     durationMinutes = durationText.toIntOrNull() ?: 1,
@@ -144,11 +192,12 @@ internal fun CardioLiveCard(
                 )
                 if (details.supportsDistance) {
                     CardioLiveAccentField(
-                        value = distanceText,
+                        value = if (gpsHasData) formatCardioDistance(recordedDistanceKm) else distanceText,
                         onValueChange = { distanceText = it.filter { char -> char.isDigit() || char == '.' || char == ',' }.take(8) },
                         modifier = Modifier.weight(1f),
                         label = "Km",
                         accentColor = accentColor,
+                        readOnly = gpsHasData,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     )
                 }
@@ -161,6 +210,15 @@ internal fun CardioLiveCard(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 )
             }
+            if (gpsMode) {
+                Text(
+                    "Ritmo GPS: ${formatCardioPace(gpsState?.paceSecondsPerKm)}" +
+                        if (gpsHasData) " · ${gpsState?.pointCount ?: 0} puntos locales" else "",
+                    color = accentColor.copy(alpha = 0.88f),
+                    style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
             Text(
                 "Calorías estimadas: ${estimatedCalories?.let { "%.0f kcal".format(it) } ?: "añade peso corporal"}",
                 color = Color.White.copy(alpha = 0.7f),
@@ -168,7 +226,7 @@ internal fun CardioLiveCard(
             Button(
                 onClick = {
                     timerRunning = false
-                    onRecord(durationSeconds, distanceKm, heartRate)
+                    onRecord(durationSeconds, recordedDistanceKm, heartRate)
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
@@ -176,12 +234,11 @@ internal fun CardioLiveCard(
                     contentColor = Color.White,
                 ),
             ) { Text(if (completedSet == null) "Registrar cardio" else "Actualizar cardio") }
-            if (details.type.isOutdoor()) {
+            if (gpsMode) {
                 Text(
-                    "GPS en vivo: próximamente",
+                    "Si no hay señal, puedes registrar duración, distancia y FC manualmente.",
                     style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
-                    color = accentColor.copy(alpha = 0.9f),
-                    fontWeight = FontWeight.Bold,
+                    color = Color.White.copy(alpha = 0.58f),
                 )
             }
         }
@@ -272,3 +329,10 @@ private fun formatCardioTime(totalSeconds: Int): String {
     val seconds = totalSeconds.coerceAtLeast(0) % 60
     return "%02d:%02d".format(minutes, seconds)
 }
+
+private fun formatCardioDistance(distanceKm: Double?): String =
+    distanceKm?.takeIf { it >= 0.0 }?.let { "%.2f km".format(it) } ?: "0.00 km"
+
+private fun formatCardioPace(paceSecondsPerKm: Int?): String = paceSecondsPerKm?.let { seconds ->
+    "%02d:%02d/km".format(seconds / 60, seconds % 60)
+} ?: "--/km"

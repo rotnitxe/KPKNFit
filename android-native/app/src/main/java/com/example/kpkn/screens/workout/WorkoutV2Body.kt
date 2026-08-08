@@ -77,6 +77,7 @@ internal fun WorkoutV2Body(
     onExpandSetup: () -> Unit,
     onExpandReplace: () -> Unit,
     onExpandEdit: () -> Unit,
+    onRequestCardioGps: () -> Unit = {},
     exerciseReadinessMap: Map<String, ExerciseReadiness> = emptyMap(),
     recordActionHolder: RecordActionHolder = remember { RecordActionHolder() },
     cardsHazeState: HazeState = remember { HazeState() },
@@ -87,6 +88,14 @@ internal fun WorkoutV2Body(
     showingPostExerciseCard: Boolean = false,
 ) {
     val allUserTags by viewModel.allUserTags.collectAsStateWithLifecycle()
+    val cardioGpsState by viewModel.cardioGpsState.collectAsStateWithLifecycle()
+    val currentCardioGpsKey = currentExercise?.id?.let(viewModel::cardioGpsSessionKey)
+    val currentCardioGpsState = cardioGpsState.takeIf { it.sessionKey == currentCardioGpsKey }
+    LaunchedEffect(currentExercise?.id, currentExercise?.cardioDetails?.requiresGps) {
+        currentExercise
+            ?.takeIf { it.isCardio && it.cardioDetails?.requiresGps == true }
+            ?.let(viewModel::restoreCardioGpsIfAvailable)
+    }
     val scroll = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
     var pendingUpdateAction by remember { mutableStateOf<(() -> Unit)?>(null) }
@@ -734,8 +743,12 @@ internal fun WorkoutV2Body(
                                     bodyWeightKg = viewModel.currentBodyWeight(),
                                     accentColor = sessionAccentColor,
                                     progressionSuggestion = viewModel.getCardioProgressionSuggestion(currentExercise),
+                                    gpsState = currentCardioGpsState,
+                                    onRequestGps = onRequestCardioGps,
+                                    onPauseGps = viewModel::pauseCardioGps,
+                                    onResumeGps = viewModel::resumeCardioGps,
                                     onRecord = { duration, distance, heartRate ->
-                                        viewModel.recordCardioSet(duration, distance, heartRate)
+                                        viewModel.recordCardioSetUsingGps(duration, distance, heartRate)
                                     },
                                 )
                             }
@@ -837,8 +850,12 @@ internal fun WorkoutV2Body(
                                         bodyWeightKg = viewModel.currentBodyWeight(),
                                         accentColor = sessionAccentColor,
                                         progressionSuggestion = cardioProgressionSuggestion,
+                                        gpsState = currentCardioGpsState,
+                                        onRequestGps = onRequestCardioGps,
+                                        onPauseGps = viewModel::pauseCardioGps,
+                                        onResumeGps = viewModel::resumeCardioGps,
                                         onRecord = { duration, distance, heartRate ->
-                                            viewModel.recordCardioSet(duration, distance, heartRate)
+                                            viewModel.recordCardioSetUsingGps(duration, distance, heartRate)
                                         },
                                     )
                                 } else SetInputCardV2(

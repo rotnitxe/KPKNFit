@@ -30,6 +30,10 @@ import com.example.kpkn.services.workout.WorkoutPacingNotificationManager
 import com.example.kpkn.domain.workout.WorkoutContextRecurrenceEngine
 import com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngine
 import com.example.kpkn.services.workout.ActiveWorkoutHolder
+import com.example.kpkn.services.cardio.CardioGpsForegroundService
+import com.example.kpkn.services.cardio.CardioGpsState
+import com.example.kpkn.services.cardio.CardioGpsStatus
+import com.example.kpkn.services.cardio.CardioGpsTracker
 import com.example.kpkn.services.workout.TimerAction
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
 import com.example.kpkn.services.workout.WorkoutVoiceController
@@ -106,6 +110,7 @@ class WorkoutViewModel(
 
     private val _uiState = MutableStateFlow(WorkoutUiState(programId = programId))
     val uiState: StateFlow<WorkoutUiState> = _uiState.asStateFlow()
+    val cardioGpsState: StateFlow<CardioGpsState> = CardioGpsTracker.state
 
     val allUserTags: StateFlow<List<String>> = combine(
         repository.history,
@@ -2448,6 +2453,63 @@ class WorkoutViewModel(
             lastSet = lastSet,
             kind = kind,
         )
+    }
+
+    fun cardioGpsSessionKey(exerciseId: String): String = "$programId::$sessionId::$exerciseId"
+
+    fun restoreCardioGpsIfAvailable(exercise: Exercise) {
+        if (!exercise.isCardio || exercise.cardioDetails?.requiresGps != true) return
+        CardioGpsTracker.restoreIfAvailable(appContext, cardioGpsSessionKey(exercise.id))
+    }
+
+    fun startCardioGps() {
+        val state = _uiState.value
+        val exercise = visibleExercises(state).getOrNull(state.currentExerciseIdx)
+            ?.takeIf { it.isCardio && it.cardioDetails?.requiresGps == true }
+            ?: return
+        CardioGpsForegroundService.start(appContext, cardioGpsSessionKey(exercise.id))
+    }
+
+    fun pauseCardioGps() {
+        CardioGpsForegroundService.pause(appContext)
+    }
+
+    fun resumeCardioGps() {
+        CardioGpsForegroundService.resume(appContext)
+    }
+
+    fun cardioGpsPermissionDenied() {
+        val state = _uiState.value
+        val exercise = visibleExercises(state).getOrNull(state.currentExerciseIdx)
+            ?.takeIf { it.isCardio && it.cardioDetails?.requiresGps == true }
+            ?: return
+        CardioGpsTracker.markPermissionDenied(cardioGpsSessionKey(exercise.id))
+    }
+
+    fun recordCardioSetUsingGps(
+        manualDurationSeconds: Int,
+        manualDistanceKm: Double?,
+        averageHeartRate: Int?,
+    ): Boolean {
+        val state = _uiState.value
+        val exercise = visibleExercises(state).getOrNull(state.currentExerciseIdx)
+            ?.takeIf { it.isCardio && it.cardioDetails?.requiresGps == true }
+        val sessionKey = exercise?.let { cardioGpsSessionKey(it.id) }
+        val trackerState = CardioGpsTracker.state.value
+        val gpsIsActive = sessionKey != null && trackerState.sessionKey == sessionKey &&
+            trackerState.status in setOf(
+                CardioGpsStatus.REQUESTING_PERMISSION,
+                CardioGpsStatus.RECORDING,
+                CardioGpsStatus.PAUSED,
+                CardioGpsStatus.SIGNAL_LOST,
+            )
+        val gpsSnapshot = if (gpsIsActive) CardioGpsTracker.stop() else null
+        CardioGpsForegroundService.stop(appContext)
+        val durationSeconds = gpsSnapshot?.elapsedActiveSeconds?.toInt()?.takeIf { it > 0 }
+            ?: manualDurationSeconds
+        val distanceKm = gpsSnapshot?.distanceMeters?.div(1_000.0)?.takeIf { it > 0.0 }
+            ?: manualDistanceKm
+        return recordCardioSet(durationSeconds, distanceKm, averageHeartRate)
     }
 
     fun recordCardioSet(

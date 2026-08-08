@@ -17,6 +17,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -101,12 +103,32 @@ internal fun CardioEditorCard(
                 }
             }
             if (details.type.isOutdoor()) {
-                Text(
-                    "GPS en vivo: próximamente",
-                    style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
-                    color = accentColor.copy(alpha = 0.9f),
-                    fontWeight = FontWeight.Bold,
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Registrar GPS en vivo", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text(
+                            if (details.requiresGps) "Guarda distancia y ritmo mientras entrenas."
+                            else "Puedes activarlo para este cardio exterior.",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = accentColor.copy(alpha = 0.84f),
+                        )
+                    }
+                    Switch(
+                        checked = details.requiresGps,
+                        onCheckedChange = { enabled -> onChange(details.copy(requiresGps = enabled)) },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = accentColor.copy(alpha = 0.75f),
+                            checkedBorderColor = accentColor,
+                            uncheckedThumbColor = accentColor.copy(alpha = 0.9f),
+                            uncheckedTrackColor = accentColor.copy(alpha = 0.08f),
+                            uncheckedBorderColor = accentColor.copy(alpha = 0.55f),
+                        ),
+                    )
+                }
             }
         }
     }
