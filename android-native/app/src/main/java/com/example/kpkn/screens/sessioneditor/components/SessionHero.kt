@@ -38,6 +38,7 @@ import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.SaveAlt
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -107,6 +108,7 @@ internal fun SessionHero(
     onOpenTransfer: () -> Unit,
     onOpenHistory: () -> Unit,
     onOpenRules: () -> Unit,
+    onOpenTime: () -> Unit,
     roadmapContent: @Composable () -> Unit = {},
     activeDayOfWeek: Int? = null,
     weekStartDay: Int = 1,
@@ -349,6 +351,7 @@ internal fun SessionHero(
             ) {
                 var showSecondaryMenu by remember { mutableStateOf(false) }
                 SessionHeroActionChip("Reglas", Icons.Default.Settings, onOpenRules)
+                SessionHeroActionChip("Tiempo", Icons.Default.Timer, onOpenTime)
                 Box {
                     SessionHeroActionChip("Más", Icons.Default.MoreVert) { showSecondaryMenu = true }
                     KpknDropdownMenu(
@@ -367,12 +370,6 @@ internal fun SessionHero(
                         )
                     }
                 }
-                Text(
-                    text = sessionSaveStatusLabel(session, hasChanges),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.62f),
-                    maxLines = 1,
-                )
                 Spacer(modifier = Modifier.weight(1f))
                 HeroSolidActionIcon(
                     icon = Icons.Default.Palette,
@@ -392,45 +389,31 @@ internal fun SessionHero(
             }
         } else {
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(
-                    modifier = Modifier.weight(1f),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = sessionSaveStatusLabel(session, hasChanges),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.White.copy(alpha = 0.62f),
-                        maxLines = 1,
-                    )
-                    SessionHeroActionChip("Transferir", Icons.Default.SwapHoriz, onOpenTransfer)
-                    SessionHeroActionChip("Versiones", Icons.Default.History, onOpenHistory)
-                    SessionHeroActionChip("Reglas", Icons.Default.Settings, onOpenRules)
-                }
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    HeroSolidActionIcon(
-                        icon = Icons.Default.Palette,
-                        contentDescription = "Editar fondo",
-                        onClick = onOpenCoverSheet,
-                    )
-                    HeroGlassIconButton(
-                        icon = if (autoSaveEnabled) Icons.Default.SaveAlt else Icons.Default.Save,
-                        contentDescription = if (autoSaveEnabled) {
-                            "Guardado automático activo"
-                        } else {
-                            "Guardar sesión"
-                        },
-                        onClick = onSave,
-                        showUnsavedDot = hasChanges,
-                    )
-                }
+                SessionHeroActionChip("Transferir", Icons.Default.SwapHoriz, onOpenTransfer)
+                SessionHeroActionChip("Versiones", Icons.Default.History, onOpenHistory)
+                SessionHeroActionChip("Reglas", Icons.Default.Settings, onOpenRules)
+                SessionHeroActionChip("Tiempo", Icons.Default.Timer, onOpenTime)
+                HeroSolidActionIcon(
+                    icon = Icons.Default.Palette,
+                    contentDescription = "Editar fondo",
+                    onClick = onOpenCoverSheet,
+                )
+                HeroGlassIconButton(
+                    icon = if (autoSaveEnabled) Icons.Default.SaveAlt else Icons.Default.Save,
+                    contentDescription = if (autoSaveEnabled) {
+                        "Guardado automático activo"
+                    } else {
+                        "Guardar sesión"
+                    },
+                    onClick = onSave,
+                    showUnsavedDot = hasChanges,
+                )
             }
         }
 
@@ -445,19 +428,6 @@ internal fun SessionHero(
     }
 }
 
-private fun sessionSaveStatusLabel(session: Session, hasChanges: Boolean): String {
-    if (hasChanges) return "Cambios locales pendientes"
-    val timestamp = session.lastModifiedAtMs
-    if (timestamp <= 0L) return "Aún no guardada localmente"
-    val ageMinutes = ((System.currentTimeMillis() - timestamp).coerceAtLeast(0L) / 60_000L)
-    return when {
-        ageMinutes == 0L -> "Guardada localmente · ahora"
-        ageMinutes == 1L -> "Guardada localmente · hace 1 min"
-        ageMinutes < 60L -> "Guardada localmente · hace $ageMinutes min"
-        else -> "Guardada localmente · hace ${ageMinutes / 60L} h"
-    }
-}
-
 @Composable
 internal fun SessionHeroCompactOverlay(
     session: Session,
@@ -469,6 +439,7 @@ internal fun SessionHeroCompactOverlay(
     onOpenTransfer: () -> Unit,
     onOpenHistory: () -> Unit,
     onOpenRules: () -> Unit,
+    onOpenTime: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (hazeState == null) return
@@ -531,6 +502,12 @@ internal fun SessionHeroCompactOverlay(
                 icon = Icons.Default.Settings,
                 hazeState = hazeState,
                 onClick = onOpenRules,
+            )
+            HeroGlassActionChip(
+                label = "Tiempo",
+                icon = Icons.Default.Timer,
+                hazeState = hazeState,
+                onClick = onOpenTime,
             )
         }
     }

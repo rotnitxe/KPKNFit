@@ -463,7 +463,8 @@ fun SessionEditorScreen(
                     onOpenCoverSheet = { viewModel.openSheet(SessionEditorSheet.BACKGROUND) },
                     onOpenTransfer = { viewModel.openSheet(SessionEditorSheet.TRANSFER) },
                     onOpenHistory = { viewModel.openSheet(SessionEditorSheet.HISTORY) },
-                    onOpenRules = { viewModel.openSheet(SessionEditorSheet.RULES) },
+                    onOpenRules = { viewModel.openRulesSheet(initialTab = 0) },
+                    onOpenTime = { viewModel.openRulesSheet(initialTab = 1) },
                     activeDayOfWeek = uiState.dayOfWeek,
                     weekStartDay = uiState.weekStartDay,
                     onSelectDay = { day -> viewModel.selectRoadmapDay(day) },
@@ -657,7 +658,8 @@ fun SessionEditorScreen(
                 onOpenCoverSheet = { viewModel.openSheet(SessionEditorSheet.BACKGROUND) },
                 onOpenTransfer = { viewModel.openSheet(SessionEditorSheet.TRANSFER) },
                 onOpenHistory = { viewModel.openSheet(SessionEditorSheet.HISTORY) },
-                onOpenRules = { viewModel.openSheet(SessionEditorSheet.RULES) },
+                onOpenRules = { viewModel.openRulesSheet(initialTab = 0) },
+                onOpenTime = { viewModel.openRulesSheet(initialTab = 1) },
             )
         }
 

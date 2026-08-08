@@ -135,7 +135,6 @@ internal fun ExerciseEditorCard(
     var showExerciseOptionsMenu by remember { mutableStateOf(false) }
     var mobilityBlockExpanded by rememberSaveable(exercise.id) { mutableStateOf(exercise.mobilitySeries.isNotEmpty()) }
     var warmupBlockExpanded by rememberSaveable(exercise.id) { mutableStateOf(exercise.warmupSets.isNotEmpty()) }
-    var effectiveBlockExpanded by rememberSaveable(exercise.id) { mutableStateOf(false) }
 
     val resolved1RM = remember(exercise.trainingMode, exercise.reference1RM, exercise.prFor1RM) {
         resolveReferenceCapacity(exercise)
@@ -334,22 +333,21 @@ internal fun ExerciseEditorCard(
                     )
                 }
             }
-            Box(
-                modifier = Modifier
-                    .size(30.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .combinedClickable(
-                        onClick = { showGoalSheet = true },
-                        onLongClick = { onUpdateExercise { ex -> ex.copy(isStarTarget = !ex.isStarTarget) } },
-                    ),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = if (exercise.isStarTarget) Icons.Default.Star else Icons.Default.StarBorder,
-                    contentDescription = "Meta del ejercicio",
-                    tint = if (exercise.isStarTarget) Color(0xFFFFB300) else Color.White.copy(alpha = 0.6f),
-                    modifier = Modifier.size(18.dp),
-                )
+            if (exercise.cardioDetails == null) {
+                Box(
+                    modifier = Modifier
+                        .size(30.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable { showGoalSheet = true },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = if (exercise.isStarTarget || exercise.goal1RM != null) Icons.Default.Star else Icons.Default.StarBorder,
+                        contentDescription = "Meta del ejercicio",
+                        tint = if (exercise.isStarTarget || exercise.goal1RM != null) Color(0xFFFFB300) else Color.White.copy(alpha = 0.6f),
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
             }
             Icon(
                 imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
@@ -469,20 +467,6 @@ internal fun ExerciseEditorCard(
                     warmupWarnings.forEach { warning ->
                         Text(warning, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
                     }
-                }
-
-                InlineEditorBlock(
-                    title = "EFECTIVA",
-                    summary = "${exercise.sets.count { !it.isEmptySlot }} series · ${trainingModeLabel(exercise.trainingMode)}",
-                    expanded = effectiveBlockExpanded,
-                    accentColor = accentColor,
-                    onToggle = { effectiveBlockExpanded = !effectiveBlockExpanded },
-                ) {
-                    Text(
-                        "Las series efectivas son las que se ejecutan y reciben carga, RPE y descanso.",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.White.copy(alpha = 0.72f),
-                    )
                 }
 
                 // Keep the primary controls stable; secondary configuration lives in overflow.
@@ -778,16 +762,6 @@ internal fun ExerciseEditorCard(
                     )
                 }
 
-                if (showGoalSheet) {
-                    ExerciseGoalDialog(
-                        exercise = exercise,
-                        goalRmInput = goalRmInput,
-                        onGoalRmInputChange = { goalRmInput = it },
-                        onUpdateExercise = onUpdateExercise,
-                        onDismiss = { showGoalSheet = false },
-                    )
-                }
-
                 if (exercise.relativeToCanonicalExerciseId != null) {
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
@@ -862,8 +836,21 @@ internal fun ExerciseEditorCard(
                     )
                 }
 
+                }
+
             }
         }
+    }
+
+    // Meta dialog must survive the collapsed state: the star is available in the header.
+    if (showGoalSheet && exercise.cardioDetails == null) {
+        ExerciseGoalDialog(
+            exercise = exercise,
+            goalRmInput = goalRmInput,
+            onGoalRmInputChange = { goalRmInput = it },
+            onUpdateExercise = onUpdateExercise,
+            onDismiss = { showGoalSheet = false },
+        )
     }
 
     // Custom unit modal dialog
