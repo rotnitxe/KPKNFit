@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import com.example.kpkn.data.models.CardioCatalogItem
 import com.example.kpkn.data.models.CardioCatalog
+import com.example.kpkn.ui.components.KpknSheetTokens
 import com.example.kpkn.ui.components.kpknSheetWhiteTonalButtonColors
 
 @Composable
@@ -45,7 +46,7 @@ internal fun CardioCatalogSheet(
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
-                    color = Color.White.copy(alpha = 0.06f),
+                    color = KpknSheetTokens.Panel,
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),

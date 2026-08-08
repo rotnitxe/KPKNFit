@@ -432,6 +432,7 @@ internal fun MobilityPickerSheet(
                     selected = selectedRegion.isBlank(),
                     onClick = { selectedRegion = "" },
                     label = "Todas",
+                    glassDark = true,
                 )
             }
             items(uniqueRegions) { region ->
@@ -439,6 +440,7 @@ internal fun MobilityPickerSheet(
                     selected = selectedRegion == region,
                     onClick = { selectedRegion = region },
                     label = region.replaceFirstChar { it.uppercase() },
+                    glassDark = true,
                 )
             }
         }
@@ -449,7 +451,7 @@ internal fun MobilityPickerSheet(
             items(results, key = { it.id }) { mobility ->
                 Surface(
                     shape = RoundedCornerShape(14.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.38f),
+                    color = KpknSheetTokens.Panel,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Row(

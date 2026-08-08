@@ -47,7 +47,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Slider
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -79,7 +78,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.exercises.catalogv2.toLegacySelection
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
@@ -113,9 +111,12 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.runtime.rememberCoroutineScope
-import com.example.kpkn.ui.components.kpknGlass
+import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.KpknGlassDialog
+import com.example.kpkn.ui.components.KpknGlass
+import com.example.kpkn.ui.components.LocalHazeState
+import com.example.kpkn.ui.components.kpknGlassOrFallback
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
 
 /**
  * The only runtime exercise picker. It deliberately has no legacy fallback:
@@ -140,90 +141,105 @@ internal fun ExercisePickerV2Catalog(
 ) {
     val state by repository.state.collectAsStateWithLifecycle()
     val retryScope = rememberCoroutineScope()
+    val glassHaze = LocalHazeState.current
 
-    Column(
+    val catalogShape = RoundedCornerShape(KpknGlass.SheetCornerRadius)
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .imePadding()
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+            .kpknGlassOrFallback(
+                hazeState = glassHaze,
+                shape = catalogShape,
+                additionalScrim = Color.Black.copy(alpha = 0.12f),
+            ),
     ) {
-        Text(
-            "CATÁLOGO DE EJERCICIOS",
-            fontWeight = FontWeight.Black,
-            color = Color.White,
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center,
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .imePadding()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                "CATÁLOGO DE EJERCICIOS",
+                fontWeight = FontWeight.Black,
+                color = Color.White,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+            )
 
-        // Search is intentionally always visible as a floating pill at the
-        // bottom. It must not be hidden behind an icon or disappear while the
-        // asset is being decoded.
-        when (val current = state) {
-            ExerciseCatalogStateV2.Loading -> {
-                Box(Modifier.fillMaxWidth().weight(1f)) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            CircularProgressIndicator(color = Color.White)
-                            Spacer(Modifier.height(10.dp))
-                            Text("Preparando el catálogo…", color = Color.White.copy(alpha = 0.78f))
-                        }
-                    }
-                    FloatingCatalogSearch(
-                        value = query,
-                        onValueChange = onSearch,
-                        modifier = Modifier.align(Alignment.BottomCenter),
-                    )
-                }
-            }
-
-            is ExerciseCatalogStateV2.Error -> {
-                Box(Modifier.fillMaxWidth().weight(1f)) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(10.dp),
-                        ) {
-                            Text(
-                                "No se pudo cargar el catálogo de ejercicios.",
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold,
-                            )
-                            Text(
-                                current.reason,
-                                color = Color.White.copy(alpha = 0.66f),
-                                style = MaterialTheme.typography.bodySmall,
-                            )
-                            Button(onClick = { retryScope.launch { repository.load() } }) {
-                                Text("Reintentar")
+            // Search is intentionally always visible as a floating pill at the
+            // bottom. It must not be hidden behind an icon or disappear while the
+            // asset is being decoded.
+            when (val current = state) {
+                ExerciseCatalogStateV2.Loading -> {
+                    Box(Modifier.fillMaxWidth().weight(1f)) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                CircularProgressIndicator(color = Color.White)
+                                Spacer(Modifier.height(10.dp))
+                                Text("Preparando el catálogo…", color = Color.White.copy(alpha = 0.78f))
                             }
                         }
+                        FloatingCatalogSearch(
+                            value = query,
+                            onValueChange = onSearch,
+                            hazeState = glassHaze,
+                            modifier = Modifier.align(Alignment.BottomCenter),
+                        )
                     }
-                    FloatingCatalogSearch(
-                        value = query,
-                        onValueChange = onSearch,
-                        modifier = Modifier.align(Alignment.BottomCenter),
+                }
+
+                is ExerciseCatalogStateV2.Error -> {
+                    Box(Modifier.fillMaxWidth().weight(1f)) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(10.dp),
+                            ) {
+                                Text(
+                                    "No se pudo cargar el catálogo de ejercicios.",
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                                Text(
+                                    current.reason,
+                                    color = Color.White.copy(alpha = 0.66f),
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                                Button(onClick = { retryScope.launch { repository.load() } }) {
+                                    Text("Reintentar")
+                                }
+                            }
+                        }
+                        FloatingCatalogSearch(
+                            value = query,
+                            onValueChange = onSearch,
+                            hazeState = glassHaze,
+                            modifier = Modifier.align(Alignment.BottomCenter),
+                        )
+                    }
+                }
+
+                is ExerciseCatalogStateV2.Ready -> {
+                    CatalogReadyContent(
+                        catalog = current.catalog,
+                        repository = repository,
+                        query = query,
+                        onSearch = onSearch,
+                        editingExisting = editingExisting,
+                        selectedExercisesIds = selectedExercisesIds,
+                        onSelect = onSelect,
+                        onMultiSelect = onMultiSelect,
+                        onSelectionChange = onSelectionChange,
+                        onOpenExerciseDetail = onOpenExerciseDetail,
+                        onCreateSuperset = onCreateSuperset,
+                        onDismiss = onDismiss,
+                        initialCatalogDefinitionId = initialCatalogDefinitionId,
+                        initialCatalogConfigurationId = initialCatalogConfigurationId,
+                        hazeState = glassHaze,
                     )
                 }
-            }
-
-            is ExerciseCatalogStateV2.Ready -> {
-                CatalogReadyContent(
-                    catalog = current.catalog,
-                    repository = repository,
-                    query = query,
-                    onSearch = onSearch,
-                    editingExisting = editingExisting,
-                    selectedExercisesIds = selectedExercisesIds,
-                    onSelect = onSelect,
-                    onMultiSelect = onMultiSelect,
-                    onSelectionChange = onSelectionChange,
-                    onOpenExerciseDetail = onOpenExerciseDetail,
-                    onCreateSuperset = onCreateSuperset,
-                    onDismiss = onDismiss,
-                    initialCatalogDefinitionId = initialCatalogDefinitionId,
-                    initialCatalogConfigurationId = initialCatalogConfigurationId,
-                )
             }
         }
     }
@@ -234,8 +250,10 @@ internal fun ExercisePickerV2Catalog(
 private fun FloatingCatalogSearch(
     value: String,
     onValueChange: (String) -> Unit,
+    hazeState: HazeState?,
     modifier: Modifier = Modifier,
 ) {
+    val shape = RoundedCornerShape(32.dp)
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -247,9 +265,11 @@ private fun FloatingCatalogSearch(
                 spotColor = Color.Black.copy(alpha = 0.60f),
                 clip = false,
             )
-            .clip(RoundedCornerShape(32.dp))
-            .background(Color(0xFF1E2129))
-            .border(1.dp, Color.White.copy(alpha = 0.16f), RoundedCornerShape(32.dp)),
+            .kpknGlassOrFallback(
+                hazeState = hazeState,
+                shape = shape,
+                additionalScrim = Color.Black.copy(alpha = 0.16f),
+            ),
     ) {
         CatalogSearchField(
             value = value,
@@ -277,6 +297,7 @@ private fun ColumnScope.CatalogReadyContent(
     onDismiss: () -> Unit,
     initialCatalogDefinitionId: String?,
     initialCatalogConfigurationId: String?,
+    hazeState: HazeState?,
 ) {
     val scope = rememberCoroutineScope()
     val definitionsById = remember(catalog) {
@@ -442,14 +463,13 @@ private fun ColumnScope.CatalogReadyContent(
         if (delta != 0) listState.animateScrollBy(delta.toFloat())
     }
 
-    val pickerHaze = remember { HazeState() }
     var filterBarHeight by remember { mutableStateOf(0) }
     var selectionPanelHeight by remember { mutableStateOf(84) }
     val density = LocalDensity.current
     Box(Modifier.fillMaxWidth().weight(1f)) {
         LazyColumn(
             state = listState,
-            modifier = Modifier.fillMaxSize().hazeSource(pickerHaze),
+            modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(10.dp),
             contentPadding = PaddingValues(
                 top = with(density) { filterBarHeight.toDp() },
@@ -531,7 +551,11 @@ private fun ColumnScope.CatalogReadyContent(
 
             Card(
                 colors = CardDefaults.cardColors(
-                    containerColor = if (isSelected) Color(0xFF1E5A44) else Color.White.copy(alpha = 0.12f),
+                    containerColor = if (isSelected) {
+                        Color(0xFF1E5A44).copy(alpha = 0.72f)
+                    } else {
+                        Color.White.copy(alpha = 0.12f)
+                    },
                 ),
                 border = BorderStroke(
                     1.dp,
@@ -861,7 +885,11 @@ private fun ColumnScope.CatalogReadyContent(
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
                 .onSizeChanged { filterBarHeight = it.height }
-                .kpknGlass(pickerHaze, RoundedCornerShape(16.dp))
+                .kpknGlassOrFallback(
+                    hazeState = hazeState,
+                    shape = RoundedCornerShape(16.dp),
+                    additionalScrim = Color.Black.copy(alpha = 0.12f),
+                )
                 .padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
@@ -932,6 +960,7 @@ private fun ColumnScope.CatalogReadyContent(
         FloatingCatalogSearch(
             value = query,
             onValueChange = onSearch,
+            hazeState = hazeState,
         )
     }
     }
@@ -971,7 +1000,7 @@ private fun ColumnScope.CatalogReadyContent(
         }
     }
     deletingCustomExercise.value?.let { deleting ->
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { deletingCustomExercise.value = null },
             title = { Text("Eliminar ejercicio", color = Color.White) },
             text = { Text("¿Eliminar «${deleting.name}»? Esta acción no se puede deshacer.", color = Color.White.copy(alpha = 0.8f)) },
@@ -992,7 +1021,6 @@ private fun ColumnScope.CatalogReadyContent(
                     Text("Cancelar", color = Color.White)
                 }
             },
-            containerColor = Color(0xFF101418),
         )
     }
 }
@@ -1390,7 +1418,11 @@ private fun CustomExerciseCard(
     }
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = if (selected) Color(0xFF1E5A44) else Color.White.copy(alpha = 0.12f),
+            containerColor = if (selected) {
+                Color(0xFF1E5A44).copy(alpha = 0.72f)
+            } else {
+                Color.White.copy(alpha = 0.12f)
+            },
         ),
         border = BorderStroke(
             1.dp,
@@ -1573,7 +1605,7 @@ private fun SelectedExercisesAccordion(
     ) {
         Surface(
             shape = RoundedCornerShape(14.dp),
-            color = Color(0xFF1E2129),
+            color = Color.White.copy(alpha = 0.08f),
             border = BorderStroke(1.dp, Color.White.copy(alpha = 0.18f)),
             shadowElevation = 10.dp,
             modifier = Modifier
@@ -1752,27 +1784,22 @@ fun SmartExerciseEditorDialog(
     onSave: (ExerciseMuscleInfo) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            shape = RoundedCornerShape(20.dp),
-            color = Color(0xFF101418),
+    KpknGlassDialog(onDismissRequest = onDismiss) {
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = 620.dp)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Text(
-                    "Editar (${initial.name})",
-                    color = Color.White,
-                    fontWeight = FontWeight.Black,
-                    style = MaterialTheme.typography.titleLarge,
-                )
-                SmartExerciseForm(initial = initial, onSave = onSave, onDismiss = onDismiss)
-            }
+            Text(
+                "Editar (${initial.name})",
+                color = Color.White,
+                fontWeight = FontWeight.Black,
+                style = MaterialTheme.typography.titleLarge,
+            )
+            SmartExerciseForm(initial = initial, onSave = onSave, onDismiss = onDismiss)
         }
     }
 }
