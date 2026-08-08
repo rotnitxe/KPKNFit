@@ -99,6 +99,7 @@ data class WorkoutUiState(
     val skippedExerciseIds: Set<String> = emptySet(),
     val warmupCompletedExerciseIds: Set<String> = emptySet(),
     val mobilityCompletedExerciseIds: Set<String> = emptySet(),
+    val preparationReports: Map<String, PreparationReport> = emptyMap(),
     val startTimeMs: Long = System.currentTimeMillis(),
     val isComplete: Boolean = false,
     val pendingVoiceDiagnosticExportName: String? = null,

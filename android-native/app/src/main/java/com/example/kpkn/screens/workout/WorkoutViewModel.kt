@@ -8,11 +8,13 @@ import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.voice.VoiceState
 import com.example.kpkn.data.models.*
+import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.energy.TrainingEnergyEngine
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
+import com.example.kpkn.domain.calculations.resolveReferenceCapacity
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.replacedWithCatalogExercise
 import com.example.kpkn.screens.sessioneditor.CatalogSelectionDraftBridge
@@ -20,6 +22,7 @@ import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.workout.LoadSuggestionEngine
+import com.example.kpkn.domain.workout.WarmupCalibrationEngine
 import com.example.kpkn.domain.workout.WorkoutStructuralEditor
 import com.example.kpkn.domain.workout.SupersetRules
 import com.example.kpkn.domain.workout.expectedSidesForSet
@@ -169,6 +172,7 @@ class WorkoutViewModel(
 
     private val recordingGate = WorkoutRecordingGate()
     private val evaluatedContextKeysThisSession = mutableSetOf<String>()
+    private var sessionStartLogged = false
 
     private val setRecorder = WorkoutSetRecorder(
         tryStartRecording = recordingGate::tryStart,
@@ -495,10 +499,16 @@ class WorkoutViewModel(
                 override fun persistVoiceRuntimeState() = this@WorkoutViewModel.persistOngoingState()
                 override fun markWarmupComplete(exerciseId: String, warmupSetId: String) =
                     this@WorkoutViewModel.markWarmupComplete(exerciseId, warmupSetId)
+                override fun reportWarmupStep(exerciseId: String, warmupSetId: String, usedWeightKg: Double?, reportedReps: Int?) =
+                    this@WorkoutViewModel.reportWarmupStep(exerciseId, warmupSetId, usedWeightKg, reportedReps)
                 override fun recordWarmupHeaviness(exerciseId: String, warmupSetId: String, rpe: Double) =
                     this@WorkoutViewModel.recordWarmupHeaviness(exerciseId, warmupSetId, rpe)
                 override fun markMobilityComplete(exerciseId: String, mobilitySeriesId: String) =
                     this@WorkoutViewModel.markMobilityComplete(exerciseId, mobilitySeriesId)
+                override fun reportMobilityStep(exerciseId: String, mobilitySeriesId: String, value: Double, unit: PreparationReportUnit) =
+                    this@WorkoutViewModel.reportMobilityStep(exerciseId, mobilitySeriesId, value, unit)
+                override fun skipRemainingPreparation(exerciseId: String) =
+                    this@WorkoutViewModel.skipRemainingPreparation(exerciseId)
                 override fun recordCardioSet(durationSeconds: Int, distanceKm: Double?, averageHeartRate: Int?) =
                     this@WorkoutViewModel.recordCardioSet(durationSeconds, distanceKm, averageHeartRate)
                 override fun setVoiceExerciseQueue(exerciseIds: List<String>) {
@@ -692,18 +702,6 @@ class WorkoutViewModel(
         }
         voiceController.hapticEnabledProvider = { repository.settings.value.hapticFeedbackEnabled }
         sessionTtsManager.setSpeechRate(repository.settings.value.ttsSpeechRate)
-        viewModelScope.launch {
-            delay(1_000L)
-            if (
-                !WorkoutVoiceDiagnosticLogger.isAutomaticStorageConfigured() &&
-                WorkoutVoiceDiagnosticLogger.hasExportableData() &&
-                !WorkoutVoiceDiagnosticLogger.isActive()
-            ) {
-                _uiState.update {
-                    it.copy(pendingVoiceDiagnosticExportName = WorkoutVoiceDiagnosticLogger.suggestedFileName())
-                }
-            }
-        }
         voiceController.onCommandDetected = { command -> voiceCommandHandler.handleVoiceCommand(command) }
         voiceController.onStageChanged = { stage ->
             _uiState.update { state ->
@@ -762,7 +760,27 @@ class WorkoutViewModel(
         }
     }
 
-    private fun loadSession(): Boolean = sessionHydrator.loadSession()
+    private fun loadSession(): Boolean {
+        val loaded = sessionHydrator.loadSession()
+        if (loaded && !sessionStartLogged) {
+            sessionStartLogged = true
+            val state = _uiState.value
+            KpknDiagnosticLogger.event(
+                namespace = "workout",
+                name = "session_started",
+                fields = mapOf(
+                    "programId" to programId,
+                    "workoutSessionId" to sessionId,
+                    "sessionName" to state.session?.name,
+                    "plannedExercises" to state.session?.allExercises()?.size,
+                    "exerciseCount" to state.session?.allExercises()?.size,
+                    "voiceEnabled" to voiceController.isEnabled(),
+                ),
+                sessionId = sessionId,
+            )
+        }
+        return loaded
+    }
 
     private fun workoutWidgetsSessionKey(): String = "$programId::$sessionId"
 
@@ -1076,24 +1094,84 @@ class WorkoutViewModel(
         expectedExerciseId: String? = null,
         expectedSetIdx: Int? = null,
         expectedSide: String? = null,
-    ) = setRecorder.record(
-        weight = weight,
-        value = value,
-        intensity = intensity,
-        advanced = advanced,
-        loadMode = loadMode,
-        unitMode = unitMode,
-        bodyWeight = bodyWeight,
-        side = side,
-        tagId = tagId,
-        setupId = setupId,
-        machineBrand = machineBrand,
-        amrapOverride = amrapOverride,
-        setIdxOverride = setIdxOverride,
-        expectedExerciseId = expectedExerciseId,
-        expectedSetIdx = expectedSetIdx,
-        expectedSide = expectedSide,
-    )
+    ) {
+        val beforeCount = _uiState.value.completedSets.size
+        val exercise = visibleExercises(_uiState.value).getOrNull(_uiState.value.currentExerciseIdx)
+        try {
+            setRecorder.record(
+                weight = weight,
+                value = value,
+                intensity = intensity,
+                advanced = advanced,
+                loadMode = loadMode,
+                unitMode = unitMode,
+                bodyWeight = bodyWeight,
+                side = side,
+                tagId = tagId,
+                setupId = setupId,
+                machineBrand = machineBrand,
+                amrapOverride = amrapOverride,
+                setIdxOverride = setIdxOverride,
+                expectedExerciseId = expectedExerciseId,
+                expectedSetIdx = expectedSetIdx,
+                expectedSide = expectedSide,
+            )
+        } catch (error: Exception) {
+            KpknDiagnosticLogger.event(
+                namespace = "workout",
+                name = "set_persistence_failed",
+                fields = mapOf(
+                    "programId" to programId,
+                    "workoutSessionId" to sessionId,
+                    "exerciseId" to exercise?.id,
+                    "setIndex" to (expectedSetIdx ?: _uiState.value.currentSetIdx),
+                    "exceptionType" to error.javaClass.name,
+                    "exceptionMessage" to error.message,
+                ),
+                sessionId = sessionId,
+            )
+            throw error
+        }
+        val afterCount = _uiState.value.completedSets.size
+        if (afterCount > beforeCount) {
+            KpknDiagnosticLogger.event(
+                namespace = "workout",
+                name = "set_recorded",
+                fields = mapOf(
+                    "programId" to programId,
+                    "workoutSessionId" to sessionId,
+                    "exerciseId" to exercise?.id,
+                    "exerciseName" to exercise?.name,
+                    "setIndex" to (expectedSetIdx ?: _uiState.value.currentSetIdx),
+                    "side" to (expectedSide ?: side),
+                    "weight" to weight,
+                    "weightKg" to weight,
+                    "value" to value,
+                    "reps" to value.takeIf { unitMode != UnitModeV2.TIME },
+                    "timeSec" to value.takeIf { unitMode == UnitModeV2.TIME },
+                    "intensity" to intensity,
+                    "rpe" to intensity,
+                    "completedSetCount" to afterCount,
+                    "source" to if (voiceController.isEnabled()) "voice" else "manual_ui",
+                    "failedSet" to advanced.isFailedSet,
+                    "executionError" to advanced.executionError,
+                ),
+                sessionId = sessionId,
+            )
+            KpknDiagnosticLogger.event(
+                namespace = "workout",
+                name = "set_persistence_succeeded",
+                fields = mapOf(
+                    "programId" to programId,
+                    "workoutSessionId" to sessionId,
+                    "exerciseId" to exercise?.id,
+                    "setIndex" to (expectedSetIdx ?: _uiState.value.currentSetIdx),
+                    "side" to (expectedSide ?: side),
+                ),
+                sessionId = sessionId,
+            )
+        }
+    }
 
     fun checkPaceCoachAlert() = pacingController.checkPaceCoachAlert()
 
@@ -1362,13 +1440,14 @@ class WorkoutViewModel(
     private fun prepareVoiceDiagnosticExport() {
         if (!WorkoutVoiceDiagnosticLogger.hasExportableData()) return
         WorkoutVoiceDiagnosticLogger.event("workout_completed")
-        if (WorkoutVoiceDiagnosticLogger.isAutomaticStorageConfigured()) {
-            WorkoutVoiceDiagnosticLogger.close("workout_completed_auto_saved")
-            return
+        val reason = if (WorkoutVoiceDiagnosticLogger.isAutomaticStorageConfigured()) {
+            "workout_completed_auto_saved"
+        } else {
+            "workout_completed_local_only"
         }
-        _uiState.update {
-            it.copy(pendingVoiceDiagnosticExportName = WorkoutVoiceDiagnosticLogger.suggestedFileName())
-        }
+            // Never expose a system document selector from a live workout. The
+        // local file remains available for the explicit export action in Settings.
+        WorkoutVoiceDiagnosticLogger.close(reason)
     }
 
     fun completeVoiceDiagnosticExport(uri: Uri?) {
@@ -2161,11 +2240,90 @@ class WorkoutViewModel(
         nextSet(stopRest = false)
     }
 
+    /** Completes exactly one warm-up card and starts its configured rest. */
+    fun completeWarmupStep(
+        exerciseId: String,
+        warmupSetId: String,
+        usedWeightKg: Double? = null,
+        reportedReps: Int? = null,
+    ) {
+        val state = _uiState.value
+        val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return
+        val warmup = exercise.warmupSets.firstOrNull { it.id == warmupSetId } ?: return
+        val key = warmupCompletionKey(exerciseId, warmupSetId)
+        if (key in state.warmupCompletedExerciseIds || exerciseId in state.warmupCompletedExerciseIds) return
+
+        val previous = state.completedSets[key]
+        val completed = (previous ?: CompletedSet(id = key)).copy(
+            weight = usedWeightKg?.coerceAtLeast(0.0) ?: previous?.weight ?: 0.0,
+            reps = reportedReps?.coerceAtLeast(0) ?: warmup.targetReps,
+            isWarmup = true,
+        )
+        _uiState.update {
+            it.copy(
+                completedSets = it.completedSets + (key to completed),
+                warmupCompletedExerciseIds = it.warmupCompletedExerciseIds + key,
+            )
+        }
+        persistOngoingState()
+        nextSet(stopRest = false)
+        startPreparationRestIfNeeded(
+            seconds = warmup.restBetween ?: 0,
+            kind = RestTimerKind.WARMUP,
+            lastSet = completed,
+        )
+    }
+
+    fun reportWarmupStep(
+        exerciseId: String,
+        warmupSetId: String,
+        usedWeightKg: Double?,
+        reportedReps: Int?,
+    ) {
+        val key = warmupCompletionKey(exerciseId, warmupSetId)
+        val state = _uiState.value
+        _uiState.update {
+            it.copy(
+                preparationReports = it.preparationReports + (
+                    key to PreparationReport(
+                        value = (reportedReps?.toDouble() ?: usedWeightKg ?: 0.0),
+                        unit = PreparationReportUnit.REPS,
+                        weightKg = usedWeightKg,
+                        reps = reportedReps,
+                    )
+                ),
+            )
+        }
+        if (key in state.warmupCompletedExerciseIds || exerciseId in state.warmupCompletedExerciseIds) {
+            val existing = state.completedSets[key]
+            if (existing != null) {
+                _uiState.update {
+                    it.copy(
+                        completedSets = it.completedSets + (
+                            key to existing.copy(
+                                weight = usedWeightKg?.coerceAtLeast(0.0) ?: existing.weight,
+                                reps = reportedReps?.coerceAtLeast(0) ?: existing.reps,
+                                isWarmup = true,
+                            )
+                        ),
+                    )
+                }
+                persistOngoingState()
+            }
+            return
+        }
+        completeWarmupStep(exerciseId, warmupSetId, usedWeightKg, reportedReps)
+    }
+
     fun markWarmupComplete(exerciseId: String, warmupSetId: String, completed: Boolean = true) {
         val key = warmupCompletionKey(exerciseId, warmupSetId)
         val state = _uiState.value
         val alreadyCompleted = key in state.warmupCompletedExerciseIds || exerciseId in state.warmupCompletedExerciseIds
         if (completed == alreadyCompleted) return
+        if (completed) {
+            completeWarmupStep(exerciseId, warmupSetId)
+            return
+        }
         val shouldAdvance = completed && state.activeStepKey == key
         _uiState.update {
             it.copy(
@@ -2174,6 +2332,7 @@ class WorkoutViewModel(
                 } else {
                     it.warmupCompletedExerciseIds - key - exerciseId
                 },
+                preparationReports = if (completed) it.preparationReports else it.preparationReports - key,
             )
         }
         persistOngoingState()
@@ -2187,10 +2346,12 @@ class WorkoutViewModel(
         val warmup = exercise.warmupSets.firstOrNull { it.id == warmupSetId } ?: return
         val key = warmupCompletionKey(exerciseId, warmupSetId)
         val current = _uiState.value.completedSets[key]
-        val baseWeight = exercise.sets.firstOrNull { it.weight != null && it.weight > 0.0 }?.weight ?: 0.0
-        val targetWeight = baseWeight * (warmup.percentageOfWorkingWeight / 100.0)
+        val baseWeight = resolveReferenceCapacity(exercise)
+            ?: exercise.sets.firstOrNull { it.weight != null && it.weight > 0.0 }?.weight
+            ?: 0.0
+        val targetWeight = baseWeight * WarmupCalibrationEngine.normalizePercentage(warmup.percentageOfWorkingWeight)
         val completed = (current ?: CompletedSet(id = key)).copy(
-            weight = if (targetWeight > 0.0) targetWeight else current?.weight ?: 0.0,
+            weight = if ((current?.weight ?: 0.0) > 0.0) current?.weight ?: targetWeight else targetWeight,
             reps = warmup.targetReps,
             rpe = rpe.coerceIn(1.0, 10.0),
             isWarmup = true,
@@ -2199,11 +2360,63 @@ class WorkoutViewModel(
         persistOngoingState()
     }
 
+    /** Completes exactly one mobility card and starts its configured rest. */
+    fun completeMobilityStep(exerciseId: String, mobilityId: String) {
+        val state = _uiState.value
+        val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return
+        val mobility = exercise.mobilitySeries.firstOrNull { it.id == mobilityId } ?: return
+        val key = mobilityCompletionKey(exerciseId, mobilityId)
+        if (key in state.mobilityCompletedExerciseIds) return
+        _uiState.update {
+            it.copy(mobilityCompletedExerciseIds = it.mobilityCompletedExerciseIds + key)
+        }
+        persistOngoingState()
+        nextSet(stopRest = false)
+        startPreparationRestIfNeeded(
+            seconds = mobility.restBetweenSeconds,
+            kind = RestTimerKind.STANDARD,
+            lastSet = null,
+        )
+    }
+
+    fun reportMobilityStep(
+        exerciseId: String,
+        mobilityId: String,
+        value: Double,
+        unit: PreparationReportUnit,
+    ) {
+        val key = mobilityCompletionKey(exerciseId, mobilityId)
+        _uiState.update {
+            it.copy(preparationReports = it.preparationReports + (key to PreparationReport(value.coerceAtLeast(0.0), unit)))
+        }
+        persistOngoingState()
+        completeMobilityStep(exerciseId, mobilityId)
+    }
+
+    fun skipRemainingPreparation(exerciseId: String) {
+        val state = _uiState.value
+        val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return
+        val mobilityKeys = exercise.mobilitySeries.map { mobilityCompletionKey(exerciseId, it.id) }
+        val warmupKeys = exercise.warmupSets.map { warmupCompletionKey(exerciseId, it.id) }
+        _uiState.update {
+            it.copy(
+                mobilityCompletedExerciseIds = it.mobilityCompletedExerciseIds + mobilityKeys,
+                warmupCompletedExerciseIds = it.warmupCompletedExerciseIds + warmupKeys,
+            )
+        }
+        persistOngoingState()
+        nextSet(stopRest = false)
+    }
+
     fun markMobilityComplete(exerciseId: String, mobilityId: String, completed: Boolean = true) {
         val key = mobilityCompletionKey(exerciseId, mobilityId)
         val state = _uiState.value
         val alreadyCompleted = key in state.mobilityCompletedExerciseIds
         if (completed == alreadyCompleted) return
+        if (completed) {
+            completeMobilityStep(exerciseId, mobilityId)
+            return
+        }
         val shouldAdvance = completed && state.activeStepKey == key
         _uiState.update {
             it.copy(
@@ -2212,12 +2425,29 @@ class WorkoutViewModel(
                 } else {
                     it.mobilityCompletedExerciseIds - key
                 },
+                preparationReports = if (completed) it.preparationReports else it.preparationReports - key,
             )
         }
         persistOngoingState()
         if (shouldAdvance) {
             nextSet(stopRest = false)
         }
+    }
+
+    private fun startPreparationRestIfNeeded(
+        seconds: Int,
+        kind: RestTimerKind,
+        lastSet: CompletedSet?,
+    ) {
+        if (seconds <= 0) return
+        val state = _uiState.value
+        if (state.showPostExerciseSheet || state.showFinishSheet || state.activeStepKey.isNullOrBlank()) return
+        startRestTimer(
+            seconds = seconds,
+            advanceOnFinish = false,
+            lastSet = lastSet,
+            kind = kind,
+        )
     }
 
     fun recordCardioSet(
@@ -2576,6 +2806,12 @@ class WorkoutViewModel(
     }
 
     fun cancelWorkout() {
+        KpknDiagnosticLogger.event(
+            namespace = "workout",
+            name = "session_abandoned",
+            fields = mapOf("programId" to programId, "workoutSessionId" to sessionId, "reason" to "cancelled"),
+            sessionId = sessionId,
+        )
         pacingController.cancelSessionTimer()
         restTimer.abortHard()
         runCatching {
@@ -2588,6 +2824,12 @@ class WorkoutViewModel(
 
     /** Clears ongoing from Room, then runs [onClearedUi] on Main. */
     fun abandonWorkoutWithoutSaving(onClearedUi: () -> Unit) {
+        KpknDiagnosticLogger.event(
+            namespace = "workout",
+            name = "session_abandoned",
+            fields = mapOf("programId" to programId, "workoutSessionId" to sessionId, "reason" to "navigated_away"),
+            sessionId = sessionId,
+        )
         abortRestTimerHard()
         viewModelScope.launch {
             repository.clearOngoingWorkoutAndFlush()
@@ -2819,13 +3061,7 @@ class WorkoutViewModel(
             fatigueLevel = fatigueLevel,
             closingFeedback = closingFeedback,
             onPendingQuestionnaire = onPendingQuestionnaire,
-            onComplete = {
-                if (_uiState.value.pendingVoiceDiagnosticExportName != null) {
-                    pendingVoiceDiagnosticOnComplete = onComplete
-                } else {
-                    onComplete()
-                }
-            },
+            onComplete = onComplete,
             onFailure = onFailure,
         )
     }

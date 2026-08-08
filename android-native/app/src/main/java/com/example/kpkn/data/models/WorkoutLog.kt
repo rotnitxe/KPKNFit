@@ -205,6 +205,7 @@ data class OngoingWorkoutState(
     val skippedExerciseIds: Set<String> = emptySet(),
     val warmupCompletedExerciseIds: Set<String> = emptySet(),
     val mobilityCompletedExerciseIds: Set<String> = emptySet(),
+    val preparationReports: Map<String, com.example.kpkn.screens.workout.PreparationReport> = emptyMap(),
     val readinessNeuralOverride: Int? = null,
     val readinessMuscularOverride: Int? = null,
     val readinessSpinalOverride: Int? = null,

@@ -15,6 +15,20 @@ enum class RestTimerKind {
 }
 
 @Serializable
+enum class PreparationReportUnit {
+    REPS,
+    SECONDS,
+}
+
+@Serializable
+data class PreparationReport(
+    val value: Double,
+    val unit: PreparationReportUnit,
+    val weightKg: Double? = null,
+    val reps: Int? = null,
+)
+
+@Serializable
 data class WorkoutSetDraft(
     val weightText: String? = null,
     val valueText: String? = null,
@@ -35,6 +49,8 @@ data class WorkoutRestModalState(
     val exerciseId: String? = null,
     val exerciseName: String = "",
     val kind: RestTimerKind = RestTimerKind.STANDARD,
+    /** Warm-up definition that produced this rest, when applicable. */
+    val warmupSetId: String? = null,
     val plannedSeconds: Int = 0,
     val suggestedSeconds: Int = 0,
     val activeSeconds: Int = 0,

@@ -120,7 +120,7 @@ object WorkoutStepRules {
                         stepKey = mobilityStepKey(exercise.id, mobility.id),
                         mobilitySeriesId = mobility.id,
                         supersetGroupId = groupId,
-                        mobilitySeries = members.flatMap { it.mobilitySeries },
+                        mobilitySeries = listOf(mobility),
                         restAfterKind = RestTimerKind.STANDARD,
                     )
                 }

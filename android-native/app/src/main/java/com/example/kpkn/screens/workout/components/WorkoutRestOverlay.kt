@@ -52,6 +52,7 @@ fun RestTimerOverlay(
     skipExerciseLabel: String? = null,
     onSkipExercise: (() -> Unit)? = null,
     onUseAdaptive: (() -> Unit)? = null,
+    onWarmupEffort: ((Double) -> Unit)? = null,
     postExerciseFeedbackContent: (@Composable () -> Unit)? = null,
     feedbackExerciseCount: Int = 0,
     onMinimize: (() -> Unit)? = null,
@@ -113,6 +114,7 @@ fun RestTimerOverlay(
                     onSkipExercise = onSkipExercise,
                     onUseAdaptive = onUseAdaptive,
                     onMinimize = onMinimize,
+                    onWarmupEffort = onWarmupEffort,
                 )
             }
         }
@@ -288,6 +290,7 @@ private fun NormalRestContent(
     onSkipExercise: (() -> Unit)?,
     onUseAdaptive: (() -> Unit)?,
     onMinimize: (() -> Unit)? = null,
+    onWarmupEffort: ((Double) -> Unit)? = null,
 ) {
     Column(
         modifier = Modifier
@@ -442,6 +445,40 @@ private fun NormalRestContent(
                     contentDescription = "Sumar 15 segundos",
                     tint = Color.White,
                     modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+
+        if (state.kind == RestTimerKind.WARMUP && onWarmupEffort != null) {
+            var effort by remember(state.warmupSetId, lastCompletedSet?.rpe) {
+                mutableFloatStateOf(lastCompletedSet?.rpe?.toFloat()?.coerceIn(1f, 10f) ?: 6f)
+            }
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    text = "Esfuerzo de la aproximación: RPE ${"%.1f".format(effort)}/10",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = sessionAccentColor,
+                )
+                Slider(
+                    value = effort,
+                    onValueChange = { effort = it },
+                    onValueChangeFinished = { onWarmupEffort(effort.toDouble()) },
+                    valueRange = 1f..10f,
+                    steps = 8,
+                    colors = SliderDefaults.colors(
+                        thumbColor = sessionAccentColor,
+                        activeTrackColor = sessionAccentColor,
+                        inactiveTrackColor = sessionAccentColor.copy(alpha = 0.24f),
+                    ),
+                )
+                Text(
+                    text = "Se guarda y calibra la primera serie efectiva de forma conservadora.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White.copy(alpha = 0.56f),
                 )
             }
         }

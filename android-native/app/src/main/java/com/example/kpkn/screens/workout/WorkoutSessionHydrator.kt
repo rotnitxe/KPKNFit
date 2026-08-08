@@ -123,6 +123,7 @@ class WorkoutSessionHydrator(
         val restoredSkippedExerciseIds = resumedState?.skippedExerciseIds ?: emptySet()
         val restoredWarmupCompletedExerciseIds = resumedState?.warmupCompletedExerciseIds ?: emptySet()
         val restoredMobilityCompletedExerciseIds = resumedState?.mobilityCompletedExerciseIds ?: emptySet()
+        val restoredPreparationReports = resumedState?.preparationReports ?: emptyMap()
         val exercisesForMode = ports.sessionForActiveMode(restoredSession, restoredMode).materializedWorkoutExercises()
         val hydratedProfiles = ports.hydrateContextProfiles(
             exercises = exercisesForMode,
@@ -243,6 +244,7 @@ class WorkoutSessionHydrator(
                 skippedExerciseIds = restoredSkippedExerciseIds,
                 warmupCompletedExerciseIds = restoredWarmupCompletedExerciseIds,
                 mobilityCompletedExerciseIds = restoredMobilityCompletedExerciseIds,
+                preparationReports = restoredPreparationReports,
                 exerciseTags = restoredTags,
                 activeTagsByExercise = restoredActiveTags,
                 activeSubTagsByExercise = restoredActiveSubTags,
@@ -338,6 +340,7 @@ class WorkoutSessionHydrator(
                     skippedExerciseIds = restoredSkippedExerciseIds,
                     warmupCompletedExerciseIds = restoredWarmupCompletedExerciseIds,
                     mobilityCompletedExerciseIds = restoredMobilityCompletedExerciseIds,
+                    preparationReports = restoredPreparationReports,
                     readinessNeuralOverride = resumedState?.readinessNeuralOverride,
                     readinessMuscularOverride = resumedState?.readinessMuscularOverride,
                     readinessSpinalOverride = resumedState?.readinessSpinalOverride,

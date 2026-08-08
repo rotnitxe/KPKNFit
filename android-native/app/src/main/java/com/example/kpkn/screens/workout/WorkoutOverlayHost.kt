@@ -59,6 +59,19 @@ internal fun WorkoutRestOverlayHost(
                 skipExerciseLabel = skipExerciseLabel,
                 onSkipExercise = onSkipExercise,
                 onUseAdaptive = { viewModel.resolvePendingRestSuggestion(useAdaptive = true) },
+                onWarmupEffort = if (restState.kind == RestTimerKind.WARMUP) {
+                    restState.exerciseId?.let { exerciseId ->
+                        restState.warmupSetId?.let { warmupSetId ->
+                            { effort ->
+                                viewModel.recordWarmupHeaviness(
+                                    exerciseId = exerciseId,
+                                    warmupSetId = warmupSetId,
+                                    rpe = effort,
+                                )
+                            }
+                        }
+                    }
+                } else null,
                 postExerciseFeedbackContent = postExerciseFeedbackContent,
                 feedbackExerciseCount = feedbackExerciseCount,
                 onMinimize = { viewModel.toggleRestMinimized() },

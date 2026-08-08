@@ -184,7 +184,7 @@ class WorkoutStepRulesTest {
     }
 
     @Test
-    fun buildSteps_groupsSupersetMobilityIntoSinglePreparationCard() {
+    fun buildSteps_keepsSupersetMobilityOneCardPerSeries() {
         val a = Exercise(
             id = "a",
             name = "A",
@@ -211,7 +211,8 @@ class WorkoutStepRulesTest {
         assertEquals(2, mobilitySteps.size)
         assertEquals(listOf("Movilidad de superserie", "Movilidad de superserie"), mobilitySteps.map { it.exerciseName })
         assertEquals(listOf("a_mob-a", "b_mob-b"), mobilitySteps.map { it.stepKey })
-        assertEquals(listOf("mob-a", "mob-b"), mobilitySteps.first().mobilitySeries.map { it.id })
+        assertEquals(listOf("mob-a"), mobilitySteps.first().mobilitySeries.map { it.id })
+        assertEquals(listOf("mob-b"), mobilitySteps.last().mobilitySeries.map { it.id })
         assertEquals(listOf(WorkoutStepType.MOBILITY, WorkoutStepType.MOBILITY, WorkoutStepType.WORKING_SET, WorkoutStepType.WORKING_SET), steps.map { it.type })
     }
 

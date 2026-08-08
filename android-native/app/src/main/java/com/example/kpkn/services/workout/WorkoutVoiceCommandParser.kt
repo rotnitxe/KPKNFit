@@ -29,6 +29,11 @@ object WorkoutVoiceCommandParser {
         "pasar serie", "avanzar serie",
     )
 
+    private val SKIP_PREPARATION_KEYWORDS = setOf(
+        "saltar aproximaciones", "omitir aproximaciones", "saltar aproximacion", "omitir aproximacion",
+        "saltar movilidad", "omitir movilidad", "pasar movilidad", "pasar aproximaciones",
+    )
+
     private val SKIP_KEYWORDS = setOf(
         "saltar", "siguiente", "omitir", "pasar", "adelante",
         "siguiente ejercicio", "proximo", "próximo", "avanzar",
@@ -195,6 +200,7 @@ object WorkoutVoiceCommandParser {
             else -> {
                 base += STOP_SPEAKING_KEYWORDS
                 base += SKIP_SET_KEYWORDS
+                base += SKIP_PREPARATION_KEYWORDS
                 base += SKIP_KEYWORDS
                 base += PREVIOUS_KEYWORDS
                 base += SUGGEST_WEIGHT_KEYWORDS
@@ -426,6 +432,10 @@ object WorkoutVoiceCommandParser {
         }
 
         val parsedTag = parseTagCommand(lower, tagNames)
+
+        if (SKIP_PREPARATION_KEYWORDS.any { lower.contains(it) }) {
+            return VoiceSessionCommand.SkipPreparation
+        }
 
         if (SKIP_SET_KEYWORDS.any { lower.contains(it) }) {
             return VoiceSessionCommand.SkipSet

@@ -141,6 +141,8 @@ sealed class VoiceSessionCommand {
     data object Confirm : VoiceSessionCommand()
     data object Cancel : VoiceSessionCommand()
     data object SkipExercise : VoiceSessionCommand()
+    /** Omite solo movilidad/aproximaciones pendientes y conserva las series efectivas. */
+    data object SkipPreparation : VoiceSessionCommand()
     data object SkipSet : VoiceSessionCommand()
     data object PreviousExercise : VoiceSessionCommand()
     data object SuggestWeight : VoiceSessionCommand()

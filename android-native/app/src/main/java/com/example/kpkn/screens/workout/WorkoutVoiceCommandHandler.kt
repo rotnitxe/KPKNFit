@@ -16,6 +16,8 @@ import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.discomfortLabel
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.voice.VoiceState
+import com.example.kpkn.domain.calculations.resolveReferenceCapacity
+import com.example.kpkn.domain.workout.WarmupCalibrationEngine
 import com.example.kpkn.services.workout.VoiceSessionCommand
 import com.example.kpkn.services.workout.VoiceConfirmationTarget
 import com.example.kpkn.services.workout.VoicePipelineStage
@@ -33,6 +35,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.util.Locale
+import kotlin.math.roundToInt
 
 /**
  * Voice input (transcript) and continuous voice-session command handling.
@@ -110,8 +113,11 @@ class WorkoutVoiceCommandHandler(
         fun selectExercise(index: Int)
         fun persistVoiceRuntimeState()
         fun markWarmupComplete(exerciseId: String, warmupSetId: String)
+        fun reportWarmupStep(exerciseId: String, warmupSetId: String, usedWeightKg: Double?, reportedReps: Int?)
         fun recordWarmupHeaviness(exerciseId: String, warmupSetId: String, rpe: Double)
         fun markMobilityComplete(exerciseId: String, mobilitySeriesId: String)
+        fun reportMobilityStep(exerciseId: String, mobilitySeriesId: String, value: Double, unit: PreparationReportUnit)
+        fun skipRemainingPreparation(exerciseId: String)
         fun recordCardioSet(durationSeconds: Int, distanceKm: Double?, averageHeartRate: Int?): Boolean
         fun setVoiceExerciseQueue(exerciseIds: List<String>)
         /** Mueve el ejercicio actual ±1 posición (estructura en vivo). */
@@ -425,7 +431,11 @@ class WorkoutVoiceCommandHandler(
         updateState { it.copy(voiceSessionState = voiceController.state.value) }
 
         when (command) {
-            is VoiceSessionCommand.RegisterSet -> handleVoiceRegisterSet(command.interpretation)
+            is VoiceSessionCommand.RegisterSet -> {
+                if (!handleVoicePreparationReport(command.interpretation)) {
+                    handleVoiceRegisterSet(command.interpretation)
+                }
+            }
             // Se resuelve dentro del controller (necesita la sugerencia del set actual).
             is VoiceSessionCommand.ApplySuggestedLoad -> Unit
             is VoiceSessionCommand.ApplyTag -> handleVoiceApplyTag(command.tagName)
@@ -433,6 +443,7 @@ class WorkoutVoiceCommandHandler(
             is VoiceSessionCommand.Confirm -> handleVoiceConfirmSet()
             is VoiceSessionCommand.Cancel -> handleVoiceCancelSet()
             is VoiceSessionCommand.SkipExercise -> handleVoiceSkipExercise()
+            is VoiceSessionCommand.SkipPreparation -> handleVoiceSkipPreparation()
             is VoiceSessionCommand.SkipSet -> ports.skipSet()
             is VoiceSessionCommand.PreviousExercise -> handleVoicePreviousExercise()
             is VoiceSessionCommand.SuggestWeight -> handleVoiceSuggestWeight()
@@ -734,6 +745,75 @@ class WorkoutVoiceCommandHandler(
         speakCurrentStepAnnouncementIfEnabled()
     }
 
+    /**
+     * Preparation cards accept a value directly instead of routing it through the
+     * strength-set draft. This keeps mobility/warm-up voice input out of the
+     * effective-set persistence path.
+     */
+    private fun handleVoicePreparationReport(interpretation: WorkoutVoiceInterpretation): Boolean {
+        val state = getState()
+        val step = state.activeStepKey
+            ?.let { key -> ports.workoutStepPositions(state).firstOrNull { it.stepKey == key } }
+            ?.takeIf { it.type == WorkoutStepType.WARMUP || it.type == WorkoutStepType.MOBILITY || it.type == WorkoutStepType.MOBILITY_GROUP }
+            ?: return false
+        val exercise = ports.visibleExercises(state).firstOrNull { it.id == step.exerciseId } ?: return false
+        val value = interpretation.resolvedMetricValue?.takeIf { it > 0.0 }
+
+        when (step.type) {
+            WorkoutStepType.WARMUP -> {
+                if (step.warmupSetId == null || (interpretation.weightKg == null && value == null)) return false
+                ports.reportWarmupStep(
+                    exerciseId = exercise.id,
+                    warmupSetId = step.warmupSetId,
+                    usedWeightKg = interpretation.weightKg,
+                    reportedReps = value?.roundToInt(),
+                )
+                voiceController.speakFeedbackUpdated(
+                    "Aproximación registrada${interpretation.weightKg?.let { ": ${it.toTrimmedNumberString()} kilos" }.orEmpty()}. Di hecha para continuar."
+                )
+                return true
+            }
+            WorkoutStepType.MOBILITY,
+            WorkoutStepType.MOBILITY_GROUP -> {
+                if (step.mobilitySeriesId == null || value == null) return false
+                val mobility = exercise.mobilitySeries.firstOrNull { it.id == step.mobilitySeriesId }
+                val transcript = interpretation.transcript.lowercase(Locale.ROOT)
+                val unit = if (mobility?.durationSeconds != null || transcript.contains("segundo") || transcript.contains("seg")) {
+                    PreparationReportUnit.SECONDS
+                } else {
+                    PreparationReportUnit.REPS
+                }
+                ports.reportMobilityStep(
+                    exerciseId = exercise.id,
+                    mobilitySeriesId = step.mobilitySeriesId,
+                    value = value,
+                    unit = unit,
+                )
+                voiceController.speakFeedbackUpdated(
+                    "Movilidad registrada: ${value.toTrimmedNumberString()} ${if (unit == PreparationReportUnit.SECONDS) "segundos" else "repeticiones"}. Di hecha para continuar."
+                )
+                return true
+            }
+            WorkoutStepType.CARDIO,
+            WorkoutStepType.WORKING_SET -> return false
+        }
+    }
+
+    private fun handleVoiceSkipPreparation() {
+        val state = getState()
+        val step = state.activeStepKey
+            ?.let { key -> ports.workoutStepPositions(state).firstOrNull { it.stepKey == key } }
+        val exercise = ports.visibleExercises(state).firstOrNull { it.id == step?.exerciseId }
+            ?: ports.visibleExercises(state).getOrNull(state.currentExerciseIdx)
+        if (exercise == null || (exercise.mobilitySeries.isEmpty() && exercise.warmupSets.isEmpty())) {
+            voiceController.speakFeedbackUpdated("No hay movilidad ni aproximaciones pendientes.")
+            return
+        }
+        ports.skipRemainingPreparation(exercise.id)
+        voiceController.speakFeedbackUpdated("Movilidad y aproximaciones pendientes omitidas. Las series efectivas quedan disponibles.")
+        speakCurrentStepAnnouncementIfEnabled()
+    }
+
     fun speakCurrentStepAnnouncementIfEnabled(prefix: String? = null) {
         if (voiceController.isEnabled() && !getState().isRestTimerRunning) {
             val updatedState = getState()
@@ -757,7 +837,13 @@ class WorkoutVoiceCommandHandler(
                 }
                 if (step?.type == WorkoutStepType.WARMUP) {
                     val warmup = nextEx.warmupSets.firstOrNull { it.id == step.warmupSetId }
-                    val suggested = ports.getWeightSuggestionWithAutoRegulation(nextEx, updatedState.currentSetIdx)?.suggestedWeight
+                    val reference = ports.getWeightSuggestionWithAutoRegulation(nextEx, updatedState.currentSetIdx)?.suggestedWeight
+                        ?: resolveReferenceCapacity(nextEx)
+                    val suggested = reference?.let { base ->
+                        warmup?.percentageOfWorkingWeight?.let { percentage ->
+                            base * WarmupCalibrationEngine.normalizePercentage(percentage)
+                        }
+                    }
                     val weightText = suggested?.let { ", peso calculado ${it.toTrimmedNumberString()} kilos" }.orEmpty()
                     voiceController.speakFeedbackUpdated("${prefix.orEmpty()}Aproximación de ${spokenWorkoutExerciseName(nextEx)}: ${warmup?.targetReps ?: 0} repeticiones$weightText. Di hecha al completarla.")
                     return

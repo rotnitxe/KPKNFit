@@ -48,6 +48,9 @@ class WorkoutRestTimerOrchestrator(
         }
         val state = getState()
         val sessionName = state.session?.name ?: "Entrenamiento"
+        val warmupSetId = lastSet?.id
+            ?.substringAfter("_warmup_", "")
+            ?.takeIf { kind == RestTimerKind.WARMUP && it.isNotBlank() }
         val exerciseName = ports.visibleExercises(state)
             .getOrNull(state.currentExerciseIdx)
             ?.let(::displayWorkoutExerciseName)
@@ -77,6 +80,9 @@ class WorkoutRestTimerOrchestrator(
                     exerciseId = activeExercise?.id,
                     exerciseName = activeExercise?.let(::displayWorkoutExerciseName) ?: exerciseName,
                     kind = kind,
+                    warmupSetId = if (kind == RestTimerKind.WARMUP) {
+                        warmupSetId ?: it.restModalState?.warmupSetId
+                    } else null,
                     activeSeconds = seconds,
                     endsAtMs = endMs,
                     isManualOverride = preserveElapsed || it.restModalState.isManualOverride,
@@ -87,6 +93,7 @@ class WorkoutRestTimerOrchestrator(
                     exerciseId = activeExercise?.id,
                     exerciseName = activeExercise?.let(::displayWorkoutExerciseName) ?: exerciseName,
                     kind = kind,
+                    warmupSetId = warmupSetId,
                     plannedSeconds = seconds,
                     suggestedSeconds = seconds,
                     activeSeconds = seconds,

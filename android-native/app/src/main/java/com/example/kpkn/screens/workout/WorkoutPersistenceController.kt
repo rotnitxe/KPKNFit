@@ -99,6 +99,7 @@ class WorkoutPersistenceController(
                     skippedExerciseIds = state.skippedExerciseIds,
                     warmupCompletedExerciseIds = state.warmupCompletedExerciseIds,
                     mobilityCompletedExerciseIds = state.mobilityCompletedExerciseIds,
+                    preparationReports = state.preparationReports,
                     readinessNeuralOverride = state.readinessNeuralOverride,
                     readinessMuscularOverride = state.readinessMuscularOverride,
                     readinessSpinalOverride = state.readinessSpinalOverride,
