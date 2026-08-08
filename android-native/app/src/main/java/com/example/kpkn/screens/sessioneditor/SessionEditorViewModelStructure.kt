@@ -618,6 +618,8 @@ fun SessionEditorViewModel.patchRuleDefaults(
             state.copy(partRuleDefaults = newMap)
         }
     }
+    // F0 C1: persist draft inmediato sin tocar session.lastModifiedAtMs ni AUGE
+    persistDraft()
 }
 
 fun SessionEditorViewModel.updateRuleDefaults(
@@ -665,6 +667,8 @@ fun SessionEditorViewModel.updateRuleDefaults(
             state.copy(partRuleDefaults = newMap)
         }
     }
+    // F0 C1: draft local no se pierde al salir sin Aplicar
+    persistDraft()
 }
 
 fun SessionEditorViewModel.openMobilityPicker(partId: String?, exerciseId: String) {
@@ -691,6 +695,7 @@ fun SessionEditorViewModel.updateRuleLimits(maxRPE: Double?, maxExercisesPerMusc
             )
         )
     }
+    persistDraft()
 }
 
 fun SessionEditorViewModel.updateAdvancedRuleLimits(
@@ -710,6 +715,7 @@ fun SessionEditorViewModel.updateAdvancedRuleLimits(
             )
         )
     }
+    persistDraft()
 }
 
 fun SessionEditorViewModel.applyGlobalIntensityAdjustment(

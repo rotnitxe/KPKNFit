@@ -404,7 +404,30 @@ class SessionEditorViewModel(
                 session = draft.ensureModifiedTimestamp(),
             )
         }
-        val resolvedRuleDefaults = persistedDraft?.ruleDefaults ?: SessionEditorRuleDefaults()
+        val resolvedRuleDefaults = persistedDraft?.ruleDefaults ?: run {
+            val exercises = draft.allExercises()
+            if (exercises.isEmpty()) SessionEditorRuleDefaults() else {
+                val restValues = exercises.mapNotNull { it.restTime }.sorted()
+                val medianRest = if (restValues.isEmpty()) 90 else restValues[restValues.size / 2]
+                val sideValues = exercises.mapNotNull { it.restBetweenSidesSeconds }.sorted()
+                val medianSide = if (sideValues.isEmpty()) 0 else sideValues[sideValues.size / 2]
+                val avgSets = exercises.map { it.sets.size.coerceAtLeast(1) }.average().takeIf { it.isFinite() }?.roundToInt()?.coerceIn(1, 6) ?: 3
+                val avgReps = exercises.flatMap { it.sets }.mapNotNull { it.targetReps }.average().takeIf { it.isFinite() }?.roundToInt()?.coerceIn(1, 30) ?: 10
+                val avgRpe = exercises.flatMap { it.sets }.mapNotNull { it.targetRPE }.average().takeIf { it.isFinite() }?.coerceIn(1.0, 10.0) ?: 8.0
+                val supersetGroups = draft.allSupersetGroups()
+                val avgBetween = supersetGroups.map { it.restBetweenExercises }.average().takeIf { it.isFinite() }?.roundToInt()?.coerceIn(0, 600) ?: 60
+                val avgRound = supersetGroups.map { it.restAfterSuperset }.average().takeIf { it.isFinite() }?.roundToInt()?.coerceIn(0, 600) ?: 120
+                SessionEditorRuleDefaults(
+                    setCount = avgSets,
+                    reps = avgReps,
+                    rpe = avgRpe,
+                    normalRestSeconds = medianRest.coerceIn(0, 600),
+                    betweenSidesRestSeconds = medianSide.coerceIn(0, 300),
+                    supersetBetweenRestSeconds = avgBetween,
+                    supersetRoundRestSeconds = avgRound,
+                )
+            }
+        }
         val resolvedPartRuleDefaults = persistedDraft?.partRuleDefaults ?: emptyMap()
         val resolvedRuleLimits = persistedDraft?.ruleLimits ?: SessionEditorRuleLimits()
         val loadedFromDraft = persistedDraft != null && persistedDraft.session != existing
@@ -569,9 +592,10 @@ class SessionEditorViewModel(
     }
 
     private fun recalcAndPushAuge(state: SessionEditorUiState, session: Session) {
+        val settingsEarly = repository.settings.value
         val exercises = session.allExercises()
         val totalSets = exercises.sumOf { it.sets.size.coerceAtLeast(1) }
-        val averageRest = exercises.mapNotNull { it.restTime }.ifEmpty { listOf(90) }.average().toInt()
+        val averageRest = exercises.mapNotNull { it.restTime }.ifEmpty { listOf(settingsEarly.restTimerDefaultSeconds) }.average().toInt()
         val draftAwareWeekSessions = if (state.weekSessions.any { it.id == session.id }) {
             state.weekSessions.map { if (it.id == session.id) session else it }
         } else {
@@ -646,6 +670,7 @@ class SessionEditorViewModel(
                 exercises = exercises,
                 supersetGroups = session.allSupersetGroups(),
                 sessionWarmup = session.warmup,
+                restTimerDefaultSeconds = settingsVal.restTimerDefaultSeconds,
             )
         }.getOrNull()
         // Assistant bajo demanda: inmediato si AUGE abierto, si no debounce 2500ms
@@ -883,11 +908,13 @@ class SessionEditorViewModel(
         viewModelScope.launch(Dispatchers.Default) {
             val state = _uiState.value
             val session = state.session ?: return@launch
+            val settingsForBreakdown = repository.settings.value
             val breakdown = state.sessionTimeBreakdown ?: runCatching {
                 calculateSessionTimeBreakdown(
                     exercises = session.allExercises(),
                     supersetGroups = session.allSupersetGroups(),
                     sessionWarmup = session.warmup,
+                    restTimerDefaultSeconds = settingsForBreakdown.restTimerDefaultSeconds,
                 )
             }.getOrNull() ?: return@launch
             val suggestions = runCatching {

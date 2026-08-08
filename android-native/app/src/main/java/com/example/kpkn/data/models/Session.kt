@@ -261,6 +261,7 @@ data class Exercise(
     val contextProfilesV3: List<WorkoutContextProfile> = emptyList(),
     val defaultContextProfileIdV3: String? = null,
     val mobilitySeries: List<MobilitySeries> = emptyList(),
+    @Deprecated("Sin consumidor en vivo. Usa TrainingMode.TIME + ExerciseSet.targetDuration.", level = DeprecationLevel.WARNING)
     val timeStrategy: TimeStrategy? = null,
     val targetDurationMinutes: Int? = null,
     /** v2 catalog identity; all values are persisted together when selected. */
@@ -359,6 +360,7 @@ data class ExerciseSet(
     val timeProgressionStrategyV3: TimeProgressionStrategyV3 = TimeProgressionStrategyV3.LOAD_THEN_TIME,
     val leftTarget: UnilateralTarget? = null,
     val rightTarget: UnilateralTarget? = null,
+    @Deprecated("Usa Exercise.restBetweenSidesSeconds", level = DeprecationLevel.WARNING)
     val restBetweenSides: Int? = null,
     val plannedIntensityTechniques: List<PlannedTechnique> = emptyList(),
 )

@@ -501,6 +501,7 @@ fun calculateSessionTimeBreakdown(
     sessionWarmup: List<com.example.kpkn.data.models.WarmupExercise> = emptyList(),
     averageSetupSeconds: Int = 60,
     averageWorkSeconds: Int = 45,
+    restTimerDefaultSeconds: Int = 90,
 ): SessionTimeBreakdown {
     var setupSec = 0
     var executionSec = 0
@@ -589,7 +590,14 @@ fun calculateSessionTimeBreakdown(
         }
 
         // ── Descanso del ejercicio ─────────────────────────────────────────────
-        val exerciseRestSec = exercise.restTime ?: 90
+        val exerciseRestSec = exercise.restTime ?: restTimerDefaultSeconds
+        // Entre lados unilateral (BETWEEN_SIDES) por set — preview ahora lo cuenta
+        val betweenSidesSec = exercise.restBetweenSidesSeconds?.takeIf { it > 0 } ?: 0
+        if (betweenSidesSec > 0) {
+            // Paired L+R ≈ 1 set con 1 descanso entre lados; single-side no tiene betweenSides
+            // Aproximación: 1 betweenSides por set si ejercicio es unilateral
+            restSec += betweenSidesSec * sets.size
+        }
         val supersetRef = exercise.supersetGroupRefOrLegacyId()
 
         if (supersetRef != null) {
@@ -597,8 +605,15 @@ fun calculateSessionTimeBreakdown(
             if (group != null && supersetRef !in supersetGroupsProcessed) {
                 // Descanso intra-superset y post-superset se cuentan 1 sola vez por grupo
                 val rounds = sets.size.coerceAtLeast(1)
-                restSec += group.restBetweenExercises * (group.exerciseOrder.size - 1) * rounds
-                restSec += group.restAfterSuperset * rounds
+                // F2 D2: respetar descansos por ronda si existen
+                var intraRest = 0
+                var roundRest = 0
+                for (r in 0 until rounds) {
+                    intraRest += group.roundRestBetweenExercises?.get(r) ?: group.restBetweenExercises
+                    roundRest += group.roundRestAfterSuperset?.get(r) ?: group.restAfterSuperset
+                }
+                restSec += intraRest * (group.exerciseOrder.size - 1)
+                restSec += roundRest
                 supersetGroupsProcessed.add(supersetRef)
             }
             // Para miembros adicionales del superset no se añade descanso individual

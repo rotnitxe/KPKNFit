@@ -89,7 +89,8 @@ object SessionEditorRulesEngine {
             return copy(
                 sets = nextSets,
                 restTime = effectiveRest,
-                restBetweenSidesSeconds = safeSideRest.takeIf { it > 0 },
+                // F1: no borrar restBetweenSides si la regla está en 0; preservar valor existente
+                restBetweenSidesSeconds = if (safeSideRest > 0) safeSideRest else this.restBetweenSidesSeconds,
             )
         }
 
@@ -100,10 +101,10 @@ object SessionEditorRulesEngine {
         }
         val updatedGroups = session.allSupersetGroups().map { group ->
             if (group.exerciseOrder.none { it in scopedExerciseIds }) group
-            else group.copy(
+            else if (group.exerciseOrder.all { it in scopedExerciseIds }) group.copy(
                 restBetweenExercises = safeBetween,
                 restAfterSuperset = safeRound,
-            )
+            ) else group // cross-part: no tocar (F1 D8)
         }
 
         return session.copy(

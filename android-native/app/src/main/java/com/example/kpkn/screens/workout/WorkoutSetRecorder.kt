@@ -458,9 +458,8 @@ class WorkoutSetRecorder(
                     ?: supersetGroup?.restAfterSuperset
                     ?: exercise.supersetRestAfter
                     ?: baseRest
-                RestTimerKind.WARMUP,
-                RestTimerKind.STANDARD,
-                -> baseRest
+                RestTimerKind.WARMUP -> exercise.warmupSets.getOrNull(targetSetIdx)?.restBetween ?: baseRest
+                RestTimerKind.STANDARD -> baseRest
             }
             val dbInfo = resolveCatalogExerciseInfo(
                 catalogConfigurationId = exercise.catalogConfigurationId,
@@ -476,7 +475,7 @@ class WorkoutSetRecorder(
                 restTime = plannedRestForKind,
                 supersetExerciseCount = supersetGroup?.exerciseOrder?.size ?: 1,
                 supersetRounds = supersetGroup?.rounds,
-                supersetRestAfter = supersetGroup?.restAfterSuperset,
+                supersetRestAfter = supersetGroup?.roundRestAfterSuperset?.get(targetSetIdx) ?: supersetGroup?.restAfterSuperset,
             )
             val completedCount = getState().completedSets.size
             val setDrain = AugeFatigueEngine.calculateSetBatteryDrain(
@@ -484,7 +483,7 @@ class WorkoutSetRecorder(
                 metrics = augeMetrics,
                 tanks = augeTanks,
                 accumulatedSets = completedCount,
-                restTime = exercise.restTime ?: 90,
+                restTime = exercise.restTime ?: settings.restTimerDefaultSeconds,
                 densityMultiplier = densityMult,
             )
             val effectiveRpe = AugeFatigueEngine.getEffectiveRPE(completedSet)

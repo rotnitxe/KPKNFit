@@ -39,6 +39,7 @@ data class SessionEditorRuleDefaults(
             isolationRpe != null || isolationIntensityType != null
 }
 
+@Deprecated("Subsistema legacy: limits guardados solo en draft local, validateBeforeSave no-op. No bloquean guardado.", level = DeprecationLevel.WARNING)
 @Serializable
 data class SessionEditorRuleLimits(
     val maxRPE: Double? = null,

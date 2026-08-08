@@ -578,10 +578,10 @@ internal fun computeSessionAugeComputation(
                 metrics = metrics,
                 tanks = tanks,
                 accumulatedSets = accumulated,
-                restTime = exercise.restTime ?: 90,
+                restTime = exercise.restTime ?: settings.restTimerDefaultSeconds,
                 densityMultiplier = AugeFatigueEngine.getDensityMultiplierForExercise(
                     supersetId = exercise.supersetGroupRefOrLegacyId(),
-                    restTime = exercise.restTime ?: 90,
+                    restTime = exercise.restTime ?: settings.restTimerDefaultSeconds,
                 ),
             )
             muscular += drain.muscularDrainPct
@@ -642,7 +642,7 @@ internal fun computeSessionAugeComputation(
         insight
     }
 
-    val averageRest = exercises.mapNotNull { it.restTime }.ifEmpty { listOf(90) }.average().toInt()
+    val averageRest = exercises.mapNotNull { it.restTime }.ifEmpty { listOf(settings.restTimerDefaultSeconds) }.average().toInt()
     val predictedDrain = try {
         val base = AugeFatigueEngine.calculateAdjustedPredictedDrain(session, exerciseIndex, settings)
         val ema = AugeFatigueEngine.calculateMesocycleStressEMA(
