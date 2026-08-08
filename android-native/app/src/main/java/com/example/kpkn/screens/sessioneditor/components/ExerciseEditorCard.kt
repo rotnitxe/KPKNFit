@@ -311,11 +311,15 @@ internal fun ExerciseEditorCard(
                 }
                 Text(
                     text = buildString {
-                        append("${exercise.sets.size} series · ")
-                        if (!suppressIndividualRest) append("${formatRestSummary(exercise.restTime)} · ")
-                        append(trainingModeLabel(exercise.trainingMode))
-                        if (exercise.supersetGroupRefOrLegacyId() != null) append(" · Superserie")
-                        formatExerciseCollapsedSummary(exercise)?.let { append(" · $it") }
+                        exercise.cardioDetails?.let { details ->
+                            append(cardioCollapsedSummary(details))
+                        } ?: run {
+                            append("${exercise.sets.size} series · ")
+                            if (!suppressIndividualRest) append("${formatRestSummary(exercise.restTime)} · ")
+                            append(trainingModeLabel(exercise.trainingMode))
+                            if (exercise.supersetGroupRefOrLegacyId() != null) append(" · Superserie")
+                            formatExerciseCollapsedSummary(exercise)?.let { append(" · $it") }
+                        }
                     },
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.White.copy(alpha = 0.58f),
@@ -371,9 +375,17 @@ internal fun ExerciseEditorCard(
                     CardioEditorCard(
                         details = details,
                         accentColor = accentColor,
-                        onChange = { updated -> onUpdateExercise { current -> current.copy(cardioDetails = updated) } },
+                        onChange = { updated ->
+                            onUpdateExercise { current ->
+                                current.copy(
+                                    cardioDetails = updated,
+                                    targetDurationMinutes = (updated.targetDurationSeconds / 60).coerceAtLeast(1),
+                                )
+                            }
+                        },
                     )
                 }
+                if (exercise.cardioDetails == null) {
                 InlineEditorBlock(
                     title = "MOVILIDAD",
                     summary = if (exercise.mobilitySeries.isEmpty()) "Sin series asociadas" else "${exercise.mobilitySeries.size} movimiento${if (exercise.mobilitySeries.size == 1) "" else "s"}",
@@ -862,6 +874,26 @@ internal fun ExerciseEditorCard(
             onDismiss = { showCustomUnitModal = false },
         )
     }
+}
+
+private fun cardioCollapsedSummary(details: CardioDetails): String {
+    val type = when (details.type) {
+        CardioType.TREADMILL -> "Cinta"
+        CardioType.ELLIPTICAL -> "Elíptica"
+        CardioType.ROW_MACHINE -> "Remo"
+        CardioType.BIKE_STATIONARY -> "Bici estática"
+        CardioType.RUN_OUTDOOR -> "Carrera exterior"
+        CardioType.BIKE_OUTDOOR -> "Bici exterior"
+        CardioType.WALK -> "Caminata"
+        CardioType.STAIR_CLIMBER -> "Escaladora"
+    }
+    val intensity = when (details.intensity) {
+        CardioIntensity.BAJA -> "Baja"
+        CardioIntensity.MEDIA -> "Media"
+        CardioIntensity.ALTA -> "Alta"
+        CardioIntensity.MUY_ALTA -> "Muy alta"
+    }
+    return "Cardio · $type · ${(details.targetDurationSeconds / 60).coerceAtLeast(1)} min · $intensity"
 }
 
 @Composable

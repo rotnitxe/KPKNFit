@@ -56,7 +56,7 @@ internal fun CardioCatalogSheet(
                             Text(item.name, fontWeight = FontWeight.Bold, color = Color.White)
                             Text(item.description, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.6f))
                             if (item.requiresGps) {
-                                Text("GPS opcional en vivo", style = MaterialTheme.typography.labelSmall, color = Color(0xFF9FE7B2))
+                                Text("GPS: próximamente", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.62f))
                             }
                         }
                         FilledTonalButton(

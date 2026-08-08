@@ -289,8 +289,9 @@ internal fun WorkoutV2Body(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
 
-            if (currentExercise != null && currentSet != null) {
+            if (currentExercise != null && (currentSet != null || currentExercise.isCardio)) {
                 if (!showingPostExerciseCard) {
+                    val currentSetForUi = currentSet ?: ExerciseSet(id = "${currentExercise.id}_cardio")
                     val currentExerciseInfo = resolveCatalogExerciseInfo(
                         catalogConfigurationId = currentExercise.catalogConfigurationId,
                         exerciseDbId = currentExercise.exerciseDbId,
@@ -333,10 +334,10 @@ internal fun WorkoutV2Body(
                             )
                         }
                     }
-                    WorkoutExerciseTabs(
+                    if (!currentExercise.isCardio) WorkoutExerciseTabs(
                         modifier = Modifier.fillMaxWidth(),
                         currentExercise = currentExercise,
-                        currentSet = currentSet,
+                        currentSet = currentSetForUi,
                         currentExerciseInfo = currentExerciseInfo,
                         drain = currentExerciseDrain,
                         exerciseTag = uiState.exerciseTags[currentExercise.id],
@@ -380,37 +381,41 @@ internal fun WorkoutV2Body(
                     val setPagerPages = remember(currentExercise.id, currentExercise.mobilitySeries, currentExercise.warmupSets, currentExercise.sets, isUnilateral, currentExercise.unilateralSideOrder) {
                         val list = mutableListOf<WorkoutSetSwipePage>()
 
-                        // 1. One page for ALL mobility sets
-                        if (currentExercise.mobilitySeries.isNotEmpty()) {
-                            list.add(WorkoutSetSwipePage(type = LivePageType.MOBILITY, setIndex = 0))
-                        }
+                        if (currentExercise.isCardio) {
+                            list.add(WorkoutSetSwipePage(type = LivePageType.CARDIO, setIndex = 0))
+                        } else {
+                            // 1. One page for ALL mobility sets
+                            if (currentExercise.mobilitySeries.isNotEmpty()) {
+                                list.add(WorkoutSetSwipePage(type = LivePageType.MOBILITY, setIndex = 0))
+                            }
 
-                        // 2. One page for ALL warmup sets
-                        if (currentExercise.warmupSets.isNotEmpty()) {
-                            list.add(WorkoutSetSwipePage(type = LivePageType.WARMUP, setIndex = 0))
-                        }
+                            // 2. One page for ALL warmup sets
+                            if (currentExercise.warmupSets.isNotEmpty()) {
+                                list.add(WorkoutSetSwipePage(type = LivePageType.WARMUP, setIndex = 0))
+                            }
 
-                        // 3. Normal sets
-                        currentExercise.sets.forEachIndexed { i, set ->
-                            if (isUnilateral) {
-                                val expectedSides = currentExercise.expectedSidesForSet(i)
-                                expectedSides.forEach { side ->
+                            // 3. Normal sets
+                            currentExercise.sets.forEachIndexed { i, set ->
+                                if (isUnilateral) {
+                                    val expectedSides = currentExercise.expectedSidesForSet(i)
+                                    expectedSides.forEach { side ->
+                                        list.add(
+                                            WorkoutSetSwipePage(
+                                                type = LivePageType.NORMAL,
+                                                setIndex = i,
+                                                side = side
+                                            )
+                                        )
+                                    }
+                                } else {
                                     list.add(
                                         WorkoutSetSwipePage(
                                             type = LivePageType.NORMAL,
                                             setIndex = i,
-                                            side = side
+                                            side = null
                                         )
                                     )
                                 }
-                            } else {
-                                list.add(
-                                    WorkoutSetSwipePage(
-                                        type = LivePageType.NORMAL,
-                                        setIndex = i,
-                                        side = null
-                                    )
-                                )
                             }
                         }
 
@@ -423,6 +428,7 @@ internal fun WorkoutV2Body(
                     val activeSwipePageIndex = remember(setPagerPages, uiState.activeStepKey, uiState.currentSetIdx, activeSide, isUnilateral) {
                         val index = setPagerPages.indexOfFirst { page ->
                             when (page.type) {
+                                LivePageType.CARDIO -> page.setIndex == uiState.currentSetIdx
                                 LivePageType.MOBILITY -> {
                                     currentExercise.mobilitySeries.any {
                                         uiState.activeStepKey == "${currentExercise.id}_${it.id}"
@@ -447,6 +453,10 @@ internal fun WorkoutV2Body(
                         if (programmaticScrollRef[0]) return@LaunchedEffect
                         val pageSpec = setPagerPages.getOrNull(pagerState.settledPage) ?: return@LaunchedEffect
                         when (pageSpec.type) {
+                            LivePageType.CARDIO -> {
+                                val key = WorkoutStepRules.cardioStepKey(currentExercise.id)
+                                if (uiState.activeStepKey != key) viewModel.selectWorkoutStep(key)
+                            }
                             LivePageType.MOBILITY -> {
                                 val firstIncomplete = currentExercise.mobilitySeries.firstOrNull {
                                     "${currentExercise.id}_${it.id}" !in uiState.mobilityCompletedExerciseIds
@@ -495,12 +505,14 @@ internal fun WorkoutV2Body(
                     val pagerItems = remember(currentExercise.id, setPagerPages, uiState.completedSets, uiState.warmupCompletedExerciseIds, uiState.mobilityCompletedExerciseIds, uiState.activeStepKey, uiState.currentSetIdx, activeSide) {
                         setPagerPages.mapIndexed { idx, page ->
                             val label = when (page.type) {
+                                LivePageType.CARDIO -> "C"
                                 LivePageType.MOBILITY -> "M"
                                 LivePageType.WARMUP -> "A"
                                 LivePageType.NORMAL -> "S${page.setIndex + 1}"
                             }
 
                             val isDone = when (page.type) {
+                                LivePageType.CARDIO -> uiState.completedSets.containsKey("${currentExercise.id}_0")
                                 LivePageType.MOBILITY -> {
                                     currentExercise.mobilitySeries.all {
                                         "${currentExercise.id}_${it.id}" in uiState.mobilityCompletedExerciseIds
@@ -522,6 +534,7 @@ internal fun WorkoutV2Body(
                             }
 
                             val isActive = when (page.type) {
+                                LivePageType.CARDIO -> uiState.activeStepKey == WorkoutStepRules.cardioStepKey(currentExercise.id)
                                 LivePageType.MOBILITY -> {
                                     currentExercise.mobilitySeries.any {
                                         uiState.activeStepKey == "${currentExercise.id}_${it.id}"
@@ -551,7 +564,7 @@ internal fun WorkoutV2Body(
                                     LivePageType.NORMAL -> page.side
                                     else -> null
                                 },
-                                isWarmupOrFeedback = page.type != LivePageType.NORMAL
+                                isWarmupOrFeedback = page.type == LivePageType.MOBILITY || page.type == LivePageType.WARMUP
                             )
                         }
                     }
@@ -670,6 +683,7 @@ internal fun WorkoutV2Body(
                                 val targetPage = setPagerPages.getOrNull(pageIndex)
                                 if (targetPage != null) {
                                     val key = when (targetPage.type) {
+                                        LivePageType.CARDIO -> WorkoutStepRules.cardioStepKey(currentExercise.id)
                                         LivePageType.MOBILITY -> {
                                             val first = currentExercise.mobilitySeries.firstOrNull {
                                                 "${currentExercise.id}_${it.id}" !in uiState.mobilityCompletedExerciseIds
@@ -697,7 +711,7 @@ internal fun WorkoutV2Body(
                                 val safeSetIdx = setIdx.coerceIn(0, currentExercise.sets.lastIndex.coerceAtLeast(0))
                                 uiState.completedSets.containsKey("${currentExercise.id}_${safeSetIdx}_${side.take(1).uppercase()}")
                             } else null,
-                            onAddSet = { viewModel.addSetToCurrentExercise() },
+                            onAddSet = if (currentExercise.isCardio) null else { { viewModel.addSetToCurrentExercise() } },
                         )
                     }
 
@@ -709,6 +723,7 @@ internal fun WorkoutV2Body(
                         key = { index ->
                             val page = setPagerPages.getOrNull(index)
                             when (page?.type) {
+                                LivePageType.CARDIO -> "${currentExercise.id}_cardio"
                                 LivePageType.MOBILITY -> "${currentExercise.id}_mobility_all"
                                 LivePageType.WARMUP -> "${currentExercise.id}_warmup_all"
                                 LivePageType.NORMAL -> "${currentExercise.id}_normal_${page.setIndex}_${page.side ?: "B"}"
@@ -718,6 +733,19 @@ internal fun WorkoutV2Body(
                     ) { page ->
                         val pageSpec = setPagerPages.getOrNull(page) ?: WorkoutSetSwipePage(type = LivePageType.NORMAL, setIndex = uiState.currentSetIdx, side = activeSide)
                         when (pageSpec.type) {
+                            LivePageType.CARDIO -> {
+                                val completed = uiState.completedSets["${currentExercise.id}_0"]
+                                CardioLiveCard(
+                                    details = currentExercise.cardioDetails!!,
+                                    completedSet = completed,
+                                    bodyWeightKg = viewModel.currentBodyWeight(),
+                                    accentColor = sessionAccentColor,
+                                    progressionSuggestion = viewModel.getCardioProgressionSuggestion(currentExercise),
+                                    onRecord = { duration, distance, heartRate ->
+                                        viewModel.recordCardioSet(duration, distance, heartRate)
+                                    },
+                                )
+                            }
                             LivePageType.MOBILITY -> {
                                 val allDone = currentExercise.mobilitySeries.all {
                                     "${currentExercise.id}_${it.id}" in uiState.mobilityCompletedExerciseIds
@@ -926,7 +954,7 @@ internal fun WorkoutV2Body(
                             LivePageType.NORMAL -> {
                                 val activeSetIndex = pageSpec.setIndex.coerceIn(0, (currentExercise.sets.size - 1).coerceAtLeast(0))
                                 val isActivePage = page == pagerState.settledPage
-                                val activeSet = currentExercise.sets.getOrNull(activeSetIndex) ?: currentSet
+                                val activeSet = currentExercise.sets.getOrNull(activeSetIndex) ?: currentSetForUi
                                 val cardSide = pageSpec.side ?: activeSide
                                 val activeGhostSet = remember(currentExercise.id, activeSetIndex, uiState.exerciseTags[currentExercise.id]) {
                                     viewModel.getGhostForSet(
@@ -1132,7 +1160,7 @@ internal fun WorkoutV2Body(
 }
 
 
-internal enum class LivePageType { MOBILITY, WARMUP, NORMAL }
+internal enum class LivePageType { CARDIO, MOBILITY, WARMUP, NORMAL }
 
 internal data class WorkoutSetSwipePage(
     val type: LivePageType,

@@ -3,8 +3,6 @@ package com.example.kpkn.screens.sessioneditor
 import com.example.kpkn.data.models.CardioCatalogItem
 import com.example.kpkn.data.models.CardioDetails
 import com.example.kpkn.data.models.Exercise
-import com.example.kpkn.data.models.ExerciseSet
-import com.example.kpkn.data.models.TrainingMode
 import java.util.UUID
 
 fun SessionEditorViewModel.openCardioPicker(partId: String? = null) {
@@ -32,13 +30,6 @@ fun SessionEditorViewModel.addCardioToPart(item: CardioCatalogItem) {
         id = UUID.randomUUID().toString(),
         name = item.name,
         exerciseDbId = item.id,
-        sets = listOf(
-            ExerciseSet(
-                id = UUID.randomUUID().toString(),
-                targetDuration = details.targetDurationSeconds,
-            ),
-        ),
-        trainingMode = TrainingMode.TIME,
         cardioDetails = details,
         targetDurationMinutes = (details.targetDurationSeconds / 60).coerceAtLeast(1),
     )

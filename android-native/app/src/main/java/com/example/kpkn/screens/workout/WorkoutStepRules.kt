@@ -5,10 +5,12 @@ import com.example.kpkn.data.models.MobilitySeries
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.UnilateralSideOrder
 import com.example.kpkn.data.models.isEffectivelyUnilateral
+import com.example.kpkn.data.models.isCardio
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.domain.workout.SupersetRules
 
 enum class WorkoutStepType {
+    CARDIO,
     MOBILITY,
     MOBILITY_GROUP,
     WARMUP,
@@ -70,6 +72,8 @@ object WorkoutStepRules {
     fun mobilityStepKey(exerciseId: String, mobilitySeriesId: String): String =
         "${exerciseId}_${mobilitySeriesId}"
 
+    fun cardioStepKey(exerciseId: String): String = "${exerciseId}_cardio"
+
     fun workingStepKey(exerciseId: String, setIndex: Int, side: String? = null): String =
         buildString {
             append(exerciseId)
@@ -105,17 +109,21 @@ object WorkoutStepRules {
         if (members.isEmpty()) return
 
         members.forEach { exercise ->
-            exercise.mobilitySeries.forEach { mobility ->
-                steps += WorkoutStep(
-                    type = WorkoutStepType.MOBILITY,
-                    exerciseId = exercise.id,
-                    exerciseName = "Movilidad de superserie",
-                    stepKey = mobilityStepKey(exercise.id, mobility.id),
-                    mobilitySeriesId = mobility.id,
-                    supersetGroupId = groupId,
-                    mobilitySeries = members.flatMap { it.mobilitySeries },
-                    restAfterKind = RestTimerKind.STANDARD,
-                )
+            if (exercise.isCardio) {
+                appendCardioStep(exercise, groupId, steps)
+            } else {
+                exercise.mobilitySeries.forEach { mobility ->
+                    steps += WorkoutStep(
+                        type = WorkoutStepType.MOBILITY,
+                        exerciseId = exercise.id,
+                        exerciseName = "Movilidad de superserie",
+                        stepKey = mobilityStepKey(exercise.id, mobility.id),
+                        mobilitySeriesId = mobility.id,
+                        supersetGroupId = groupId,
+                        mobilitySeries = members.flatMap { it.mobilitySeries },
+                        restAfterKind = RestTimerKind.STANDARD,
+                    )
+                }
             }
         }
 
@@ -126,6 +134,7 @@ object WorkoutStepRules {
         val rounds = SupersetRules.roundCount(session, groupId)
         repeat(rounds) { roundIdx ->
             members.forEachIndexed { memberIdx, exercise ->
+                if (exercise.isCardio) return@forEachIndexed
                 if (roundIdx !in exercise.sets.indices) return@forEachIndexed
                 val isLastMemberWithSet = members
                     .drop(memberIdx + 1)
@@ -148,6 +157,10 @@ object WorkoutStepRules {
         groupId: String?,
         steps: MutableList<WorkoutStep>,
     ) {
+        if (exercise.isCardio) {
+            appendCardioStep(exercise, groupId, steps)
+            return
+        }
         appendPreparationSteps(exercise, groupId, steps)
         exercise.sets.indices.forEach { setIndex ->
             appendWorkingSetSteps(
@@ -176,6 +189,22 @@ object WorkoutStepRules {
                 restAfterKind = RestTimerKind.STANDARD,
             )
         }
+    }
+
+    private fun appendCardioStep(
+        exercise: Exercise,
+        groupId: String?,
+        steps: MutableList<WorkoutStep>,
+    ) {
+        steps += WorkoutStep(
+            type = WorkoutStepType.CARDIO,
+            exerciseId = exercise.id,
+            exerciseName = spokenWorkoutExerciseName(exercise),
+            stepKey = cardioStepKey(exercise.id),
+            setIndex = 0,
+            supersetGroupId = groupId,
+            restAfterKind = RestTimerKind.STANDARD,
+        )
     }
 
     private fun appendPreparationSteps(

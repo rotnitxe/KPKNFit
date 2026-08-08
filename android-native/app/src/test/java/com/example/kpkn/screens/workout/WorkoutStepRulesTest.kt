@@ -2,6 +2,8 @@ package com.example.kpkn.screens.workout
 
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.CardioDetails
+import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.MobilitySeries
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
@@ -14,6 +16,25 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class WorkoutStepRulesTest {
+    @Test
+    fun buildSteps_emitsDedicatedCardioStep_andIgnoresLegacySyntheticSets() {
+        val cardio = Exercise(
+            id = "cardio-1",
+            name = "Cinta",
+            sets = listOf(ExerciseSet("legacy-strength-set")),
+            warmupSets = listOf(WarmupSetDefinition(id = "legacy-warmup", percentageOfWorkingWeight = 50.0, targetReps = 5)),
+            cardioDetails = CardioDetails(type = CardioType.TREADMILL),
+        )
+
+        val steps = WorkoutStepRules.buildSteps(
+            Session(id = "s", name = "Sesion", exercises = listOf(cardio)),
+        )
+
+        assertEquals(listOf(WorkoutStepType.CARDIO), steps.map { it.type })
+        assertEquals("cardio-1_cardio", steps.single().stepKey)
+        assertEquals(0, steps.single().setIndex)
+    }
+
     @Test
     fun buildSteps_places_global_mobility_parts_before_strength_without_affecting_strength_order() {
         val mobility = SessionPart(

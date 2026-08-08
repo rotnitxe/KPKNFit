@@ -6,6 +6,7 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.models.UnilateralSideOrder
 import com.example.kpkn.data.models.isEffectivelyUnilateral
+import com.example.kpkn.data.models.isCardio
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -59,6 +60,11 @@ class WorkoutStepNavigator(
             val preferredExerciseIdx = exercises.indexOfFirst { it.id == preferredExerciseId }
             if (preferredExerciseIdx >= 0) {
                 val preferredExercise = exercises[preferredExerciseIdx]
+                if (preferredExercise.isCardio) {
+                    if (!completedSets.containsKey("${preferredExercise.id}_0")) {
+                        return preferredExerciseIdx to 0
+                    }
+                }
                 val preferredSetIdx = preferredSetId
                     ?.let { setId -> preferredExercise.sets.indexOfFirst { it.id == setId } }
                     ?.takeIf { it >= 0 }
@@ -78,6 +84,10 @@ class WorkoutStepNavigator(
         }
 
         for ((exerciseIdx, exercise) in exercises.withIndex()) {
+            if (exercise.isCardio) {
+                if (!completedSets.containsKey("${exercise.id}_0")) return exerciseIdx to 0
+                continue
+            }
             val pendingSetIdx = exercise.sets.indices.firstOrNull { setIdx ->
                 !ports.isSetDone(completedSets, exercise.id, setIdx, exercise.isEffectivelyUnilateral())
             }
@@ -659,7 +669,7 @@ class WorkoutStepNavigator(
         }
         val exerciseId = visible.getOrNull(exerciseIdx)?.id ?: return -1
         return steps.indexOfFirst {
-            it.type == WorkoutStepType.WORKING_SET &&
+            (it.type == WorkoutStepType.WORKING_SET || it.type == WorkoutStepType.CARDIO) &&
                 it.exerciseId == exerciseId &&
                 it.setIndex == setIdx
         }
@@ -674,6 +684,7 @@ class WorkoutStepNavigator(
     ): Boolean {
         if (step.isEmptySlot) return true
         return when (step.type) {
+            WorkoutStepType.CARDIO -> completedSets.containsKey("${step.exerciseId}_0")
             WorkoutStepType.MOBILITY,
             WorkoutStepType.MOBILITY_GROUP -> {
                 val mobilityId = step.mobilitySeriesId ?: return true

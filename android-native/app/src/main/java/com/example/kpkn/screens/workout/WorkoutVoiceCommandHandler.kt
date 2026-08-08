@@ -606,6 +606,7 @@ class WorkoutVoiceCommandHandler(
         val exercises = ports.visibleExercises(state)
         return ports.workoutStepPositions(state).filter { step ->
             when (step.type) {
+                WorkoutStepType.CARDIO -> !state.completedSets.containsKey("${step.exerciseId}_0")
                 WorkoutStepType.WORKING_SET -> {
                     val exercise = exercises.firstOrNull { it.id == step.exerciseId }
                     if (exercise != null && step.setIndex != null) {
@@ -723,6 +724,7 @@ class WorkoutVoiceCommandHandler(
         }
         val step = state.activeStepKey?.let { key -> ports.workoutStepPositions(state).firstOrNull { it.stepKey == key } } ?: return
         when (step.type) {
+            WorkoutStepType.CARDIO -> return
             WorkoutStepType.WARMUP -> step.warmupSetId?.let { ports.markWarmupComplete(step.exerciseId, it) }
             WorkoutStepType.MOBILITY,
             WorkoutStepType.MOBILITY_GROUP -> step.mobilitySeriesId?.let { ports.markMobilityComplete(step.exerciseId, it) }

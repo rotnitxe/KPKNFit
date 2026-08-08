@@ -1,18 +1,22 @@
 package com.example.kpkn.screens.sessioneditor.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,6 +33,7 @@ import com.example.kpkn.data.models.CardioDetails
 import com.example.kpkn.data.models.CardioIntensity
 import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.domain.calculations.CardioCalorieEngine
+import com.example.kpkn.ui.components.KpknNativeTimePickerDialog
 
 @Composable
 internal fun CardioEditorCard(
@@ -54,33 +59,29 @@ internal fun CardioEditorCard(
         ) {
             Text("CARDIO", color = accentColor, fontWeight = FontWeight.Black)
             Text(
-                "${cardioTypeLabel(details.type)} · MET estimado ${"%.1f".format(defaultMet)} · ${if (details.requiresGps) "GPS opcional" else "sin GPS"}",
+                "${cardioTypeLabel(details.type)} · MET estimado ${"%.1f".format(defaultMet)}",
                 color = Color.White.copy(alpha = 0.68f),
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                OutlinedTextField(
-                    value = durationText,
-                    onValueChange = { value ->
-                        durationText = value.filter { it.isDigit() }.take(4)
-                        durationText.toIntOrNull()?.coerceIn(1, 999)?.let { minutes ->
-                            onChange(details.copy(targetDurationSeconds = minutes * 60))
-                        }
-                    },
+                CardioDurationField(
+                    durationMinutes = durationText.toIntOrNull() ?: 1,
+                    accentColor = accentColor,
                     modifier = Modifier.weight(1f),
-                    label = { Text("Minutos") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    onConfirm = { minutes ->
+                        durationText = minutes.toString()
+                        onChange(details.copy(targetDurationSeconds = minutes * 60))
+                    },
                 )
                 if (details.supportsDistance) {
-                    OutlinedTextField(
+                    CardioAccentField(
                         value = distanceText,
                         onValueChange = { value ->
                             distanceText = value.filter { it.isDigit() || it == '.' || it == ',' }.take(8)
                             onChange(details.copy(targetDistanceKm = distanceText.replace(',', '.').toDoubleOrNull()))
                         },
                         modifier = Modifier.weight(1f),
-                        label = { Text("Distancia km") },
-                        singleLine = true,
+                        label = "Distancia km",
+                        accentColor = accentColor,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     )
                 }
@@ -91,26 +92,130 @@ internal fun CardioEditorCard(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 CardioIntensity.entries.forEach { intensity ->
-                    FilterChip(
+                    CardioIntensityChip(
                         selected = details.intensity == intensity,
                         onClick = { onChange(details.copy(intensity = intensity)) },
-                        label = { Text(intensityLabel(intensity)) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = accentColor.copy(alpha = 0.32f),
-                            selectedLabelColor = Color.White,
-                        ),
+                        label = intensityLabel(intensity),
+                        accentColor = accentColor,
                     )
                 }
             }
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Column {
-                    Text("Registrar GPS en vivo", fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.84f))
-                    Text("Opcional: si no hay permiso, se conserva el registro manual.", color = Color.White.copy(alpha = 0.56f))
-                }
-                Switch(checked = details.requiresGps, onCheckedChange = { onChange(details.copy(requiresGps = it)) })
+            if (details.type.isOutdoor()) {
+                Text(
+                    "GPS en vivo: próximamente",
+                    style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
+                    color = accentColor.copy(alpha = 0.9f),
+                    fontWeight = FontWeight.Bold,
+                )
             }
         }
     }
+}
+
+@Composable
+private fun CardioDurationField(
+    durationMinutes: Int,
+    accentColor: Color,
+    modifier: Modifier = Modifier,
+    onConfirm: (Int) -> Unit,
+) {
+    var showPicker by remember { mutableStateOf(false) }
+    Box(modifier = modifier) {
+        CardioAccentField(
+            value = "${durationMinutes.coerceAtLeast(1)} min",
+            onValueChange = {},
+            label = "Duración objetivo",
+            accentColor = accentColor,
+            readOnly = true,
+            trailingIcon = { Icon(Icons.Default.Timer, contentDescription = null, tint = accentColor) },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .clickable { showPicker = true },
+        )
+    }
+    if (showPicker) {
+        KpknNativeTimePickerDialog(
+            title = "Duración objetivo",
+            initialHour = (durationMinutes / 60).coerceIn(0, 23),
+            initialMinute = (durationMinutes % 60).coerceIn(0, 59),
+            hint = "Horas : minutos",
+            onConfirm = { hour, minute ->
+                onConfirm((hour * 60 + minute).coerceAtLeast(1))
+                showPicker = false
+            },
+            onDismiss = { showPicker = false },
+        )
+    }
+}
+
+@Composable
+private fun CardioAccentField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    accentColor: Color,
+    modifier: Modifier = Modifier,
+    readOnly: Boolean = false,
+    trailingIcon: (@Composable (() -> Unit))? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier,
+        label = { Text(label) },
+        trailingIcon = trailingIcon,
+        readOnly = readOnly,
+        singleLine = true,
+        keyboardOptions = keyboardOptions,
+        shape = RoundedCornerShape(14.dp),
+        textStyle = MaterialTheme.typography.bodySmall.copy(color = Color.White, fontWeight = FontWeight.Bold),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = accentColor.copy(alpha = 0.14f),
+            unfocusedContainerColor = accentColor.copy(alpha = 0.08f),
+            focusedBorderColor = accentColor,
+            unfocusedBorderColor = accentColor.copy(alpha = 0.56f),
+            focusedLabelColor = accentColor,
+            unfocusedLabelColor = accentColor.copy(alpha = 0.82f),
+            focusedTextColor = Color.White,
+            unfocusedTextColor = Color.White,
+            cursorColor = accentColor,
+        ),
+    )
+}
+
+@Composable
+private fun CardioIntensityChip(
+    selected: Boolean,
+    onClick: () -> Unit,
+    label: String,
+    accentColor: Color,
+) {
+    Surface(
+        modifier = Modifier.clickable(onClick = onClick),
+        shape = RoundedCornerShape(999.dp),
+        color = accentColor.copy(alpha = if (selected) 0.34f else 0.08f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = if (selected) 0.95f else 0.52f)),
+    ) {
+        Text(
+            label,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.labelSmall,
+        )
+    }
+}
+
+private fun CardioType.isOutdoor(): Boolean = when (this) {
+    CardioType.RUN_OUTDOOR,
+    CardioType.BIKE_OUTDOOR,
+    CardioType.WALK,
+    -> true
+    else -> false
 }
 
 private fun cardioTypeLabel(type: CardioType): String = when (type) {

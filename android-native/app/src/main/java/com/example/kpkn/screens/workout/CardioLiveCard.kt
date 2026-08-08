@@ -1,12 +1,18 @@
 package com.example.kpkn.screens.workout
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,6 +34,7 @@ import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.domain.calculations.CardioCalorieInput
 import com.example.kpkn.domain.calculations.CardioCalorieEngine
 import com.example.kpkn.domain.workout.CardioProgressionSuggestion
+import com.example.kpkn.ui.components.KpknNativeTimePickerDialog
 import kotlinx.coroutines.delay
 
 @Composable
@@ -81,7 +88,8 @@ internal fun CardioLiveCard(
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        color = Color.White.copy(alpha = 0.06f),
+        color = accentColor.copy(alpha = 0.09f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.42f)),
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
@@ -122,32 +130,34 @@ internal fun CardioLiveCard(
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = accentColor.copy(alpha = 0.76f),
+                    contentColor = Color.White,
+                ),
             ) { Text(if (timerRunning) "Pausar" else "Iniciar cardio") }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                OutlinedTextField(
-                    value = durationText,
-                    onValueChange = { durationText = it.filter(Char::isDigit).take(4) },
+                CardioLiveDurationField(
+                    durationMinutes = durationText.toIntOrNull() ?: 1,
+                    accentColor = accentColor,
                     modifier = Modifier.weight(1f),
-                    label = { Text("Minutos") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    onConfirm = { minutes -> durationText = minutes.toString() },
                 )
                 if (details.supportsDistance) {
-                    OutlinedTextField(
+                    CardioLiveAccentField(
                         value = distanceText,
                         onValueChange = { distanceText = it.filter { char -> char.isDigit() || char == '.' || char == ',' }.take(8) },
                         modifier = Modifier.weight(1f),
-                        label = { Text("Km") },
-                        singleLine = true,
+                        label = "Km",
+                        accentColor = accentColor,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     )
                 }
-                OutlinedTextField(
+                CardioLiveAccentField(
                     value = heartRateText,
                     onValueChange = { heartRateText = it.filter(Char::isDigit).take(3) },
                     modifier = Modifier.weight(1f),
-                    label = { Text("FC media") },
-                    singleLine = true,
+                    label = "FC media",
+                    accentColor = accentColor,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 )
             }
@@ -161,9 +171,100 @@ internal fun CardioLiveCard(
                     onRecord(durationSeconds, distanceKm, heartRate)
                 },
                 modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = accentColor.copy(alpha = 0.92f),
+                    contentColor = Color.White,
+                ),
             ) { Text(if (completedSet == null) "Registrar cardio" else "Actualizar cardio") }
+            if (details.type.isOutdoor()) {
+                Text(
+                    "GPS en vivo: próximamente",
+                    style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
+                    color = accentColor.copy(alpha = 0.9f),
+                    fontWeight = FontWeight.Bold,
+                )
+            }
         }
     }
+}
+
+@Composable
+private fun CardioLiveDurationField(
+    durationMinutes: Int,
+    accentColor: Color,
+    modifier: Modifier = Modifier,
+    onConfirm: (Int) -> Unit,
+) {
+    var showPicker by remember { mutableStateOf(false) }
+    Box(modifier = modifier) {
+        CardioLiveAccentField(
+            value = "${durationMinutes.coerceAtLeast(1)} min",
+            onValueChange = {},
+            label = "Minutos",
+            accentColor = accentColor,
+            readOnly = true,
+            trailingIcon = { androidx.compose.material3.Icon(Icons.Default.Timer, null, tint = accentColor) },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Box(modifier = Modifier.matchParentSize().clickable { showPicker = true })
+    }
+    if (showPicker) {
+        KpknNativeTimePickerDialog(
+            title = "Duración de cardio",
+            initialHour = (durationMinutes / 60).coerceIn(0, 23),
+            initialMinute = (durationMinutes % 60).coerceIn(0, 59),
+            hint = "Horas : minutos",
+            onConfirm = { hour, minute ->
+                onConfirm((hour * 60 + minute).coerceAtLeast(1))
+                showPicker = false
+            },
+            onDismiss = { showPicker = false },
+        )
+    }
+}
+
+@Composable
+private fun CardioLiveAccentField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    accentColor: Color,
+    modifier: Modifier = Modifier,
+    readOnly: Boolean = false,
+    trailingIcon: (@Composable (() -> Unit))? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier,
+        label = { Text(label) },
+        trailingIcon = trailingIcon,
+        readOnly = readOnly,
+        singleLine = true,
+        keyboardOptions = keyboardOptions,
+        shape = RoundedCornerShape(14.dp),
+        textStyle = androidx.compose.material3.MaterialTheme.typography.bodySmall.copy(color = Color.White, fontWeight = FontWeight.Bold),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = accentColor.copy(alpha = 0.14f),
+            unfocusedContainerColor = accentColor.copy(alpha = 0.08f),
+            focusedBorderColor = accentColor,
+            unfocusedBorderColor = accentColor.copy(alpha = 0.56f),
+            focusedLabelColor = accentColor,
+            unfocusedLabelColor = accentColor.copy(alpha = 0.82f),
+            focusedTextColor = Color.White,
+            unfocusedTextColor = Color.White,
+            cursorColor = accentColor,
+        ),
+    )
+}
+
+private fun com.example.kpkn.data.models.CardioType.isOutdoor(): Boolean = when (this) {
+    com.example.kpkn.data.models.CardioType.RUN_OUTDOOR,
+    com.example.kpkn.data.models.CardioType.BIKE_OUTDOOR,
+    com.example.kpkn.data.models.CardioType.WALK,
+    -> true
+    else -> false
 }
 
 private fun formatCardioTime(totalSeconds: Int): String {
