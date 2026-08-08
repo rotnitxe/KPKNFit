@@ -3,6 +3,11 @@ Studio/
 nul
 .antigravitycli/
 
+# KPKN Beta 10 local build and plan scratch files
+tmp_*
+android-native/**/*.log
+.opencode/tmp-voice/
+
 android/app/src/main/assets/models/kpkn-food-fg270m-v1.litertlm
 
 __pycache__/
