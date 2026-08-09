@@ -488,7 +488,11 @@ internal fun ExerciseEditorCard(
                                                 percentageOfWorkingWeight = (
                                                     normalizeWarmupPercentageForEditor(previous?.percentageOfWorkingWeight ?: 0.5) + 0.1
                                                 ).coerceAtMost(0.9),
-                                                targetReps = previous?.targetReps ?: 6,
+                                                // As the load moves toward the working RM, the next
+                                                // approximation also becomes shorter. Keep one
+                                                // repetition as the safe floor when the previous card
+                                                // is already minimal.
+                                                targetReps = (previous?.targetReps?.minus(2) ?: 6).coerceAtLeast(1),
                                                 restBetween = previous?.restBetween ?: 60,
                                             ),
                                         )
