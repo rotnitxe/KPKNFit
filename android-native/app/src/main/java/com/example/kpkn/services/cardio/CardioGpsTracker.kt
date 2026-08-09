@@ -104,6 +104,7 @@ object CardioGpsTracker {
     private var fusedClient: FusedLocationProviderClient? = null
     private var locationCallback: LocationCallback? = null
     private var snapshot: GpsTrackSnapshot? = null
+    private val snapshotFiles = mutableMapOf<String, File>()
     private var tickerJob: Job? = null
 
     fun hasLocationPermission(context: Context): Boolean =
@@ -236,7 +237,7 @@ object CardioGpsTracker {
             tickerJob = null
             snapshot = null
             _state.value = CardioGpsState()
-            snapshotFileLocked(sessionKey)?.delete()
+            snapshotFiles.remove(sessionKey)?.delete()
         }
     }
 
@@ -326,7 +327,7 @@ object CardioGpsTracker {
     private fun persistLocked() {
         appContext ?: return
         val current = snapshot ?: return
-        val file = snapshotFileLocked(current.sessionKey) ?: return
+        val file = snapshotFiles[current.sessionKey] ?: return
         val payload = runCatching {
             json.encodeToString(GpsTrackSnapshot.serializer(), current)
         }.getOrNull() ?: return
@@ -346,11 +347,14 @@ object CardioGpsTracker {
     }
 
     private fun snapshotFileLocked(sessionKey: String): File? {
+        snapshotFiles[sessionKey]?.let { return it }
         val context = appContext ?: return null
         val safe = sessionKey
             .lowercase(Locale.ROOT)
             .replace(Regex("[^a-z0-9._-]"), "_")
             .take(180)
-        return File(context.filesDir, "$STORAGE_DIRECTORY/$safe.json")
+        return File(context.filesDir, "$STORAGE_DIRECTORY/$safe.json").also {
+            snapshotFiles[sessionKey] = it
+        }
     }
 }
