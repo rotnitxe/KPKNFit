@@ -23,6 +23,9 @@ import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.workout.LoadSuggestionEngine
 import com.example.kpkn.domain.workout.WarmupCalibrationEngine
+import com.example.kpkn.domain.workout.WarmupCalibrationResult
+import com.example.kpkn.domain.workout.WarmupEffort
+import com.example.kpkn.domain.workout.WarmupEffortReport
 import com.example.kpkn.domain.workout.WorkoutStructuralEditor
 import com.example.kpkn.domain.workout.SupersetRules
 import com.example.kpkn.domain.workout.expectedSidesForSet
@@ -382,6 +385,8 @@ class WorkoutViewModel(
                 override fun clearDraftForSet(exerciseId: String, setIdx: Int, side: String?) = this@WorkoutViewModel.clearDraftForSet(exerciseId, setIdx, side)
                 override fun getWeightSuggestionWithAutoRegulation(exercise: Exercise, setIdx: Int, activeTag: String?, side: String?) =
                     loadSuggestionController.getWeightSuggestionWithAutoRegulation(exercise, setIdx, activeTag, side)
+                override fun getWarmupSuggestedWeight(exercise: Exercise, warmupIndex: Int, activeTag: String?) =
+                    this@WorkoutViewModel.getWarmupSuggestedWeight(exercise, warmupIndex, activeTag)
                 override fun restSecondsRemaining() = restTimer.remaining.value.takeIf { it > 0 }
                 override fun canonicalExerciseKey(exercise: Exercise) = this@WorkoutViewModel.canonicalExerciseKey(exercise)
                 override fun inferUnitMode(exercise: Exercise, setIdx: Int): UnitModeV2 =
@@ -508,10 +513,15 @@ class WorkoutViewModel(
                     this@WorkoutViewModel.reportWarmupStep(exerciseId, warmupSetId, usedWeightKg, reportedReps)
                 override fun recordWarmupHeaviness(exerciseId: String, warmupSetId: String, rpe: Double) =
                     this@WorkoutViewModel.recordWarmupHeaviness(exerciseId, warmupSetId, rpe)
-                override fun markMobilityComplete(exerciseId: String, mobilitySeriesId: String) =
-                    this@WorkoutViewModel.markMobilityComplete(exerciseId, mobilitySeriesId)
-                override fun reportMobilityStep(exerciseId: String, mobilitySeriesId: String, value: Double, unit: PreparationReportUnit) =
-                    this@WorkoutViewModel.reportMobilityStep(exerciseId, mobilitySeriesId, value, unit)
+                override fun markMobilityComplete(exerciseId: String, mobilitySeriesId: String, mobilitySetIndex: Int) =
+                    this@WorkoutViewModel.markMobilityComplete(exerciseId, mobilitySeriesId, mobilitySetIndex)
+                override fun reportMobilityStep(
+                    exerciseId: String,
+                    mobilitySeriesId: String,
+                    value: Double,
+                    unit: PreparationReportUnit,
+                    mobilitySetIndex: Int,
+                ) = this@WorkoutViewModel.reportMobilityStep(exerciseId, mobilitySeriesId, value, unit, mobilitySetIndex)
                 override fun skipRemainingPreparation(exerciseId: String) =
                     this@WorkoutViewModel.skipRemainingPreparation(exerciseId)
                 override fun recordCardioSet(durationSeconds: Int, distanceKm: Double?, averageHeartRate: Int?) =
@@ -1750,8 +1760,11 @@ class WorkoutViewModel(
     private fun warmupCompletionKey(exerciseId: String, warmupSetId: String): String =
         stepNavigator.warmupCompletionKey(exerciseId, warmupSetId)
 
-    private fun mobilityCompletionKey(exerciseId: String, mobilityId: String): String =
-        stepNavigator.mobilityCompletionKey(exerciseId, mobilityId)
+    private fun mobilityCompletionKey(
+        exerciseId: String,
+        mobilityId: String,
+        mobilitySetIndex: Int = 0,
+    ): String = stepNavigator.mobilityCompletionKey(exerciseId, mobilityId, mobilitySetIndex)
 
 
     private fun nextIncompleteStepAfter(
@@ -2366,11 +2379,11 @@ class WorkoutViewModel(
     }
 
     /** Completes exactly one mobility card and starts its configured rest. */
-    fun completeMobilityStep(exerciseId: String, mobilityId: String) {
+    fun completeMobilityStep(exerciseId: String, mobilityId: String, mobilitySetIndex: Int = 0) {
         val state = _uiState.value
         val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return
         val mobility = exercise.mobilitySeries.firstOrNull { it.id == mobilityId } ?: return
-        val key = mobilityCompletionKey(exerciseId, mobilityId)
+        val key = mobilityCompletionKey(exerciseId, mobilityId, mobilitySetIndex)
         if (key in state.mobilityCompletedExerciseIds) return
         _uiState.update {
             it.copy(mobilityCompletedExerciseIds = it.mobilityCompletedExerciseIds + key)
@@ -2389,19 +2402,24 @@ class WorkoutViewModel(
         mobilityId: String,
         value: Double,
         unit: PreparationReportUnit,
+        mobilitySetIndex: Int = 0,
     ) {
-        val key = mobilityCompletionKey(exerciseId, mobilityId)
+        val key = mobilityCompletionKey(exerciseId, mobilityId, mobilitySetIndex)
         _uiState.update {
             it.copy(preparationReports = it.preparationReports + (key to PreparationReport(value.coerceAtLeast(0.0), unit)))
         }
         persistOngoingState()
-        completeMobilityStep(exerciseId, mobilityId)
+        completeMobilityStep(exerciseId, mobilityId, mobilitySetIndex)
     }
 
     fun skipRemainingPreparation(exerciseId: String) {
         val state = _uiState.value
         val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return
-        val mobilityKeys = exercise.mobilitySeries.map { mobilityCompletionKey(exerciseId, it.id) }
+        val mobilityKeys = exercise.mobilitySeries.flatMap { mobility ->
+            (0 until mobility.sets.coerceAtLeast(1)).map { mobilitySetIndex ->
+                mobilityCompletionKey(exerciseId, mobility.id, mobilitySetIndex)
+            }
+        }
         val warmupKeys = exercise.warmupSets.map { warmupCompletionKey(exerciseId, it.id) }
         _uiState.update {
             it.copy(
@@ -2413,13 +2431,18 @@ class WorkoutViewModel(
         nextSet(stopRest = false)
     }
 
-    fun markMobilityComplete(exerciseId: String, mobilityId: String, completed: Boolean = true) {
-        val key = mobilityCompletionKey(exerciseId, mobilityId)
+    fun markMobilityComplete(
+        exerciseId: String,
+        mobilityId: String,
+        mobilitySetIndex: Int = 0,
+        completed: Boolean = true,
+    ) {
+        val key = mobilityCompletionKey(exerciseId, mobilityId, mobilitySetIndex)
         val state = _uiState.value
         val alreadyCompleted = key in state.mobilityCompletedExerciseIds
         if (completed == alreadyCompleted) return
         if (completed) {
-            completeMobilityStep(exerciseId, mobilityId)
+            completeMobilityStep(exerciseId, mobilityId, mobilitySetIndex)
             return
         }
         val shouldAdvance = completed && state.activeStepKey == key
@@ -3466,6 +3489,84 @@ class WorkoutViewModel(
         exercise: Exercise,
         activeTag: String? = null,
     ): Double? = loadSuggestionController.getWarmupWorkingWeightAnchor(exercise, activeTag)
+
+    /**
+     * Returns the live suggestion for one approximation card after applying
+     * the conservative reports captured by the rest overlay. Before a report
+     * exists this is the same working-load percentage the card used before
+     * calibration was introduced.
+     */
+    fun getWarmupSuggestedWeight(
+        exercise: Exercise,
+        warmupIndex: Int,
+        activeTag: String? = null,
+        workingWeightAnchor: Double? = null,
+    ): Double? {
+        val warmup = exercise.warmupSets.getOrNull(warmupIndex) ?: return null
+        val workingWeight = workingWeightAnchor
+            ?: getWarmupWorkingWeightAnchor(exercise, activeTag)
+        val calibration = warmupCalibration(exercise, workingWeight)
+        val programmedPercentage = WarmupCalibrationEngine.normalizePercentage(
+            warmup.percentageOfWorkingWeight,
+        )
+        val suggested = calibration.remainingWarmupLoadsKg.getOrNull(warmupIndex)
+            ?: workingWeight?.times(programmedPercentage)?.times(calibration.adjustmentFactor)
+        return suggested
+            ?.takeIf { it > 0.0 }
+            ?.let(LoadSuggestionEngine::roundLoad)
+    }
+
+    /** First effective-load anchor after approximation feedback is recorded. */
+    fun getCalibratedWorkingWeight(
+        exercise: Exercise,
+        baseWorkingWeightKg: Double?,
+        activeTag: String? = null,
+    ): Double? {
+        if (exercise.warmupSets.isEmpty()) return null
+        val reports = warmupEffortReports(exercise)
+        if (reports.isEmpty()) return null
+        val workingWeight = baseWorkingWeightKg
+            ?: getWarmupWorkingWeightAnchor(exercise, activeTag)
+            ?: return null
+        return warmupCalibration(exercise, workingWeight)
+            .firstEffectiveLoadKg
+            ?.takeIf { it > 0.0 }
+            ?.let(::roundWorkoutLoadSuggestion)
+    }
+
+    fun getWarmupCalibrationNote(
+        exercise: Exercise,
+        workingWeightAnchor: Double?,
+    ): String? {
+        if (warmupEffortReports(exercise).isEmpty()) return null
+        val result = warmupCalibration(exercise, workingWeightAnchor)
+        return result.note ?: "Carga sugerida calibrada de forma conservadora."
+    }
+
+    private fun warmupCalibration(
+        exercise: Exercise,
+        workingWeightKg: Double?,
+    ): WarmupCalibrationResult = WarmupCalibrationEngine.calibrateWorkingLoad(
+        programmedPercentages = exercise.warmupSets.map { it.percentageOfWorkingWeight },
+        workingLoadKg = workingWeightKg,
+        reports = warmupEffortReports(exercise),
+    )
+
+    private fun warmupEffortReports(exercise: Exercise): List<WarmupEffortReport> {
+        val completedSets = _uiState.value.completedSets
+        return exercise.warmupSets.mapIndexedNotNull { index, warmup ->
+            val rpe = completedSets[warmupCompletionKey(exercise.id, warmup.id)]?.rpe
+                ?: return@mapIndexedNotNull null
+            WarmupEffortReport(
+                warmupIndex = index,
+                effort = when {
+                    rpe <= 5.0 -> WarmupEffort.LIGHT
+                    rpe >= 9.0 -> WarmupEffort.HEAVY
+                    else -> WarmupEffort.NORMAL
+                },
+            )
+        }
+    }
 
     private fun computeAndStoreAutoRegulation(
         completedSet: CompletedSet,

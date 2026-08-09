@@ -357,6 +357,7 @@ internal fun GroupEditorCard(
     onToggleMobilityGroup: () -> Unit = {},
     onOpenMobilityPicker: () -> Unit = {},
     onRemoveMobility: (String) -> Unit = {},
+    onUpdateMobility: (String, (MobilitySeries) -> MobilitySeries) -> Unit = { _, _ -> },
     headerOnly: Boolean = false,
     content: @Composable () -> Unit,
 ) {
@@ -585,8 +586,10 @@ internal fun GroupEditorCard(
                 AnimatedVisibility(!collapsed && part.isMobilityGroup) {
                     MobilityGroupInlineEditor(
                         mobilitySeries = part.mobilitySeries,
+                        accentColor = partColor,
                         onAdd = onOpenMobilityPicker,
                         onRemove = onRemoveMobility,
+                        onUpdate = onUpdateMobility,
                     )
                 }
 
@@ -683,8 +686,10 @@ internal fun GroupEditorCard(
 @Composable
 private fun MobilityGroupInlineEditor(
     mobilitySeries: List<MobilitySeries>,
+    accentColor: Color,
     onAdd: () -> Unit,
     onRemove: (String) -> Unit,
+    onUpdate: (String, (MobilitySeries) -> MobilitySeries) -> Unit,
 ) {
     Column(
         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
@@ -696,40 +701,33 @@ private fun MobilityGroupInlineEditor(
             fontWeight = FontWeight.Black,
             color = Color.White.copy(alpha = 0.76f),
         )
-        mobilitySeries.forEach { mobility ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(10.dp))
-                    .padding(start = 10.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(mobility.name, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.9f))
-                    Text(
-                        listOfNotNull(
-                            "${mobility.sets} serie${if (mobility.sets == 1) "" else "s"}",
-                            mobility.durationSeconds?.let { "${it}s" },
-                            mobility.bodyZones.firstOrNull(),
-                        ).joinToString(" · "),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.White.copy(alpha = 0.55f),
-                    )
-                }
-                IconButton(onClick = { onRemove(mobility.id) }, modifier = Modifier.size(30.dp)) {
-                    Icon(Icons.Default.Delete, contentDescription = "Quitar movilidad", tint = Color.White.copy(alpha = 0.62f))
-                }
-            }
+        if (mobilitySeries.isEmpty()) {
+            Text(
+                "Añade movimientos para programar series, repeticiones y descansos.",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White.copy(alpha = 0.62f),
+            )
+        } else {
+            // Global mobility uses the exact same compact carousel as an exercise;
+            // there is no second, read-only row implementation to drift visually.
+            MobilityPreparationCarousel(
+                series = mobilitySeries,
+                accentColor = accentColor,
+                onUpdate = onUpdate,
+                onRemove = onRemove,
+                onAdd = onAdd,
+            )
         }
-        FilledTonalButton(
-            onClick = onAdd,
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 7.dp),
-        ) {
-            Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
-            Spacer(Modifier.width(6.dp))
-            Text("Añadir movilidad", fontWeight = FontWeight.Bold)
+        if (mobilitySeries.isEmpty()) {
+            FilledTonalButton(
+                onClick = onAdd,
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 7.dp),
+            ) {
+                Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(6.dp))
+                Text("Añadir movilidad", fontWeight = FontWeight.Bold)
+            }
         }
     }
 }

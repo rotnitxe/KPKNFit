@@ -139,6 +139,9 @@ internal fun SessionEditorListItem(
                 onToggleMobilityGroup = { viewModel.togglePartMobilityGroup(part.id) },
                 onOpenMobilityPicker = { viewModel.openMobilityPickerForPart(part.id) },
                 onRemoveMobility = { mobilityId -> viewModel.removeMobilityFromPart(part.id, mobilityId) },
+                onUpdateMobility = { mobilityId, transform ->
+                    viewModel.updateMobilityInPart(part.id, mobilityId, transform)
+                },
                 headerOnly = true,
                 content = {},
             )

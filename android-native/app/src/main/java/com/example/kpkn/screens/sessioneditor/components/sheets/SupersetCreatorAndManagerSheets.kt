@@ -139,7 +139,7 @@ internal fun SupersetCreatorSheet(
                                 Text(
                                     exercise.name,
                                     fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
-                                    color = KpknSheetTokens.ControlLabel,
+                                    color = KpknSheetTokens.ChipLabel,
                                 )
                                 if (exercise.id in draft.exerciseIds) {
                                     Text(
@@ -301,7 +301,7 @@ internal fun SupersetMemberPickerSheet(
                             fontWeight = FontWeight.SemiBold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            color = KpknSheetTokens.ControlLabel,
+                            color = KpknSheetTokens.ChipLabel,
                         )
                     }
                 }

@@ -83,6 +83,7 @@ import com.example.kpkn.screens.sessioneditor.CompactModeSelector
 import com.example.kpkn.screens.sessioneditor.ExerciseSetsCarousel
 import com.example.kpkn.screens.sessioneditor.SideOrderChip
 import com.example.kpkn.screens.sessioneditor.UnilateralModeSelector
+import com.example.kpkn.screens.sessioneditor.components.CardioEditorCard
 import com.example.kpkn.screens.sessioneditor.components.ExercisePickerSheet
 import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
 import com.example.kpkn.ui.components.KpknAlertDialog
@@ -695,11 +696,23 @@ internal fun WorkoutStructureSheetsHost(
                 }
             }
             WorkoutDrawer(
-                title = "${draftExercise.name} · Editar series",
+                title = "${draftExercise.name} · ${if (draftExercise.cardioDetails != null) "Editar cardio" else "Editar series"}",
                 onDismiss = { state.editSheetExerciseId = null },
                 hazeState = bottomHazeState,
                 ) {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    if (draftExercise.cardioDetails != null) {
+                        CardioEditorCard(
+                            details = draftExercise.cardioDetails!!,
+                            accentColor = sessionAccentColor,
+                            onChange = { details ->
+                                draftExercise = draftExercise.copy(
+                                    cardioDetails = details,
+                                    targetDurationMinutes = (details.targetDurationSeconds / 60).coerceAtLeast(1),
+                                )
+                            },
+                        )
+                    } else {
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         contentPadding = PaddingValues(horizontal = 2.dp),
@@ -819,6 +832,7 @@ internal fun WorkoutStructureSheetsHost(
                             }
                         },
                     )
+                    }
 
                     Button(
                         onClick = {

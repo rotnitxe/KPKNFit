@@ -71,6 +71,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -471,8 +472,10 @@ private fun ColumnScope.CatalogReadyContent(
             state = listState,
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(10.dp),
+            // The filter surface floats above the list; cards intentionally continue
+            // underneath it so the top edge is revealed by the fade below.
             contentPadding = PaddingValues(
-                top = with(density) { filterBarHeight.toDp() },
+                top = 0.dp,
                 bottom = with(density) { selectionPanelHeight.toDp() },
             ),
         ) {
@@ -880,6 +883,19 @@ private fun ColumnScope.CatalogReadyContent(
         }
         item { Spacer(Modifier.height(4.dp)) }
         }
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .height(with(density) { filterBarHeight.toDp() + 18.dp })
+                .background(
+                    Brush.verticalGradient(
+                        0f to Color.Black.copy(alpha = 0.94f),
+                        0.72f to Color.Black.copy(alpha = 0.62f),
+                        1f to Color.Transparent,
+                    ),
+                ),
+        )
         Column(
             modifier = Modifier
                 .align(Alignment.TopCenter)

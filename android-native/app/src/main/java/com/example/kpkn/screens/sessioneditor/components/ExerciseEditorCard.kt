@@ -838,7 +838,8 @@ internal fun ExerciseEditorCard(
                     }
                 }
 
-                // Series carousel section
+                // This whole editor branch is already force-only; cardio returns
+                // after its duration/distance/intensity editor above.
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(6.dp),

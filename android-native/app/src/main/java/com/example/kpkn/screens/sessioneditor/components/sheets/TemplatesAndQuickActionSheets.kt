@@ -346,7 +346,7 @@ internal fun ExerciseQuickActionsSheet(
         ) {
             Icon(Icons.Default.Search, null, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(8.dp))
-            Text("Cambiar ejercicio")
+            Text("Cambiar")
         }
     }
 }

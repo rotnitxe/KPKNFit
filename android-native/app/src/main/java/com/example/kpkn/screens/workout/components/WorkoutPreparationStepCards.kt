@@ -41,13 +41,18 @@ internal fun MobilityExecutionCard(
     mobility: MobilitySeries,
     seriesIndex: Int,
     totalSeries: Int,
+    setIndex: Int = 0,
+    totalSets: Int = 1,
     accentColor: Color,
     onComplete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     PreparationCardSurface(accentColor = accentColor, modifier = modifier) {
         Text(
-            text = "MOVILIDAD  ·  SERIE ${seriesIndex + 1}/$totalSeries",
+            text = buildString {
+                append("MOVILIDAD  ·  SERIE ${seriesIndex + 1}/$totalSeries")
+                if (totalSets > 1) append("  ·  BLOQUE ${setIndex + 1}/$totalSets")
+            },
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Black,
             color = accentColor,
@@ -115,6 +120,7 @@ internal fun WarmupExecutionCard(
     suggestedWeightKg: Double?,
     hasReference: Boolean,
     savedWeightKg: Double?,
+    calibrationNote: String? = null,
     accentColor: Color,
     onComplete: (Double?) -> Unit,
     modifier: Modifier = Modifier,
@@ -155,6 +161,13 @@ internal fun WarmupExecutionCard(
             style = MaterialTheme.typography.labelSmall,
             color = if (suggestedWeightKg != null) Color.White.copy(alpha = 0.68f) else accentColor.copy(alpha = 0.90f),
         )
+        if (!calibrationNote.isNullOrBlank()) {
+            Text(
+                text = calibrationNote,
+                style = MaterialTheme.typography.labelSmall,
+                color = accentColor.copy(alpha = 0.88f),
+            )
+        }
         OutlinedTextField(
             value = usedWeightText,
             onValueChange = { usedWeightText = it.filter { char -> char.isDigit() || char == '.' || char == ',' } },

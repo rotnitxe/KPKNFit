@@ -645,8 +645,11 @@ class WorkoutStepNavigator(
     fun warmupCompletionKey(exerciseId: String, warmupSetId: String): String =
         WorkoutStepRules.warmupStepKey(exerciseId, warmupSetId)
 
-    fun mobilityCompletionKey(exerciseId: String, mobilityId: String): String =
-        WorkoutStepRules.mobilityStepKey(exerciseId, mobilityId)
+    fun mobilityCompletionKey(
+        exerciseId: String,
+        mobilityId: String,
+        mobilitySetIndex: Int = 0,
+    ): String = WorkoutStepRules.mobilityStepKey(exerciseId, mobilityId, mobilitySetIndex)
 
     // ─── Internal helpers ─────────────────────────────────────────────────────
 
@@ -688,7 +691,7 @@ class WorkoutStepNavigator(
             WorkoutStepType.MOBILITY,
             WorkoutStepType.MOBILITY_GROUP -> {
                 val mobilityId = step.mobilitySeriesId ?: return true
-                mobilityCompletionKey(step.exerciseId, mobilityId) in mobilityCompletedExerciseIds
+                mobilityCompletionKey(step.exerciseId, mobilityId, step.mobilitySetIndex) in mobilityCompletedExerciseIds
             }
             WorkoutStepType.WARMUP -> {
                 val warmupId = step.warmupSetId ?: return true

@@ -80,6 +80,29 @@ class WorkoutStepRulesTest {
     }
 
     @Test
+    fun buildSteps_expandsConfiguredMobilitySetsIntoIndependentSteps() {
+        val exercise = Exercise(
+            id = "squat",
+            name = "Sentadilla",
+            mobilitySeries = listOf(
+                MobilitySeries(id = "ankle", name = "Tobillo", sets = 3, reps = "8", restBetweenSeconds = 20),
+            ),
+            sets = listOf(ExerciseSet("s1")),
+        )
+
+        val steps = WorkoutStepRules.buildSteps(
+            Session(id = "s", name = "Sesion", exercises = listOf(exercise)),
+        )
+
+        assertEquals(
+            listOf("squat_ankle", "squat_ankle_set_1", "squat_ankle_set_2", "squat_0"),
+            steps.map { it.stepKey },
+        )
+        assertEquals(listOf(0, 1, 2), steps.take(3).map { it.mobilitySetIndex })
+        assertEquals(listOf(20, 20, 20), steps.take(3).map { it.mobilitySeries.single().restBetweenSeconds })
+    }
+
+    @Test
     fun buildSteps_expandsUnilateralSidesInConfiguredOrder() {
         val exercise = Exercise(
             id = "curl",

@@ -70,3 +70,22 @@ fun SessionEditorViewModel.removeMobilityFromPart(partId: String, mobilityId: St
         )
     }
 }
+
+fun SessionEditorViewModel.updateMobilityInPart(
+    partId: String,
+    mobilityId: String,
+    transform: (MobilitySeries) -> MobilitySeries,
+) {
+    updateSession { session ->
+        session.copy(
+            parts = session.parts.map { part ->
+                if (part.id != partId || !part.isMobilityGroup) return@map part
+                part.copy(
+                    mobilitySeries = part.mobilitySeries.map { mobility ->
+                        if (mobility.id == mobilityId) transform(mobility) else mobility
+                    },
+                )
+            },
+        )
+    }
+}

@@ -16,8 +16,6 @@ import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.discomfortLabel
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.voice.VoiceState
-import com.example.kpkn.domain.calculations.resolveReferenceCapacity
-import com.example.kpkn.domain.workout.WarmupCalibrationEngine
 import com.example.kpkn.services.workout.VoiceSessionCommand
 import com.example.kpkn.services.workout.VoiceConfirmationTarget
 import com.example.kpkn.services.workout.VoicePipelineStage
@@ -73,6 +71,11 @@ class WorkoutVoiceCommandHandler(
             activeTag: String? = null,
             side: String? = null,
         ): WeightSuggestion?
+        fun getWarmupSuggestedWeight(
+            exercise: Exercise,
+            warmupIndex: Int,
+            activeTag: String? = null,
+        ): Double?
         fun restSecondsRemaining(): Int?
         fun canonicalExerciseKey(exercise: Exercise): String
         fun inferUnitMode(exercise: Exercise, setIdx: Int): UnitModeV2
@@ -115,8 +118,14 @@ class WorkoutVoiceCommandHandler(
         fun markWarmupComplete(exerciseId: String, warmupSetId: String)
         fun reportWarmupStep(exerciseId: String, warmupSetId: String, usedWeightKg: Double?, reportedReps: Int?)
         fun recordWarmupHeaviness(exerciseId: String, warmupSetId: String, rpe: Double)
-        fun markMobilityComplete(exerciseId: String, mobilitySeriesId: String)
-        fun reportMobilityStep(exerciseId: String, mobilitySeriesId: String, value: Double, unit: PreparationReportUnit)
+        fun markMobilityComplete(exerciseId: String, mobilitySeriesId: String, mobilitySetIndex: Int = 0)
+        fun reportMobilityStep(
+            exerciseId: String,
+            mobilitySeriesId: String,
+            value: Double,
+            unit: PreparationReportUnit,
+            mobilitySetIndex: Int = 0,
+        )
         fun skipRemainingPreparation(exerciseId: String)
         fun recordCardioSet(durationSeconds: Int, distanceKm: Double?, averageHeartRate: Int?): Boolean
         fun setVoiceExerciseQueue(exerciseIds: List<String>)
@@ -738,7 +747,9 @@ class WorkoutVoiceCommandHandler(
             WorkoutStepType.CARDIO -> return
             WorkoutStepType.WARMUP -> step.warmupSetId?.let { ports.markWarmupComplete(step.exerciseId, it) }
             WorkoutStepType.MOBILITY,
-            WorkoutStepType.MOBILITY_GROUP -> step.mobilitySeriesId?.let { ports.markMobilityComplete(step.exerciseId, it) }
+            WorkoutStepType.MOBILITY_GROUP -> step.mobilitySeriesId?.let {
+                ports.markMobilityComplete(step.exerciseId, it, step.mobilitySetIndex)
+            }
             WorkoutStepType.WORKING_SET -> return
         }
         WorkoutVoiceDiagnosticLogger.event("preparation_step_completed", mapOf("type" to step.type.name, "exerciseId" to step.exerciseId, "stepKey" to step.stepKey))
@@ -788,6 +799,7 @@ class WorkoutVoiceCommandHandler(
                     mobilitySeriesId = step.mobilitySeriesId,
                     value = value,
                     unit = unit,
+                    mobilitySetIndex = step.mobilitySetIndex,
                 )
                 voiceController.speakFeedbackUpdated(
                     "Movilidad registrada: ${value.toTrimmedNumberString()} ${if (unit == PreparationReportUnit.SECONDS) "segundos" else "repeticiones"}. Di hecha para continuar."
@@ -837,12 +849,13 @@ class WorkoutVoiceCommandHandler(
                 }
                 if (step?.type == WorkoutStepType.WARMUP) {
                     val warmup = nextEx.warmupSets.firstOrNull { it.id == step.warmupSetId }
-                    val reference = ports.getWeightSuggestionWithAutoRegulation(nextEx, updatedState.currentSetIdx)?.suggestedWeight
-                        ?: resolveReferenceCapacity(nextEx)
-                    val suggested = reference?.let { base ->
-                        warmup?.percentageOfWorkingWeight?.let { percentage ->
-                            base * WarmupCalibrationEngine.normalizePercentage(percentage)
-                        }
+                    val warmupIndex = warmup?.let { nextEx.warmupSets.indexOf(it) } ?: -1
+                    val suggested = warmupIndex.takeIf { it >= 0 }?.let { index ->
+                        ports.getWarmupSuggestedWeight(
+                            exercise = nextEx,
+                            warmupIndex = index,
+                            activeTag = updatedState.exerciseTags[nextEx.id],
+                        )
                     }
                     val weightText = suggested?.let { ", peso calculado ${it.toTrimmedNumberString()} kilos" }.orEmpty()
                     voiceController.speakFeedbackUpdated("${prefix.orEmpty()}Aproximación de ${spokenWorkoutExerciseName(nextEx)}: ${warmup?.targetReps ?: 0} repeticiones$weightText. Di hecha al completarla.")

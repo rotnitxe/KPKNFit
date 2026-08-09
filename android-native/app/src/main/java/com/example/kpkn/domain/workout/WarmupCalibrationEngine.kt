@@ -78,6 +78,25 @@ object WarmupCalibrationEngine {
         )
     }
 
+    /**
+     * Calibrates the session's warm-up percentages against its working-load
+     * anchor. The editor stores these percentages as a fraction of the first
+     * effective load, while [calibrate] also remains available for callers
+     * that work directly from a true 1RM reference.
+     */
+    fun calibrateWorkingLoad(
+        programmedPercentages: List<Double>,
+        workingLoadKg: Double?,
+        reports: List<WarmupEffortReport> = emptyList(),
+    ): WarmupCalibrationResult = calibrate(
+        WarmupCalibrationInput(
+            programmedPercentages = programmedPercentages,
+            reference1RMKg = workingLoadKg,
+            currentWorkingLoadKg = workingLoadKg,
+            reports = reports,
+        ),
+    )
+
     fun normalizePercentage(rawPercentage: Double): Double =
         if (rawPercentage > 1.0) rawPercentage / 100.0 else rawPercentage
 

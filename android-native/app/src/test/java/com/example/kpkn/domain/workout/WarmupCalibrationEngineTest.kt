@@ -70,4 +70,16 @@ class WarmupCalibrationEngineTest {
         assertNull(withoutReference.firstEffectiveLoadKg)
         assertTrue(withoutReference.note.orEmpty().contains("Sin referencia"))
     }
+
+    @Test
+    fun working_load_calibration_adjusts_remaining_warmup_and_first_effective_load() {
+        val result = WarmupCalibrationEngine.calibrateWorkingLoad(
+            programmedPercentages = listOf(0.5, 0.6),
+            workingLoadKg = 80.0,
+            reports = listOf(WarmupEffortReport(0, WarmupEffort.LIGHT)),
+        )
+
+        assertEquals(49.2, result.remainingWarmupLoadsKg[1] ?: 0.0, 0.001)
+        assertEquals(82.0, result.firstEffectiveLoadKg ?: 0.0, 0.001)
+    }
 }
