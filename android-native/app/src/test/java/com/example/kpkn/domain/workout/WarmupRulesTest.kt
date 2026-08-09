@@ -24,4 +24,14 @@ class WarmupRulesTest {
 
         assertTrue(messages.any { it.contains("10%") })
     }
+
+    @Test
+    fun percentage_near_working_load_warns_about_effective_series() {
+        val messages = warmupValidationMessages(
+            warmupSets = listOf(WarmupSetDefinition("near-working", 0.85, 5)),
+            effectiveSetCount = 3,
+        )
+
+        assertTrue(messages.any { it.contains("serie efectiva") })
+    }
 }

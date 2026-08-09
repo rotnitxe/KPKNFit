@@ -310,7 +310,7 @@ private fun WarmupPreparationCard(
             }
             Text(
                 suggestedLoad?.let { "Carga sugerida: ${formatEditableNumber(it)} kg" }
-                    ?: "Sin 1RM configurada: el porcentaje se aplicará al iniciar",
+                    ?: "Al ${formatEditableNumber(normalizedPercentage * 100.0)}% de la carga que usarás en tu primera serie efectiva",
                 style = MaterialTheme.typography.labelSmall,
                 color = Color.White.copy(alpha = 0.66f),
             )
