@@ -444,7 +444,7 @@ private fun ColumnScope.CatalogReadyContent(
     }
 
     val listState = rememberLazyListState()
-    LaunchedEffect(searchHits) {
+    LaunchedEffect(query, searchHits) {
         if (query.isNotBlank()) listState.scrollToItem(0)
     }
     LaunchedEffect(expandedDefinitionId, definitions, visibleCustomExercises) {
@@ -497,6 +497,7 @@ private fun ColumnScope.CatalogReadyContent(
                     exercise = custom,
                     selected = selected,
                     editingExisting = editingExisting,
+                    hazeState = hazeState,
                     onSelect = { onSelect(custom) },
                     onToggle = {
                         val next = if (selected) selectedRows.value - custom.id else selectedRows.value + (custom.id to custom)
@@ -553,13 +554,7 @@ private fun ColumnScope.CatalogReadyContent(
             val extraVariantCount = (variantValues.size - visibleVariants.size).coerceAtLeast(0)
 
             Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = if (isSelected) {
-                        Color(0xFF1E5A44).copy(alpha = 0.72f)
-                    } else {
-                        Color.White.copy(alpha = 0.12f)
-                    },
-                ),
+                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                 border = BorderStroke(
                     1.dp,
                     if (isSelected) Color(0xFF4ADE80).copy(alpha = 0.75f) else Color.White.copy(alpha = 0.10f),
@@ -567,6 +562,15 @@ private fun ColumnScope.CatalogReadyContent(
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier
                     .fillMaxWidth()
+                    .kpknGlassOrFallback(
+                        hazeState = hazeState,
+                        shape = RoundedCornerShape(16.dp),
+                        additionalScrim = if (isSelected) {
+                            Color(0xFF1E5A44).copy(alpha = 0.38f)
+                        } else {
+                            Color.Transparent
+                        },
+                    )
                     .clickable {
                         when {
                             isExpanded -> {
@@ -1420,6 +1424,7 @@ private fun CustomExerciseCard(
     exercise: ExerciseMuscleInfo,
     selected: Boolean,
     editingExisting: Boolean,
+    hazeState: HazeState?,
     onSelect: () -> Unit,
     onToggle: () -> Unit,
     onEdit: () -> Unit = {},
@@ -1433,13 +1438,7 @@ private fun CustomExerciseCard(
             .take(3)
     }
     Card(
-        colors = CardDefaults.cardColors(
-            containerColor = if (selected) {
-                Color(0xFF1E5A44).copy(alpha = 0.72f)
-            } else {
-                Color.White.copy(alpha = 0.12f)
-            },
-        ),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         border = BorderStroke(
             1.dp,
             if (selected) Color(0xFF4ADE80).copy(alpha = 0.75f) else Color.White.copy(alpha = 0.10f),
@@ -1447,6 +1446,15 @@ private fun CustomExerciseCard(
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier
             .fillMaxWidth()
+            .kpknGlassOrFallback(
+                hazeState = hazeState,
+                shape = RoundedCornerShape(16.dp),
+                additionalScrim = if (selected) {
+                    Color(0xFF1E5A44).copy(alpha = 0.38f)
+                } else {
+                    Color.Transparent
+                },
+            )
             .clickable { if (editingExisting) onSelect() else onToggle() },
     ) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -1616,17 +1624,22 @@ private fun SelectedExercisesAccordion(
 ) {
     var expanded by remember { mutableStateOf(false) }
     Column(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .kpknGlassOrFallback(
+                hazeState = LocalHazeState.current,
+                shape = RoundedCornerShape(14.dp),
+            )
+            .padding(4.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Surface(
             shape = RoundedCornerShape(14.dp),
-            color = Color.White.copy(alpha = 0.08f),
-            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.18f)),
-            shadowElevation = 10.dp,
+            color = Color.Transparent,
+            border = null,
+            shadowElevation = 0.dp,
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(14.dp))
                 .clickable { expanded = !expanded },
         ) {
             Row(
