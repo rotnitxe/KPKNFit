@@ -61,6 +61,26 @@ class WorkoutStepRulesTest {
     }
 
     @Test
+    fun global_mobility_materialization_has_no_working_set_placeholder() {
+        val mobility = SessionPart(
+            id = "mobility-only",
+            name = "Movilidad global",
+            isMobilityGroup = true,
+            mobilitySeries = listOf(
+                MobilitySeries(id = "hips", name = "Cadera", sets = 2, durationSeconds = 30),
+            ),
+        )
+
+        val steps = WorkoutStepRules.buildSteps(
+            Session(id = "s", name = "Sesion", parts = listOf(mobility)),
+        )
+
+        assertEquals(2, steps.size)
+        assertEquals(listOf(WorkoutStepType.MOBILITY_GROUP, WorkoutStepType.MOBILITY_GROUP), steps.map { it.type })
+        assertEquals(listOf(0, 1), steps.map { it.mobilitySetIndex })
+    }
+
+    @Test
     fun buildSteps_ordersMobilityWarmupBeforeWorkingSets() {
         val exercise = Exercise(
             id = "squat",
