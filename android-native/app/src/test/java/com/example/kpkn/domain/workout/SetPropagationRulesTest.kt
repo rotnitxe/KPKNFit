@@ -3,6 +3,7 @@ package com.example.kpkn.domain.workout
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.UnilateralTarget
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SetPropagationRulesTest {
@@ -35,5 +36,35 @@ class SetPropagationRulesTest {
 
         assertEquals(source.leftTarget, result.leftTarget)
         assertEquals(target.rightTarget, result.rightTarget)
+    }
+
+    @Test
+    fun both_side_propagation_copies_both_targets() {
+        val source = ExerciseSet(
+            id = "source",
+            leftTarget = UnilateralTarget(weight = 20.0, targetReps = 8),
+            rightTarget = UnilateralTarget(weight = 18.0, targetReps = 8),
+        )
+        val target = ExerciseSet(
+            id = "target",
+            leftTarget = UnilateralTarget(weight = 10.0, targetReps = 12),
+            rightTarget = UnilateralTarget(weight = 9.0, targetReps = 12),
+        )
+
+        val result = target.copyPlannedValueFrom(source, PropagationSide.BOTH)
+
+        assertEquals(source.leftTarget, result.leftTarget)
+        assertEquals(source.rightTarget, result.rightTarget)
+    }
+
+    @Test
+    fun propagation_preserves_empty_superset_slot_marker() {
+        val source = ExerciseSet(id = "source", targetReps = 8)
+        val target = ExerciseSet(id = "target", isEmptySlot = true)
+
+        val result = target.copyPlannedValueFrom(source)
+
+        assertTrue(result.isEmptySlot)
+        assertEquals("target", result.id)
     }
 }

@@ -87,6 +87,8 @@ import com.example.kpkn.screens.sessioneditor.UnilateralModeSelector
 import com.example.kpkn.screens.sessioneditor.SideOrderChip
 import com.example.kpkn.screens.sessioneditor.UnilateralAddGhostCard
 import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
+import com.example.kpkn.domain.workout.PropagationSide
+import com.example.kpkn.domain.workout.copyPlannedValueFrom
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import com.example.kpkn.ui.components.KpknAlertDialog
@@ -362,6 +364,17 @@ internal fun SupersetRoundsCarousel(
     onRemoveRound: (Int) -> Unit,
 ) {
     val context = LocalContext.current
+    fun propagateSetValue(exerciseId: String, sourceId: String, side: PropagationSide) {
+        val exercise = exercises.firstOrNull { it.id == exerciseId } ?: return
+        val source = exercise.sets.firstOrNull { it.id == sourceId } ?: return
+        exercise.sets
+            .filter { it.id != sourceId && !it.isEmptySlot }
+            .forEach { target ->
+                onUpdateSet(exerciseId, target.id) { current ->
+                    current.copyPlannedValueFrom(source, side)
+                }
+            }
+    }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("Rondas", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
         Row(
@@ -414,6 +427,7 @@ internal fun SupersetRoundsCarousel(
                                     onUpdateSet = { setId, updater -> onUpdateSet(exercise.id, setId, updater) },
                                     onRemoveSet = { setId -> onRemoveSet(exercise.id, setId) },
                                     onMoveSet = { setId, dir -> onMoveSet(exercise.id, setId, dir) },
+                                    onPropagateValue = { side -> propagateSetValue(exercise.id, set.id, side) },
                                 )
                             } else {
                                 RoundMissingSetCard(
@@ -529,6 +543,7 @@ private fun RoundExerciseSetCard(
     onUpdateSet: (String, (ExerciseSet) -> ExerciseSet) -> Unit,
     onRemoveSet: (String) -> Unit,
     onMoveSet: (String, Int) -> Unit,
+    onPropagateValue: (PropagationSide) -> Unit,
 ) {
     var expanded by rememberSaveable(exercise.id, roundIndex) { mutableStateOf(false) }
     val predictedWeight = calculateSuggestedLoad(exercise, set)
@@ -627,6 +642,7 @@ private fun RoundExerciseSetCard(
                                     onRemove = { onRemoveSet(set.id) },
                                     onMoveUp = { onMoveSet(set.id, -1) },
                                     onMoveDown = { onMoveSet(set.id, 1) },
+                                    onPropagateValue = onPropagateValue,
                                 )
                             } else {
                                 UnilateralAddGhostCard(
@@ -675,6 +691,7 @@ private fun RoundExerciseSetCard(
                             onRemove = { onRemoveSet(set.id) },
                             onMoveUp = { onMoveSet(set.id, -1) },
                             onMoveDown = { onMoveSet(set.id, 1) },
+                            onPropagateValue = onPropagateValue,
                         )
                     }
                 }

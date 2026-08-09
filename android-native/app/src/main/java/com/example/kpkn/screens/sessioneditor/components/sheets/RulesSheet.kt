@@ -231,7 +231,11 @@ internal fun RulesSheet(
         onPatchRuleDefaults(targetPart) { it.copy(scope = scope) }
     }
     var compoundIsolationExpanded by remember(selectedScope, activeScopePartId) {
-        mutableStateOf(defaults.hasCompoundOverrides || defaults.hasIsolationOverrides)
+        mutableStateOf(
+            selectedScope == RuleScope.COMPOUND_ISOLATION ||
+                defaults.hasCompoundOverrides ||
+                defaults.hasIsolationOverrides,
+        )
     }
 
     var activeRestDialog by remember { mutableStateOf<String?>(null) }
@@ -383,7 +387,8 @@ internal fun RulesSheet(
                 }
             }
 
-            Column(
+            if (selectedScope != RuleScope.COMPOUND_ISOLATION) {
+                Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(18.dp))
@@ -535,16 +540,18 @@ internal fun RulesSheet(
                         ),
                     )
                 }
+                }
             }
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(18.dp))
-                    .background(KpknSheetTokens.Panel)
-                    .padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
+            if (selectedScope == RuleScope.COMPOUND_ISOLATION) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(KpknSheetTokens.Panel)
+                        .padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -562,7 +569,7 @@ internal fun RulesSheet(
                             color = Color.White,
                         )
                         Text(
-                            "Reglas distintas por tipo de ejercicio en este grupo.",
+                            "Configura una regla para básicos y otra para aislamientos.",
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.White.copy(alpha = 0.55f),
                         )
@@ -682,6 +689,7 @@ internal fun RulesSheet(
                         }
                     }
                 }
+            }
             }
 
             Column(
