@@ -34,6 +34,8 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.MobilitySeries
 import com.example.kpkn.data.models.WarmupSetDefinition
 import com.example.kpkn.domain.workout.WarmupCalibrationEngine
+import com.example.kpkn.screens.workout.PreparationReport
+import com.example.kpkn.screens.workout.PreparationReportUnit
 
 /** A single live mobility block. It never renders strength-set controls. */
 @Composable
@@ -44,9 +46,20 @@ internal fun MobilityExecutionCard(
     setIndex: Int = 0,
     totalSets: Int = 1,
     accentColor: Color,
-    onComplete: () -> Unit,
+    previousReport: PreparationReport? = null,
+    onReport: (Double, PreparationReportUnit) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val isTimed = mobility.durationSeconds != null && mobility.durationSeconds > 0
+    val reportUnit = if (isTimed) PreparationReportUnit.SECONDS else PreparationReportUnit.REPS
+    var reportText by remember(mobility.id, setIndex, previousReport?.value, reportUnit) {
+        mutableStateOf(
+            previousReport?.value?.formatWholeOrDecimal()
+                ?: mobility.durationSeconds?.takeIf { isTimed }?.toString()
+                ?: mobility.reps?.firstNumberOrEmpty()
+                ?: "",
+        )
+    }
     PreparationCardSurface(accentColor = accentColor, modifier = modifier) {
         Text(
             text = buildString {
@@ -82,6 +95,17 @@ internal fun MobilityExecutionCard(
                 modifier = Modifier.weight(1f),
             )
         }
+        OutlinedTextField(
+            value = reportText,
+            onValueChange = { reportText = it.filter { char -> char.isDigit() || char == '.' || char == ',' } },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            label = { Text(if (isTimed) "Segundos realizados" else "Repeticiones realizadas") },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = if (isTimed) KeyboardType.Number else KeyboardType.Decimal,
+            ),
+            colors = preparationFieldColors(accentColor),
+        )
         if (mobility.restBetweenSeconds > 0) {
             Text(
                 text = "Descanso entre series: ${mobility.restBetweenSeconds}s",
@@ -98,7 +122,11 @@ internal fun MobilityExecutionCard(
         }
         Spacer(Modifier.height(2.dp))
         Button(
-            onClick = onComplete,
+            onClick = {
+                val value = reportText.replace(',', '.').toDoubleOrNull()?.takeIf { it > 0.0 }
+                    ?: return@Button
+                onReport(value, reportUnit)
+            },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(
@@ -106,7 +134,7 @@ internal fun MobilityExecutionCard(
                 contentColor = preparationContentColor(accentColor),
             ),
         ) {
-            Text("Completar movilidad", fontWeight = FontWeight.Black)
+            Text("Registrar y completar", fontWeight = FontWeight.Black)
         }
     }
 }
@@ -277,4 +305,12 @@ private fun Double.formatKg(): String = String.format(java.util.Locale.US, "%.1f
 private fun Double.formatWhole(): String {
     val rounded = kotlin.math.round(this).toInt()
     return rounded.toString()
+}
+
+private fun Double.formatWholeOrDecimal(): String {
+    return if (this % 1.0 == 0.0) toInt().toString() else formatKg()
+}
+
+private fun String.firstNumberOrEmpty(): String {
+    return Regex("\\d+(?:[.,]\\d+)?").find(this)?.value.orEmpty()
 }

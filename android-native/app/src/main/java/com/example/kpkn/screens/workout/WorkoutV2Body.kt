@@ -802,10 +802,19 @@ internal fun WorkoutV2Body(
                                         setIndex = pageSpec.mobilitySetIndex,
                                         totalSets = mobility.sets.coerceAtLeast(1),
                                         accentColor = sessionAccentColor,
-                                        onComplete = {
-                                            viewModel.completeMobilityStep(
+                                        previousReport = uiState.preparationReports[
+                                            WorkoutStepRules.mobilityStepKey(
                                                 currentExercise.id,
                                                 mobility.id,
+                                                pageSpec.mobilitySetIndex,
+                                            )
+                                        ],
+                                        onReport = { value, unit ->
+                                            viewModel.reportMobilityStep(
+                                                currentExercise.id,
+                                                mobility.id,
+                                                value,
+                                                unit,
                                                 pageSpec.mobilitySetIndex,
                                             )
                                         },
