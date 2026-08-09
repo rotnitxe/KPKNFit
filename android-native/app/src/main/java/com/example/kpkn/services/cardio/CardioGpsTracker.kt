@@ -52,6 +52,30 @@ data class CardioGpsState(
     val lastFixAtEpochMs: Long? = null,
 )
 
+internal fun resolveRestoredCardioGpsStatus(
+    snapshotPaused: Boolean,
+    currentStatus: CardioGpsStatus,
+): CardioGpsStatus {
+    if (snapshotPaused) return CardioGpsStatus.PAUSED
+    return when (currentStatus) {
+        // These statuses mean the current process/service still owns the live
+        // request. Preserve them when the editor re-enters the same session.
+        CardioGpsStatus.RECORDING,
+        CardioGpsStatus.REQUESTING_PERMISSION,
+        CardioGpsStatus.SIGNAL_LOST,
+        CardioGpsStatus.PERMISSION_DENIED,
+        CardioGpsStatus.LOCATION_DISABLED,
+        -> currentStatus
+        // A freshly recreated process has only a persisted snapshot, not an
+        // active FusedLocation request. The UI must offer "Iniciar GPS" so the
+        // foreground service can register again instead of showing "Pausar".
+        CardioGpsStatus.INACTIVE,
+        CardioGpsStatus.PAUSED,
+        CardioGpsStatus.STOPPED,
+        -> CardioGpsStatus.INACTIVE
+    }
+}
+
 /**
  * Process-local GPS coordinator. The foreground service owns its lifecycle;
  * this object gives the workout ViewModel a read-only StateFlow and persists
@@ -95,11 +119,7 @@ object CardioGpsTracker {
             appContext = context.applicationContext
             if (snapshot?.sessionKey == sessionKey) {
                 val currentStatus = _state.value.status
-                val status = when {
-                    snapshot?.paused == true -> CardioGpsStatus.PAUSED
-                    currentStatus == CardioGpsStatus.RECORDING -> CardioGpsStatus.RECORDING
-                    else -> CardioGpsStatus.SIGNAL_LOST
-                }
+                val status = resolveRestoredCardioGpsStatus(snapshot?.paused == true, currentStatus)
                 _state.value = publishStateLocked(status)
                 return _state.value
             }
@@ -109,7 +129,7 @@ object CardioGpsTracker {
                 return empty
             }
             snapshot = restored
-            val status = if (restored.paused) CardioGpsStatus.PAUSED else CardioGpsStatus.SIGNAL_LOST
+            val status = resolveRestoredCardioGpsStatus(restored.paused, _state.value.status)
             _state.value = publishStateLocked(status)
             return _state.value
         }
