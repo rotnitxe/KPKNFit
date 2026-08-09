@@ -269,12 +269,26 @@ internal fun ExerciseQuickActionsSheet(
     val selectedInfo = remember(exercise.id, catalogLookup) {
         resolveCatalogExerciseInfo(exercise, catalogLookup)
     }
-    val muscles = remember(exercise.id, selectedInfo) {
-        (selectedInfo?.involvedMuscles?.map { it.muscle }
-            ?: exercise.effectiveMuscles?.map { it.muscle }.orEmpty())
-            .filter { it.isNotBlank() }
-            .distinct()
-            .take(8)
+    val involvedMuscles = remember(exercise.id, exercise.effectiveMuscles, selectedInfo) {
+        (exercise.effectiveMuscles?.takeIf { it.isNotEmpty() }
+            ?: selectedInfo?.involvedMuscles.orEmpty())
+            .filter { it.muscle.isNotBlank() }
+    }
+    val muscleInvolvement = remember(involvedMuscles) {
+        listOf(
+            MuscleRole.PRIMARY to "Principales",
+            MuscleRole.SECONDARY to "Secundarios",
+            MuscleRole.STABILIZER to "Estabilizadores",
+            MuscleRole.NEUTRALIZER to "Neutralizadores",
+        ).mapNotNull { (role, label) ->
+            val names = involvedMuscles
+                .filter { it.role == role }
+                .map { it.muscle.trim() }
+                .filter { it.isNotBlank() }
+                .distinct()
+                .take(8)
+            names.takeIf { it.isNotEmpty() }?.let { "$label: ${it.joinToString(" · ")}" }
+        }.joinToString("\n")
     }
     val articularProfile = remember(exercise.id, selectedInfo) {
         listOfNotNull(
@@ -327,12 +341,13 @@ internal fun ExerciseQuickActionsSheet(
 
         QuickInfoBlock(
             title = "Descripción",
-            value = selectedInfo?.description?.takeIf { !it.isNullOrBlank() }
+            value = selectedInfo?.let { adaptedExerciseDescription(it, exercise.selectedAspects.orEmpty()) }
+                ?.takeIf { it.isNotBlank() }
                 ?: "No hay una descripción editorial disponible para esta configuración.",
         )
         QuickInfoBlock(
             title = "Músculos involucrados",
-            value = muscles.joinToString(" · ").ifBlank { "Información muscular no disponible" },
+            value = muscleInvolvement.ifBlank { "Información muscular no disponible" },
         )
         QuickInfoBlock(
             title = "Involucramiento articular",

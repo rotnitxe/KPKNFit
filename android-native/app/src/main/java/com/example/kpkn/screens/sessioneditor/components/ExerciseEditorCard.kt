@@ -246,13 +246,17 @@ internal fun ExerciseEditorCard(
             modifier = Modifier.fillMaxWidth(),
             shape = cardShape,
         ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                    .combinedClickable(
+                        onClick = { expanded = !expanded },
+                        onLongClick = onOpenQuickActions,
+                    ),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
             // Drag handle — caja angosta para no empujar el título; altura táctil conservada.
             Box(
                 modifier = Modifier
@@ -278,14 +282,10 @@ internal fun ExerciseEditorCard(
                     modifier = Modifier.size(18.dp),
                 )
             }
-            // Name & subtitle — click to expand, long-press for quick actions
+            // Name & subtitle. The parent header owns expand and long-press actions.
             Column(
                 modifier = Modifier
-                    .weight(1f)
-                    .combinedClickable(
-                        onClick = { expanded = !expanded },
-                        onLongClick = onOpenQuickActions,
-                    ),
+                    .weight(1f),
             ) {
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(4.dp),

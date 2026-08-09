@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -52,8 +53,9 @@ fun SwipeToDeleteCard(
     shape: Shape = RoundedCornerShape(28.dp),
     content: @Composable () -> Unit,
 ) {
-    val deleteThreshold = 80.dp.value
-    val maxReveal = 128.dp.value
+    val density = LocalDensity.current
+    val deleteThreshold = with(density) { 80.dp.toPx() }
+    val maxReveal = with(density) { 128.dp.toPx() }
     var offsetX by remember { mutableFloatStateOf(0f) }
     var deleting by remember { mutableStateOf(false) }
     val animatedOffset by animateFloatAsState(
