@@ -4,6 +4,7 @@ import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.DISCOMFORT_CATALOG
 import com.example.kpkn.data.models.DiscomfortCatalogEntry
 import com.example.kpkn.data.models.DiscomfortSection
+import com.example.kpkn.screens.workout.PacingAlertMode
 import java.text.Normalizer
 import java.util.Locale
 
@@ -161,6 +162,26 @@ object WorkoutVoiceCommandParser {
         "cuanto llevo de sesion", "cuánto llevo de sesión",
     )
 
+    private val PACING_MODE_KEYWORDS = linkedMapOf(
+        PacingAlertMode.STRICT to setOf(
+            "modo estricto", "modo de tiempo estricto", "tiempo estricto",
+            "activar modo estricto", "activa modo estricto", "activar tiempo estricto",
+            "alertas estrictas", "alerta estricta", "avisos por ejercicio",
+        ),
+        PacingAlertMode.SOFT to setOf(
+            "modo suave", "ritmo suave", "activar modo suave", "activa modo suave",
+            "alertas suaves", "alerta suave",
+        ),
+        PacingAlertMode.FINAL to setOf(
+            "modo final", "modo aviso final", "solo aviso final", "solo avisos finales",
+            "alertas finales", "alerta final",
+        ),
+        PacingAlertMode.OFF to setOf(
+            "sin alertas", "desactivar alertas", "desactiva alertas", "quitar alertas",
+            "apagar alertas",
+        ),
+    )
+
     private val DRAINAGE_QUERY_KEYWORDS = setOf(
         "cuanto drenaje llevo", "cuánto drenaje llevo", "drenaje acumulado",
         "como voy de drenaje", "cómo voy de drenaje", "drenaje",
@@ -226,6 +247,7 @@ object WorkoutVoiceCommandParser {
                 base += setOf("reemplaza", "reemplazar", "reemplazá", "sustituye", "sustituir", "por")
                 base += PENDING_SIDE_QUERY_KEYWORDS
                 base += PACE_STATUS_KEYWORDS
+                base += PACING_MODE_KEYWORDS.values.flatten()
                 base += WEIGHT_REASON_KEYWORDS
                 base += ADD_SET_SESSION_ONLY_KEYWORDS
                 base += ADD_SET_PERMANENT_KEYWORDS
@@ -388,6 +410,7 @@ object WorkoutVoiceCommandParser {
         if (PENDING_SIDE_QUERY_KEYWORDS.any { lower.contains(it) }) {
             return VoiceSessionCommand.QueryPendingSide
         }
+        parsePacingAlertMode(lower)?.let { return it }
         if (PACE_STATUS_KEYWORDS.any { lower.contains(normalizeText(it)) }) {
             return VoiceSessionCommand.PaceStatus
         }
@@ -504,6 +527,14 @@ object WorkoutVoiceCommandParser {
         if (parsedTag != null) return parsedTag
 
         return VoiceSessionCommand.Unknown(transcript)
+    }
+
+    private fun parsePacingAlertMode(normalized: String): VoiceSessionCommand.SetPacingAlertMode? {
+        val lower = normalizeText(normalized)
+        val match = PACING_MODE_KEYWORDS.entries.firstOrNull { (_, phrases) ->
+            phrases.any { lower.contains(normalizeText(it)) }
+        } ?: return null
+        return VoiceSessionCommand.SetPacingAlertMode(match.key)
     }
 
     private fun parseTagCommand(normalized: String, knownTagNames: Set<String>): VoiceSessionCommand.ApplyTag? {

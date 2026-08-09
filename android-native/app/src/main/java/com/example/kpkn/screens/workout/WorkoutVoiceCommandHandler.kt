@@ -107,6 +107,7 @@ class WorkoutVoiceCommandHandler(
         fun patchLastCompletedSet(patch: com.example.kpkn.services.workout.VoiceSetEditPatch): Boolean
         fun coachPaceAlert(): String?
         fun sessionTimeRemainingSeconds(): Int?
+        fun setPacingAlertMode(mode: PacingAlertMode)
         fun suggestedWeightReason(exercise: Exercise, setIdx: Int, side: String?): String?
         /** Drenaje acumulado en vivo: (SNC%, muscular%, espinal%). */
         fun liveDrainSummary(): Triple<Int, Int, Int>?
@@ -598,6 +599,17 @@ class WorkoutVoiceCommandHandler(
                 voiceController.speakFeedbackUpdated("Superserie disuelta.")
             }
             is VoiceSessionCommand.PaceStatus -> handleVoicePaceStatus()
+            is VoiceSessionCommand.SetPacingAlertMode -> {
+                ports.setPacingAlertMode(command.mode)
+                voiceController.speakFeedbackUpdated(
+                    when (command.mode) {
+                        PacingAlertMode.OFF -> "Alertas de tiempo desactivadas."
+                        PacingAlertMode.FINAL -> "Modo de aviso final activado."
+                        PacingAlertMode.SOFT -> "Modo de ritmo suave activado."
+                        PacingAlertMode.STRICT -> "Modo de tiempo estricto activado: te avisaré por ejercicio."
+                    },
+                )
+            }
             is VoiceSessionCommand.SetSessionTimeLimit -> {
                 ports.setSessionTimeLimit(command.minutes, command.persistToProgram)
                 voiceController.speakFeedbackUpdated("Límite de ${command.minutes} minutos aplicado${if (command.persistToProgram) " al programa" else " a esta sesión"}.")

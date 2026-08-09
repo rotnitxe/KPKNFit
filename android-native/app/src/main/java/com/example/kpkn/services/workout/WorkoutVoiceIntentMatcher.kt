@@ -81,6 +81,7 @@ object WorkoutVoiceIntentMatcher {
                         is VoiceSessionCommand.SuggestWeightReasoned,
                         is VoiceSessionCommand.WhatExercise,
                         is VoiceSessionCommand.PaceStatus,
+                        is VoiceSessionCommand.SetPacingAlertMode,
                         is VoiceSessionCommand.FatigueAdvice,
                         -> parsed
                         else -> {

@@ -2,6 +2,7 @@ package com.example.kpkn.services.workout
 
 import com.example.kpkn.screens.workout.WorkoutVoiceField
 import com.example.kpkn.screens.workout.WorkoutVoiceInterpretation
+import com.example.kpkn.screens.workout.PacingAlertMode
 
 enum class VoicePipelineStage {
     DISABLED,
@@ -192,6 +193,8 @@ sealed class VoiceSessionCommand {
     data object FatigueAdvice : VoiceSessionCommand()
     /** Coach: session pace status. */
     data object PaceStatus : VoiceSessionCommand()
+    /** Cambia las alertas del tiempo de sesión desde el control por voz. */
+    data class SetPacingAlertMode(val mode: PacingAlertMode) : VoiceSessionCommand()
     /** Coach: ¿cuánto drenaje/fatiga acumulada llevo? (read-only). */
     data object QueryDrainage : VoiceSessionCommand()
     /** ¿Qué serie voy? (read-only). */

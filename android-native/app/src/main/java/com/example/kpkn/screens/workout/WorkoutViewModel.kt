@@ -465,6 +465,7 @@ class WorkoutViewModel(
                     this@WorkoutViewModel.patchLastCompletedSet(patch)
                 override fun coachPaceAlert() = _uiState.value.coachPaceAlert
                 override fun sessionTimeRemainingSeconds() = sessionTimeRemainingSeconds.value
+                override fun setPacingAlertMode(mode: PacingAlertMode) = this@WorkoutViewModel.setPacingAlertMode(mode)
                 override fun suggestedWeightReason(exercise: Exercise, setIdx: Int, side: String?): String? {
                     val suggestion = loadSuggestionController.getWeightSuggestionWithAutoRegulation(
                         exercise, setIdx, _uiState.value.exerciseTags[exercise.id], side,
