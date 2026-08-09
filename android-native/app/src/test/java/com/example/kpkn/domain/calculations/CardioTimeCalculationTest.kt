@@ -3,6 +3,7 @@ package com.example.kpkn.domain.calculations
 import com.example.kpkn.data.models.CardioDetails
 import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.MobilitySeries
 import com.example.kpkn.data.models.Session
 import org.junit.Assert.assertEquals
@@ -18,6 +19,12 @@ class CardioTimeCalculationTest {
                 type = CardioType.TREADMILL,
                 targetDurationSeconds = 1_200,
             ),
+            // Legacy sessions can contain strength-shaped rows; cardio must
+            // remain one continuous block regardless of that stale payload.
+            sets = listOf(
+                ExerciseSet(id = "legacy-cardio-set-1", targetDuration = 30),
+                ExerciseSet(id = "legacy-cardio-set-2", targetDuration = 30),
+            ),
         )
 
         val breakdown = calculateSessionTimeBreakdown(
@@ -26,6 +33,8 @@ class CardioTimeCalculationTest {
         )
 
         assertEquals(1_200, breakdown.executionSeconds)
+        assertEquals(0, breakdown.restSeconds)
+        assertEquals(0, breakdown.totalSetCount)
     }
 
     @Test

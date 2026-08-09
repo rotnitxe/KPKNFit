@@ -656,7 +656,12 @@ fun calculateSessionTimeBreakdown(
         warmupSeconds    = warmupSec,
         totalSeconds     = total,
         exerciseCount    = exercises.size,
-        totalSetCount    = exercises.sumOf { it.sets.size.coerceAtLeast(1) },
+        // Cardio is a continuous block, never a strength-series count.  Older
+        // sessions may still carry synthetic ExerciseSet rows, so do not let
+        // those legacy rows leak into editor/time summaries.
+        totalSetCount    = exercises.sumOf { exercise ->
+            if (exercise.cardioDetails != null) 0 else exercise.sets.size.coerceAtLeast(1)
+        },
     )
 }
 
