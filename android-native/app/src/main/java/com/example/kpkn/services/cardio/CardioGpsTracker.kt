@@ -18,6 +18,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import java.io.File
 import java.util.Locale
+import java.util.concurrent.Executors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -89,6 +90,9 @@ object CardioGpsTracker {
 
     private val lock = Any()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val persistenceExecutor = Executors.newSingleThreadExecutor { runnable ->
+        Thread(runnable, "kpkn-cardio-gps-persistence").apply { isDaemon = true }
+    }
     private val _state = MutableStateFlow(CardioGpsState())
     val state: StateFlow<CardioGpsState> = _state.asStateFlow()
 
@@ -322,10 +326,15 @@ object CardioGpsTracker {
     private fun persistLocked() {
         appContext ?: return
         val current = snapshot ?: return
-        runCatching {
-            val file = snapshotFileLocked(current.sessionKey) ?: return
-            file.parentFile?.mkdirs()
-            file.writeText(json.encodeToString(GpsTrackSnapshot.serializer(), current))
+        val file = snapshotFileLocked(current.sessionKey) ?: return
+        val payload = runCatching {
+            json.encodeToString(GpsTrackSnapshot.serializer(), current)
+        }.getOrNull() ?: return
+        persistenceExecutor.execute {
+            runCatching {
+                file.parentFile?.mkdirs()
+                file.writeText(payload)
+            }
         }
     }
 
