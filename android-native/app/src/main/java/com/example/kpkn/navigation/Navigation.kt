@@ -78,6 +78,7 @@ sealed class KpknRoute(val route: String) {
     object SettingsAuge : KpknRoute("settings/auge")
     object SettingsNotifications : KpknRoute("settings/notifications")
     object SettingsData : KpknRoute("settings/data")
+    object SettingsDiagnostics : KpknRoute("settings/diagnostics")
     object Profile : KpknRoute("profile")
 
     // ─── WikiLab Sub-screens ────────────────────────────────────────────

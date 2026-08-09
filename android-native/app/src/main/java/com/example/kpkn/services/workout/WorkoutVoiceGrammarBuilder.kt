@@ -15,7 +15,9 @@ object WorkoutVoiceGrammarBuilder {
     ): String {
         val tokens = linkedSetOf<String>()
         // Reportes globales deben sobrevivir a las gramáticas específicas de cada etapa.
-        tokens += "reportar equipo"
+        WorkoutVoiceReportTrigger.grammarTokens.forEach { token ->
+            expandForVosk(token).forEach { tokens += it }
+        }
         WorkoutVoiceCommandParser.grammarTokensForStage(
             stage = stage,
             includeFeedback =

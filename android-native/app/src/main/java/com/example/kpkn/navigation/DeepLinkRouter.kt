@@ -113,6 +113,7 @@ object DeepLinkRouter {
                     "auge" -> ResolvedRoute(KpknRoute.SettingsAuge.route)
                     "notifications", "notificaciones" -> ResolvedRoute(KpknRoute.SettingsNotifications.route)
                     "data", "datos" -> ResolvedRoute(KpknRoute.SettingsData.route)
+                    "diagnostics", "diagnosticos", "diagnósticos" -> ResolvedRoute(KpknRoute.SettingsDiagnostics.route)
                     else -> ResolvedRoute(KpknRoute.Settings.route)
                 }
             }

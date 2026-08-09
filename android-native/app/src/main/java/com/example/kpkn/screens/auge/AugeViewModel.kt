@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.auge
 
 import android.app.Application
+import android.os.SystemClock
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
@@ -8,6 +9,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.data.exercises.catalogExerciseIndex
+import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.repository.NutritionRepository
@@ -167,6 +169,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
     // ─── Core recompute ───────────────────────────────────────────────────────
 
     private suspend fun recompute(history: List<WorkoutLog>, settings: Settings) {
+        val computeStartedElapsed = SystemClock.elapsedRealtime()
         _snapshot.update { it.copy(isLoading = true) }
         val todayWellbeing = augeRepo.getTodayWellbeing()
         val overrideWellbeing = augeRepo.getActiveWellbeingWithManualOverrides()
@@ -265,6 +268,24 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             cumulativeFatigue = cumulativeFatigue,
             autoDeloadMessage = autoDeloadMessage,
             isLoading = false,
+        )
+        KpknDiagnosticLogger.event(
+            namespace = "auge",
+            name = "auge_computed",
+            fields = mapOf(
+                "contextHash" to "${history.size}:${history.lastOrNull()?.id ?: "none"}".hashCode().toUInt().toString(16),
+                "engines" to mapOf("fatigue" to true, "recovery" to true, "ttc" to true, "readiness" to true),
+                "durationMs" to (SystemClock.elapsedRealtime() - computeStartedElapsed).coerceAtLeast(0L),
+                "historyCount" to history.size,
+                "overallScore" to dashboard.overallScore,
+                "muscularBattery" to batteries.muscular,
+                "neuralBattery" to batteries.cnc,
+                "spinalBattery" to batteries.spinal,
+                "perMuscleCount" to perMuscle.size,
+                "articularCount" to articular.size,
+                "cumulativeFatigue" to cumulativeFatigue,
+                "shouldSuggestAutoDeload" to shouldSuggestAutoDeload,
+            ),
         )
     }
 

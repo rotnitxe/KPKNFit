@@ -5,145 +5,128 @@ import android.os.Looper
 import android.view.MotionEvent
 import android.view.ViewConfiguration
 
-/** Two-finger, six-second report gesture state machine. */
+/** Android adapter for the JVM-pure two-finger report gesture state machine. */
 class ReportGestureDetector(
     private val touchSlop: Int,
     private val onCancelUnderlying: (MotionEvent) -> Unit,
     private val onConfirmed: () -> Unit,
     private val onReleased: () -> Unit,
+    private val onProgress: (Float) -> Unit = {},
 ) {
     private val handler = Handler(Looper.getMainLooper())
-    private var firstPointerId = MotionEvent.INVALID_POINTER_ID
-    private var secondPointerId = MotionEvent.INVALID_POINTER_ID
-    private var firstDownAt = 0L
-    private var firstX = 0f
-    private var firstY = 0f
-    private var secondX = 0f
-    private var secondY = 0f
-    private var arming = false
-    private var confirmed = false
-    private var released = false
+    private val machine = ReportGestureStateMachine(movementSlopPx = maxOf(touchSlop * 4f, ReportGestureStateMachine.MOVEMENT_SLOP_PX))
+    private var tickSource: MotionEvent? = null
     private var pendingCancelEvent: MotionEvent? = null
 
     fun onTouchEvent(event: MotionEvent): Boolean {
-        when (event.actionMasked) {
+        val input = when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
-                reset()
-                firstPointerId = event.getPointerId(0)
-                firstDownAt = event.eventTime
-                firstX = event.x
-                firstY = event.y
-                return false
+                ReportGestureInput.Down(
+                    event.eventTime,
+                    ReportGesturePointer(event.getPointerId(0), event.x, event.y),
+                )
             }
-
             MotionEvent.ACTION_POINTER_DOWN -> {
-                if (event.pointerCount != 2 || firstPointerId == MotionEvent.INVALID_POINTER_ID) return false
-                val elapsed = event.eventTime - firstDownAt
-                if (elapsed !in 0..SECOND_POINTER_WINDOW_MS) {
-                    reset()
-                    return false
-                }
-                secondPointerId = event.getPointerId(event.actionIndex)
-                secondX = event.getX(event.actionIndex)
-                secondY = event.getY(event.actionIndex)
-                pendingCancelEvent = MotionEvent.obtain(event)
-                arming = true
-                released = false
-                handler.postDelayed({
-                    if (arming && !released) {
-                        confirmed = true
-                        pendingCancelEvent?.let { source ->
-                            val cancel = MotionEvent.obtain(source)
-                            try {
-                                cancel.action = MotionEvent.ACTION_CANCEL
-                                onCancelUnderlying(cancel)
-                            } finally {
-                                cancel.recycle()
-                                source.recycle()
-                                pendingCancelEvent = null
-                            }
-                        }
-                        onConfirmed()
-                    }
-                }, HOLD_DURATION_MS)
-                // The candidate must not interfere with the underlying control
-                // until the six-second hold is actually confirmed.
-                return false
+                if (event.pointerCount != 2) return false
+                ReportGestureInput.PointerDown(
+                    event.eventTime,
+                    ReportGesturePointer(event.getPointerId(event.actionIndex), event.getX(event.actionIndex), event.getY(event.actionIndex)),
+                )
             }
-
             MotionEvent.ACTION_MOVE -> {
-                if (!arming) return false
-                val firstIndex = event.findPointerIndex(firstPointerId)
-                val secondIndex = event.findPointerIndex(secondPointerId)
-                val firstMoved = firstIndex >= 0 &&
-                    distance(event.getX(firstIndex), event.getY(firstIndex), firstX, firstY) > touchSlop
-                val secondMoved = secondIndex >= 0 &&
-                    distance(event.getX(secondIndex), event.getY(secondIndex), secondX, secondY) > touchSlop
-                if ((firstMoved || secondMoved) && !confirmed) {
-                    reset()
-                    return false
-                }
-                if (!confirmed) return false
-                return true
+                ReportGestureInput.Move(
+                    event.eventTime,
+                    (0 until event.pointerCount).map { index ->
+                        ReportGesturePointer(event.getPointerId(index), event.getX(index), event.getY(index))
+                    },
+                )
             }
-
-            MotionEvent.ACTION_POINTER_UP -> {
-                if (!arming || !confirmed) {
-                    if (arming) reset()
-                    return false
+            MotionEvent.ACTION_POINTER_UP -> ReportGestureInput.PointerUp(event.eventTime, event.getPointerId(event.actionIndex))
+            MotionEvent.ACTION_UP -> ReportGestureInput.Up(event.eventTime)
+            MotionEvent.ACTION_CANCEL -> ReportGestureInput.Cancel(event.eventTime)
+            else -> return machine.isConfirmed
+        }
+        val effects = machine.onInput(input)
+        handleEffects(effects, event)
+        when (event.actionMasked) {
+            MotionEvent.ACTION_POINTER_DOWN -> {
+                if (machine.isArming) {
+                    pendingCancelEvent?.recycle()
+                    pendingCancelEvent = MotionEvent.obtain(event)
+                    scheduleTicks()
                 }
-                // After confirmation the first lifted finger is not the end of
-                // the gesture; wait for the final ACTION_UP.
-                return true
             }
-
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                if (!arming || !confirmed) {
-                    if (arming) reset()
-                    return false
-                }
-                released = true
                 handler.removeCallbacksAndMessages(null)
-                val shouldOpen = confirmed && event.actionMasked != MotionEvent.ACTION_CANCEL
-                reset()
-                if (shouldOpen) onReleased()
-                return true
             }
         }
-        return confirmed
+        return machine.isConfirmed || effects.any { it is ReportGestureEffect.Released }
     }
 
     fun cancel() {
-        reset()
-    }
-
-    private fun reset() {
         handler.removeCallbacksAndMessages(null)
-        pendingCancelEvent?.recycle()
-        pendingCancelEvent = null
-        firstPointerId = MotionEvent.INVALID_POINTER_ID
-        secondPointerId = MotionEvent.INVALID_POINTER_ID
-        firstDownAt = 0L
-        firstX = 0f
-        firstY = 0f
-        secondX = 0f
-        secondY = 0f
-        arming = false
-        confirmed = false
-        released = false
+        handleEffects(machine.cancel(), null)
     }
 
-    private fun distance(x: Float, y: Float, originX: Float, originY: Float): Float {
-        val dx = x - originX
-        val dy = y - originY
-        return kotlin.math.sqrt(dx * dx + dy * dy)
+    private fun scheduleTicks() {
+        handler.removeCallbacksAndMessages(null)
+        val source = pendingCancelEvent ?: return
+        tickSource?.recycle()
+        tickSource = MotionEvent.obtain(source)
+        handler.post(object : Runnable {
+            override fun run() {
+                if (!machine.isArming) return
+                val now = android.os.SystemClock.uptimeMillis()
+                handleEffects(machine.onInput(ReportGestureInput.Tick(now)), tickSource)
+                if (machine.isArming) handler.postDelayed(this, TICK_INTERVAL_MS)
+            }
+        })
+    }
+
+    private fun handleEffects(effects: List<ReportGestureEffect>, source: MotionEvent?) {
+        effects.forEach { effect ->
+            when (effect) {
+                is ReportGestureEffect.Progress -> onProgress(effect.value)
+                ReportGestureEffect.CancelUnderlying -> {
+                    val original = source ?: pendingCancelEvent ?: return@forEach
+                    val cancel = MotionEvent.obtain(original)
+                    try {
+                        cancel.action = MotionEvent.ACTION_CANCEL
+                        onCancelUnderlying(cancel)
+                    } finally {
+                        cancel.recycle()
+                    }
+                }
+                ReportGestureEffect.Confirmed -> onConfirmed()
+                ReportGestureEffect.Released -> onReleased()
+                ReportGestureEffect.Reset -> {
+                    pendingCancelEvent?.recycle()
+                    pendingCancelEvent = null
+                    tickSource?.recycle()
+                    tickSource = null
+                    onProgress(0f)
+                }
+            }
+        }
     }
 
     companion object {
-        const val SECOND_POINTER_WINDOW_MS = 400L
-        const val HOLD_DURATION_MS = 6_000L
+        const val SECOND_POINTER_WINDOW_MS = ReportGestureStateMachine.SECOND_POINTER_WINDOW_MS
+        const val HOLD_DURATION_MS = ReportGestureStateMachine.HOLD_DURATION_MS
+        private const val TICK_INTERVAL_MS = 50L
 
-        fun from(view: android.view.View, onCancel: (MotionEvent) -> Unit, onConfirmed: () -> Unit, onReleased: () -> Unit): ReportGestureDetector =
-            ReportGestureDetector(ViewConfiguration.get(view.context).scaledTouchSlop, onCancel, onConfirmed, onReleased)
+        fun from(
+            view: android.view.View,
+            onCancel: (MotionEvent) -> Unit,
+            onConfirmed: () -> Unit,
+            onReleased: () -> Unit,
+            onProgress: (Float) -> Unit = {},
+        ): ReportGestureDetector = ReportGestureDetector(
+            touchSlop = ViewConfiguration.get(view.context).scaledTouchSlop,
+            onCancelUnderlying = onCancel,
+            onConfirmed = onConfirmed,
+            onReleased = onReleased,
+            onProgress = onProgress,
+        )
     }
 }

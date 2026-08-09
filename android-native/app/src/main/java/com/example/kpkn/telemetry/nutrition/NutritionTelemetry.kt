@@ -7,8 +7,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.SystemClock
 import android.provider.DocumentsContract
+import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import java.io.File
-import java.io.FileOutputStream
 import java.time.Instant
 import java.util.Locale
 import java.util.UUID
@@ -28,11 +28,11 @@ import java.util.concurrent.atomic.AtomicLong
  *  - Sin texto crudo de las comidas: solo métricas (longitudes, conteos, duraciones).
  *  - Nunca lanza excepciones y nunca bloquea el hilo llamante (salvo [recordCrash]).
  *
- * Layout en disco: filesDir/nutrition_telemetry/nt-<fecha>-<sesion>.jsonl
- * Esquema de evento: ver [baseFields].
+ * Layout en disco: filesDir/kpkn_logs/nutrition/<yyyyMMdd>/event-files.jsonl
+ * Esquema de evento: contrato JSONL v2 del bus central.
  */
 object NutritionTelemetry {
-    const val SCHEMA_VERSION = 1
+    const val SCHEMA_VERSION = KpknDiagnosticLogger.SCHEMA_VERSION
     internal const val DIR_NAME = "nutrition_telemetry"
 
     private const val PREFS = "nutrition_telemetry"
@@ -100,10 +100,21 @@ object NutritionTelemetry {
 
     internal fun emit(name: String, fields: Map<String, Any?> = emptyMap(), traceId: String? = null) {
         if (!isEnabled()) return
-        val active = store ?: return
         val merged = baseFields(name, traceId)
         merged.putAll(fields)
-        active.write(NutritionTelemetrySanitizer.sanitize(merged))
+        val sanitized = NutritionTelemetrySanitizer.sanitize(merged)
+        val session = sanitized["sessionId"] as? String
+        val trace = sanitized["traceId"] as? String
+        val busFields = sanitized.filterKeys { key ->
+            key !in setOf("schemaVersion", "timestamp", "event", "screen", "sessionId", "traceId")
+        }
+        KpknDiagnosticLogger.event(
+            namespace = "nutrition",
+            name = name,
+            fields = busFields,
+            traceId = trace,
+            sessionId = session,
+        )
     }
 
     /** Traza de un análisis: spans por etapa + cierre con resultado agregado. */
@@ -233,17 +244,19 @@ object NutritionTelemetry {
             "inFlight" to inFlight,
         )
         runCatching {
-            val fileName = "nutrition-crash-${System.currentTimeMillis()}.json"
-            val dir = File(app.filesDir, DIR_NAME).apply { mkdirs() }
-            val file = File(dir, fileName)
-            FileOutputStream(file).use { out ->
-                out.write(NutritionJson.encode(crashFields).toByteArray(Charsets.UTF_8))
-                out.fd.sync()
-            }
-            val jsonl = baseFields("app_crash", traceId = null)
-            jsonl.putAll(crashFields)
-            storeOrCreate(app).writeSync(NutritionTelemetrySanitizer.sanitize(jsonl))
-            prefs(app)?.edit()?.putString(KEY_PENDING_CRASH_FILE, fileName)?.commit()
+            // Crash events use the same v2 bus as every other nutrition event.
+            // Keeping a second synchronous JSON writer here would reintroduce
+            // the parallel nutrition_telemetry/crash layout this consolidation
+            // explicitly removes.
+            val eventId = KpknDiagnosticLogger.event(
+                namespace = "nutrition",
+                name = "app_crash",
+                fields = crashFields,
+                sessionId = sessionId,
+            )
+            prefs(app)?.edit()
+                ?.putString(KEY_PENDING_CRASH_FILE, eventId ?: "central-log-write-failed")
+                ?.commit()
         }
     }
 
@@ -251,19 +264,18 @@ object NutritionTelemetry {
 
     /** (recuento de archivos, KB totales) para mostrar en ajustes. */
     fun localSummary(): Pair<Int, Long> {
-        val files = store?.listFiles().orEmpty()
+        val files = application?.let { KpknDiagnosticLogger.filesForArea(it, "nutrition") }.orEmpty()
         return files.size to (files.sumOf { it.length() } / 1024L)
     }
 
     /** Copia asíncrona de todos los JSONL/JSON al árbol SAF elegido por el usuario. */
     fun exportToAsync(context: Context, treeUri: Uri, onDone: (copied: Int, total: Int) -> Unit) {
         val app = context.applicationContext
-        val active = store
-        if (active == null) {
+        if (store == null) {
             onDone(0, 0)
             return
         }
-        active.executeAsync {
+        store?.executeAsync {
             val result = runCatching { exportTo(app, treeUri) }.getOrDefault(0 to 0)
             onDone(result.first, result.second)
         }
@@ -277,7 +289,7 @@ object NutritionTelemetry {
                 Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
             )
         }
-        val files = store?.listFiles().orEmpty()
+        val files = KpknDiagnosticLogger.filesForArea(context, "nutrition")
         var copied = 0
         files.forEach { source ->
             runCatching {
@@ -343,10 +355,6 @@ object NutritionTelemetry {
     }
 
     // ─── Utilidades internas ─────────────────────────────────────────────────
-
-    private fun storeOrCreate(context: Context): NutritionTelemetryStore =
-        store ?: NutritionTelemetryStore(File(context.filesDir, DIR_NAME), sessionId = sessionId)
-            .also { store = it }
 
     private fun prefs(explicit: Context? = null): SharedPreferences? =
         (explicit ?: application)?.applicationContext

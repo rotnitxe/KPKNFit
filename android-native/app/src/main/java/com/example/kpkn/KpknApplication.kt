@@ -10,6 +10,7 @@ import com.example.kpkn.telemetry.nutrition.NutritionTelemetry
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.data.secure.DeepSeekSettingsMigration
 import com.example.kpkn.services.diagnostics.ReportEnrichmentScheduler
+import com.example.kpkn.services.diagnostics.KpknDiagnosticNotificationManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -34,7 +35,9 @@ class KpknApplication : Application() {
         val isMainProcess = Build.VERSION.SDK_INT < Build.VERSION_CODES.P ||
             Application.getProcessName() == packageName
         if (isMainProcess) {
+            KpknDiagnosticNotificationManager.ensureChannel(this)
             applicationScope.launch {
+                KpknDiagnosticLogger.recordHealthChecks(this@KpknApplication)
                 DeepSeekSettingsMigration.migrate(this@KpknApplication)
                 ReportEnrichmentScheduler.resumePending(this@KpknApplication)
             }

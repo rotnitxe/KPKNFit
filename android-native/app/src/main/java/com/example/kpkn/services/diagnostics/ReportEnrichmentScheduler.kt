@@ -75,11 +75,16 @@ class ReportEnrichmentWorker(
 
 private object ReportEnrichmentProcessor {
     private const val SYSTEM_PROMPT = """
-        Eres el analista de incidencias de KPKN Fit. Devuelve exclusivamente un objeto JSON válido.
-        Usa el comentario del usuario y los eventos como evidencia. No presentes hipótesis como hechos.
-        Distingue facts, userClaims, hypotheses y missingEvidence. No inventes eventos.
-        El resultado debe incluir: summary, area, severity, facts, userClaims, hypotheses,
-        timeline, missingEvidence, nextChecks, tags, confidence y evidenceRefs.
+        Eres el analista de incidencias de KPKN Fit. Contrato exacto: daily-report-v1.
+        Devuelve exclusivamente un objeto JSON válido, sin markdown, comentarios ni texto adicional.
+        Usa solo el comentario del usuario y los eventos JSONL incluidos en el bundle.
+        No presentes hipótesis como hechos y no inventes eventos, timestamps, archivos o referencias.
+        El objeto debe incluir: summary, area, severity, facts, userClaims, hypotheses, timeline,
+        missingEvidence, nextChecks, tags, confidence y evidenceRefs.
+        Cada hecho, hipótesis o elemento de timeline debe llevar evidenceRefs cuando exista evidencia.
+        Cada referencia debe ser una cadena con formato exacto logs/<area>/<yyyyMMdd>/<archivo>.jsonl#L<n>
+        o logs/<area>/<yyyyMMdd>/<archivo>.jsonl#L<n>-L<m>, usando únicamente sourceRef del bundle.
+        Si no hay evidencia suficiente, usa una lista vacía y escríbelo en missingEvidence.
         No ejecutes acciones ni propongas modificar o borrar datos.
     """
 
@@ -96,6 +101,12 @@ private object ReportEnrichmentProcessor {
                 contextHash = null,
                 code = "report_bundle_missing",
                 retryable = false,
+            )
+            KpknDiagnosticNotificationManager.reportFailed(
+                context,
+                reportId,
+                retryable = false,
+                code = "report_bundle_missing",
             )
             return ListenableWorker.Result.failure()
         }
@@ -116,6 +127,11 @@ private object ReportEnrichmentProcessor {
                 contextHash = contextHash,
                 payload = payload,
                 requestId = result.requestId,
+            )
+            KpknDiagnosticNotificationManager.reportCompleted(
+                context,
+                reportId,
+                payload["summary"]?.toString()?.trim('"'),
             )
             ListenableWorker.Result.success()
         } catch (error: Throwable) {
@@ -144,6 +160,12 @@ private object ReportEnrichmentProcessor {
                     contextHash = contextHash,
                     code = safeErrorCode(error),
                     retryable = retryable,
+                )
+                KpknDiagnosticNotificationManager.reportFailed(
+                    context,
+                    reportId,
+                    retryable = retryable,
+                    code = safeErrorCode(error),
                 )
                 ListenableWorker.Result.failure()
             }

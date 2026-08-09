@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Psychology
@@ -45,6 +46,7 @@ fun SettingsScreen(
     onNavigateToAuge: () -> Unit,
     onNavigateToNotifications: () -> Unit,
     onNavigateToData: () -> Unit,
+    onNavigateToDiagnostics: () -> Unit,
     viewModel: SettingsViewModel = viewModel { SettingsViewModel() },
 ) {
     val settings by viewModel.settings.collectAsState()
@@ -119,6 +121,12 @@ fun SettingsScreen(
                         title = stringResource(R.string.screen_settings_cat_data),
                         subtitle = stringResource(R.string.screen_settings_cat_data_subtitle),
                         onClick = onNavigateToData,
+                    )
+                    SettingsCategoryRow(
+                        icon = Icons.Default.BugReport,
+                        title = "Diagnósticos",
+                        subtitle = "Salud JSONL, reportes IA y exportación",
+                        onClick = onNavigateToDiagnostics,
                     )
                 }
             }

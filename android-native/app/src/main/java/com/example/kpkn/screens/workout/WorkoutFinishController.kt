@@ -20,6 +20,7 @@ import com.example.kpkn.data.models.effectiveRepEquivalent
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import com.example.kpkn.domain.energy.TrainingEnergyEngine
@@ -130,6 +131,16 @@ class WorkoutFinishController(
         // Guard P0 de sesión vacía: sin series completadas no se persiste un log hueco
         // (drenaría 0 y taparía el problema); se aborta con feedback al usuario.
         if (completedExercises.isEmpty()) {
+            KpknDiagnosticLogger.event(
+                namespace = "workout",
+                name = "finish_blocked_empty_session",
+                fields = mapOf(
+                    "programId" to programId,
+                    "workoutSessionId" to sessionId,
+                    "reason" to "empty_session",
+                ),
+                sessionId = sessionId,
+            )
             updateState { it.copy(isFinishingWorkout = false) }
             onEmptySession()
             return
@@ -302,6 +313,26 @@ class WorkoutFinishController(
                 ).normalizedIdentityFields()
 
                 repository.finalizeWorkout(log)
+                KpknDiagnosticLogger.event(
+                    namespace = "workout",
+                    name = "session_finished",
+                    fields = mapOf(
+                        "programId" to programId,
+                        "workoutSessionId" to sessionId,
+                        "logId" to log.id,
+                        "completedExerciseCount" to log.completedExercises.size,
+                        "completedSetCount" to log.completedExercises.sumOf { it.sets.size },
+                        "setsDone" to log.completedExercises.sumOf { it.sets.size },
+                        "setsPlanned" to activeSession.allExercises().sumOf { it.sets.size },
+                        "durationMs" to durationMs,
+                        "durationMinutes" to durationMinutes,
+                        "totalVolume" to totalVolume,
+                        "volumeKg" to totalVolume,
+                        "savedLogId" to log.id,
+                        "stressScore" to stressScore,
+                    ),
+                    sessionId = sessionId,
+                )
                 runCatching {
                     com.example.kpkn.screens.sessioneditor.TrainedSessionVersionStore
                         .getInstance(appContext)
@@ -373,6 +404,17 @@ class WorkoutFinishController(
                 onComplete()
             } catch (error: Exception) {
                 error.printStackTrace()
+                KpknDiagnosticLogger.event(
+                    namespace = "workout",
+                    name = "session_finish_failed",
+                    fields = mapOf(
+                        "programId" to programId,
+                        "workoutSessionId" to sessionId,
+                        "exceptionType" to error.javaClass.name,
+                        "exceptionMessage" to error.message,
+                    ),
+                    sessionId = sessionId,
+                )
                 updateState { it.copy(isFinishingWorkout = false) }
                 // (P0) El caller (p.ej. cierre por voz) puede avisar que el save falló.
                 if (error !is CancellationException) onFailure(error)

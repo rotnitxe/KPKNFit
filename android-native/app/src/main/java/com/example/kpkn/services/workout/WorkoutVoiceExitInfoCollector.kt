@@ -4,10 +4,8 @@ import android.app.ActivityManager
 import android.app.ApplicationExitInfo
 import android.content.Context
 import android.os.Build
-import org.json.JSONObject
+import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import java.io.File
-import java.io.FileOutputStream
-import java.time.Instant
 import java.util.concurrent.atomic.AtomicBoolean
 
 /** Collects previous local process exits without audio or remote telemetry. */
@@ -67,55 +65,41 @@ object WorkoutVoiceExitInfoCollector {
     }
 
     private fun writeBundleParts(context: Context, exits: List<ApplicationExitInfo>): List<File> {
-        val directory = File(context.filesDir, "voice_diagnostics").apply { mkdirs() }
-        val stamp = exits.maxOf { info -> info.timestamp }
-        val jsonl = File(directory, "kpkn-voice-recovery-$stamp.jsonl")
-        val output = mutableListOf<File>(jsonl)
-        jsonl.bufferedWriter(Charsets.UTF_8).use { writer ->
-            exits.sortedBy { info -> info.timestamp }.forEachIndexed { index, info ->
-                val stateSummary = info.processStateSummary
-                    ?.toString(Charsets.UTF_8)
-                    ?.take(128)
-                val event = JSONObject()
-                    .put("schemaVersion", 2)
-                    .put("timestamp", Instant.ofEpochMilli(info.timestamp).toString())
-                    .put("event", "application_exit")
-                    .put("process", info.processName)
-                    .put("reason", reasonName(info.reason))
-                    .put("reasonCode", info.reason)
-                    .put("status", info.status)
-                    .put("importance", info.importance)
-                    .put("pssKiB", info.pss)
-                    .put("rssKiB", info.rss)
-                    .put("description", info.description)
-                    .put("voiceState", stateSummary)
-                    .put("audioStored", false)
-                writer.append(event.toString())
-                writer.newLine()
-                runCatching {
-                    info.traceInputStream?.use { input ->
-                        val trace = File(directory, "kpkn-voice-recovery-$stamp-$index.trace")
-                        FileOutputStream(trace).use(input::copyTo)
-                        if (trace.length() > 0L) output += trace else trace.delete()
-                    }
-                }
-            }
+        // Historical exit information is an event in the central voice stream.
+        // Do not recreate voice_diagnostics/ with ad-hoc JSON, trace or device
+        // files: that would bypass v2 fields and the single SAF mirror.
+        exits.sortedBy { info -> info.timestamp }.forEach { info ->
+            val stateSummary = info.processStateSummary
+                ?.toString(Charsets.UTF_8)
+                ?.take(128)
+            KpknDiagnosticLogger.event(
+                namespace = "voice",
+                name = "application_exit",
+                fields = mapOf(
+                    "exitTimestamp" to info.timestamp,
+                    "exitProcessName" to info.processName,
+                    "reason" to reasonName(info.reason),
+                    "reasonCode" to info.reason,
+                    "status" to info.status,
+                    "importance" to info.importance,
+                    "pssKiB" to info.pss,
+                    "rssKiB" to info.rss,
+                    "description" to info.description,
+                    "voiceState" to stateSummary,
+                    "traceAvailable" to runCatching {
+                        info.traceInputStream?.use { true } ?: false
+                    }.getOrDefault(false),
+                    "manufacturer" to Build.MANUFACTURER,
+                    "model" to Build.MODEL,
+                    "device" to Build.DEVICE,
+                    "sdk" to Build.VERSION.SDK_INT,
+                    "release" to Build.VERSION.RELEASE,
+                    "supportedAbis" to Build.SUPPORTED_ABIS.joinToString(),
+                    "audioStored" to false,
+                ),
+            )
         }
-        val device = File(directory, "kpkn-voice-recovery-$stamp-device.json")
-        device.writeText(
-            JSONObject()
-                .put("manufacturer", Build.MANUFACTURER)
-                .put("model", Build.MODEL)
-                .put("device", Build.DEVICE)
-                .put("sdk", Build.VERSION.SDK_INT)
-                .put("release", Build.VERSION.RELEASE)
-                .put("supportedAbis", Build.SUPPORTED_ABIS.joinToString())
-                .put("package", context.packageName)
-                .put("audioStored", false)
-                .toString(2),
-        )
-        output += device
-        return output
+        return emptyList()
     }
 
     private fun reasonName(reason: Int): String = when (reason) {

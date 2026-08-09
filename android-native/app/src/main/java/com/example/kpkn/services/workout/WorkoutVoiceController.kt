@@ -2779,7 +2779,7 @@ class WorkoutVoiceController(
     }
 
     private fun isReportCommand(text: String): Boolean =
-        normalizeReportText(text).contains(REPORT_COMMAND)
+        WorkoutVoiceReportTrigger.matches(normalizeReportText(text))
 
     private fun normalizeReportText(text: String): String =
         Normalizer.normalize(text.lowercase(Locale.ROOT), Normalizer.Form.NFD)
@@ -2970,6 +2970,7 @@ class WorkoutVoiceController(
                             comment = description,
                             category = "voz",
                             screen = KpknDiagnosticLogger.currentScreen(),
+                            sessionId = WorkoutVoiceDiagnosticLogger.activeSessionId(),
                         ),
                     )
                 }
@@ -2980,6 +2981,15 @@ class WorkoutVoiceController(
                 WorkoutVoiceDiagnosticLogger.event(
                     "report_voice_saved",
                     mapOf("reportId" to report.reportId, "aiQueued" to true),
+                )
+                WorkoutVoiceDiagnosticLogger.event(
+                    "user_comment",
+                    mapOf(
+                        "reportId" to report.reportId,
+                        "text" to description,
+                        "captureMs" to WorkoutVoiceDiagnosticLogger.elapsedMs(),
+                        "retries" to reportRetries,
+                    ),
                 )
                 runSpeakingOrSkip(
                     priority = WorkoutSpeechPriority.HIGH,
@@ -3806,7 +3816,7 @@ class WorkoutVoiceController(
         const val MAX_CLARIFICATION_CAPTURE_GRACE = 2
         /** Un RIR mayor a esto es imposible (reserva en repeticiones ≤ 5): se re-pregunta. */
         const val MAX_PLAUSIBLE_RIR = 5.0
-        const val REPORT_COMMAND = "reportar equipo"
+        const val REPORT_COMMAND = WorkoutVoiceReportTrigger.LEGACY_ALIAS
         const val MAX_REPORT_RETRIES = 2
         const val MAX_REPORT_COMMENT_LENGTH = 8_000
         const val MAX_REPORT_TTS_LENGTH = 240

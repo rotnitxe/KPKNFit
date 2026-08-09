@@ -34,7 +34,7 @@ data class CreatedReport(
 /** Durable report evidence. AI status is appended; raw report lines are never replaced. */
 object KpknReportManager {
     private val writeLock = Any()
-    private const val DIRECTORY_NAME = "kpkn_diagnostics/reports"
+    private const val DIRECTORY_NAME = "kpkn_logs/reports"
     private const val MAX_COMMENT_LENGTH = 8_000
     private const val MAX_CATEGORY_LENGTH = 80
     private const val MAX_BUNDLE_BYTES = 1_024 * 1_024
@@ -43,7 +43,7 @@ object KpknReportManager {
     private const val MAX_REPORT_AGE_MS = 30L * 24L * 60L * 60L * 1000L
     private const val REPORT_CREATED = "report_created"
     private const val REPORT_CONTEXT = "report_context"
-    private const val REPORT_PROMPT_VERSION = "report-agent-v1"
+    private const val REPORT_PROMPT_VERSION = "daily-report-v1"
 
     fun create(context: Context, request: ReportRequest): CreatedReport {
         val appContext = context.applicationContext
@@ -52,25 +52,33 @@ object KpknReportManager {
         val directory = File(appContext.filesDir, DIRECTORY_NAME).apply { mkdirs() }
         pruneReportFiles(directory)
         val file = File(directory, "report-$reportId.jsonl")
-        val snapshots = KpknDiagnosticLogger.snapshotAll(KpknDiagnosticLogger.MAX_CONTEXT_EVENTS)
-        val omittedByNamespace = KpknDiagnosticLogger.allNamespaces.associateWith { namespace ->
+        val snapshots = KpknDiagnosticLogger.officialAreas.associateWith { area ->
+            KpknDiagnosticLogger.snapshotWithRefs(area, KpknDiagnosticLogger.MAX_CONTEXT_EVENTS)
+        }
+        val omittedByArea = KpknDiagnosticLogger.officialAreas.associateWith { area ->
             (
-                KpknDiagnosticLogger.eventCount(namespace) -
-                    snapshots[namespace].orEmpty().size
+                KpknDiagnosticLogger.eventCount(area) -
+                    snapshots[area].orEmpty().size
             ).coerceAtLeast(0)
         }
         val redactedComment = redactSecrets(request.comment).trim().take(MAX_COMMENT_LENGTH)
-        val contextLines = snapshots.flatMap { (namespace, lines) ->
-            lines.mapNotNull { line ->
-                val event = runCatching { Json.parseToJsonElement(line) }.getOrNull() ?: return@mapNotNull null
-                jsonLine(
-                    mapOf(
-                        "schemaVersion" to JsonPrimitive(KpknDiagnosticLogger.SCHEMA_VERSION),
-                        "timestamp" to JsonPrimitive(Instant.now().toString()),
-                        "reportId" to JsonPrimitive(reportId),
-                        "event" to JsonPrimitive(REPORT_CONTEXT),
-                        "sourceNamespace" to JsonPrimitive(namespace),
-                        "sourceFile" to KpknDiagnosticLogger.latestFileName(namespace).toJsonElement(),
+        val contextLines = snapshots.flatMap { (area, lines) ->
+            lines.mapNotNull { source ->
+                val event = runCatching { Json.parseToJsonElement(source.raw) }.getOrNull()
+                    ?: return@mapNotNull null
+                val sourceFile = evidencePath(source.file)
+                reportJsonLine(
+                    reportId = reportId,
+                    event = REPORT_CONTEXT,
+                    sessionId = request.sessionId,
+                    screen = request.screen,
+                    fields = mapOf(
+                        "sourceArea" to JsonPrimitive(area),
+                        "sourceFile" to JsonPrimitive(sourceFile),
+                        "sourceLocalFile" to JsonPrimitive(source.file),
+                        "sourceLine" to JsonPrimitive(source.line),
+                        "sourceRef" to JsonPrimitive("$sourceFile#L${source.line}"),
+                        "sourceEventId" to ((event as? JsonObject)?.get("eventId") ?: JsonNull),
                         "sourceEvent" to event,
                     ),
                 )
@@ -80,25 +88,24 @@ object KpknReportManager {
         val contextHash = sha256(contextText)
         val lines = buildList {
             add(
-                jsonLine(
-                    mapOf(
-                        "schemaVersion" to JsonPrimitive(KpknDiagnosticLogger.SCHEMA_VERSION),
-                        "eventId" to JsonPrimitive(UUID.randomUUID().toString()),
-                        "timestamp" to JsonPrimitive(Instant.now().toString()),
-                        "reportId" to JsonPrimitive(reportId),
-                        "event" to JsonPrimitive(REPORT_CREATED),
+                reportJsonLine(
+                    reportId = reportId,
+                    event = REPORT_CREATED,
+                    sessionId = request.sessionId,
+                    screen = request.screen,
+                    fields = mapOf(
                         "origin" to JsonPrimitive(request.origin.name.lowercase()),
                         "userComment" to JsonPrimitive(redactedComment),
                         "commentRedacted" to JsonPrimitive(redactedComment != request.comment.trim()),
                         "category" to request.category?.trim()?.take(MAX_CATEGORY_LENGTH).toJsonElement(),
-                        "screen" to (request.screen ?: KpknDiagnosticLogger.currentScreen()).toJsonElement(),
-                        "sessionId" to request.sessionId.toJsonElement(),
+                        "reportScreen" to (request.screen ?: KpknDiagnosticLogger.currentScreen()).toJsonElement(),
+                        "workoutSessionId" to request.sessionId.toJsonElement(),
                         "workoutId" to request.workoutId.toJsonElement(),
                         "contextEventCount" to JsonPrimitive(contextLines.size),
-                        "contextOmittedByNamespace" to JsonObject(
-                            omittedByNamespace.mapValues { (_, count) -> JsonPrimitive(count) },
+                        "contextOmittedByArea" to JsonObject(
+                            omittedByArea.mapValues { (_, count) -> JsonPrimitive(count) },
                         ),
-                        "contextTruncated" to JsonPrimitive(omittedByNamespace.values.any { it > 0 }),
+                        "contextTruncated" to JsonPrimitive(omittedByArea.values.any { it > 0 }),
                         "contextMaxEventsPerNamespace" to JsonPrimitive(KpknDiagnosticLogger.MAX_CONTEXT_EVENTS),
                         "contextMaxBundleBytes" to JsonPrimitive(MAX_BUNDLE_BYTES),
                         "contextHash" to JsonPrimitive(contextHash),
@@ -108,12 +115,12 @@ object KpknReportManager {
             )
             addAll(contextLines)
             add(
-                jsonLine(
-                    mapOf(
-                        "schemaVersion" to JsonPrimitive(KpknDiagnosticLogger.SCHEMA_VERSION),
-                        "timestamp" to JsonPrimitive(Instant.now().toString()),
-                        "reportId" to JsonPrimitive(reportId),
-                        "event" to JsonPrimitive("report_ai_pending"),
+                reportJsonLine(
+                    reportId = reportId,
+                    event = "report_ai_pending",
+                    sessionId = request.sessionId,
+                    screen = request.screen,
+                    fields = mapOf(
                         "model" to JsonPrimitive("deepseek-v4-flash"),
                         "contextHash" to JsonPrimitive(contextHash),
                     ),
@@ -158,18 +165,27 @@ object KpknReportManager {
         )
         appendLine(
             file,
-            jsonLine(
-                mapOf(
-                    "schemaVersion" to JsonPrimitive(KpknDiagnosticLogger.SCHEMA_VERSION),
-                    "timestamp" to JsonPrimitive(Instant.now().toString()),
-                    "reportId" to JsonPrimitive(reportId),
-                    "event" to JsonPrimitive("report_ai_enrichment"),
+            reportJsonLine(
+                reportId = reportId,
+                event = "report_ai_enrichment",
+                sessionId = null,
+                screen = KpknDiagnosticLogger.currentScreen(),
+                fields = mapOf(
                     "model" to JsonPrimitive("deepseek-v4-flash"),
                     "contextHash" to JsonPrimitive(contextHash),
                     "payload" to sanitizeJson(structuredPayload),
                 ),
             ),
         )
+        val markdown = File(file.parentFile, "report-$reportId.md")
+        runCatching {
+            markdown.writeText(renderMarkdown(reportId, structuredPayload), Charsets.UTF_8)
+            KpknDiagnosticStorage.mirrorFile(
+                context.applicationContext,
+                markdown,
+                "reports/${markdown.name}",
+            )
+        }
         KpknDiagnosticStorage.mirrorRecoveryFiles(context.applicationContext)
     }
 
@@ -178,12 +194,12 @@ object KpknReportManager {
             val file = reportFile(context, reportId) ?: return@synchronized
             appendLine(
                 file,
-                jsonLine(
-                    mapOf(
-                        "schemaVersion" to JsonPrimitive(KpknDiagnosticLogger.SCHEMA_VERSION),
-                        "timestamp" to JsonPrimitive(Instant.now().toString()),
-                        "reportId" to JsonPrimitive(reportId),
-                        "event" to JsonPrimitive("report_ai_failed"),
+                reportJsonLine(
+                    reportId = reportId,
+                    event = "report_ai_failed",
+                    sessionId = null,
+                    screen = KpknDiagnosticLogger.currentScreen(),
+                    fields = mapOf(
                         "model" to JsonPrimitive("deepseek-v4-flash"),
                         "contextHash" to contextHash.toJsonElement(),
                         "code" to JsonPrimitive(redactSecrets(code).take(160)),
@@ -191,6 +207,18 @@ object KpknReportManager {
                     ),
                 ),
             )
+            val markdown = File(file.parentFile, "report-$reportId.md")
+            runCatching {
+                markdown.writeText(
+                    "# Reporte $reportId\n\n## Estado\n\nEl análisis de IA falló: `${redactSecrets(code).take(160)}`.\n\nReintentable: `$retryable`.\n",
+                    Charsets.UTF_8,
+                )
+                KpknDiagnosticStorage.mirrorFile(
+                    context.applicationContext,
+                    markdown,
+                    "reports/${markdown.name}",
+                )
+            }
             KpknDiagnosticStorage.mirrorRecoveryFiles(context.applicationContext)
         }
 
@@ -198,6 +226,22 @@ object KpknReportManager {
         val file = File(context.applicationContext.filesDir, "$DIRECTORY_NAME/report-$reportId.jsonl")
         return file.takeIf { it.isFile }
     }
+
+    fun markdownFile(context: Context, reportId: String): File? =
+        File(context.applicationContext.filesDir, "$DIRECTORY_NAME/report-$reportId.md")
+            .takeIf(File::isFile)
+
+    fun reportMarkdownFiles(context: Context): List<File> =
+        File(context.applicationContext.filesDir, DIRECTORY_NAME)
+            .listFiles { file -> file.isFile && file.extension == "md" }
+            ?.sortedByDescending(File::lastModified)
+            .orEmpty()
+
+    fun reportJsonlFiles(context: Context): List<File> =
+        File(context.applicationContext.filesDir, DIRECTORY_NAME)
+            .listFiles { file -> file.isFile && file.extension == "jsonl" }
+            ?.sortedByDescending(File::lastModified)
+            .orEmpty()
 
     fun readBundle(context: Context, reportId: String): String? {
         val file = reportFile(context, reportId) ?: return null
@@ -272,7 +316,39 @@ object KpknReportManager {
 
     private const val MAX_TEXT_LENGTH = 12_000
 
-    private fun jsonLine(fields: Map<String, JsonElement>): String = JsonObject(fields).toString()
+    private fun reportJsonLine(
+        reportId: String,
+        event: String,
+        sessionId: String?,
+        screen: String?,
+        fields: Map<String, JsonElement>,
+    ): String {
+        val resolvedSessionId = sessionId?.trim()?.takeIf(String::isNotBlank) ?: "report-$reportId"
+        val base = linkedMapOf<String, JsonElement>(
+            "schemaVersion" to JsonPrimitive(KpknDiagnosticLogger.SCHEMA_VERSION),
+            "eventId" to JsonPrimitive(UUID.randomUUID().toString()),
+            "timestamp" to JsonPrimitive(Instant.now().toString()),
+            "elapsedMs" to JsonPrimitive(KpknDiagnosticLogger.currentElapsedMs()),
+            "area" to JsonPrimitive("reports"),
+            "subsystem" to JsonNull,
+            "event" to JsonPrimitive(event),
+            "screen" to JsonPrimitive(screen?.trim()?.takeIf(String::isNotBlank) ?: "reports"),
+            "sessionId" to JsonPrimitive(resolvedSessionId),
+            "traceId" to JsonPrimitive(reportId),
+            "process" to JsonPrimitive("main"),
+            "reportId" to JsonPrimitive(reportId),
+        )
+        fields.forEach { (key, value) ->
+            if (key !in base) base[key] = sanitizeJson(value)
+        }
+        return JsonObject(base).toString()
+    }
+
+    private fun evidencePath(path: String): String {
+        val normalized = path.replace('\\', '/')
+        val local = normalized.removePrefix("$DIRECTORY_NAME/")
+        return if (local.startsWith("reports/")) local else "logs/$local"
+    }
 
     private fun String?.toJsonElement(): JsonElement = this?.let(::JsonPrimitive) ?: JsonNull
 
@@ -285,5 +361,70 @@ object KpknReportManager {
         MessageDigest.getInstance("SHA-256")
             .digest(value.toByteArray(Charsets.UTF_8))
             .joinToString("") { byte -> "%02x".format(byte) }
-}
 
+    private fun renderMarkdown(reportId: String, payload: JsonObject): String {
+        val model = payload["model"]?.toString()?.trim('"').orEmpty().ifBlank { "deepseek-v4-flash" }
+        val summary = payload["summary"]?.toString()?.trim('"').orEmpty().ifBlank { "Sin resumen disponible." }
+        val sections = buildString {
+            appendLine("# Reporte $reportId")
+            appendLine("> generado por $model · prompt $REPORT_PROMPT_VERSION")
+            appendLine()
+            appendLine("## Resumen")
+            appendLine(summary)
+            appendLine()
+            appendJsonSection("Hechos", payload["facts"])
+            appendJsonSection("Lo que reportaste", payload["userClaims"])
+            appendJsonSection("Hipótesis", payload["hypotheses"])
+            appendJsonSection("Inconsistencias detectadas", payload["inconsistencies"])
+            appendJsonSection("Evidencia faltante", payload["missingEvidence"])
+            appendJsonSection("Chequeos sugeridos", payload["suggestedChecks"] ?: payload["nextChecks"])
+            appendEvidenceRefs(payload["evidenceRefs"])
+        }
+        return sections
+    }
+
+    private fun StringBuilder.appendJsonSection(title: String, value: JsonElement?) {
+        appendLine("## $title")
+        when (value) {
+            is JsonArray -> value.forEach { item ->
+                val text = when (item) {
+                    is JsonObject -> item["text"]?.toString()?.trim('"').orEmpty()
+                    else -> item.toString().trim('"')
+                }
+                val refs = (item as? JsonObject)?.get("evidenceRefs")?.let(::renderEvidenceRefs).orEmpty()
+                if (text.isNotBlank()) appendLine("- $text${if (refs.isNotBlank()) " $refs" else ""}")
+            }
+            null -> appendLine("- Sin datos.")
+            else -> appendLine("- ${value.toString().trim('"')}")
+        }
+        appendLine()
+    }
+
+    private fun StringBuilder.appendEvidenceRefs(value: JsonElement?) {
+        appendLine("## Referencias físicas")
+        val refs = renderEvidenceRefs(value)
+        appendLine(if (refs.isNotBlank()) refs else "- Sin referencias.")
+        appendLine()
+    }
+
+    private fun renderEvidenceRefs(value: JsonElement?): String = when (value) {
+        is JsonArray -> value.mapNotNull { ref ->
+            when (ref) {
+                is JsonPrimitive -> ref.content.takeIf(String::isNotBlank)?.let { "[$it]" }
+                is JsonObject -> {
+                    val file = ref["file"]?.toString()?.trim('"')
+                    val start = ref["startLine"]?.toString()?.toIntOrNull()
+                    val end = ref["endLine"]?.toString()?.toIntOrNull() ?: start
+                    if (!file.isNullOrBlank() && start != null) {
+                        "[$file#L$start${if (end != null && end != start) "-L$end" else ""}]"
+                    } else {
+                        null
+                    }
+                }
+                else -> null
+            }
+        }.joinToString(" ")
+        is JsonPrimitive -> value.content.takeIf(String::isNotBlank)?.let { "[$it]" }.orEmpty()
+        else -> ""
+    }
+}

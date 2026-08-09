@@ -1,10 +1,7 @@
 package com.example.kpkn.services.workout
 
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
-import android.provider.DocumentsContract
-import android.provider.OpenableColumns
 import android.util.Log
 import com.example.kpkn.services.diagnostics.KpknDiagnosticStorage
 import java.io.File
@@ -12,18 +9,9 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
-/**
- * Persists the user-selected SAF tree and mirrors voice diagnostics without
- * blocking the main or recognition threads. The internal JSONL remains the
- * crash-safe source of truth when a document provider becomes unavailable.
- */
+/** Compatibility adapter over the single diagnostics SAF configuration. */
 object WorkoutVoiceDiagnosticStorage {
     private const val TAG = "VoiceDiagnosticStore"
-    private const val PREFS = "workout_voice_diagnostic_storage"
-    private const val KEY_TREE_URI = "tree_uri"
-    private const val KEY_TREE_LABEL = "tree_label"
-    private const val MAX_PENDING_WRITES = 256
-
     private val writer = ThreadPoolExecutor(
         1,
         1,
@@ -34,41 +22,14 @@ object WorkoutVoiceDiagnosticStorage {
         ThreadPoolExecutor.CallerRunsPolicy(),
     )
 
-    fun configure(context: Context, treeUri: Uri): Result<String> = runCatching {
-        require(DocumentsContract.isTreeUri(treeUri)) { "La ubicación seleccionada no es una carpeta válida" }
-        val appContext = context.applicationContext
-        appContext.contentResolver.takePersistableUriPermission(
-            treeUri,
-            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
-        )
-        val label = resolveTreeLabel(appContext, treeUri)
-        KpknDiagnosticStorage.configure(appContext, treeUri).getOrThrow()
-        appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .edit()
-            .putString(KEY_TREE_URI, treeUri.toString())
-            .putString(KEY_TREE_LABEL, label)
-            .commit()
-        label
-    }
+    fun configure(context: Context, treeUri: Uri): Result<String> =
+        KpknDiagnosticStorage.configure(context.applicationContext, treeUri)
 
-    fun clear(context: Context) {
-        val appContext = context.applicationContext
-        configuredTreeUri(appContext)?.let { uri ->
-            runCatching {
-                appContext.contentResolver.releasePersistableUriPermission(
-                    uri,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
-                )
-            }
-        }
-        appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().clear().commit()
-    }
+    fun clear(context: Context) = KpknDiagnosticStorage.clear(context.applicationContext)
 
-    fun isConfigured(context: Context): Boolean = configuredTreeUri(context) != null
+    fun isConfigured(context: Context): Boolean = KpknDiagnosticStorage.isConfigured(context.applicationContext)
 
-    fun configuredLabel(context: Context): String? =
-        context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .getString(KEY_TREE_LABEL, null)
+    fun configuredLabel(context: Context): String? = KpknDiagnosticStorage.configuredLabel(context.applicationContext)
 
     fun createJsonl(context: Context, displayName: String): Uri? =
         KpknDiagnosticStorage.createJsonl(context.applicationContext, "voice", displayName)
@@ -82,110 +43,17 @@ object WorkoutVoiceDiagnosticStorage {
                     output.write('\n'.code)
                     output.flush()
                 } ?: error("El proveedor no permitió abrir el JSONL")
-            }.onFailure { error ->
-                Log.e(TAG, "Unable to mirror voice diagnostic line", error)
-            }
+            }.onFailure { error -> Log.e(TAG, "Unable to mirror voice diagnostic line", error) }
         }
     }
 
-    private val mirroredRecoveryFiles = mutableSetOf<String>()
-
-    fun mirrorRecoveryFiles(context: Context, files: List<File>) {
-        if (files.isEmpty() || !isConfigured(context)) return
-        val appContext = context.applicationContext
-        writer.execute {
-            files.filter { it.exists() && mirroredRecoveryFiles.add(it.name) }.forEach { source ->
-                runCatching {
-                    val mime = when (source.extension.lowercase()) {
-                        "jsonl" -> "application/x-ndjson"
-                        "json" -> "application/json"
-                        else -> "application/octet-stream"
-                    }
-                    val target = findChild(appContext, source.name, mime)
-                        ?: createDocument(appContext, source.name, mime)
-                        ?: error("No se pudo crear ${source.name}")
-                    appContext.contentResolver.openOutputStream(target, "w")?.use { output ->
-                        source.inputStream().use { input -> input.copyTo(output) }
-                        output.flush()
-                    } ?: error("No se pudo escribir ${source.name}")
-                }.onFailure { error ->
-                    Log.e(TAG, "Unable to mirror recovery file ${source.name}", error)
-                }
-            }
-        }
+    /** Legacy call site retained; the central recovery walker owns the migration. */
+    fun mirrorRecoveryFiles(context: Context, @Suppress("UNUSED_PARAMETER") files: List<File>) {
+        KpknDiagnosticStorage.mirrorRecoveryFiles(context.applicationContext)
     }
 
     internal fun sanitizeDisplayName(name: String): String {
         val safe = name.replace(Regex("""[\\/:*?"<>|]"""), "_").trim()
         return safe.ifBlank { "kpkn-voice-diagnostic.jsonl" }.take(120)
-    }
-
-    private fun createDocument(context: Context, displayName: String, mimeType: String): Uri? {
-        val treeUri = configuredTreeUri(context) ?: return null
-        val parent = DocumentsContract.buildDocumentUriUsingTree(
-            treeUri,
-            DocumentsContract.getTreeDocumentId(treeUri),
-        )
-        return DocumentsContract.createDocument(
-            context.contentResolver,
-            parent,
-            mimeType,
-            sanitizeDisplayName(displayName),
-        )
-    }
-
-    private fun findChild(context: Context, displayName: String, mimeType: String): Uri? {
-        val treeUri = configuredTreeUri(context) ?: return null
-        val children = DocumentsContract.buildChildDocumentsUriUsingTree(
-            treeUri,
-            DocumentsContract.getTreeDocumentId(treeUri),
-        )
-        return runCatching {
-            context.contentResolver.query(
-                children,
-                arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID, DocumentsContract.Document.COLUMN_DISPLAY_NAME),
-                null,
-                null,
-                null,
-            )?.use { cursor ->
-                val idIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
-                val nameIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
-                while (cursor.moveToNext()) {
-                    if (cursor.getString(nameIndex) == sanitizeDisplayName(displayName)) {
-                        val id = cursor.getString(idIndex)
-                        return@use DocumentsContract.buildDocumentUriUsingTree(treeUri, id)
-                    }
-                }
-                null
-            }
-        }.getOrNull()
-    }
-
-    private fun configuredTreeUri(context: Context): Uri? {
-        val stored = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .getString(KEY_TREE_URI, null)
-            ?: return null
-        val uri = runCatching { Uri.parse(stored) }.getOrNull() ?: return null
-        val hasPermission = context.contentResolver.persistedUriPermissions.any { permission ->
-            permission.uri == uri && permission.isWritePermission
-        }
-        return uri.takeIf { hasPermission }
-    }
-
-    private fun resolveTreeLabel(context: Context, treeUri: Uri): String {
-        val queried = runCatching {
-            context.contentResolver.query(
-                treeUri,
-                arrayOf(OpenableColumns.DISPLAY_NAME),
-                null,
-                null,
-                null,
-            )?.use { cursor ->
-                if (cursor.moveToFirst()) cursor.getString(0) else null
-            }
-        }.getOrNull()
-        return queried?.takeIf(String::isNotBlank)
-            ?: Uri.decode(DocumentsContract.getTreeDocumentId(treeUri)).substringAfterLast(':')
-                .ifBlank { "Carpeta seleccionada" }
     }
 }

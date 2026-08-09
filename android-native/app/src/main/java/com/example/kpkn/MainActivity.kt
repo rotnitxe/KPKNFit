@@ -89,6 +89,7 @@ import com.example.kpkn.screens.programs.ProgramsViewModel
 import com.example.kpkn.screens.sessioneditor.SessionEditorScreen
 import com.example.kpkn.screens.settings.SettingsAugeScreen
 import com.example.kpkn.screens.settings.SettingsDataScreen
+import com.example.kpkn.screens.settings.SettingsDiagnosticsScreen
 import com.example.kpkn.screens.settings.SettingsGeneralScreen
 import com.example.kpkn.screens.settings.SettingsNotificationsScreen
 import com.example.kpkn.screens.settings.SettingsNutritionScreen
@@ -134,7 +135,9 @@ private enum class NutritionContextTab {
 class MainActivity : ComponentActivity() {
     private val pendingDeepLinkRoute = mutableStateOf<String?>(null)
     private val pendingSharedNutritionText = mutableStateOf<String?>(null)
+    private val reportGestureProgress = mutableStateOf(0f)
     private lateinit var telemetryHelper: TelemetryHelper
+    private var lastReportGestureHapticProgress = 0f
 
     private val reportGestureDetector: ReportGestureDetector by lazy {
         ReportGestureDetector.from(
@@ -147,6 +150,14 @@ class MainActivity : ComponentActivity() {
             onReleased = {
                 ReportRequestBus.requestGesture(KpknDiagnosticLogger.currentScreen())
                 KpknDiagnosticLogger.event("reports", "report_gesture_released")
+            },
+            onProgress = { progress ->
+                reportGestureProgress.value = progress
+                if (progress >= 0.5f && lastReportGestureHapticProgress < 0.5f) {
+                    window.decorView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                }
+                lastReportGestureHapticProgress = progress
+                if (progress <= 0f) lastReportGestureHapticProgress = 0f
             },
         )
     }
@@ -274,6 +285,7 @@ class MainActivity : ComponentActivity() {
                     onDeepLinkHandled = { pendingDeepLinkRoute.value = null },
                     pendingSharedNutritionText = pendingSharedNutritionText.value,
                     onSharedNutritionHandled = { pendingSharedNutritionText.value = null },
+                    reportGestureProgress = reportGestureProgress.value,
                 )
             }
         }
@@ -414,6 +426,7 @@ fun KPKNApp(
     onDeepLinkHandled: () -> Unit = {},
     pendingSharedNutritionText: String? = null,
     onSharedNutritionHandled: () -> Unit = {},
+    reportGestureProgress: Float = 0f,
 ) {
     val context = LocalContext.current
     val telemetryHelper = remember { TelemetryHelper(context) }
@@ -931,6 +944,40 @@ fun KPKNApp(
                     .zIndex(400f),
             ) {
                 KpknOverlayHostContent(overlayHost)
+            }
+        }
+
+        if (reportGestureProgress > 0f) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.18f))
+                    .zIndex(450f),
+                contentAlignment = Alignment.Center,
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(24.dp),
+                    tonalElevation = 8.dp,
+                    color = MaterialTheme.colorScheme.surface,
+                ) {
+                    Column(
+                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 22.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text("Preparando reporte", fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(12.dp))
+                        CircularProgressIndicator(
+                            progress = reportGestureProgress,
+                            modifier = Modifier.size(64.dp),
+                            strokeWidth = 6.dp,
+                        )
+                        Spacer(Modifier.height(10.dp))
+                        Text(
+                            "Mantené los dos dedos quietos",
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
             }
         }
     }
@@ -1556,6 +1603,7 @@ private fun KPKNNavGraph(
                 onNavigateToAuge = { navController.navigate(KpknRoute.SettingsAuge.route) },
                 onNavigateToNotifications = { navController.navigate(KpknRoute.SettingsNotifications.route) },
                 onNavigateToData = { navController.navigate(KpknRoute.SettingsData.route) },
+                onNavigateToDiagnostics = { navController.navigate(KpknRoute.SettingsDiagnostics.route) },
             )
         }
         composable(KpknRoute.SettingsGeneral.route) {
@@ -1587,6 +1635,9 @@ private fun KPKNNavGraph(
         }
         composable(KpknRoute.SettingsData.route) {
             SettingsDataScreen(onBack = { navController.popBackStack() })
+        }
+        composable(KpknRoute.SettingsDiagnostics.route) {
+            SettingsDiagnosticsScreen(onBack = { navController.popBackStack() })
         }
         addHealthConnectRoute(navController)
         composable(KpknRoute.Profile.route) {
