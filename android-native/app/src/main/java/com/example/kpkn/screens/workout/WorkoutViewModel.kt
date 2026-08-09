@@ -777,6 +777,14 @@ class WorkoutViewModel(
 
     private fun loadSession(): Boolean {
         val loaded = sessionHydrator.loadSession()
+        if (loaded) {
+            val state = _uiState.value
+            val current = visibleExercises(state)
+                .getOrNull(state.currentExerciseIdx)
+            current
+                ?.takeIf { it.isCardio && it.cardioDetails?.requiresGps == true }
+                ?.let(::restoreCardioGpsIfAvailable)
+        }
         if (loaded && !sessionStartLogged) {
             sessionStartLogged = true
             val state = _uiState.value

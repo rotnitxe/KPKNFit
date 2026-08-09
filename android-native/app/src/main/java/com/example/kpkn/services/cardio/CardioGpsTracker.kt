@@ -93,14 +93,25 @@ object CardioGpsTracker {
     fun restoreIfAvailable(context: Context, sessionKey: String): CardioGpsState {
         synchronized(lock) {
             appContext = context.applicationContext
-            if (snapshot?.sessionKey == sessionKey) return publishStateLocked(CardioGpsStatus.PAUSED)
+            if (snapshot?.sessionKey == sessionKey) {
+                val currentStatus = _state.value.status
+                val status = when {
+                    snapshot?.paused == true -> CardioGpsStatus.PAUSED
+                    currentStatus == CardioGpsStatus.RECORDING -> CardioGpsStatus.RECORDING
+                    else -> CardioGpsStatus.SIGNAL_LOST
+                }
+                _state.value = publishStateLocked(status)
+                return _state.value
+            }
             val restored = readSnapshotLocked(sessionKey) ?: run {
                 val empty = CardioGpsState(sessionKey = sessionKey)
                 _state.value = empty
                 return empty
             }
             snapshot = restored
-            return publishStateLocked(if (restored.paused) CardioGpsStatus.PAUSED else CardioGpsStatus.SIGNAL_LOST)
+            val status = if (restored.paused) CardioGpsStatus.PAUSED else CardioGpsStatus.SIGNAL_LOST
+            _state.value = publishStateLocked(status)
+            return _state.value
         }
     }
 
