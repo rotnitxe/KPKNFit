@@ -17,14 +17,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -50,6 +48,9 @@ import com.example.kpkn.screens.sessioneditor.formatEditableNumber
 import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
 import com.example.kpkn.screens.sessioneditor.safeIntOrNull
 import com.example.kpkn.ui.components.KpknNativeTimePickerDialog
+import com.example.kpkn.ui.components.KpknAlertConfirmButton
+import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.KpknAlertDismissButton
 import com.example.kpkn.ui.components.KpknSheetGlassChip
 import com.example.kpkn.ui.components.KpknSheetLightChip
 import com.example.kpkn.ui.components.KpknSheetTokens
@@ -1172,9 +1173,9 @@ internal fun RulesSheet(
 
     saveTemplateName?.let { draftName ->
         var localName by remember(draftName) { mutableStateOf(draftName) }
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { saveTemplateName = null },
-            title = { Text("Guardar plantilla") },
+            title = { Text("Guardar plantilla", fontWeight = FontWeight.Black) },
             text = {
                 OutlinedTextField(
                     value = localName,
@@ -1185,24 +1186,25 @@ internal fun RulesSheet(
                 )
             },
             confirmButton = {
-                TextButton(
+                KpknAlertConfirmButton(
+                    text = "Guardar",
                     onClick = {
                         onSaveRuleTemplate(localName)
                         saveTemplateName = null
                     },
-                ) { Text("Guardar") }
+                )
             },
             dismissButton = {
-                TextButton(onClick = { saveTemplateName = null }) { Text("Cancelar") }
+                KpknAlertDismissButton(text = "Cancelar", onClick = { saveTemplateName = null })
             },
         )
     }
 
     renameTemplate?.let { (id, currentName) ->
         var localName by remember(id, currentName) { mutableStateOf(currentName) }
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { renameTemplate = null },
-            title = { Text("Renombrar plantilla") },
+            title = { Text("Renombrar plantilla", fontWeight = FontWeight.Black) },
             text = {
                 OutlinedTextField(
                     value = localName,
@@ -1213,15 +1215,16 @@ internal fun RulesSheet(
                 )
             },
             confirmButton = {
-                TextButton(
+                KpknAlertConfirmButton(
+                    text = "Guardar",
                     onClick = {
                         onRenameRuleTemplate(id, localName)
                         renameTemplate = null
                     },
-                ) { Text("Guardar") }
+                )
             },
             dismissButton = {
-                TextButton(onClick = { renameTemplate = null }) { Text("Cancelar") }
+                KpknAlertDismissButton(text = "Cancelar", onClick = { renameTemplate = null })
             },
         )
     }
