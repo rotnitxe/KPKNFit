@@ -127,45 +127,13 @@ internal fun WorkoutExerciseTabs(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (exerciseReadiness != null) {
-                val score = exerciseReadiness.overallScore
-                val color = when {
-                    score >= 75 -> Color(0xFF4CAF50)
-                    score >= 50 -> Color(0xFFFFC107)
-                    else -> Color(0xFFFF5252)
-                }
-                val label = com.example.kpkn.domain.auge.ExerciseReadinessEngine.readinessLabel(score)
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = color.copy(alpha = 0.12f),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(color)
-                        )
-                        Text(
-                            text = "Prep: $label ($score%)",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = color
-                        )
-                    }
-                }
-            }
+
             if (selectedTab != WorkoutExerciseContextTab.HISTORY && ghostSet != null && (ghostSet.weight > 0 || ghostSet.reps > 0)) {
                 Surface(
                     onClick = onExpandHistory,
                     shape = RoundedCornerShape(8.dp),
                     color = Color(0xFF448AFF).copy(alpha = 0.1f),
-                    modifier = if (exerciseReadiness != null) Modifier.weight(1f) else Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),

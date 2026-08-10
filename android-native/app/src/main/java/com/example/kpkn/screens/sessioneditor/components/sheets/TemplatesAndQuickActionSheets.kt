@@ -395,7 +395,9 @@ private fun articulationLabel(value: String): String = when (value.uppercase()) 
 
 @Composable
 internal fun MobilityPickerSheet(
+    selectedMobilityIds: Set<String> = emptySet(),
     onAdd: (MobilityExercise) -> Unit,
+    onRemove: (MobilityExercise) -> Unit = {},
     onDismiss: () -> Unit,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
@@ -464,6 +466,7 @@ internal fun MobilityPickerSheet(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             items(results, key = { it.id }) { mobility ->
+                val alreadyAdded = mobility.id in selectedMobilityIds
                 Surface(
                     shape = RoundedCornerShape(14.dp),
                     color = KpknSheetTokens.Panel,
@@ -489,10 +492,10 @@ internal fun MobilityPickerSheet(
                             )
                         }
                         FilledTonalButton(
-                            onClick = { onAdd(mobility) },
+                            onClick = { if (alreadyAdded) onRemove(mobility) else onAdd(mobility) },
                             colors = kpknSheetWhiteTonalButtonColors(),
                         ) {
-                            Text("Agregar")
+                            Text(if (alreadyAdded) "Agregado (Quitar)" else "Agregar")
                         }
                     }
                 }

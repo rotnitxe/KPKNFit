@@ -109,6 +109,7 @@ internal fun CardioEditorCard(
                 }
             }
             if (details.type.isOutdoor()) {
+                val context = androidx.compose.ui.platform.LocalContext.current
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -133,6 +134,27 @@ internal fun CardioEditorCard(
                             uncheckedTrackColor = accentColor.copy(alpha = 0.08f),
                             uncheckedBorderColor = accentColor.copy(alpha = 0.55f),
                         ),
+                    )
+                }
+                val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+                    contract = androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
+                ) { _ -> }
+                androidx.compose.runtime.LaunchedEffect(details.requiresGps) {
+                    if (details.requiresGps) {
+                        val hasPermission = androidx.core.content.ContextCompat.checkSelfPermission(
+                            context,
+                            android.Manifest.permission.ACCESS_FINE_LOCATION,
+                        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                        if (!hasPermission) {
+                            permissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
+                        }
+                    }
+                }
+                if (details.requiresGps) {
+                    Text(
+                        "Este cardio requiere ubicación. KPKN solicitará el permiso al iniciar el recorrido; si lo deniegas, conservarás el registro manual.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.62f),
                     )
                 }
             }

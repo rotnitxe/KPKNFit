@@ -1041,12 +1041,7 @@ class WorkoutVoiceController(
             }
         }
 
-        continuousEngine.start(
-            scope = scope,
-            holdMicRouteAcrossPause = true,
-            captureMode = captureModeProvider?.invoke() ?: com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE,
-        )
-        continuousEngine.updateMusicAec(musicAecProvider?.invoke() == true)
+        startEngineWithPersistedMode(scope)
 
         startStallWatchdog()
     }
@@ -3495,11 +3490,7 @@ class WorkoutVoiceController(
         }
         pushGrammar(VoicePipelineStage.LISTENING)
         if (!continuousEngine.isActive) {
-            continuousEngine.start(
-                scope = scope ?: return,
-                holdMicRouteAcrossPause = true,
-                captureMode = captureModeProvider?.invoke() ?: com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE,
-            )
+            startEngineWithPersistedMode(scope ?: return)
         } else {
             continuousEngine.resumeDecoderAfterTts(0)
         }
@@ -3569,14 +3560,20 @@ class WorkoutVoiceController(
             ),
         )
         if (!continuousEngine.isActive) {
-            continuousEngine.start(
-                scope = activeScope,
-                holdMicRouteAcrossPause = true,
-                captureMode = captureModeProvider?.invoke() ?: com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE,
-            )
+            startEngineWithPersistedMode(activeScope)
         } else {
             continuousEngine.resumeDecoderAfterTts(0L)
         }
+    }
+
+    private fun startEngineWithPersistedMode(scope: CoroutineScope) {
+        continuousEngine.start(
+            scope = scope,
+            holdMicRouteAcrossPause = true,
+            captureMode = captureModeProvider?.invoke()
+                ?: com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE,
+        )
+        continuousEngine.updateMusicAec(musicAecProvider?.invoke() == true)
     }
 
     private fun requestDucking() {

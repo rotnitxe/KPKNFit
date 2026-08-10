@@ -63,7 +63,6 @@ import dev.chrisbanes.haze.HazeState
 import com.example.kpkn.data.exercises.resolveExercise
 import com.example.kpkn.data.models.DiscomfortCatalogEntry
 import com.example.kpkn.domain.auge.DiscomfortSuggestionEngine
-import com.example.kpkn.domain.auge.ExerciseReadinessEngine
 import com.example.kpkn.domain.auge.SessionMuscleFilter
 import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
@@ -208,55 +207,6 @@ fun WorkoutReadinessSheet(
                         userEditedMuscles[muscleId] = true
                     },
                 )
-
-                // ── 2b. Coaching inteligente según patrón dominante ──
-                val coaching = remember(
-                    patternReadiness,
-                    exerciseReadinessMap,
-                    sessionExercises,
-                    perMuscle,
-                ) {
-                    ExerciseReadinessEngine.buildPatternCoaching(
-                        patternReadiness = patternReadiness,
-                        exerciseReadinessMap = exerciseReadinessMap,
-                        sessionExercises = sessionExercises,
-                        perMuscle = perMuscle,
-                    )
-                }
-                if (coaching != null) {
-                    val toneColor = WorkoutUiTokens.readinessColor(coaching.overallScore)
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.12f),
-                        ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                        border = BorderStroke(1.dp, toneColor.copy(alpha = 0.28f)),
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(14.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            Text(
-                                "Reporte de RINGS (pre-sesión)",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Black,
-                            )
-                            Text(
-                                coaching.headline,
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White,
-                            )
-                            Text(
-                                coaching.detail,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                }
 
                 val sessionPillarMuscleIds = remember(sessionExercises) {
                     getSessionPillarMuscleIds(sessionExercises)

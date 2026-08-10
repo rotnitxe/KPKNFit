@@ -351,7 +351,6 @@ internal fun SessionHero(
             ) {
                 var showSecondaryMenu by remember { mutableStateOf(false) }
                 SessionHeroActionChip("Reglas", Icons.Default.Settings, onOpenRules)
-                SessionHeroActionChip("Tiempo", Icons.Default.Timer, onOpenTime)
                 Box {
                     SessionHeroActionChip("Más", Icons.Default.MoreVert) { showSecondaryMenu = true }
                     KpknDropdownMenu(
@@ -376,16 +375,6 @@ internal fun SessionHero(
                     contentDescription = "Editar fondo",
                     onClick = onOpenCoverSheet,
                 )
-                HeroGlassIconButton(
-                    icon = if (autoSaveEnabled) Icons.Default.SaveAlt else Icons.Default.Save,
-                    contentDescription = if (autoSaveEnabled) {
-                        "Guardado automático activo"
-                    } else {
-                        "Guardar sesión"
-                    },
-                    onClick = onSave,
-                    showUnsavedDot = hasChanges,
-                )
             }
         } else {
             Row(
@@ -398,21 +387,10 @@ internal fun SessionHero(
                 SessionHeroActionChip("Transferir", Icons.Default.SwapHoriz, onOpenTransfer)
                 SessionHeroActionChip("Versiones", Icons.Default.History, onOpenHistory)
                 SessionHeroActionChip("Reglas", Icons.Default.Settings, onOpenRules)
-                SessionHeroActionChip("Tiempo", Icons.Default.Timer, onOpenTime)
                 HeroSolidActionIcon(
                     icon = Icons.Default.Palette,
                     contentDescription = "Editar fondo",
                     onClick = onOpenCoverSheet,
-                )
-                HeroGlassIconButton(
-                    icon = if (autoSaveEnabled) Icons.Default.SaveAlt else Icons.Default.Save,
-                    contentDescription = if (autoSaveEnabled) {
-                        "Guardado automático activo"
-                    } else {
-                        "Guardar sesión"
-                    },
-                    onClick = onSave,
-                    showUnsavedDot = hasChanges,
                 )
             }
         }
@@ -470,12 +448,6 @@ internal fun SessionHeroCompactOverlay(
                 contentDescription = "Editar fondo",
                 onClick = onOpenCoverSheet,
             )
-            HeroGlassIconButton(
-                icon = if (autoSaveEnabled) Icons.Default.SaveAlt else Icons.Default.Save,
-                contentDescription = if (autoSaveEnabled) "Guardado automático activo" else "Guardar sesión",
-                onClick = onSave,
-                showUnsavedDot = hasChanges,
-            )
         }
 
         Row(
@@ -502,12 +474,6 @@ internal fun SessionHeroCompactOverlay(
                 icon = Icons.Default.Settings,
                 hazeState = hazeState,
                 onClick = onOpenRules,
-            )
-            HeroGlassActionChip(
-                label = "Tiempo",
-                icon = Icons.Default.Timer,
-                hazeState = hazeState,
-                onClick = onOpenTime,
             )
         }
     }

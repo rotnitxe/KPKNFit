@@ -73,6 +73,46 @@ class SessionSerializationTest {
     }
 
     @Test
+    fun legacy_mobility_payload_normalizes_to_one_explicit_unit() {
+        val durationOnly = json.decodeFromString<MobilitySeries>("""
+            { "id": "duration", "name": "Duracion", "durationSeconds": 30 }
+        """.trimIndent()).normalizeForCompatibility()
+        val repsOnly = json.decodeFromString<MobilitySeries>("""
+            { "id": "reps", "name": "Reps", "reps": "8" }
+        """.trimIndent()).normalizeForCompatibility()
+        val empty = json.decodeFromString<MobilitySeries>("""
+            { "id": "empty", "name": "Sin unidad" }
+        """.trimIndent()).normalizeForCompatibility()
+
+        assertEquals(MobilityUnit.SECONDS, durationOnly.unit)
+        assertEquals(30, durationOnly.durationSeconds)
+        assertEquals(null, durationOnly.reps)
+        assertEquals(MobilityUnit.REPS, repsOnly.unit)
+        assertEquals("8", repsOnly.reps)
+        assertEquals(null, repsOnly.durationSeconds)
+        assertEquals(MobilityUnit.REPS, empty.unit)
+        assertEquals(null, empty.durationSeconds)
+    }
+
+    @Test
+    fun legacy_session_mobility_defaults_to_focused_mode() {
+        val session = Session(
+            id = "legacy-mobility",
+            name = "Movilidad",
+            exercises = listOf(
+                Exercise(
+                    id = "stretch",
+                    name = "Stretch",
+                    mobilitySeries = listOf(MobilitySeries(id = "m1", name = "Stretch", reps = "6")),
+                ),
+            ),
+        ).normalizeMobilityCompatibility()
+
+        assertEquals(MobilityMode.ENFOCADO, session.exercises.first().mobilityConfig?.mode)
+        assertEquals(MobilityUnit.REPS, session.exercises.first().mobilitySeries.first().unit)
+    }
+
+    @Test
     fun mobility_series_round_trip_preserves_rest_between_seconds() {
         val original = MobilitySeries(
             id = "mob-round-trip",

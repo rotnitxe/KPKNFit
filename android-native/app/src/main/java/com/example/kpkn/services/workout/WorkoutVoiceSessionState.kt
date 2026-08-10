@@ -213,6 +213,8 @@ sealed class VoiceSessionCommand {
         val exerciseNames: List<String>,
     ) : VoiceSessionCommand()
     data class SetSessionTimeLimit(val minutes: Int, val persistToProgram: Boolean) : VoiceSessionCommand()
+    data object StartCardio : VoiceSessionCommand()
+    data object FinishCardio : VoiceSessionCommand()
     data object StartTimedSet : VoiceSessionCommand()
     data object StopTimedSet : VoiceSessionCommand()
     data object CompletePreparationStep : VoiceSessionCommand()

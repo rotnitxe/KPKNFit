@@ -72,6 +72,7 @@ import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
 import com.example.kpkn.screens.sessioneditor.formatEstimatedMetric
 import com.example.kpkn.screens.sessioneditor.DarkEditorChip
 import com.example.kpkn.domain.workout.PropagationSide
+import com.example.kpkn.domain.workout.SetPropagationField
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 
@@ -95,7 +96,7 @@ internal fun InlineSetRow(
     onRemove: () -> Unit,
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
-    onPropagateValue: (PropagationSide) -> Unit = {},
+    onPropagateValue: (SetPropagationField, PropagationSide) -> Unit = { _, _ -> },
     onTechniqueConfigExpandedChange: (Boolean) -> Unit = {},
     fillHeight: Boolean = true,
 ) {
@@ -121,6 +122,8 @@ internal fun InlineSetRow(
     var showIntensityMenu by remember(set.id) { mutableStateOf(false) }
     var showLoadModeMenu by remember(set.id) { mutableStateOf(false) }
     var showPropagationDialog by remember(set.id) { mutableStateOf(false) }
+    var pendingPropagationField by remember(set.id) { mutableStateOf(SetPropagationField.REPS) }
+    var pendingPropagationSide by remember(set.id) { mutableStateOf(PropagationSide.BOTH) }
     // La intensidad es opcional: siempre se parte desde "Programar intensidad".
     var showPlannedIntensity by rememberSaveable(set.id) { mutableStateOf(false) }
     val isNarrowScreen = LocalConfiguration.current.screenWidthDp <= 380
@@ -134,6 +137,20 @@ internal fun InlineSetRow(
     val isAmrapMode = set.isAmrap || trainingMode == TrainingMode.AMRAP
     var selectedUniSide by remember(set.id, fixedUnilateralSide) { mutableStateOf(fixedUnilateralSide ?: "L") }
     val activeUniSide = fixedUnilateralSide ?: selectedUniSide
+    fun commitEditedField(field: SetPropagationField, updater: (ExerciseSet) -> ExerciseSet) {
+        onUpdate(updater)
+        if (showSetActions || isUnilateral) {
+            pendingPropagationField = field
+            pendingPropagationSide = if (isUnilateral && activeUniSide == "L") {
+                PropagationSide.LEFT
+            } else if (isUnilateral) {
+                PropagationSide.RIGHT
+            } else {
+                PropagationSide.BOTH
+            }
+            showPropagationDialog = true
+        }
+    }
     val setStateKeySuffix = if (isUnilateral) activeUniSide else "B"
     val sliderPercent = remember(set.targetPercentageRM, set.targetReps, set.intensityMode, predictedWeight, reference1RM) {
         when {
@@ -317,26 +334,13 @@ internal fun InlineSetRow(
                             text = { Text(label) },
                             onClick = {
                                 showLoadModeMenu = false
-                                onUpdate { current -> current.copy(loadModeV2 = mode) }
+                                commitEditedField(SetPropagationField.LOAD_MODE) { current -> current.copy(loadModeV2 = mode) }
                             },
                         )
                     }
                 }
             }
             if (showSetActions) {
-                Surface(
-                    shape = RoundedCornerShape(999.dp),
-                    color = DarkEditorChip,
-                    modifier = Modifier.clickable { showPropagationDialog = true },
-                ) {
-                    Text(
-                        "Todos",
-                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 3.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White.copy(alpha = 0.86f),
-                    )
-                }
                 IconButton(onClick = onRemove, modifier = Modifier.size(26.dp)) {
                     Icon(
                         Icons.Default.Close,
@@ -377,7 +381,7 @@ internal fun InlineSetRow(
                         keyboardType = KeyboardType.Decimal,
                         modifier = Modifier.weight(1f),
                     ) { input ->
-                        onUpdate { current ->
+                        commitEditedField(SetPropagationField.INTENSITY) { current ->
                             current.copy(
                                 targetPercentageRM = input.safeDoubleOrNull(),
                                 intensityMode = IntensityMode.LOAD,
@@ -402,7 +406,7 @@ internal fun InlineSetRow(
                         keyboardType = KeyboardType.Decimal,
                         modifier = Modifier.fillMaxWidth(),
                     ) { input ->
-                        onUpdate(if (isUnilateral) updateUniSet { it.copy(targetRPE = input.safeDoubleOrNull(), intensityMode = IntensityMode.RPE) } else { current ->
+                        commitEditedField(SetPropagationField.INTENSITY, if (isUnilateral) updateUniSet { it.copy(targetRPE = input.safeDoubleOrNull(), intensityMode = IntensityMode.RPE) } else { current ->
                             current.copy(targetRPE = input.safeDoubleOrNull(), intensityMode = IntensityMode.RPE, targetRIR = null, targetPercentageRM = null, targetReps = null, targetDuration = null, isFailure = false, isAmrap = false)
                         })
                     }
@@ -414,7 +418,9 @@ internal fun InlineSetRow(
                         keyboardType = KeyboardType.Number,
                         modifier = Modifier.weight(if (isAmrapMode) if (isNarrowScreen) 1.2f else 1.35f else 0.55f),
                     ) { input ->
-                        onUpdate(if (isUnilateral) updateUniSet {
+                        commitEditedField(
+                            if (trainingMode == TrainingMode.TIME) SetPropagationField.DURATION else SetPropagationField.REPS,
+                            if (isUnilateral) updateUniSet {
                             when (trainingMode) {
                                 TrainingMode.TIME -> it.copy(targetDuration = input.safeIntOrNull())
                                 TrainingMode.DISTANCE,
@@ -430,7 +436,8 @@ internal fun InlineSetRow(
                                 -> current.copy(plannedTargetV2 = input.safeDoubleOrNull())
                                 else -> current.copy(targetReps = input.safeIntOrNull())
                             }
-                        })
+                        },
+                        )
                     }
                 }
                 if (!isAmrapMode && !isRmMode && !isSoloRpeMode) {
@@ -464,7 +471,7 @@ internal fun InlineSetRow(
                                     .matchParentSize()
                                     .clickable {
                                         showPlannedIntensity = true
-                                        onUpdate { current ->
+                                        commitEditedField(SetPropagationField.INTENSITY) { current ->
                                             current.copy(
                                                 intensityMode = IntensityMode.RPE,
                                                 targetRPE = current.targetRPE ?: 8.0,
@@ -537,7 +544,7 @@ internal fun InlineSetRow(
                                                 }
                                                 if (isUnilateral) {
                                                     val side = activeUniSide
-                                                    onUpdate { current ->
+                                                    commitEditedField(if (mode == IntensityMode.FAILURE) SetPropagationField.FAILURE else SetPropagationField.INTENSITY) { current ->
                                                         val currentSide = (if (side == "L") current.leftTarget else current.rightTarget) ?: UnilateralTarget()
                                                         val temp = ExerciseSet(id = "", targetRPE = currentSide.targetRPE, targetRIR = currentSide.targetRIR, intensityMode = currentSide.intensityMode ?: current.intensityMode, weight = currentSide.weight, targetPercentageRM = current.targetPercentageRM)
                                                         val updated = updater(temp)
@@ -546,7 +553,7 @@ internal fun InlineSetRow(
                                                         else current.copy(rightTarget = newSide, isFailure = updated.isFailure, intensityMode = updated.intensityMode, targetPercentageRM = updated.targetPercentageRM)
                                                     }
                                                 } else {
-                                                    onUpdate(updater)
+                                                    commitEditedField(if (mode == IntensityMode.FAILURE) SetPropagationField.FAILURE else SetPropagationField.INTENSITY, updater)
                                                 }
                                             },
                                         )
@@ -563,7 +570,9 @@ internal fun InlineSetRow(
                                     keyboardType = if ((set.intensityMode ?: IntensityMode.RPE) == IntensityMode.RPE) KeyboardType.Decimal else KeyboardType.Number,
                                     modifier = Modifier.weight(1f),
                                 ) { input ->
-                                    onUpdate(if (isUnilateral) updateUniSet {
+                                    commitEditedField(
+                                        if ((set.intensityMode ?: IntensityMode.RPE) == IntensityMode.LOAD) SetPropagationField.LOAD else SetPropagationField.INTENSITY,
+                                        if (isUnilateral) updateUniSet {
                                         when (set.intensityMode ?: IntensityMode.RPE) {
                                             IntensityMode.RPE -> it.copy(targetRPE = input.safeDoubleOrNull(), intensityMode = IntensityMode.RPE)
                                             IntensityMode.RIR -> it.copy(targetRIR = input.safeIntOrNull(), intensityMode = IntensityMode.RIR)
@@ -577,7 +586,8 @@ internal fun InlineSetRow(
                                             IntensityMode.LOAD -> current.copy(weight = input.safeDoubleOrNull(), intensityMode = IntensityMode.LOAD)
                                             else -> current
                                         }
-                                    })
+                                    },
+                                    )
                                 }
                             }
                         }
@@ -626,7 +636,7 @@ internal fun InlineSetRow(
                                 onValueChangeFinished = {
                                     val v = localSliderPercent.toDouble()
                                     if (v != set.targetPercentageRM) {
-                                        onUpdate { current -> current.copy(targetPercentageRM = v, intensityMode = IntensityMode.LOAD) }
+                                        commitEditedField(SetPropagationField.INTENSITY) { current -> current.copy(targetPercentageRM = v, intensityMode = IntensityMode.LOAD) }
                                     }
                                 },
                                 valueRange = 45f..100f,
@@ -649,36 +659,20 @@ internal fun InlineSetRow(
     if (showPropagationDialog) {
         AlertDialog(
             onDismissRequest = { showPropagationDialog = false },
-            title = { Text("Aplicar valor de esta serie") },
+            title = { Text("¿Aplicar este valor a las demás series?") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     TextButton(
                         onClick = {
                             showPropagationDialog = false
-                            onPropagateValue(PropagationSide.BOTH)
+                            onPropagateValue(pendingPropagationField, pendingPropagationSide)
                         },
                         modifier = Modifier.fillMaxWidth(),
-                    ) { Text("Todas las rondas") }
-                    if (isUnilateral) {
-                        TextButton(
-                            onClick = {
-                                showPropagationDialog = false
-                                onPropagateValue(PropagationSide.LEFT)
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) { Text("Solo lado izquierdo") }
-                        TextButton(
-                            onClick = {
-                                showPropagationDialog = false
-                                onPropagateValue(PropagationSide.RIGHT)
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) { Text("Solo lado derecho") }
-                    }
+                    ) { Text("Todas") }
                 }
             },
             confirmButton = {
-                TextButton(onClick = { showPropagationDialog = false }) { Text("Cancelar") }
+                TextButton(onClick = { showPropagationDialog = false }) { Text("Solo esta") }
             },
         )
     }

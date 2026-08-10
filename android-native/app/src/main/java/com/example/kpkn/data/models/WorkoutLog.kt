@@ -205,6 +205,10 @@ data class OngoingWorkoutState(
     val skippedExerciseIds: Set<String> = emptySet(),
     val warmupCompletedExerciseIds: Set<String> = emptySet(),
     val mobilityCompletedExerciseIds: Set<String> = emptySet(),
+    /** Stable keys for completed Surtido mobility blocks. */
+    val mobilityTotalCompletedStepKeys: Set<String> = emptySet(),
+    val mobilityTotalTimerState: MobilityTotalTimerState? = null,
+    val cardioTimerState: CardioTimerState? = null,
     val preparationReports: Map<String, com.example.kpkn.screens.workout.PreparationReport> = emptyMap(),
     val readinessNeuralOverride: Int? = null,
     val readinessMuscularOverride: Int? = null,
@@ -221,6 +225,38 @@ data class OngoingWorkoutState(
     val voiceTimedSet: VoiceTimedSetState? = null,
     val voiceExerciseQueue: List<String> = emptyList(),
     val voicePendingFeedbackExerciseIds: Set<String> = emptySet(),
+)
+
+@Serializable
+data class MobilityTotalTimerState(
+    val stepKey: String,
+    val totalSeconds: Int,
+    val remainingSeconds: Int,
+    val isRunning: Boolean = false,
+    val updatedAtMs: Long = 0L,
+)
+
+@Serializable
+enum class CardioExecutionStatus {
+    READY,
+    RUNNING,
+    PAUSED,
+    AWAITING_CONFIRMATION,
+    RECORDED,
+}
+
+/** Persistent live-cardio timer. The state survives recomposition, background and process death. */
+@Serializable
+data class CardioTimerState(
+    val exerciseId: String,
+    val totalSeconds: Int,
+    val remainingSeconds: Int,
+    val elapsedSeconds: Int = 0,
+    val status: CardioExecutionStatus = CardioExecutionStatus.READY,
+    val updatedAtMs: Long = 0L,
+    val distanceKm: Double? = null,
+    val averageHeartRate: Int? = null,
+    val lastInfoAnnouncedAtMs: Long = 0L,
 )
 
 @Serializable

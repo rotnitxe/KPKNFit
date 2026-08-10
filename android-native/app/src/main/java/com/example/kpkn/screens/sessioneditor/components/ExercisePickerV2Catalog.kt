@@ -139,35 +139,59 @@ internal fun ExercisePickerV2Catalog(
     onDismiss: () -> Unit,
     initialCatalogDefinitionId: String? = null,
     initialCatalogConfigurationId: String? = null,
+    opaqueSurface: Boolean = false,
 ) {
     val state by repository.state.collectAsStateWithLifecycle()
     val retryScope = rememberCoroutineScope()
-    val glassHaze = LocalHazeState.current
+    // The editor/live hosts can still use the shared glass fallback, while the
+    // navigation destination is a real page: no sampled backdrop, blur or sheet
+    // shape is allowed there.
+    val glassHaze = if (opaqueSurface) null else LocalHazeState.current
 
     val catalogShape = RoundedCornerShape(KpknGlass.SheetCornerRadius)
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .kpknGlassOrFallback(
-                hazeState = glassHaze,
-                shape = catalogShape,
-                additionalScrim = Color.Black.copy(alpha = 0.12f),
-            ),
+        modifier = if (opaqueSurface) {
+            Modifier.fillMaxSize().background(Color.Black)
+        } else {
+            Modifier
+                .fillMaxSize()
+                .kpknGlassOrFallback(
+                    hazeState = glassHaze,
+                    shape = catalogShape,
+                    additionalScrim = Color.Black.copy(alpha = 0.12f),
+                )
+        },
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .imePadding()
-                .padding(horizontal = 12.dp, vertical = 8.dp),
+                .padding(horizontal = if (opaqueSurface) 16.dp else 12.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(
-                "CATÁLOGO DE EJERCICIOS",
-                fontWeight = FontWeight.Black,
-                color = Color.White,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-            )
+            if (opaqueSurface) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color.White)
+                    }
+                    Text(
+                        "CATÁLOGO DE EJERCICIOS",
+                        fontWeight = FontWeight.Black,
+                        color = Color.White,
+                        modifier = Modifier.weight(1f),
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.width(48.dp))
+                }
+            } else {
+                Text(
+                    "CATÁLOGO DE EJERCICIOS",
+                    fontWeight = FontWeight.Black,
+                    color = Color.White,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                )
+            }
 
             // Search is intentionally always visible as a floating pill at the
             // bottom. It must not be hidden behind an icon or disappear while the
@@ -472,10 +496,10 @@ private fun ColumnScope.CatalogReadyContent(
             state = listState,
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(10.dp),
-            // The filter surface floats above the list; cards intentionally continue
-            // underneath it so the top edge is revealed by the fade below.
+            // Reserve the measured filter height so the fixed filter surface never
+            // darkens the result count or clips the first card.
             contentPadding = PaddingValues(
-                top = 0.dp,
+                top = with(density) { (filterBarHeight + 18).toDp() },
                 bottom = with(density) { selectionPanelHeight.toDp() },
             ),
         ) {

@@ -187,6 +187,9 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import kotlin.math.roundToInt
 import com.example.kpkn.screens.sessioneditor.components.ExercisePickerSheet
+import com.example.kpkn.screens.sessioneditor.CatalogLaunchOrigin
+import com.example.kpkn.screens.sessioneditor.CatalogLaunchRequest
+import com.example.kpkn.screens.sessioneditor.CatalogResult
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -196,6 +199,9 @@ fun WorkoutScreen(
     onBack: () -> Unit,
     onComplete: () -> Unit = onBack,
     onNavigateToWikiLab: (String) -> Unit = {},
+    onOpenCatalog: ((CatalogLaunchRequest) -> Unit)? = null,
+    catalogResult: CatalogResult? = null,
+    onCatalogResultConsumed: () -> Unit = {},
 ) {
     val augeViewModel = rememberAugeViewModel()
     val context = LocalContext.current
@@ -255,6 +261,7 @@ fun WorkoutScreen(
     var readinessSheetDismissed by rememberSaveable(programId, sessionId) { mutableStateOf(false) }
     val showReadinessSheet = !readinessSheetDismissed && !isMeetOrComp && uiState.readinessNeuralOverride == null
     val structureSheets = rememberWorkoutStructureSheetsState()
+    var pendingCatalogRequest by remember { mutableStateOf<CatalogLaunchRequest?>(null) }
     val hasContextTabOpen = structureSheets.selectedExerciseContextTab != null
     val hasChildBackOverlay =
         uiState.showVolumeAdvanceModal ||
@@ -548,6 +555,62 @@ fun WorkoutScreen(
 
     LaunchedEffect(currentExercise?.id) {
         structureSheets.selectedExerciseContextTab = null
+    }
+
+    val liveCatalogIndex = remember { catalogExerciseIndex().values.associateBy { it.id.lowercase() } }
+    LaunchedEffect(catalogResult?.requestId) {
+        val result = catalogResult ?: return@LaunchedEffect
+        val request = pendingCatalogRequest ?: return@LaunchedEffect
+        val infos = result.selectedExerciseIds.mapNotNull { id ->
+            liveCatalogIndex[id.lowercase()]
+                ?: liveCatalogIndex.values.firstOrNull { info ->
+                    info.id.equals(id, ignoreCase = true) ||
+                        info.catalogConfigurationId == id
+                }
+        }.distinctBy { it.id }
+        if (!result.canceled) {
+            when (request.origin) {
+                CatalogLaunchOrigin.SUPERSET -> {
+                    request.targetExerciseId?.let { groupId ->
+                        infos.forEach { info -> viewModel.addCatalogExerciseToLiveSuperset(groupId, info) }
+                    }
+                    structureSheets.addCatalogToSupersetGroupId = null
+                    structureSheets.addCatalogSearchQuery = ""
+                    structureSheets.addCatalogSelectedIds = emptySet()
+                }
+                CatalogLaunchOrigin.LIVE_SESSION -> {
+                    request.targetExerciseId?.let { targetId ->
+                        infos.asReversed().forEach { info -> viewModel.addExerciseAfter(targetId, info) }
+                    }
+                    structureSheets.addExerciseAfterId = null
+                    structureSheets.addExerciseSearchQuery = ""
+                    structureSheets.addExerciseSelectedIds = emptySet()
+                }
+                CatalogLaunchOrigin.REPLACEMENT -> {
+                    val targetId = request.targetExerciseId
+                    val replacement = infos.firstOrNull()
+                    if (targetId != null && replacement != null) {
+                        viewModel.replaceExercise(
+                            exerciseId = targetId,
+                            replacement = replacement,
+                            deferPersistencePrompt = true,
+                        )
+                        structureSheets.editSheetExerciseId = targetId
+                        structureSheets.selectedExerciseContextTab = null
+                    }
+                    structureSheets.showReplaceExercisePicker = false
+                    structureSheets.replaceTargetExerciseId = null
+                }
+                else -> Unit
+            }
+        } else {
+            structureSheets.addCatalogToSupersetGroupId = null
+            structureSheets.addExerciseAfterId = null
+            structureSheets.showReplaceExercisePicker = false
+            structureSheets.replaceTargetExerciseId = null
+        }
+        pendingCatalogRequest = null
+        onCatalogResultConsumed()
     }
 
 
@@ -883,6 +946,12 @@ fun WorkoutScreen(
         allUserTags = allUserTags,
         context = context,
         onNavigateToWikiLab = onNavigateToWikiLab,
+        onOpenCatalog = onOpenCatalog?.let { open ->
+            { request ->
+                pendingCatalogRequest = request
+                open(request)
+            }
+        },
     )
 
     // ─── Quick discomfort sheet (execution error, non-last-set) ────────────────

@@ -537,12 +537,21 @@ fun SessionEditorViewModel.addMobilityToQuickActionExercise(info: MobilityExerci
             name = info.name,
             sets = 1,
             durationSeconds = info.durationSeconds,
+            unit = MobilityUnit.SECONDS,
+            catalogConfigurationId = info.id,
             notes = "Movilidad asociada a ${exercise.name}",
             associatedDiscomforts = info.discomfortIds,
             bodyZones = listOf(info.bodyRegion),
             movementPatterns = listOf(info.category),
         )
-        exercise.copy(mobilitySeries = (exercise.mobilitySeries + mobility).distinctBy { it.id })
+        if (exercise.mobilitySeries.any { it.catalogIdentityKey() == info.id }) {
+            exercise
+        } else {
+            exercise.copy(
+                mobilitySeries = exercise.mobilitySeries + mobility,
+                mobilityConfig = exercise.mobilityConfig ?: MobilityConfig(),
+            )
+        }
     }
 }
 

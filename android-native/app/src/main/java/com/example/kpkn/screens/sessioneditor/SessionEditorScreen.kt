@@ -130,6 +130,9 @@ fun SessionEditorScreen(
     sessionId: String,
     onBack: () -> Unit,
     onOpenExerciseDetail: (String) -> Unit = {},
+    onOpenCatalog: ((CatalogLaunchRequest) -> Unit)? = null,
+    catalogResult: CatalogResult? = null,
+    onCatalogResultConsumed: () -> Unit = {},
     onSavedAndExit: () -> Unit = onBack,
     draftWeekId: String? = null,
     draftMacroIndex: Int? = null,
@@ -157,6 +160,7 @@ fun SessionEditorScreen(
     var showDiscardDialog by rememberSaveable { mutableStateOf(false) }
     var pendingAutoExpandExerciseId by rememberSaveable { mutableStateOf<String?>(null) }
     var showCompetitionConfigSheet by rememberSaveable { mutableStateOf(openCompetitionConfig) }
+    var catalogRequestInFlight by rememberSaveable { mutableStateOf(false) }
     val lifecycleOwner = LocalLifecycleOwner.current
 
     DisposableEffect(lifecycleOwner, viewModel) {
@@ -202,6 +206,57 @@ fun SessionEditorScreen(
     val contentBottomPadding = editorSpacing.bottomContentPadding + 16.dp
     val fabBottomPadding = editorSpacing.fabBottomPadding
     val exerciseInfoById = catalogExerciseIndex()
+
+    // The editor keeps its ViewModel state while the catalog is on the navigation
+    // stack. The route returns only IDs, then the existing mutation methods apply
+    // them and close the picker.
+    LaunchedEffect(uiState.sheet, onOpenCatalog) {
+        if (uiState.sheet != SessionEditorSheet.EXERCISE_PICKER || onOpenCatalog == null) {
+            if (uiState.sheet != SessionEditorSheet.EXERCISE_PICKER) catalogRequestInFlight = false
+            return@LaunchedEffect
+        }
+        if (!catalogRequestInFlight) {
+            val targetExerciseId = uiState.pickerTargetExerciseId
+            catalogRequestInFlight = true
+            onOpenCatalog(
+                CatalogLaunchRequest(
+                    origin = if (targetExerciseId == null) {
+                        CatalogLaunchOrigin.SESSION_EDITOR
+                    } else {
+                        CatalogLaunchOrigin.REPLACEMENT
+                    },
+                    selectionMode = if (targetExerciseId == null) {
+                        CatalogSelectionMode.MULTIPLE
+                    } else {
+                        CatalogSelectionMode.REPLACEMENT
+                    },
+                    targetExerciseId = targetExerciseId,
+                    selectedExerciseIds = uiState.selectedExercisesIds.toList(),
+                    initialQuery = uiState.searchQuery,
+                ),
+            )
+        }
+    }
+    LaunchedEffect(catalogResult) {
+        val result = catalogResult ?: return@LaunchedEffect
+        val targetPartId = uiState.pickerTargetPartId
+        val targetExerciseId = uiState.pickerTargetExerciseId
+        if (result.canceled) {
+            viewModel.closeSheet()
+        } else {
+            val infos = result.selectedExerciseIds.mapNotNull(exerciseInfoById::get)
+            if (targetExerciseId != null) {
+                infos.firstOrNull()?.let { info ->
+                    viewModel.replaceExerciseInPart(targetPartId, targetExerciseId, info)
+                } ?: viewModel.closeSheet()
+            } else if (infos.isNotEmpty()) {
+                viewModel.addExercisesToPart(targetPartId, infos)
+            } else {
+                viewModel.closeSheet()
+            }
+        }
+        onCatalogResultConsumed()
+    }
     val dragController = remember(session?.id) { SessionEditorDragController() }
     val partBounds = dragController.partBounds
     val partContentBounds = dragController.partContentBounds
@@ -601,36 +656,32 @@ fun SessionEditorScreen(
                             onAddCardio = { viewModel.openCardioPicker(null) },
                         )
                     } else {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        ) {
-                            Button(
-                                onClick = viewModel::openPickerForUncategorized,
-                                modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(18.dp),
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
                             ) {
-                                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                                Spacer(Modifier.width(6.dp))
-                                Text("Añadir ejercicio", fontWeight = FontWeight.Bold)
+                                Button(
+                                    onClick = viewModel::openPickerForUncategorized,
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(18.dp),
+                                ) {
+                                    Text("Añadir ejercicio", fontWeight = FontWeight.Bold)
+                                }
+                                FilledTonalButton(
+                                    onClick = viewModel::addPart,
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(18.dp),
+                                ) {
+                                    Text("Nuevo grupo", fontWeight = FontWeight.Bold)
+                                }
                             }
                             FilledTonalButton(
                                 onClick = { viewModel.openCardioPicker(null) },
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(18.dp),
                             ) {
-                                Icon(Icons.Default.DirectionsRun, contentDescription = null, modifier = Modifier.size(18.dp))
-                                Spacer(Modifier.width(6.dp))
                                 Text("Añadir cardio", fontWeight = FontWeight.Bold)
-                            }
-                            FilledTonalButton(
-                                onClick = viewModel::addPart,
-                                modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(18.dp),
-                            ) {
-                                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                                Spacer(Modifier.width(6.dp))
-                                Text("Nuevo grupo", fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -801,6 +852,7 @@ fun SessionEditorScreen(
                     )
                 }
             }
+            outcome
         },
         onCloneCurrentToTargets = { targetKeys, selectedExerciseIds, applyMode ->
             val result = viewModel.cloneCurrentSessionToTargets(targetKeys, selectedExerciseIds, applyMode)
@@ -887,6 +939,27 @@ fun SessionEditorScreen(
         onQuickActionOpenMobility = viewModel::triggerQuickActionOpenMobility,
         onAddMobilityExercise = viewModel::addMobilityToQuickActionExercise,
         onAddMobilityToPart = viewModel::addMobilityToPart,
+        onRemoveMobilityExercise = { info ->
+            val mobilityPartId = uiState.mobilityPartId
+            val quickActionsExerciseId = uiState.quickActionsExerciseId
+            val targetSeries = when {
+                mobilityPartId != null -> uiState.session?.parts
+                    ?.firstOrNull { it.id == mobilityPartId }
+                    ?.mobilitySeries
+                    .orEmpty()
+                quickActionsExerciseId != null -> uiState.session?.allExercises()
+                    ?.firstOrNull { it.id == quickActionsExerciseId }
+                    ?.mobilitySeries
+                    .orEmpty()
+                else -> emptyList()
+            }
+            val existing = targetSeries.firstOrNull { it.catalogIdentityKey() == info.id }
+            if (existing != null && mobilityPartId != null) {
+                viewModel.removeMobilityFromPart(mobilityPartId, existing.id)
+            } else if (existing != null && quickActionsExerciseId != null) {
+                viewModel.removeMobilitySeries(uiState.quickActionsPartId, quickActionsExerciseId, existing.id)
+            }
+        },
         onAddCardio = viewModel::addCardioToPart,
         onQuickActionDelete = viewModel::triggerQuickActionDelete,
         onQuickActionCreateSuperset = viewModel::triggerQuickActionCreateSuperset,
@@ -901,6 +974,7 @@ fun SessionEditorScreen(
         onOpenSupersetCreator = viewModel::openSupersetCreator,
         onOpenExerciseDetail = onOpenExerciseDetail,
         onOpenCatalog = viewModel::openPickerForUncategorized,
+        useFullPageCatalog = onOpenCatalog != null,
         allTemplates = allTemplates,
         onSelectTemplate = viewModel::selectTemplate,
         onConfirmApplyTemplate = viewModel::confirmTemplateApply,

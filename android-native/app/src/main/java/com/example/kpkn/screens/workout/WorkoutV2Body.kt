@@ -32,6 +32,7 @@ import com.example.kpkn.domain.calculations.resolveReferenceCapacity
 import com.example.kpkn.domain.exercises.exerciseDisplayParts
 import com.example.kpkn.screens.workout.components.SetInputCardV2
 import com.example.kpkn.screens.workout.components.MobilityExecutionCard
+import com.example.kpkn.screens.workout.components.MobilityTotalExecutionCard
 import com.example.kpkn.screens.workout.components.WarmupExecutionCard
 import com.example.kpkn.screens.workout.components.WorkoutUiTokens
 import dev.chrisbanes.haze.HazeState
@@ -89,6 +90,7 @@ internal fun WorkoutV2Body(
 ) {
     val allUserTags by viewModel.allUserTags.collectAsStateWithLifecycle()
     val cardioGpsState by viewModel.cardioGpsState.collectAsStateWithLifecycle()
+    val cardioHealthState by viewModel.cardioHealthState.collectAsStateWithLifecycle()
     val currentCardioGpsKey = currentExercise?.id?.let(viewModel::cardioGpsSessionKey)
     val currentCardioGpsState = cardioGpsState.takeIf { it.sessionKey == currentCardioGpsKey }
     LaunchedEffect(currentExercise?.id, currentExercise?.cardioDetails?.requiresGps) {
@@ -390,7 +392,7 @@ internal fun WorkoutV2Body(
                         onUpsertTagSetup = { tagId, setup -> viewModel.upsertTagSetup(currentExercise.id, tagId, setup) },
                     )
 
-                    val setPagerPages = remember(currentExercise.id, currentExercise.mobilitySeries, currentExercise.warmupSets, currentExercise.sets, isUnilateral, currentExercise.unilateralSideOrder) {
+                    val setPagerPages = remember(currentExercise.id, currentExercise.mobilitySeries, currentExercise.mobilityConfig, currentExercise.warmupSets, currentExercise.sets, isUnilateral, currentExercise.unilateralSideOrder) {
                         val list = mutableListOf<WorkoutSetSwipePage>()
 
                         if (currentExercise.isCardio) {
@@ -398,15 +400,19 @@ internal fun WorkoutV2Body(
                         } else {
                             // Preparación: una página/tarjeta activa por cada serie
                             // programada, incluyendo repeticiones de la misma movilidad.
-                            currentExercise.mobilitySeries.forEachIndexed { mobilityIndex, mobility ->
-                                repeat(mobility.sets.coerceAtLeast(1)) { mobilitySetIndex ->
-                                    list.add(
-                                        WorkoutSetSwipePage(
-                                            type = LivePageType.MOBILITY,
-                                            setIndex = mobilityIndex,
-                                            mobilitySetIndex = mobilitySetIndex,
-                                        ),
-                                    )
+                            if (currentExercise.mobilityConfig?.mode == MobilityMode.SURTIDO && currentExercise.mobilitySeries.isNotEmpty()) {
+                                list.add(WorkoutSetSwipePage(type = LivePageType.MOBILITY_TOTAL, setIndex = 0))
+                            } else {
+                                currentExercise.mobilitySeries.forEachIndexed { mobilityIndex, mobility ->
+                                    repeat(mobility.sets.coerceAtLeast(1)) { mobilitySetIndex ->
+                                        list.add(
+                                            WorkoutSetSwipePage(
+                                                type = LivePageType.MOBILITY,
+                                                setIndex = mobilityIndex,
+                                                mobilitySetIndex = mobilitySetIndex,
+                                            ),
+                                        )
+                                    }
                                 }
                             }
                             currentExercise.warmupSets.indices.forEach { warmupIndex ->
@@ -462,6 +468,7 @@ internal fun WorkoutV2Body(
                                         )
                                     } == true
                                 }
+                                LivePageType.MOBILITY_TOTAL -> uiState.activeStepKey == WorkoutStepRules.mobilityTotalStepKey(currentExercise.id)
                                 LivePageType.WARMUP -> {
                                     currentExercise.warmupSets.getOrNull(page.setIndex)?.let {
                                         uiState.activeStepKey == "${currentExercise.id}_warmup_${it.id}"
@@ -498,6 +505,10 @@ internal fun WorkoutV2Body(
                                     viewModel.selectWorkoutStep(key)
                                 }
                             }
+                            LivePageType.MOBILITY_TOTAL -> {
+                                val key = WorkoutStepRules.mobilityTotalStepKey(currentExercise.id)
+                                if (uiState.activeStepKey != key) viewModel.selectWorkoutStep(key)
+                            }
                             LivePageType.WARMUP -> {
                                 val warmup = currentExercise.warmupSets.getOrNull(pageSpec.setIndex)
                                 val key = warmup?.let { "${currentExercise.id}_warmup_${it.id}" }
@@ -531,7 +542,7 @@ internal fun WorkoutV2Body(
                             }
                         }
                     }
-                    val pagerItems = remember(currentExercise.id, setPagerPages, uiState.completedSets, uiState.warmupCompletedExerciseIds, uiState.mobilityCompletedExerciseIds, uiState.activeStepKey, uiState.currentSetIdx, activeSide) {
+                    val pagerItems = remember(currentExercise.id, setPagerPages, uiState.completedSets, uiState.warmupCompletedExerciseIds, uiState.mobilityCompletedExerciseIds, uiState.mobilityTotalCompletedStepKeys, uiState.activeStepKey, uiState.currentSetIdx, activeSide) {
                         setPagerPages.mapIndexed { idx, page ->
                             val mobilitySequence = if (page.type == LivePageType.MOBILITY) {
                                 setPagerPages.take(idx + 1).count { it.type == LivePageType.MOBILITY }
@@ -541,6 +552,7 @@ internal fun WorkoutV2Body(
                             val label = when (page.type) {
                                 LivePageType.CARDIO -> "C"
                                 LivePageType.MOBILITY -> "M$mobilitySequence"
+                                LivePageType.MOBILITY_TOTAL -> "MT"
                                 LivePageType.WARMUP -> "A${page.setIndex + 1}"
                                 LivePageType.NORMAL -> "S${page.setIndex + 1}"
                             }
@@ -556,6 +568,7 @@ internal fun WorkoutV2Body(
                                         ) in uiState.mobilityCompletedExerciseIds
                                     } == true
                                 }
+                                LivePageType.MOBILITY_TOTAL -> WorkoutStepRules.mobilityTotalStepKey(currentExercise.id) in uiState.mobilityTotalCompletedStepKeys
                                 LivePageType.WARMUP -> {
                                     currentExercise.warmupSets.getOrNull(page.setIndex)?.let {
                                         "${currentExercise.id}_warmup_${it.id}" in uiState.warmupCompletedExerciseIds ||
@@ -582,6 +595,7 @@ internal fun WorkoutV2Body(
                                         )
                                     } == true
                                 }
+                                LivePageType.MOBILITY_TOTAL -> uiState.activeStepKey == WorkoutStepRules.mobilityTotalStepKey(currentExercise.id)
                                 LivePageType.WARMUP -> {
                                     currentExercise.warmupSets.getOrNull(page.setIndex)?.let {
                                         uiState.activeStepKey == "${currentExercise.id}_warmup_${it.id}"
@@ -606,7 +620,9 @@ internal fun WorkoutV2Body(
                                     LivePageType.NORMAL -> page.side
                                     else -> null
                                 },
-                                isWarmupOrFeedback = page.type == LivePageType.MOBILITY || page.type == LivePageType.WARMUP
+                                isWarmupOrFeedback = page.type == LivePageType.MOBILITY ||
+                                    page.type == LivePageType.MOBILITY_TOTAL ||
+                                    page.type == LivePageType.WARMUP
                             )
                         }
                     }
@@ -737,6 +753,7 @@ internal fun WorkoutV2Body(
                                                 }
                                                 .orEmpty()
                                         }
+                                        LivePageType.MOBILITY_TOTAL -> WorkoutStepRules.mobilityTotalStepKey(currentExercise.id)
                                         LivePageType.WARMUP -> {
                                             currentExercise.warmupSets.getOrNull(targetPage.setIndex)
                                                 ?.let { "${currentExercise.id}_warmup_${it.id}" }
@@ -770,6 +787,7 @@ internal fun WorkoutV2Body(
                             when (page?.type) {
                                 LivePageType.CARDIO -> "${currentExercise.id}_cardio"
                                 LivePageType.MOBILITY -> "${currentExercise.id}_mobility_${page.setIndex}_${page.mobilitySetIndex}"
+                                LivePageType.MOBILITY_TOTAL -> "${currentExercise.id}_mobility_total"
                                 LivePageType.WARMUP -> "${currentExercise.id}_warmup_${page.setIndex}"
                                 LivePageType.NORMAL -> "${currentExercise.id}_normal_${page.setIndex}_${page.side ?: "B"}"
                                 null -> "${currentExercise.id}_fallback_$index"
@@ -785,7 +803,19 @@ internal fun WorkoutV2Body(
                                     completedSet = completed,
                                     bodyWeightKg = viewModel.currentBodyWeight(),
                                     accentColor = sessionAccentColor,
-                                    progressionSuggestion = viewModel.getCardioProgressionSuggestion(currentExercise),
+                                    executionState = uiState.cardioTimerState?.takeIf { it.exerciseId == currentExercise.id },
+                                    liveHeartRateBpm = cardioHealthState.heartRateBpm.takeIf { cardioHealthState.exerciseId == currentExercise.id },
+                                    onStartTimer = {
+                                        viewModel.startCardioTimer(
+                                            currentExercise.id,
+                                            currentExercise.cardioDetails?.targetDurationSeconds ?: 1,
+                                        )
+                                    },
+                                    onPauseTimer = viewModel::pauseCardioTimer,
+                                    onRequestRecord = { duration, distance, heartRate ->
+                                        viewModel.requestCardioRecord(currentExercise.id, duration, distance, heartRate)
+                                    },
+                                    onCancelRecord = viewModel::cancelCardioRecord,
                                     gpsState = currentCardioGpsState,
                                     onRequestGps = onRequestCardioGps,
                                     onPauseGps = viewModel::pauseCardioGps,
@@ -825,6 +855,24 @@ internal fun WorkoutV2Body(
                                         },
                                     )
                                 }
+                            }
+                            LivePageType.MOBILITY_TOTAL -> {
+                                MobilityTotalExecutionCard(
+                                    totalMinutes = currentExercise.mobilityConfig?.totalMinutes?.coerceAtLeast(1) ?: 1,
+                                    exercises = currentExercise.mobilitySeries,
+                                    remainingSeconds = uiState.mobilityTotalTimerState
+                                        ?.takeIf { it.stepKey == WorkoutStepRules.mobilityTotalStepKey(currentExercise.id) }
+                                        ?.remainingSeconds
+                                        ?: ((currentExercise.mobilityConfig?.totalMinutes?.coerceAtLeast(1) ?: 1) * 60),
+                                    isRunning = uiState.mobilityTotalTimerState
+                                        ?.takeIf { it.stepKey == WorkoutStepRules.mobilityTotalStepKey(currentExercise.id) }
+                                        ?.isRunning == true,
+                                    isCompleted = WorkoutStepRules.mobilityTotalStepKey(currentExercise.id) in uiState.mobilityTotalCompletedStepKeys,
+                                    accentColor = sessionAccentColor,
+                                    onStart = { viewModel.resumeMobilityTotalTimer(currentExercise.id, currentExercise.mobilityConfig?.totalMinutes ?: 1) },
+                                    onPause = viewModel::pauseMobilityTotalTimer,
+                                    onComplete = { viewModel.completeMobilityTotalTimer(currentExercise.id) },
+                                )
                             }
                             LivePageType.WARMUP -> {
                                 val warmupWorkingWeight = remember(
@@ -929,13 +977,24 @@ internal fun WorkoutV2Body(
                                     }
                                 ]
                                 if (currentExercise.isCardio) {
-                                    val cardioProgressionSuggestion = viewModel.getCardioProgressionSuggestion(currentExercise)
                                     CardioLiveCard(
                                         details = currentExercise.cardioDetails!!,
                                         completedSet = sessionCompletedSet,
                                         bodyWeightKg = viewModel.currentBodyWeight(),
                                         accentColor = sessionAccentColor,
-                                        progressionSuggestion = cardioProgressionSuggestion,
+                                        executionState = uiState.cardioTimerState?.takeIf { it.exerciseId == currentExercise.id },
+                                        liveHeartRateBpm = cardioHealthState.heartRateBpm.takeIf { cardioHealthState.exerciseId == currentExercise.id },
+                                        onStartTimer = {
+                                            viewModel.startCardioTimer(
+                                                currentExercise.id,
+                                                currentExercise.cardioDetails?.targetDurationSeconds ?: 1,
+                                            )
+                                        },
+                                        onPauseTimer = viewModel::pauseCardioTimer,
+                                        onRequestRecord = { duration, distance, heartRate ->
+                                            viewModel.requestCardioRecord(currentExercise.id, duration, distance, heartRate)
+                                        },
+                                        onCancelRecord = viewModel::cancelCardioRecord,
                                         gpsState = currentCardioGpsState,
                                         onRequestGps = onRequestCardioGps,
                                         onPauseGps = viewModel::pauseCardioGps,
@@ -1112,7 +1171,7 @@ internal fun WorkoutV2Body(
 }
 
 
-internal enum class LivePageType { CARDIO, MOBILITY, WARMUP, NORMAL }
+internal enum class LivePageType { CARDIO, MOBILITY, MOBILITY_TOTAL, WARMUP, NORMAL }
 
 internal data class WorkoutSetSwipePage(
     val type: LivePageType,

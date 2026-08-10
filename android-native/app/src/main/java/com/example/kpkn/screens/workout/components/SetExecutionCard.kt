@@ -1259,32 +1259,7 @@ internal fun SetInputCardV2(
                     Spacer(Modifier.width(1.dp))
                 }
 
-                if (exerciseReadiness != null) {
-                    val score = exerciseReadiness.overallScore
-                    val chipColor = WorkoutUiTokens.readinessColor(score)
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(99.dp))
-                            .background(chipColor.copy(alpha = 0.15f))
-                            .padding(horizontal = 10.dp, vertical = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(5.dp),
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(6.dp)
-                                .clip(CircleShape)
-                                .background(chipColor)
-                        )
-                        Text(
-                            text = "${score}%",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.9f),
-                            fontWeight = FontWeight.Black,
-                            fontSize = WorkoutUiTokens.MinLabelSp,
-                        )
-                    }
-                }
+
             }
 
             Surface(
@@ -1303,18 +1278,58 @@ internal fun SetInputCardV2(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        Surface(
-                            shape = RoundedCornerShape(4.dp),
-                            color = if (isFailedSet) MaterialTheme.colorScheme.error.copy(alpha = 0.15f) else sessionAccentColor.copy(alpha = 0.15f),
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(
-                                text = "Planificado",
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isFailedSet) MaterialTheme.colorScheme.error else sessionAccentColor,
-                                fontSize = WorkoutUiTokens.MinLabelSp,
-                            )
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = if (isFailedSet) MaterialTheme.colorScheme.error.copy(alpha = 0.15f) else sessionAccentColor.copy(alpha = 0.15f),
+                            ) {
+                                Text(
+                                    text = "Planificado",
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isFailedSet) MaterialTheme.colorScheme.error else sessionAccentColor,
+                                    fontSize = WorkoutUiTokens.MinLabelSp,
+                                )
+                            }
+                            if (exerciseReadiness != null &&
+                                exerciseReadiness.overallScore < ExerciseReadinessEngine.ADJUSTMENT_THRESHOLD &&
+                                readinessAdjustment == null &&
+                                onApplyReadinessAdjustment != null
+                            ) {
+                                Surface(
+                                    onClick = { showReadinessAdjustmentSheet = true },
+                                    shape = RoundedCornerShape(4.dp),
+                                    color = WorkoutUiTokens.dangerColor().copy(alpha = 0.15f),
+                                ) {
+                                    Text(
+                                        "Adaptar",
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = WorkoutUiTokens.dangerColor(),
+                                        fontSize = WorkoutUiTokens.MinLabelSp,
+                                    )
+                                }
+                            } else if (readinessAdjustment != null) {
+                                Surface(
+                                    onClick = { showReadinessAdjustmentSheet = true },
+                                    shape = RoundedCornerShape(4.dp),
+                                    color = WorkoutUiTokens.dangerColor().copy(alpha = 0.15f),
+                                ) {
+                                    Text(
+                                        "Adaptado",
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = WorkoutUiTokens.dangerColor(),
+                                        fontSize = WorkoutUiTokens.MinLabelSp,
+                                    )
+                                }
+                            }
                         }
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -1422,81 +1437,7 @@ internal fun SetInputCardV2(
                         }
                     }
 
-                    // ── Ajuste por rendimiento / readiness (Transversal a todo tipo de carga) ──
-                    if (exerciseReadiness != null && onApplyReadinessAdjustment != null) {
-                        Spacer(Modifier.height(6.dp))
-                        if (readinessAdjustment == null) {
-                            val isRecommended = exerciseReadiness.overallScore < ExerciseReadinessEngine.ADJUSTMENT_THRESHOLD
-                            OutlinedButton(
-                                onClick = { showReadinessAdjustmentSheet = true },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(12.dp),
-                                border = BorderStroke(
-                                    width = 1.dp,
-                                    color = if (isRecommended) WorkoutUiTokens.dangerColor().copy(alpha = 0.5f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                                ),
-                                colors = ButtonDefaults.outlinedButtonColors(
-                                    contentColor = if (isRecommended) WorkoutUiTokens.dangerColor() else sessionAccentColor,
-                                ),
-                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                            ) {
-                                Icon(
-                                    Icons.Default.Tune,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(14.dp),
-                                )
-                                Spacer(Modifier.width(6.dp))
-                                Text(
-                                    if (isRecommended) "Adaptar según cómo me siento (Recomendado)" else "Adaptar según cómo me siento",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                )
-                            }
-                        } else {
-                            // Si ya hay un ajuste aplicado, mostramos la opción de cambiarlo o borrarlo
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                TextButton(
-                                    onClick = { showReadinessAdjustmentSheet = true },
-                                    modifier = Modifier.weight(1f),
-                                    colors = ButtonDefaults.textButtonColors(contentColor = sessionAccentColor),
-                                    contentPadding = PaddingValues(0.dp)
-                                ) {
-                                    Icon(Icons.Default.Edit, null, Modifier.size(12.dp))
-                                    Spacer(Modifier.width(4.dp))
-                                    Text("Ajustar de nuevo", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                                }
-                                TextButton(
-                                    onClick = {
-                                        // Para borrar el ajuste, enviamos un SetAdjustmentSuggestion vacío
-                                        val emptySuggestion = SetAdjustmentSuggestion(
-                                            exerciseId = exercise.id,
-                                            setIndex = setIndex,
-                                            currentPlannedWeight = currentSet.weight ?: 0.0,
-                                            readinessScore = exerciseReadiness?.overallScore ?: 100,
-                                            severityFactor = 0.0,
-                                            reductionPercent = 0.0,
-                                            suggestedWeight = currentSet.weight ?: 0.0,
-                                            averageErm = null,
-                                            reason = "Reset manual",
-                                            suggestedLoadMode = currentSet.loadModeV2 ?: LoadModeV2.LOAD,
-                                        )
-                                        onApplyReadinessAdjustment.invoke(emptySuggestion)
-                                    },
-                                    modifier = Modifier.weight(1f),
-                                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                                    contentPadding = PaddingValues(0.dp)
-                                ) {
-                                    Icon(Icons.Default.Delete, null, Modifier.size(12.dp))
-                                    Spacer(Modifier.width(4.dp))
-                                    Text("Restablecer original", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                                }
-                            }
-                        }
-                    }
+
 
                     // ── Indicador de ajuste aplicado ──
                     if (readinessAdjustment != null && (readinessAdjustment.reductionPercent > 0.0 || readinessAdjustment.suggestedLoadMode != (currentSet.loadModeV2 ?: LoadModeV2.LOAD))) {

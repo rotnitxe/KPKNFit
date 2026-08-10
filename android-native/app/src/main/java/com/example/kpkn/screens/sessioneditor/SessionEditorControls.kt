@@ -68,7 +68,8 @@ import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.workout.PropagationSide
-import com.example.kpkn.domain.workout.copyPlannedValueFrom
+import com.example.kpkn.domain.workout.SetPropagationField
+import com.example.kpkn.domain.workout.copyEditedFieldFrom
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.min
@@ -452,12 +453,12 @@ internal fun ExerciseSetsCarousel(
     var currentSetIndex by remember(exercise.id) { mutableStateOf(0) }
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = currentSetIndex)
     val coroutineScope = rememberCoroutineScope()
-    fun propagateSetValue(sourceId: String, side: PropagationSide) {
+    fun propagateSetValue(sourceId: String, field: SetPropagationField, side: PropagationSide) {
         val source = exercise.sets.firstOrNull { it.id == sourceId } ?: return
         exercise.sets
             .filter { it.id != sourceId && !it.isEmptySlot }
             .forEach { target ->
-                onUpdateSet(target.id) { current -> current.copyPlannedValueFrom(source, side) }
+                onUpdateSet(target.id) { current -> current.copyEditedFieldFrom(source, field, side) }
             }
     }
     var techniqueConfigExpandedBySetId by remember(exercise.id) {
@@ -564,7 +565,7 @@ internal fun ExerciseSetsCarousel(
                                                  onRemove = { onRemoveSet(set.id) },
                                                  onMoveUp = { onMoveSet(set.id, -1) },
                                                  onMoveDown = { onMoveSet(set.id, 1) },
-                                                 onPropagateValue = { side -> propagateSetValue(set.id, side) },
+                                                 onPropagateValue = { field, side -> propagateSetValue(set.id, field, side) },
                                                  onTechniqueConfigExpandedChange = { expanded ->
                                                     techniqueConfigExpandedBySetId =
                                                         techniqueConfigExpandedBySetId + (set.id to expanded)
@@ -619,7 +620,7 @@ internal fun ExerciseSetsCarousel(
                                  onRemove = { onRemoveSet(set.id) },
                                  onMoveUp = { onMoveSet(set.id, -1) },
                                  onMoveDown = { onMoveSet(set.id, 1) },
-                                 onPropagateValue = { side -> propagateSetValue(set.id, side) },
+                                 onPropagateValue = { field, side -> propagateSetValue(set.id, field, side) },
                                  onTechniqueConfigExpandedChange = { expanded ->
                                     techniqueConfigExpandedBySetId =
                                         techniqueConfigExpandedBySetId + (set.id to expanded)

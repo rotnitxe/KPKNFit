@@ -32,10 +32,95 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.MobilitySeries
+import com.example.kpkn.data.models.MobilityUnit
 import com.example.kpkn.data.models.WarmupSetDefinition
 import com.example.kpkn.domain.workout.WarmupCalibrationEngine
 import com.example.kpkn.screens.workout.PreparationReport
 import com.example.kpkn.screens.workout.PreparationReportUnit
+
+/** A single live mobility block. It never renders strength-set controls. */
+@Composable
+internal fun MobilityTotalExecutionCard(
+    totalMinutes: Int,
+    exercises: List<MobilitySeries>,
+    remainingSeconds: Int,
+    isRunning: Boolean,
+    isCompleted: Boolean,
+    accentColor: Color,
+    onStart: () -> Unit,
+    onPause: () -> Unit,
+    onComplete: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    PreparationCardSurface(accentColor = accentColor, modifier = modifier) {
+        Text(
+            text = "MOVILIDAD SURTIDA",
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Black,
+            color = accentColor,
+            letterSpacing = 1.2.sp,
+        )
+        Text(
+            text = "Un bloque de ${totalMinutes.coerceAtLeast(1)} min",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Black,
+            color = Color.White,
+        )
+        Text(
+            text = formatDuration(remainingSeconds),
+            style = MaterialTheme.typography.displaySmall,
+            fontWeight = FontWeight.Black,
+            color = Color.White,
+        )
+        Text(
+            text = "Lista de movimientos (informativa; no se registran por separado)",
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.White.copy(alpha = 0.62f),
+        )
+        exercises.forEach { mobility ->
+            Text(
+                text = "• ${mobility.name}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White.copy(alpha = 0.88f),
+            )
+        }
+        if (isCompleted) {
+            Text(
+                text = "Bloque completado",
+                style = MaterialTheme.typography.labelLarge,
+                color = accentColor,
+                fontWeight = FontWeight.Bold,
+            )
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Button(
+                    onClick = if (isRunning) onPause else onStart,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = accentColor.copy(alpha = 0.88f),
+                        contentColor = preparationContentColor(accentColor),
+                    ),
+                ) {
+                    Text(if (isRunning) "Pausar" else "Iniciar", fontWeight = FontWeight.Black)
+                }
+                Button(
+                    onClick = onComplete,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = Color.White,
+                    ),
+                ) {
+                    Text("Finalizar", fontWeight = FontWeight.Black)
+                }
+            }
+        }
+    }
+}
 
 /** A single live mobility block. It never renders strength-set controls. */
 @Composable
@@ -50,13 +135,15 @@ internal fun MobilityExecutionCard(
     onReport: (Double, PreparationReportUnit) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val isTimed = mobility.durationSeconds != null && mobility.durationSeconds > 0
+    val isTimed = mobility.unit == MobilityUnit.SECONDS
+    val displayDuration = mobility.durationSeconds?.takeIf { isTimed }
+    val displayReps = mobility.reps?.takeIf { !isTimed }
     val reportUnit = if (isTimed) PreparationReportUnit.SECONDS else PreparationReportUnit.REPS
     var reportText by remember(mobility.id, setIndex, previousReport?.value, reportUnit) {
         mutableStateOf(
             previousReport?.value?.formatWholeOrDecimal()
-                ?: mobility.durationSeconds?.takeIf { isTimed }?.toString()
-                ?: mobility.reps?.firstNumberOrEmpty()
+                ?: displayDuration?.toString()
+                ?: displayReps?.firstNumberOrEmpty()
                 ?: "",
         )
     }
@@ -83,8 +170,9 @@ internal fun MobilityExecutionCard(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             PreparationMetric(
-                label = if (mobility.durationSeconds != null && mobility.durationSeconds > 0) "TIEMPO" else "REPS",
-                value = mobility.durationSeconds?.let(::formatDuration) ?: mobility.reps.orEmpty().ifBlank { "—" },
+                label = if (isTimed) "TIEMPO" else "REPS",
+                value = if (isTimed) displayDuration?.let(::formatDuration) ?: "—"
+                else displayReps.orEmpty().ifBlank { "—" },
                 accentColor = accentColor,
                 modifier = Modifier.weight(1f),
             )

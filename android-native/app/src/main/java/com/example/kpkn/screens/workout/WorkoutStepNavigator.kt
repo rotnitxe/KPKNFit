@@ -146,6 +146,22 @@ class WorkoutStepNavigator(
                 completedSets = state.completedSets,
                 warmupCompletedExerciseIds = state.warmupCompletedExerciseIds,
                 mobilityCompletedExerciseIds = state.mobilityCompletedExerciseIds,
+                mobilityTotalCompletedStepKeys = state.mobilityTotalCompletedStepKeys,
+            )
+        }
+    }
+
+    /** Returns the first incomplete real step in the canonical session order. */
+    fun firstIncompleteStep(state: WorkoutUiState): WorkoutStep? {
+        val visible = ports.visibleExercises(state)
+        return workoutStepPositions(state).firstOrNull { step ->
+            !isWorkoutStepDone(
+                step = step,
+                visible = visible,
+                completedSets = state.completedSets,
+                warmupCompletedExerciseIds = state.warmupCompletedExerciseIds,
+                mobilityCompletedExerciseIds = state.mobilityCompletedExerciseIds,
+                mobilityTotalCompletedStepKeys = state.mobilityTotalCompletedStepKeys,
             )
         }
     }
@@ -446,6 +462,7 @@ class WorkoutStepNavigator(
                     completedSets = state.completedSets,
                     warmupCompletedExerciseIds = state.warmupCompletedExerciseIds,
                     mobilityCompletedExerciseIds = state.mobilityCompletedExerciseIds,
+                    mobilityTotalCompletedStepKeys = state.mobilityTotalCompletedStepKeys,
                 )
         } ?: workoutStepPositions(state).firstOrNull { it.supersetGroupId == groupId }
             ?: return
@@ -589,6 +606,7 @@ class WorkoutStepNavigator(
                     completedSets = state.completedSets,
                     warmupCompletedExerciseIds = state.warmupCompletedExerciseIds,
                     mobilityCompletedExerciseIds = state.mobilityCompletedExerciseIds,
+                    mobilityTotalCompletedStepKeys = state.mobilityTotalCompletedStepKeys,
                 )
         } ?: workoutStepPositions(state).firstOrNull { step ->
             step.type == WorkoutStepType.WORKING_SET &&
@@ -684,6 +702,7 @@ class WorkoutStepNavigator(
         completedSets: Map<String, CompletedSet>,
         warmupCompletedExerciseIds: Set<String>,
         mobilityCompletedExerciseIds: Set<String>,
+        mobilityTotalCompletedStepKeys: Set<String>,
     ): Boolean {
         if (step.isEmptySlot) return true
         return when (step.type) {
@@ -693,6 +712,7 @@ class WorkoutStepNavigator(
                 val mobilityId = step.mobilitySeriesId ?: return true
                 mobilityCompletionKey(step.exerciseId, mobilityId, step.mobilitySetIndex) in mobilityCompletedExerciseIds
             }
+            WorkoutStepType.MOBILITY_TOTAL -> step.stepKey in mobilityTotalCompletedStepKeys
             WorkoutStepType.WARMUP -> {
                 val warmupId = step.warmupSetId ?: return true
                 step.exerciseId in warmupCompletedExerciseIds ||
@@ -722,6 +742,7 @@ class WorkoutStepNavigator(
                     completedSets = state.completedSets,
                     warmupCompletedExerciseIds = state.warmupCompletedExerciseIds,
                     mobilityCompletedExerciseIds = state.mobilityCompletedExerciseIds,
+                    mobilityTotalCompletedStepKeys = state.mobilityTotalCompletedStepKeys,
                 )
         }
     }
@@ -741,6 +762,7 @@ class WorkoutStepNavigator(
                 completedSets = state.completedSets,
                 warmupCompletedExerciseIds = state.warmupCompletedExerciseIds,
                 mobilityCompletedExerciseIds = state.mobilityCompletedExerciseIds,
+                mobilityTotalCompletedStepKeys = state.mobilityTotalCompletedStepKeys,
             )
         }
     }

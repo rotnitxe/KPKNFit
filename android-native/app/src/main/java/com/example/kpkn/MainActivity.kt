@@ -73,6 +73,12 @@ import com.example.kpkn.navigation.DeepLinkRouter
 import com.example.kpkn.navigation.KpknRoute
 import com.example.kpkn.navigation.addHealthConnectRoute
 import com.example.kpkn.navigation.NavigationBus
+import com.example.kpkn.screens.sessioneditor.CatalogLaunchOrigin
+import com.example.kpkn.screens.sessioneditor.CatalogLaunchRequest
+import com.example.kpkn.screens.sessioneditor.CatalogResult
+import com.example.kpkn.screens.sessioneditor.CatalogSavedStateKeys
+import com.example.kpkn.screens.sessioneditor.CatalogSelectionMode
+import com.example.kpkn.screens.sessioneditor.components.ExerciseCatalogScreen
 import com.example.kpkn.screens.home.HomeScreen
 import com.example.kpkn.screens.home.HomeGlassOverlay
 import com.example.kpkn.screens.home.HomeGlassOverlayChange
@@ -125,6 +131,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import com.example.kpkn.ui.components.KpknAlertDialog
 
 private enum class NutritionContextTab {
@@ -353,6 +362,17 @@ class MainActivity : ComponentActivity() {
         ) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1001)
         }
+        if (
+            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+        ) {
+            val alreadyRequested = com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.value.locationPermissionRequestedOnce
+            if (!alreadyRequested) {
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1002)
+                kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+                    com.example.kpkn.data.repository.ProgramRepository.getInstance().updateSettings { it.copy(locationPermissionRequestedOnce = true) }
+                }
+            }
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val alarmManager = getSystemService(AlarmManager::class.java)
@@ -491,7 +511,8 @@ fun KPKNApp(
     
     val isFullscreenWizard =
         currentRoute?.startsWith("session-editor") == true ||
-        currentRoute?.startsWith("workout") == true
+        currentRoute?.startsWith("workout") == true ||
+        currentRoute?.startsWith(KpknRoute.ExerciseCatalog.route) == true
     val primaryProgramId = activeProgram?.id ?: allPrograms.firstOrNull()?.id
 
     val currentTab = when {
@@ -1689,6 +1710,56 @@ private fun KPKNNavGraph(
                 },
             )
         }
+        composable(KpknRoute.ExerciseCatalog.route) { backStack ->
+            val requestId = backStack.arguments
+                ?.getString(KpknRoute.ExerciseCatalog.ARG_REQUEST_ID)
+                .orEmpty()
+            val previousEntry = navController.previousBackStackEntry
+            val requestJson = previousEntry?.savedStateHandle
+                ?.get<String>(CatalogSavedStateKeys.request(requestId))
+            val request = requestJson?.let { encoded ->
+                runCatching { Json.decodeFromString<CatalogLaunchRequest>(encoded) }.getOrNull()
+            } ?: CatalogLaunchRequest(
+                requestId = requestId.ifBlank { CatalogLaunchRequest().requestId },
+                origin = backStack.arguments
+                    ?.getString(KpknRoute.ExerciseCatalog.ARG_ORIGIN)
+                    ?.let { runCatching { CatalogLaunchOrigin.valueOf(it) }.getOrNull() }
+                    ?: CatalogLaunchOrigin.SESSION_EDITOR,
+                selectionMode = backStack.arguments
+                    ?.getString(KpknRoute.ExerciseCatalog.ARG_SELECTION_MODE)
+                    ?.let { runCatching { CatalogSelectionMode.valueOf(it) }.getOrNull() }
+                    ?: CatalogSelectionMode.MULTIPLE,
+                targetExerciseId = backStack.arguments
+                    ?.getString(KpknRoute.ExerciseCatalog.ARG_TARGET_EXERCISE_ID),
+                initialQuery = backStack.arguments
+                    ?.getString(KpknRoute.ExerciseCatalog.ARG_INITIAL_QUERY)
+                    .orEmpty(),
+            )
+
+            ExerciseCatalogScreen(
+                request = request,
+                onResult = { result ->
+                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                        CatalogSavedStateKeys.RESULT,
+                        Json.encodeToString(result),
+                    )
+                    navController.previousBackStackEntry?.savedStateHandle?.remove<String>(
+                        CatalogSavedStateKeys.request(request.requestId),
+                    )
+                    navController.popBackStack()
+                },
+                onBack = {
+                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                        CatalogSavedStateKeys.RESULT,
+                        Json.encodeToString(CatalogResult(request.requestId, canceled = true)),
+                    )
+                    navController.popBackStack()
+                },
+                onOpenExerciseDetail = { exerciseId ->
+                    navController.navigate(KpknRoute.WikiLabExerciseDetail.create(exerciseId))
+                },
+            )
+        }
         composable(KpknRoute.SessionEditor.route) { backStack ->
             val programId = backStack.arguments?.getString(KpknRoute.SessionEditor.ARG_PROGRAM_ID) ?: ""
             val sessionId = backStack.arguments?.getString(KpknRoute.SessionEditor.ARG_SESSION_ID) ?: ""
@@ -1699,11 +1770,26 @@ private fun KPKNNavGraph(
             val configureCompetition = backStack.arguments
                 ?.getString(KpknRoute.SessionEditor.ARG_CONFIGURE_COMPETITION)
                 ?.toBooleanStrictOrNull() == true
+            val catalogResultJson by backStack.savedStateHandle
+                .getStateFlow<String?>(CatalogSavedStateKeys.RESULT, null)
+                .collectAsState()
+            val catalogResult = catalogResultJson?.let { encoded ->
+                runCatching { Json.decodeFromString<CatalogResult>(encoded) }.getOrNull()
+            }
             SessionEditorScreen(
                 programId = programId,
                 sessionId = sessionId,
                 onBack = { navController.popBackStack() },
                 onOpenExerciseDetail = { navController.navigate(KpknRoute.WikiLabExerciseDetail.create(it)) },
+                onOpenCatalog = { request ->
+                    backStack.savedStateHandle[CatalogSavedStateKeys.request(request.requestId)] =
+                        Json.encodeToString(request)
+                    navController.navigate(KpknRoute.ExerciseCatalog.create(request))
+                },
+                catalogResult = catalogResult,
+                onCatalogResultConsumed = {
+                    backStack.savedStateHandle.remove<String>(CatalogSavedStateKeys.RESULT)
+                },
                 onSavedAndExit = {
                     navController.navigate(KpknRoute.ProgramDetail.create(programId)) {
                         popUpTo(KpknRoute.SessionEditor.route) { inclusive = true }
@@ -1719,6 +1805,12 @@ private fun KPKNNavGraph(
         composable(KpknRoute.Workout.route) { backStack ->
             val programId = backStack.arguments?.getString(KpknRoute.Workout.ARG_PROGRAM_ID) ?: ""
             val sessionId = backStack.arguments?.getString(KpknRoute.Workout.ARG_SESSION_ID) ?: ""
+            val catalogResultJson by backStack.savedStateHandle
+                .getStateFlow<String?>(CatalogSavedStateKeys.RESULT, null)
+                .collectAsState()
+            val catalogResult = catalogResultJson?.let { encoded ->
+                runCatching { Json.decodeFromString<CatalogResult>(encoded) }.getOrNull()
+            }
             WorkoutScreen(
                 programId = programId,
                 sessionId = sessionId,
@@ -1731,6 +1823,15 @@ private fun KPKNNavGraph(
                 },
                 onNavigateToWikiLab = { exerciseDbId ->
                     navController.navigate(KpknRoute.WikiLabExerciseDetail.create(exerciseDbId))
+                },
+                onOpenCatalog = { request ->
+                    backStack.savedStateHandle[CatalogSavedStateKeys.request(request.requestId)] =
+                        Json.encodeToString(request)
+                    navController.navigate(KpknRoute.ExerciseCatalog.create(request))
+                },
+                catalogResult = catalogResult,
+                onCatalogResultConsumed = {
+                    backStack.savedStateHandle.remove<String>(CatalogSavedStateKeys.RESULT)
                 },
             )
         }

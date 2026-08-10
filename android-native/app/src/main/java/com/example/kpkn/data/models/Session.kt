@@ -119,6 +119,25 @@ data class SessionPart(
     val isMobilityGroup: Boolean = false,
     /** Mobility movements owned by this part rather than attached to an exercise. */
     val mobilitySeries: List<MobilitySeries> = emptyList(),
+    /** Configuration for the mobility block owned by this part. */
+    val mobilityConfig: MobilityConfig? = null,
+)
+
+enum class MobilityMode {
+    ENFOCADO,
+    SURTIDO,
+}
+
+enum class MobilityUnit {
+    REPS,
+    SECONDS,
+}
+
+@Serializable
+data class MobilityConfig(
+    val mode: MobilityMode = MobilityMode.ENFOCADO,
+    /** Total block duration used only by [MobilityMode.SURTIDO]. */
+    val totalMinutes: Int = 0,
 )
 
 @Serializable
@@ -267,6 +286,8 @@ data class Exercise(
     val contextProfilesV3: List<WorkoutContextProfile> = emptyList(),
     val defaultContextProfileIdV3: String? = null,
     val mobilitySeries: List<MobilitySeries> = emptyList(),
+    /** Configuration for mobility attached to this exercise. */
+    val mobilityConfig: MobilityConfig? = null,
     @Deprecated("Sin consumidor en vivo. Usa TrainingMode.TIME + ExerciseSet.targetDuration.", level = DeprecationLevel.WARNING)
     val timeStrategy: TimeStrategy? = null,
     val targetDurationMinutes: Int? = null,
@@ -286,12 +307,16 @@ data class MobilitySeries(
     val sets: Int = 1,
     val reps: String? = null,
     val durationSeconds: Int? = null,
-    /** Rest inserted between repetitions of this mobility series. */
+    /** Rest inserted between sets of this mobility series. */
     val restBetweenSeconds: Int = 0,
     val notes: String? = null,
     val associatedDiscomforts: List<String> = emptyList(),
     val bodyZones: List<String> = emptyList(),
     val movementPatterns: List<String> = emptyList(),
+    /** Explicit editor unit. Null means the payload predates the mobility unit contract. */
+    val unit: MobilityUnit? = null,
+    /** v2 catalog identity used to prevent duplicate configurations in a mobility block. */
+    val catalogConfigurationId: String? = null,
 )
 
 /**

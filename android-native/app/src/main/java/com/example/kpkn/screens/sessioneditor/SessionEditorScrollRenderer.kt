@@ -142,6 +142,9 @@ internal fun SessionEditorListItem(
                 onUpdateMobility = { mobilityId, transform ->
                     viewModel.updateMobilityInPart(part.id, mobilityId, transform)
                 },
+                onUpdateMobilityConfig = { config ->
+                    viewModel.updateMobilityConfigInPart(part.id, config)
+                },
                 headerOnly = true,
                 content = {},
             )

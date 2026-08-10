@@ -3,6 +3,9 @@ package com.example.kpkn.screens.sessioneditor
 import com.example.kpkn.data.models.MobilityExercise
 import com.example.kpkn.data.models.MobilitySeries
 import com.example.kpkn.data.models.SessionPart
+import com.example.kpkn.data.models.MobilityConfig
+import com.example.kpkn.data.models.MobilityUnit
+import com.example.kpkn.data.models.catalogIdentityKey
 import java.util.UUID
 
 /** Global mobility groups stay in the session JSON and do not become Room entities. */
@@ -40,18 +43,24 @@ fun SessionEditorViewModel.addMobilityToPart(info: MobilityExercise) {
         session.copy(
             parts = session.parts.map { part ->
                 if (part.id != partId || !part.isMobilityGroup) return@map part
+                if (part.mobilitySeries.any { it.catalogIdentityKey() == info.id }) return@map part
                 val series = MobilitySeries(
                     id = UUID.randomUUID().toString(),
                     exerciseDbId = info.id,
                     name = info.name,
                     sets = 1,
                     durationSeconds = info.durationSeconds,
+                    unit = MobilityUnit.SECONDS,
+                    catalogConfigurationId = info.id,
                     notes = info.description,
                     associatedDiscomforts = info.discomfortIds,
                     bodyZones = listOf(info.bodyRegion),
                     movementPatterns = listOf(info.category),
                 )
-                part.copy(mobilitySeries = (part.mobilitySeries + series).distinctBy { it.id })
+                part.copy(
+                    mobilitySeries = part.mobilitySeries + series,
+                    mobilityConfig = part.mobilityConfig ?: MobilityConfig(),
+                )
             },
         )
     }
@@ -85,6 +94,16 @@ fun SessionEditorViewModel.updateMobilityInPart(
                         if (mobility.id == mobilityId) transform(mobility) else mobility
                     },
                 )
+            },
+        )
+    }
+}
+
+fun SessionEditorViewModel.updateMobilityConfigInPart(partId: String, config: MobilityConfig) {
+    updateSession { session ->
+        session.copy(
+            parts = session.parts.map { part ->
+                if (part.id == partId && part.isMobilityGroup) part.copy(mobilityConfig = config) else part
             },
         )
     }

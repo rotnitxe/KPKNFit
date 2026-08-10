@@ -63,6 +63,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.zIndex
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.calculations.calculateEstimatedMetric
@@ -414,6 +416,7 @@ internal fun ExerciseEditorCard(
                         } else {
                             MobilityPreparationCarousel(
                                 series = exercise.mobilitySeries,
+                                mobilityConfig = exercise.mobilityConfig,
                                 accentColor = accentColor,
                                 onUpdate = { mobilityId, transform ->
                                     onUpdateExercise { current ->
@@ -423,6 +426,9 @@ internal fun ExerciseEditorCard(
                                             },
                                         )
                                     }
+                                },
+                                onUpdateConfig = { config ->
+                                    onUpdateExercise { current -> current.copy(mobilityConfig = config) }
                                 },
                                 onRemove = onRemoveMobility,
                                 onAdd = onOpenMobility,
@@ -505,7 +511,15 @@ internal fun ExerciseEditorCard(
                         }
                     }
 
-                // Keep the primary controls stable; secondary configuration lives in overflow.
+                Text(
+                    "SERIES EFECTIVAS",
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.2.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -532,7 +546,7 @@ internal fun ExerciseEditorCard(
                                         },
                                     )
                                 }
-                            }
+                            },
                         )
                     }
 
@@ -543,38 +557,6 @@ internal fun ExerciseEditorCard(
                         accentTinted = true,
                     ) { mode ->
                         onUpdateExercise { current -> current.copy(trainingMode = mode) }
-                    }
-
-                    if (exercise.trainingMode != TrainingMode.SOLO_RPE) {
-                        Surface(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(40.dp)
-                                .clip(RoundedCornerShape(999.dp))
-                                .clickable { showSmartLoadSheet = true },
-                            shape = RoundedCornerShape(999.dp),
-                            color = accentColor.copy(alpha = 0.15f),
-                            border = BorderStroke(1.dp, accentColor.copy(alpha = 0.35f)),
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 12.dp),
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Icon(Icons.Default.FitnessCenter, contentDescription = null, tint = accentColor, modifier = Modifier.size(16.dp))
-                                Spacer(Modifier.width(6.dp))
-                                Text(
-                                    "Carga inteligente",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = accentColor,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                            }
-                        }
                     }
 
                     Box {
@@ -632,7 +614,7 @@ internal fun ExerciseEditorCard(
                             DropdownMenuItem(
                                 text = {
                                     Text(
-                                        if (exercise.isInSuperset()) "Gestionar superserie" else "Activar superserie",
+                                        if (exercise.isInSuperset()) "Gestionar superserie" else "Crear superserie",
                                     )
                                 },
                                 onClick = {
@@ -640,20 +622,34 @@ internal fun ExerciseEditorCard(
                                     onOpenSuperset()
                                 },
                             )
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        if (exercise.mobilitySeries.isEmpty()) {
-                                            "Series de movilidad"
-                                        } else {
-                                            "Series de movilidad (${exercise.mobilitySeries.size})"
-                                        },
-                                    )
-                                },
-                                onClick = {
-                                    showExerciseOptionsMenu = false
-                                    onOpenMobility()
-                                },
+                        }
+                    }
+                }
+                if (exercise.trainingMode != TrainingMode.SOLO_RPE) {
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(40.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable { showSmartLoadSheet = true },
+                        shape = RoundedCornerShape(12.dp),
+                        color = accentColor.copy(alpha = 0.10f),
+                        border = BorderStroke(1.dp, accentColor.copy(alpha = 0.30f)),
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(Icons.Default.FitnessCenter, contentDescription = null, tint = accentColor, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                "Carga inteligente",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = accentColor,
                             )
                         }
                     }
@@ -848,12 +844,6 @@ internal fun ExerciseEditorCard(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    Text(
-                        "Series",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
                     ExerciseSetsCarousel(
                         exercise = exercise,
                         reference1RM = resolved1RM,

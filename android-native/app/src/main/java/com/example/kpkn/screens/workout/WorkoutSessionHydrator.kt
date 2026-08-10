@@ -11,6 +11,7 @@ import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.models.WorkoutContextProfile
 import com.example.kpkn.data.models.WorkoutHeaderWidgets
 import com.example.kpkn.data.models.isSimpleProgram
+import com.example.kpkn.data.models.normalizeMobilityCompatibility
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
@@ -57,6 +58,7 @@ class WorkoutSessionHydrator(
         ): WorkoutEditingState?
         fun refreshLoadSuggestions(state: WorkoutUiState)
         fun nextIncompleteStepAfter(state: WorkoutUiState, includeCurrent: Boolean = false): WorkoutStep?
+        fun firstIncompleteStep(state: WorkoutUiState): WorkoutStep?
         fun startRestTimer(seconds: Int, preserveElapsed: Boolean = false)
         fun updateCoachMessage(setDrain: SetDrain, sessionProgress: Double)
         fun startSessionTimer(remainingSeconds: Int)
@@ -116,6 +118,7 @@ class WorkoutSessionHydrator(
         )
 
         val restoredSession = (resumedState?.session ?: session)
+            .normalizeMobilityCompatibility()
             .let(ports::normalizeSupersetsForWorkout)
             .let(ports::sanitizeSessionLoadModes)
         val restoredMode = resumedState?.activeMode ?: WeekVariant.A
@@ -123,6 +126,9 @@ class WorkoutSessionHydrator(
         val restoredSkippedExerciseIds = resumedState?.skippedExerciseIds ?: emptySet()
         val restoredWarmupCompletedExerciseIds = resumedState?.warmupCompletedExerciseIds ?: emptySet()
         val restoredMobilityCompletedExerciseIds = resumedState?.mobilityCompletedExerciseIds ?: emptySet()
+        val restoredMobilityTotalCompletedStepKeys = resumedState?.mobilityTotalCompletedStepKeys ?: emptySet()
+        val restoredMobilityTotalTimerState = resumedState?.mobilityTotalTimerState
+        val restoredCardioTimerState = resumedState?.cardioTimerState
         val restoredPreparationReports = resumedState?.preparationReports ?: emptyMap()
         val exercisesForMode = ports.sessionForActiveMode(restoredSession, restoredMode).materializedWorkoutExercises()
         val hydratedProfiles = ports.hydrateContextProfiles(
@@ -189,28 +195,19 @@ class WorkoutSessionHydrator(
                 }
             }
         }
-        val restoredSetIdx: Int
-        val restoredExerciseIdx: Int
-        if (resumedState != null) {
-            val directIdx = resumedState.activeExerciseIndex
-                .takeIf { it in exercisesForMode.indices }
-            if (directIdx != null) {
-                restoredExerciseIdx = directIdx
-                restoredSetIdx = resumedState.activeSetIndex.coerceIn(0, exercisesForMode[directIdx].sets.indices.lastOrNull() ?: 0)
-            } else {
-                val (exIdx, setIdx) = ports.resolveResumePosition(
-                    exercises = exercisesForMode,
-                    completedSets = restoredCompletedSets,
-                    preferredExerciseId = resumedState.activeExerciseId,
-                    preferredSetId = resumedState.activeSetId,
-                )
-                restoredExerciseIdx = exIdx
-                restoredSetIdx = setIdx
-            }
-        } else {
-            restoredExerciseIdx = 0
-            restoredSetIdx = 0
-        }
+        val resumeProbe = WorkoutUiState(
+            session = restoredSession,
+            activeMode = restoredMode,
+            completedSets = restoredCompletedSets,
+            warmupCompletedExerciseIds = restoredWarmupCompletedExerciseIds,
+            mobilityCompletedExerciseIds = restoredMobilityCompletedExerciseIds,
+            mobilityTotalCompletedStepKeys = restoredMobilityTotalCompletedStepKeys,
+        )
+        val restoredResumeStep = resumedState?.let { ports.firstIncompleteStep(resumeProbe) }
+        val restoredExerciseIdx = restoredResumeStep
+            ?.let { step -> exercisesForMode.indexOfFirst { it.id == step.exerciseId }.takeIf { it >= 0 } }
+            ?: 0
+        val restoredSetIdx = restoredResumeStep?.setIndex?.coerceAtLeast(0) ?: 0
         val restoredStartTime = resumedState?.startTime ?: System.currentTimeMillis()
         val settings = repository.settings.value
         val featureFlags = settings.workoutFeatureFlags
@@ -239,11 +236,14 @@ class WorkoutSessionHydrator(
                 mesoIndex = foundMesoIdx,
                 currentExerciseIdx = restoredExerciseIdx,
                 currentSetIdx = restoredSetIdx,
-                activeStepKey = resumedState?.activeStepKey,
+                activeStepKey = restoredResumeStep?.stepKey,
                 completedSets = restoredCompletedSets,
                 skippedExerciseIds = restoredSkippedExerciseIds,
                 warmupCompletedExerciseIds = restoredWarmupCompletedExerciseIds,
                 mobilityCompletedExerciseIds = restoredMobilityCompletedExerciseIds,
+                mobilityTotalCompletedStepKeys = restoredMobilityTotalCompletedStepKeys,
+                mobilityTotalTimerState = restoredMobilityTotalTimerState,
+                cardioTimerState = restoredCardioTimerState,
                 preparationReports = restoredPreparationReports,
                 exerciseTags = restoredTags,
                 activeTagsByExercise = restoredActiveTags,
@@ -340,6 +340,8 @@ class WorkoutSessionHydrator(
                     skippedExerciseIds = restoredSkippedExerciseIds,
                     warmupCompletedExerciseIds = restoredWarmupCompletedExerciseIds,
                     mobilityCompletedExerciseIds = restoredMobilityCompletedExerciseIds,
+                    mobilityTotalCompletedStepKeys = restoredMobilityTotalCompletedStepKeys,
+                    mobilityTotalTimerState = restoredMobilityTotalTimerState,
                     preparationReports = restoredPreparationReports,
                     readinessNeuralOverride = resumedState?.readinessNeuralOverride,
                     readinessMuscularOverride = resumedState?.readinessMuscularOverride,

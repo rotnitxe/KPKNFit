@@ -78,6 +78,8 @@ object WorkoutVoiceCommandParser {
         "finalizar sesion", "finalizar entrenamiento", "terminar sesion",
         "terminar entrenamiento", "acabar sesion", "finalizar", "terminar",
     )
+    private val START_CARDIO_KEYWORDS = setOf("iniciar cardio", "empieza cardio", "comenzar cardio")
+    private val FINISH_CARDIO_KEYWORDS = setOf("finalizar cardio", "terminar cardio", "acabar cardio")
 
     private val CANCEL_SESSION_KEYWORDS = setOf(
         "cancelar sesion", "cancelar entrenamiento", "descartar entrenamiento",
@@ -230,6 +232,8 @@ object WorkoutVoiceCommandParser {
                 base += NEXT_EXERCISE_KEYWORDS
                 base += TURN_OFF_VOICE_KEYWORDS
                 base += FINISH_SESSION_KEYWORDS
+                base += START_CARDIO_KEYWORDS
+                base += FINISH_CARDIO_KEYWORDS
                 base += CANCEL_SESSION_KEYWORDS
                 base += ADD_SET_KEYWORDS
                 base += SKIP_REST_KEYWORDS
@@ -437,6 +441,12 @@ object WorkoutVoiceCommandParser {
 
         if (lower.contains("dejar hasta aca") || lower.contains("dejarlo hasta aca")) {
             return VoiceSessionCommand.LeaveUpToHere
+        }
+        if (START_CARDIO_KEYWORDS.any { lower.contains(it) }) {
+            return VoiceSessionCommand.StartCardio
+        }
+        if (FINISH_CARDIO_KEYWORDS.any { lower.contains(it) }) {
+            return VoiceSessionCommand.FinishCardio
         }
         if (FINISH_SESSION_KEYWORDS.any { lower.contains(it) }) {
             return VoiceSessionCommand.FinishSession

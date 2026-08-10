@@ -357,6 +357,7 @@ internal fun GroupEditorCard(
     onOpenMobilityPicker: () -> Unit = {},
     onRemoveMobility: (String) -> Unit = {},
     onUpdateMobility: (String, (MobilitySeries) -> MobilitySeries) -> Unit = { _, _ -> },
+    onUpdateMobilityConfig: (MobilityConfig) -> Unit = {},
     headerOnly: Boolean = false,
     content: @Composable () -> Unit,
 ) {
@@ -585,10 +586,12 @@ internal fun GroupEditorCard(
                 AnimatedVisibility(!collapsed && part.isMobilityGroup) {
                     MobilityGroupInlineEditor(
                         mobilitySeries = part.mobilitySeries,
+                        mobilityConfig = part.mobilityConfig,
                         accentColor = partColor,
                         onAdd = onOpenMobilityPicker,
                         onRemove = onRemoveMobility,
                         onUpdate = onUpdateMobility,
+                        onUpdateConfig = onUpdateMobilityConfig,
                     )
                 }
 
@@ -685,10 +688,12 @@ internal fun GroupEditorCard(
 @Composable
 private fun MobilityGroupInlineEditor(
     mobilitySeries: List<MobilitySeries>,
+    mobilityConfig: MobilityConfig?,
     accentColor: Color,
     onAdd: () -> Unit,
     onRemove: (String) -> Unit,
     onUpdate: (String, (MobilitySeries) -> MobilitySeries) -> Unit,
+    onUpdateConfig: (MobilityConfig) -> Unit,
 ) {
     Column(
         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
@@ -711,8 +716,10 @@ private fun MobilityGroupInlineEditor(
             // there is no second, read-only row implementation to drift visually.
             MobilityPreparationCarousel(
                 series = mobilitySeries,
+                mobilityConfig = mobilityConfig,
                 accentColor = accentColor,
                 onUpdate = onUpdate,
+                onUpdateConfig = onUpdateConfig,
                 onRemove = onRemove,
                 onAdd = onAdd,
             )

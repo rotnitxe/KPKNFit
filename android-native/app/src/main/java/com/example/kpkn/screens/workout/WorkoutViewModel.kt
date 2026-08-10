@@ -15,6 +15,7 @@ import com.example.kpkn.domain.energy.TrainingEnergyEngine
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
+import com.example.kpkn.domain.cardio.CardioTimerEngine
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.replacedWithCatalogExercise
 import com.example.kpkn.screens.sessioneditor.CatalogSelectionDraftBridge
@@ -37,6 +38,8 @@ import com.example.kpkn.services.cardio.CardioGpsForegroundService
 import com.example.kpkn.services.cardio.CardioGpsState
 import com.example.kpkn.services.cardio.CardioGpsStatus
 import com.example.kpkn.services.cardio.CardioGpsTracker
+import com.example.kpkn.services.cardio.CardioGpsMilestoneNotifier
+import com.example.kpkn.services.cardio.CardioHealthProviderFactory
 import com.example.kpkn.services.workout.TimerAction
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
 import com.example.kpkn.services.workout.WorkoutVoiceController
@@ -53,6 +56,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -93,6 +97,9 @@ class WorkoutViewModel(
     private val repository = ProgramRepository.getInstance()
     private var deferredOnComplete: (() -> Unit)? = null
     private var pendingVoiceDiagnosticOnComplete: (() -> Unit)? = null
+    private var mobilityTotalTimerJob: Job? = null
+    private var cardioTimerJob: Job? = null
+    private var cardioInfoTickerJob: Job? = null
     /** Includes the current catalog/custom overlay; aliases are not added after cutover. */
     private val exerciseIndex: Map<String, ExerciseMuscleInfo>
         get() {
@@ -110,10 +117,13 @@ class WorkoutViewModel(
     )
     private val performanceRangeStore = PerformanceRangeStore(appContext)
     private val pacingNotifications = WorkoutPacingNotificationManager(appContext)
+    private val cardioGpsMilestoneNotifier = CardioGpsMilestoneNotifier(appContext)
+    private val cardioHealthProvider = CardioHealthProviderFactory.create(appContext)
 
     private val _uiState = MutableStateFlow(WorkoutUiState(programId = programId))
     val uiState: StateFlow<WorkoutUiState> = _uiState.asStateFlow()
     val cardioGpsState: StateFlow<CardioGpsState> = CardioGpsTracker.state
+    val cardioHealthState: StateFlow<com.example.kpkn.services.cardio.CardioHealthState> = cardioHealthProvider.state
 
     val allUserTags: StateFlow<List<String>> = combine(
         repository.history,
@@ -516,6 +526,8 @@ class WorkoutViewModel(
                     this@WorkoutViewModel.recordWarmupHeaviness(exerciseId, warmupSetId, rpe)
                 override fun markMobilityComplete(exerciseId: String, mobilitySeriesId: String, mobilitySetIndex: Int) =
                     this@WorkoutViewModel.markMobilityComplete(exerciseId, mobilitySeriesId, mobilitySetIndex)
+                override fun markMobilityTotalComplete(exerciseId: String) =
+                    this@WorkoutViewModel.markMobilityTotalComplete(exerciseId)
                 override fun reportMobilityStep(
                     exerciseId: String,
                     mobilitySeriesId: String,
@@ -527,6 +539,8 @@ class WorkoutViewModel(
                     this@WorkoutViewModel.skipRemainingPreparation(exerciseId)
                 override fun recordCardioSet(durationSeconds: Int, distanceKm: Double?, averageHeartRate: Int?) =
                     this@WorkoutViewModel.recordCardioSet(durationSeconds, distanceKm, averageHeartRate)
+                override fun startCardio() = this@WorkoutViewModel.startCardioFromVoice()
+                override fun finishCardio() = this@WorkoutViewModel.finishCardioFromVoice()
                 override fun setVoiceExerciseQueue(exerciseIds: List<String>) {
                     _uiState.update { it.copy(voiceExerciseQueue = exerciseIds) }
                     this@WorkoutViewModel.persistOngoingState()
@@ -558,6 +572,8 @@ class WorkoutViewModel(
                 override fun refreshLoadSuggestions(state: WorkoutUiState) = loadSuggestionController.refreshLoadSuggestions(state)
                 override fun nextIncompleteStepAfter(state: WorkoutUiState, includeCurrent: Boolean) =
                     stepNavigator.nextIncompleteStepAfter(state, includeCurrent)
+                override fun firstIncompleteStep(state: WorkoutUiState) =
+                    stepNavigator.firstIncompleteStep(state)
                 override fun startRestTimer(seconds: Int, preserveElapsed: Boolean) =
                     this@WorkoutViewModel.startRestTimer(seconds, preserveElapsed = preserveElapsed)
                 override fun updateCoachMessage(setDrain: SetDrain, sessionProgress: Double) =
@@ -739,6 +755,22 @@ class WorkoutViewModel(
                 }
             }
         }
+        viewModelScope.launch {
+            cardioGpsState.collect { gps ->
+                val state = _uiState.value
+                val exercise = visibleExercises(state).getOrNull(state.currentExerciseIdx)
+                    ?.takeIf { it.isCardio && it.cardioDetails?.requiresGps == true }
+                    ?: return@collect
+                val expectedKey = cardioGpsSessionKey(exercise.id)
+                if (gps.sessionKey == expectedKey && gps.status != CardioGpsStatus.INACTIVE) {
+                    cardioGpsMilestoneNotifier.notifyReached(
+                        sessionKey = expectedKey,
+                        distanceMeters = gps.distanceMeters,
+                        targetDistanceKm = exercise.cardioDetails?.targetDistanceKm,
+                    )
+                }
+            }
+        }
         // Fase 4.4: aplicar el flag AEC en caliente al cambiar el setting (solo si la
         // voz está activa; en arranque startListening ya lo aplica vía provider).
         viewModelScope.launch {
@@ -783,8 +815,10 @@ class WorkoutViewModel(
             val current = visibleExercises(state)
                 .getOrNull(state.currentExerciseIdx)
             current
-                ?.takeIf { it.isCardio && it.cardioDetails?.requiresGps == true }
-                ?.let(::restoreCardioGpsIfAvailable)
+            ?.takeIf { it.isCardio && it.cardioDetails?.requiresGps == true }
+            ?.let(::restoreCardioGpsIfAvailable)
+            resumeRestoredMobilityTotalTimerIfNeeded()
+            resumeRestoredCardioTimerIfNeeded()
         }
         if (loaded && !sessionStartLogged) {
             sessionStartLogged = true
@@ -804,6 +838,58 @@ class WorkoutViewModel(
             )
         }
         return loaded
+    }
+
+    /** Rehydrates a Surtido timer after process death and accounts for wall-clock time. */
+    private fun resumeRestoredMobilityTotalTimerIfNeeded() {
+        val restored = _uiState.value.mobilityTotalTimerState
+            ?.takeIf { it.isRunning }
+            ?: return
+        val exercise = visibleExercises(_uiState.value).firstOrNull { candidate ->
+            WorkoutStepRules.mobilityTotalStepKey(candidate.id) == restored.stepKey
+        } ?: return
+        val elapsedSeconds = ((System.currentTimeMillis() - restored.updatedAtMs) / 1_000L)
+            .coerceAtLeast(0L)
+            .coerceAtMost(restored.remainingSeconds.toLong())
+            .toInt()
+        val remaining = (restored.remainingSeconds - elapsedSeconds).coerceAtLeast(0)
+        _uiState.update { state ->
+            state.copy(
+                mobilityTotalTimerState = restored.copy(
+                    remainingSeconds = remaining,
+                    isRunning = remaining > 0,
+                    updatedAtMs = System.currentTimeMillis(),
+                ),
+            )
+        }
+        if (remaining <= 0) {
+            markMobilityTotalComplete(exercise.id)
+        } else {
+            startMobilityTotalTimer(exercise.id, (restored.totalSeconds / 60).coerceAtLeast(1))
+        }
+    }
+
+    /** Rehydrates a cardio countdown after process death and accounts for elapsed wall-clock time. */
+    private fun resumeRestoredCardioTimerIfNeeded() {
+        val restored = _uiState.value.cardioTimerState
+            ?.takeIf { it.status == CardioExecutionStatus.RUNNING }
+            ?: return
+        val elapsedSeconds = ((System.currentTimeMillis() - restored.updatedAtMs) / 1_000L)
+            .coerceAtLeast(0L)
+            .coerceAtMost(restored.remainingSeconds.toLong())
+            .toInt()
+        val updated = CardioTimerEngine.applyElapsedWallClock(
+            state = restored,
+            elapsedSeconds = elapsedSeconds,
+            nowMs = System.currentTimeMillis(),
+        )
+        _uiState.update { state -> state.copy(cardioTimerState = updated) }
+        persistOngoingState()
+        if (updated.status == CardioExecutionStatus.RUNNING) {
+            cardioHealthProvider.start(updated.exerciseId)
+            launchCardioInfoTicker(updated.exerciseId)
+            launchCardioTimerJob(updated.exerciseId)
+        }
     }
 
     private fun workoutWidgetsSessionKey(): String = "$programId::$sessionId"
@@ -2421,6 +2507,95 @@ class WorkoutViewModel(
         completeMobilityStep(exerciseId, mobilityId, mobilitySetIndex)
     }
 
+    fun markMobilityTotalComplete(exerciseId: String) {
+        val key = WorkoutStepRules.mobilityTotalStepKey(exerciseId)
+        if (key in _uiState.value.mobilityTotalCompletedStepKeys) return
+        mobilityTotalTimerJob?.cancel()
+        mobilityTotalTimerJob = null
+        _uiState.update {
+            it.copy(
+                mobilityTotalCompletedStepKeys = it.mobilityTotalCompletedStepKeys + key,
+                mobilityTotalTimerState = null,
+            )
+        }
+        persistOngoingState()
+        nextSet(stopRest = false)
+    }
+
+    fun startMobilityTotalTimer(exerciseId: String, totalMinutes: Int) {
+        val key = WorkoutStepRules.mobilityTotalStepKey(exerciseId)
+        val current = _uiState.value
+        if (key in current.mobilityTotalCompletedStepKeys) return
+        if (current.mobilityTotalTimerState?.stepKey == key && current.mobilityTotalTimerState.isRunning) return
+        val totalSeconds = totalMinutes.coerceAtLeast(1) * 60
+        val remaining = current.mobilityTotalTimerState
+            ?.takeIf { it.stepKey == key }
+            ?.remainingSeconds
+            ?.coerceIn(0, totalSeconds)
+            ?: totalSeconds
+        if (remaining <= 0) {
+            markMobilityTotalComplete(exerciseId)
+            return
+        }
+        _uiState.update {
+            it.copy(
+                mobilityTotalTimerState = MobilityTotalTimerState(
+                    stepKey = key,
+                    totalSeconds = totalSeconds,
+                    remainingSeconds = remaining,
+                    isRunning = true,
+                    updatedAtMs = System.currentTimeMillis(),
+                ),
+                activeStepKey = key,
+            )
+        }
+        persistOngoingState()
+        mobilityTotalTimerJob?.cancel()
+        mobilityTotalTimerJob = viewModelScope.launch {
+            while (true) {
+                delay(1_000L)
+                val timer = _uiState.value.mobilityTotalTimerState
+                    ?.takeIf { it.stepKey == key && it.isRunning }
+                    ?: return@launch
+                val nextRemaining = (timer.remainingSeconds - 1).coerceAtLeast(0)
+                _uiState.update { state ->
+                    state.copy(
+                        mobilityTotalTimerState = timer.copy(
+                            remainingSeconds = nextRemaining,
+                            isRunning = nextRemaining > 0,
+                            updatedAtMs = System.currentTimeMillis(),
+                        ),
+                    )
+                }
+                persistOngoingState()
+                if (nextRemaining == 0) {
+                    markMobilityTotalComplete(exerciseId)
+                    return@launch
+                }
+            }
+        }
+    }
+
+    fun pauseMobilityTotalTimer() {
+        mobilityTotalTimerJob?.cancel()
+        mobilityTotalTimerJob = null
+        if (_uiState.value.mobilityTotalTimerState?.isRunning != true) return
+        _uiState.update { state ->
+            state.copy(
+                mobilityTotalTimerState = state.mobilityTotalTimerState?.copy(
+                    isRunning = false,
+                    updatedAtMs = System.currentTimeMillis(),
+                ),
+            )
+        }
+        persistOngoingState()
+    }
+
+    fun resumeMobilityTotalTimer(exerciseId: String, totalMinutes: Int) =
+        startMobilityTotalTimer(exerciseId, totalMinutes)
+
+    fun completeMobilityTotalTimer(exerciseId: String) = markMobilityTotalComplete(exerciseId)
+
     fun skipRemainingPreparation(exerciseId: String) {
         val state = _uiState.value
         val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return
@@ -2430,9 +2605,15 @@ class WorkoutViewModel(
             }
         }
         val warmupKeys = exercise.warmupSets.map { warmupCompletionKey(exerciseId, it.id) }
+        val mobilityTotalKeys = if (exercise.mobilityConfig?.mode == MobilityMode.SURTIDO && exercise.mobilitySeries.isNotEmpty()) {
+            setOf(WorkoutStepRules.mobilityTotalStepKey(exerciseId))
+        } else {
+            emptySet()
+        }
         _uiState.update {
             it.copy(
                 mobilityCompletedExerciseIds = it.mobilityCompletedExerciseIds + mobilityKeys,
+                mobilityTotalCompletedStepKeys = it.mobilityTotalCompletedStepKeys + mobilityTotalKeys,
                 warmupCompletedExerciseIds = it.warmupCompletedExerciseIds + warmupKeys,
             )
         }
@@ -2500,14 +2681,21 @@ class WorkoutViewModel(
             ?.takeIf { it.isCardio && it.cardioDetails?.requiresGps == true }
             ?: return
         CardioGpsForegroundService.start(appContext, cardioGpsSessionKey(exercise.id))
+        startCardioTimer(exercise.id, exercise.cardioDetails?.targetDurationSeconds ?: 1)
     }
 
     fun pauseCardioGps() {
         CardioGpsForegroundService.pause(appContext)
+        pauseCardioTimer()
     }
 
     fun resumeCardioGps() {
         CardioGpsForegroundService.resume(appContext)
+        val state = _uiState.value
+        val exercise = visibleExercises(state).getOrNull(state.currentExerciseIdx)
+            ?.takeIf { it.isCardio }
+            ?: return
+        startCardioTimer(exercise.id, exercise.cardioDetails?.targetDurationSeconds ?: 1)
     }
 
     fun cardioGpsPermissionDenied() {
@@ -2518,11 +2706,173 @@ class WorkoutViewModel(
         CardioGpsTracker.markPermissionDenied(cardioGpsSessionKey(exercise.id))
     }
 
+    fun startCardioTimer(exerciseId: String, totalSeconds: Int) {
+        val state = _uiState.value
+        val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId }
+            ?.takeIf { it.isCardio }
+            ?: return
+        val safeTotal = (totalSeconds.takeIf { it > 0 } ?: exercise.cardioDetails?.targetDurationSeconds ?: 1)
+            .coerceAtLeast(1)
+        val current = state.cardioTimerState?.takeIf { it.exerciseId == exerciseId }
+        val base = when {
+            current == null || current.status == CardioExecutionStatus.RECORDED ->
+                CardioTimerState(exerciseId, safeTotal, safeTotal)
+            current.remainingSeconds <= 0 -> current.copy(
+                totalSeconds = safeTotal,
+                remainingSeconds = safeTotal,
+                elapsedSeconds = 0,
+                status = CardioExecutionStatus.READY,
+            )
+            else -> current.copy(totalSeconds = safeTotal)
+        }
+        val running = CardioTimerEngine.start(base, System.currentTimeMillis())
+        _uiState.update { it.copy(cardioTimerState = running, activeStepKey = WorkoutStepRules.cardioStepKey(exerciseId)) }
+        persistOngoingState()
+        cardioHealthProvider.start(exerciseId)
+        launchCardioInfoTicker(exerciseId)
+        launchCardioTimerJob(exerciseId)
+    }
+
+    private fun launchCardioTimerJob(exerciseId: String) {
+        cardioTimerJob?.cancel()
+        cardioTimerJob = viewModelScope.launch {
+            while (true) {
+                delay(1_000L)
+                val timer = _uiState.value.cardioTimerState
+                    ?.takeIf { it.exerciseId == exerciseId && it.status == CardioExecutionStatus.RUNNING }
+                    ?: return@launch
+                val updated = CardioTimerEngine.tick(
+                    state = timer,
+                    elapsedSeconds = 1,
+                    nowMs = System.currentTimeMillis(),
+                )
+                _uiState.update { state -> state.copy(cardioTimerState = updated) }
+                persistOngoingState(immediate = false)
+                if (updated.status != CardioExecutionStatus.RUNNING) return@launch
+            }
+        }
+    }
+
+    fun pauseCardioTimer() {
+        cardioTimerJob?.cancel()
+        cardioTimerJob = null
+        cardioInfoTickerJob?.cancel()
+        cardioInfoTickerJob = null
+        cardioHealthProvider.stop()
+        val current = _uiState.value.cardioTimerState
+            ?.takeIf { it.status == CardioExecutionStatus.RUNNING }
+            ?: return
+        _uiState.update { it.copy(cardioTimerState = CardioTimerEngine.pause(current, System.currentTimeMillis())) }
+        persistOngoingState()
+    }
+
+    private fun launchCardioInfoTicker(exerciseId: String) {
+        cardioInfoTickerJob?.cancel()
+        cardioInfoTickerJob = viewModelScope.launch {
+            while (true) {
+                val timer = _uiState.value.cardioTimerState
+                    ?.takeIf { it.exerciseId == exerciseId && it.status == CardioExecutionStatus.RUNNING }
+                    ?: return@launch
+                val now = System.currentTimeMillis()
+                val elapsedSinceLast = (now - timer.lastInfoAnnouncedAtMs).coerceAtLeast(0L)
+                val waitMs = if (timer.lastInfoAnnouncedAtMs <= 0L) {
+                    CARDIO_INFO_INTERVAL_MS
+                } else {
+                    (CARDIO_INFO_INTERVAL_MS - elapsedSinceLast).coerceAtLeast(1_000L)
+                }
+                delay(waitMs)
+                val current = _uiState.value.cardioTimerState
+                    ?.takeIf { it.exerciseId == exerciseId && it.status == CardioExecutionStatus.RUNNING }
+                    ?: return@launch
+                val announcedAt = System.currentTimeMillis()
+                _uiState.update { state ->
+                    state.copy(cardioTimerState = current.copy(lastInfoAnnouncedAtMs = announcedAt))
+                }
+                persistOngoingState(immediate = false)
+                if (voiceController.isEnabled()) {
+                    voiceController.speakFeedbackUpdated("Cardio en curso: ${current.elapsedSeconds / 60} minutos realizados.")
+                }
+            }
+        }
+    }
+
+    fun requestCardioRecord(
+        exerciseId: String,
+        durationSeconds: Int,
+        distanceKm: Double?,
+        averageHeartRate: Int?,
+    ) {
+        cardioTimerJob?.cancel()
+        cardioTimerJob = null
+        cardioInfoTickerJob?.cancel()
+        cardioInfoTickerJob = null
+        cardioHealthProvider.stop()
+        val state = _uiState.value
+        val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId }
+            ?.takeIf { it.isCardio }
+            ?: return
+        val details = exercise.cardioDetails ?: return
+        val total = state.cardioTimerState?.takeIf { it.exerciseId == exerciseId }?.totalSeconds
+            ?: details.targetDurationSeconds.coerceAtLeast(1)
+        val elapsed = durationSeconds.coerceAtLeast(0)
+        val base = state.cardioTimerState?.takeIf { it.exerciseId == exerciseId }
+            ?: CardioTimerState(exerciseId, total, (total - elapsed).coerceAtLeast(0))
+        val awaiting = CardioTimerEngine.requestConfirmation(
+            base.copy(
+                totalSeconds = total,
+                remainingSeconds = (total - elapsed).coerceAtLeast(0),
+                elapsedSeconds = elapsed,
+                distanceKm = distanceKm,
+                averageHeartRate = averageHeartRate,
+            ),
+            System.currentTimeMillis(),
+        )
+        _uiState.update { it.copy(cardioTimerState = awaiting) }
+        persistOngoingState()
+    }
+
+    fun cancelCardioRecord() {
+        val current = _uiState.value.cardioTimerState ?: return
+        _uiState.update {
+            it.copy(cardioTimerState = CardioTimerEngine.cancelConfirmation(current, System.currentTimeMillis()))
+        }
+        persistOngoingState()
+    }
+
+    fun startCardioFromVoice(): Boolean {
+        val state = _uiState.value
+        val exercise = visibleExercises(state).getOrNull(state.currentExerciseIdx)
+            ?.takeIf { it.isCardio }
+            ?: return false
+        startCardioTimer(exercise.id, exercise.cardioDetails?.targetDurationSeconds ?: 1)
+        return true
+    }
+
+    fun finishCardioFromVoice(): Boolean {
+        val state = _uiState.value
+        val exercise = visibleExercises(state).getOrNull(state.currentExerciseIdx)
+            ?.takeIf { it.isCardio }
+            ?: return false
+        val details = exercise.cardioDetails ?: return false
+        val timer = state.cardioTimerState?.takeIf { it.exerciseId == exercise.id }
+        val gps = CardioGpsTracker.state.value.takeIf { it.sessionKey == cardioGpsSessionKey(exercise.id) }
+        val duration = timer?.elapsedSeconds?.takeIf { it > 0 }
+            ?: gps?.elapsedActiveSeconds?.toInt()?.takeIf { it > 0 }
+            ?: details.targetDurationSeconds.coerceAtLeast(1)
+        val distance = gps?.distanceMeters?.div(1_000.0)?.takeIf { it > 0.0 }
+            ?: timer?.distanceKm
+            ?: details.targetDistanceKm
+        val heartRate = timer?.averageHeartRate ?: cardioHealthState.value.heartRateBpm
+        return recordCardioSetUsingGps(duration, distance, heartRate)
+    }
+
     fun recordCardioSetUsingGps(
         manualDurationSeconds: Int,
         manualDistanceKm: Double?,
         averageHeartRate: Int?,
     ): Boolean {
+        cardioTimerJob?.cancel()
+        cardioTimerJob = null
         val state = _uiState.value
         val exercise = visibleExercises(state).getOrNull(state.currentExerciseIdx)
             ?.takeIf { it.isCardio && it.cardioDetails?.requiresGps == true }
@@ -2549,6 +2899,11 @@ class WorkoutViewModel(
         distanceKm: Double?,
         averageHeartRate: Int?,
     ): Boolean {
+        cardioTimerJob?.cancel()
+        cardioTimerJob = null
+        cardioInfoTickerJob?.cancel()
+        cardioInfoTickerJob = null
+        cardioHealthProvider.stop()
         val state = _uiState.value
         val exercise = visibleExercises(state).getOrNull(state.currentExerciseIdx) ?: return false
         val details = exercise.cardioDetails ?: return false
@@ -2572,7 +2927,22 @@ class WorkoutViewModel(
             rpe = details.intensity.defaultRpe,
         )
         val alreadyCompleted = state.completedSets.containsKey(key)
-        _uiState.update { it.copy(completedSets = it.completedSets + (key to completed)) }
+        _uiState.update {
+            it.copy(
+                completedSets = it.completedSets + (key to completed),
+                cardioTimerState = it.cardioTimerState
+                    ?.takeIf { timer -> timer.exerciseId == exercise.id }
+                    ?.let { timer -> timer.copy(
+                        totalSeconds = timer.totalSeconds.coerceAtLeast(durationSeconds),
+                        remainingSeconds = 0,
+                        elapsedSeconds = durationSeconds.coerceAtLeast(0),
+                        status = CardioExecutionStatus.RECORDED,
+                        updatedAtMs = System.currentTimeMillis(),
+                        distanceKm = distanceKm,
+                        averageHeartRate = averageHeartRate,
+                    ) },
+            )
+        }
         persistOngoingState()
         if (!alreadyCompleted) stepNavigator.nextSet()
         return true
@@ -3716,6 +4086,10 @@ class WorkoutViewModel(
         _uiState.value.featureFlags.workoutV2HeaderWidgets && _uiState.value.headerWidgets.showRmCalculator
 
     override fun onCleared() {
+        cardioTimerJob?.cancel()
+        mobilityTotalTimerJob?.cancel()
+        cardioInfoTickerJob?.cancel()
+        cardioHealthProvider.stop()
         persistence.flushForBackground()
         super.onCleared()
         ActiveWorkoutHolder.clear()
@@ -3730,6 +4104,7 @@ class WorkoutViewModel(
     }
 
     companion object {
+        private const val CARDIO_INFO_INTERVAL_MS = 10 * 60 * 1_000L
         private const val HYBRID_VOICE_TUTORIAL_VERSION = 3
 
         fun factory(

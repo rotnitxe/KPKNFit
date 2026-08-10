@@ -1,7 +1,9 @@
 package com.example.kpkn.screens.workout
 
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.MobilitySeries
+import com.example.kpkn.data.models.MobilityMode
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.UnilateralSideOrder
 import com.example.kpkn.data.models.isEffectivelyUnilateral
@@ -13,6 +15,7 @@ enum class WorkoutStepType {
     CARDIO,
     MOBILITY,
     MOBILITY_GROUP,
+    MOBILITY_TOTAL,
     WARMUP,
     WORKING_SET,
 }
@@ -27,6 +30,8 @@ data class WorkoutStep(
     val mobilitySeriesId: String? = null,
     /** Zero-based repetition inside a configured mobility series. */
     val mobilitySetIndex: Int = 0,
+    /** Block duration for [WorkoutStepType.MOBILITY_TOTAL], in minutes. */
+    val mobilityTotalMinutes: Int? = null,
     val side: String? = null,
     val supersetGroupId: String? = null,
     val supersetRoundIndex: Int? = null,
@@ -85,6 +90,40 @@ object WorkoutStepRules {
         }
     }
 
+    /** Pure resume rule used by tests and by callers that do not own a ViewModel. */
+    fun firstIncompleteStep(
+        session: Session,
+        completedSets: Map<String, CompletedSet> = emptyMap(),
+        warmupCompletedExerciseIds: Set<String> = emptySet(),
+        mobilityCompletedExerciseIds: Set<String> = emptySet(),
+        mobilityTotalCompletedStepKeys: Set<String> = emptySet(),
+    ): WorkoutStep? {
+        val visible = session.materializedWorkoutExercises()
+        return buildSteps(session, visible).firstOrNull { step ->
+            if (step.isEmptySlot) return@firstOrNull false
+            when (step.type) {
+                WorkoutStepType.CARDIO -> "${step.exerciseId}_0" !in completedSets
+                WorkoutStepType.MOBILITY,
+                WorkoutStepType.MOBILITY_GROUP -> {
+                    val mobilityId = step.mobilitySeriesId ?: return@firstOrNull false
+                    mobilityStepKey(step.exerciseId, mobilityId, step.mobilitySetIndex) !in mobilityCompletedExerciseIds
+                }
+                WorkoutStepType.MOBILITY_TOTAL -> step.stepKey !in mobilityTotalCompletedStepKeys
+                WorkoutStepType.WARMUP -> {
+                    val warmupId = step.warmupSetId ?: return@firstOrNull false
+                    step.exerciseId !in warmupCompletedExerciseIds &&
+                        warmupStepKey(step.exerciseId, warmupId) !in warmupCompletedExerciseIds
+                }
+                WorkoutStepType.WORKING_SET -> {
+                    val setIndex = step.setIndex ?: return@firstOrNull false
+                    workingStepKey(step.exerciseId, setIndex, step.side) !in completedSets
+                }
+            }
+        }
+    }
+
+    fun mobilityTotalStepKey(exerciseId: String): String = "${exerciseId}_mobility_total"
+
     fun cardioStepKey(exerciseId: String): String = "${exerciseId}_cardio"
 
     fun workingStepKey(exerciseId: String, setIndex: Int, side: String? = null): String =
@@ -125,21 +164,13 @@ object WorkoutStepRules {
             if (exercise.isCardio) {
                 appendCardioStep(exercise, groupId, steps)
             } else {
-                exercise.mobilitySeries.forEach { mobility ->
-                    repeat(mobility.sets.coerceAtLeast(1)) { mobilitySetIndex ->
-                        steps += WorkoutStep(
-                            type = WorkoutStepType.MOBILITY,
-                            exerciseId = exercise.id,
-                            exerciseName = "Movilidad de superserie",
-                            stepKey = mobilityStepKey(exercise.id, mobility.id, mobilitySetIndex),
-                            mobilitySeriesId = mobility.id,
-                            mobilitySetIndex = mobilitySetIndex,
-                            supersetGroupId = groupId,
-                            mobilitySeries = listOf(mobility),
-                            restAfterKind = RestTimerKind.STANDARD,
-                        )
-                    }
-                }
+                appendMobilitySteps(
+                    exercise = exercise,
+                    type = WorkoutStepType.MOBILITY,
+                    exerciseName = "Movilidad de superserie",
+                    groupId = groupId,
+                    steps = steps,
+                )
             }
         }
 
@@ -194,20 +225,13 @@ object WorkoutStepRules {
         exercise: Exercise,
         steps: MutableList<WorkoutStep>,
     ) {
-        exercise.mobilitySeries.forEach { mobility ->
-            repeat(mobility.sets.coerceAtLeast(1)) { mobilitySetIndex ->
-                steps += WorkoutStep(
-                    type = WorkoutStepType.MOBILITY_GROUP,
-                    exerciseId = exercise.id,
-                    exerciseName = exercise.name,
-                    stepKey = mobilityStepKey(exercise.id, mobility.id, mobilitySetIndex),
-                    mobilitySeriesId = mobility.id,
-                    mobilitySetIndex = mobilitySetIndex,
-                    mobilitySeries = listOf(mobility),
-                    restAfterKind = RestTimerKind.STANDARD,
-                )
-            }
-        }
+        appendMobilitySteps(
+            exercise = exercise,
+            type = WorkoutStepType.MOBILITY_GROUP,
+            exerciseName = exercise.name,
+            groupId = null,
+            steps = steps,
+        )
     }
 
     private fun appendCardioStep(
@@ -231,12 +255,45 @@ object WorkoutStepRules {
         groupId: String?,
         steps: MutableList<WorkoutStep>,
     ) {
+        appendMobilitySteps(
+            exercise = exercise,
+            type = WorkoutStepType.MOBILITY,
+            exerciseName = spokenWorkoutExerciseName(exercise),
+            groupId = groupId,
+            steps = steps,
+        )
+        exercise.warmupSets.forEachIndexed { index, _ ->
+            steps += warmupStep(exercise, groupId, index)
+        }
+    }
+
+    private fun appendMobilitySteps(
+        exercise: Exercise,
+        type: WorkoutStepType,
+        exerciseName: String,
+        groupId: String?,
+        steps: MutableList<WorkoutStep>,
+    ) {
+        if (exercise.mobilitySeries.isEmpty()) return
+        if (exercise.mobilityConfig?.mode == MobilityMode.SURTIDO) {
+            steps += WorkoutStep(
+                type = WorkoutStepType.MOBILITY_TOTAL,
+                exerciseId = exercise.id,
+                exerciseName = exerciseName,
+                stepKey = mobilityTotalStepKey(exercise.id),
+                supersetGroupId = groupId,
+                mobilityTotalMinutes = (exercise.mobilityConfig?.totalMinutes ?: 1).coerceAtLeast(1),
+                mobilitySeries = exercise.mobilitySeries,
+                restAfterKind = RestTimerKind.STANDARD,
+            )
+            return
+        }
         exercise.mobilitySeries.forEach { mobility ->
             repeat(mobility.sets.coerceAtLeast(1)) { mobilitySetIndex ->
                 steps += WorkoutStep(
-                    type = WorkoutStepType.MOBILITY,
+                    type = type,
                     exerciseId = exercise.id,
-                    exerciseName = spokenWorkoutExerciseName(exercise),
+                    exerciseName = exerciseName,
                     stepKey = mobilityStepKey(exercise.id, mobility.id, mobilitySetIndex),
                     mobilitySeriesId = mobility.id,
                     mobilitySetIndex = mobilitySetIndex,
@@ -245,9 +302,6 @@ object WorkoutStepRules {
                     restAfterKind = RestTimerKind.STANDARD,
                 )
             }
-        }
-        exercise.warmupSets.forEachIndexed { index, _ ->
-            steps += warmupStep(exercise, groupId, index)
         }
     }
 

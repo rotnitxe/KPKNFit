@@ -1,6 +1,11 @@
 package com.example.kpkn.screens.sessioneditor.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -20,6 +26,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,9 +38,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.MobilitySeries
+import com.example.kpkn.data.models.MobilityConfig
+import com.example.kpkn.data.models.MobilityMode
+import com.example.kpkn.data.models.MobilityUnit
 import com.example.kpkn.data.models.WarmupSetDefinition
 import com.example.kpkn.screens.sessioneditor.EditorMiniField
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
+import com.example.kpkn.screens.sessioneditor.formatRestSummary
+import com.example.kpkn.ui.components.KpknNativeTimePickerDialog
 
 /**
  * Compact preparation cards used inside the folded editor blocks. The cards deliberately
@@ -40,12 +55,58 @@ import com.example.kpkn.screens.sessioneditor.formatEditableNumber
 @Composable
 internal fun MobilityPreparationCarousel(
     series: List<MobilitySeries>,
+    mobilityConfig: MobilityConfig? = null,
     accentColor: Color,
     onUpdate: (String, (MobilitySeries) -> MobilitySeries) -> Unit,
+    onUpdateConfig: (MobilityConfig) -> Unit = {},
     onRemove: (String) -> Unit,
     onAdd: () -> Unit,
 ) {
+    val selectedMode = mobilityConfig?.mode ?: MobilityMode.ENFOCADO
+    val isSurtido = selectedMode == MobilityMode.SURTIDO
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            "Modo",
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.White.copy(alpha = 0.62f),
+        )
+        FilterChip(
+            selected = !isSurtido,
+            onClick = { onUpdateConfig((mobilityConfig ?: MobilityConfig()).copy(mode = MobilityMode.ENFOCADO)) },
+            label = { Text("Enfocado") },
+        )
+        FilterChip(
+            selected = isSurtido,
+            onClick = { onUpdateConfig((mobilityConfig ?: MobilityConfig()).copy(mode = MobilityMode.SURTIDO)) },
+            label = { Text("Surtido") },
+        )
+        if (isSurtido) {
+            EditorMiniField(
+                label = "Total (min)",
+                value = (mobilityConfig?.totalMinutes ?: 1).coerceAtLeast(1).toString(),
+                stateKey = "mobility-total-minutes-${series.firstOrNull()?.id ?: "block"}",
+                keyboardType = KeyboardType.Number,
+                accentColor = accentColor,
+                modifier = Modifier.width(92.dp),
+            ) { input ->
+                input.toIntOrNull()?.let { minutes ->
+                    onUpdateConfig(
+                        (mobilityConfig ?: MobilityConfig(MobilityMode.SURTIDO, 1)).copy(
+                            mode = MobilityMode.SURTIDO,
+                            totalMinutes = minutes.coerceAtLeast(1),
+                        ),
+                    )
+                }
+            }
+        }
+    }
+    val listState = rememberLazyListState()
     LazyRow(
+        state = listState,
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = PaddingValues(horizontal = 2.dp),
@@ -53,6 +114,7 @@ internal fun MobilityPreparationCarousel(
         items(series, key = { it.id }) { mobility ->
             MobilityPreparationCard(
                 mobility = mobility,
+                showPerExerciseFields = !isSurtido,
                 accentColor = accentColor,
                 onUpdate = { transform -> onUpdate(mobility.id, transform) },
                 onRemove = { onRemove(mobility.id) },
@@ -64,11 +126,18 @@ internal fun MobilityPreparationCarousel(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            if (series.size == 1) "1 tarjeta de movilidad" else "${series.size} tarjetas · desliza para verlas",
-            style = MaterialTheme.typography.labelSmall,
-            color = Color.White.copy(alpha = 0.58f),
-        )
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+            repeat(series.size) { index ->
+                Box(
+                    modifier = Modifier
+                        .size(6.dp)
+                        .background(
+                            color = if (index == listState.firstVisibleItemIndex) accentColor else Color.White.copy(alpha = 0.25f),
+                            shape = CircleShape,
+                        ),
+                )
+            }
+        }
         TextButton(
             onClick = onAdd,
             colors = ButtonDefaults.textButtonColors(contentColor = accentColor),
@@ -82,9 +151,11 @@ internal fun MobilityPreparationCarousel(
 private fun MobilityPreparationCard(
     mobility: MobilitySeries,
     accentColor: Color,
+    showPerExerciseFields: Boolean,
     onUpdate: ((MobilitySeries) -> MobilitySeries) -> Unit,
     onRemove: () -> Unit,
 ) {
+    var showRestPicker by remember(mobility.id) { mutableStateOf(false) }
     Surface(
         modifier = Modifier.width(268.dp),
         shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp),
@@ -123,7 +194,7 @@ private fun MobilityPreparationCard(
                     )
                 }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            if (showPerExerciseFields) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 EditorMiniField(
                     label = "Series",
                     value = mobility.sets.toString(),
@@ -136,7 +207,8 @@ private fun MobilityPreparationCard(
                         onUpdate { it.copy(sets = value.coerceAtLeast(1)) }
                     }
                 }
-                if (mobility.durationSeconds != null) {
+                val unit = mobility.unit ?: if (mobility.durationSeconds != null) MobilityUnit.SECONDS else MobilityUnit.REPS
+                if (unit == MobilityUnit.SECONDS) {
                     EditorMiniField(
                         label = "Segundos",
                         value = mobility.durationSeconds.toString(),
@@ -146,7 +218,7 @@ private fun MobilityPreparationCard(
                         modifier = Modifier.weight(1f),
                     ) { input ->
                         input.toIntOrNull()?.let { value ->
-                            onUpdate { it.copy(durationSeconds = value.coerceAtLeast(1)) }
+                            onUpdate { it.copy(unit = MobilityUnit.SECONDS, durationSeconds = value.coerceAtLeast(1), reps = null) }
                         }
                     }
                 } else {
@@ -158,23 +230,56 @@ private fun MobilityPreparationCard(
                         accentColor = accentColor,
                         modifier = Modifier.weight(1f),
                     ) { input ->
-                        onUpdate { it.copy(reps = input.trim().ifBlank { null }) }
+                        onUpdate { it.copy(unit = MobilityUnit.REPS, reps = input.trim().ifBlank { null }, durationSeconds = null) }
                     }
                 }
             }
-            EditorMiniField(
-                label = "Descanso (s)",
-                value = mobility.restBetweenSeconds.toString(),
-                stateKey = "mobility-rest-${mobility.id}",
-                keyboardType = KeyboardType.Number,
-                accentColor = accentColor,
-                modifier = Modifier.fillMaxWidth(),
-            ) { input ->
-                input.toIntOrNull()?.let { value ->
-                    onUpdate { it.copy(restBetweenSeconds = value.coerceAtLeast(0)) }
+            if (showPerExerciseFields) {
+                val unit = mobility.unit ?: if (mobility.durationSeconds != null) MobilityUnit.SECONDS else MobilityUnit.REPS
+                Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                    FilterChip(
+                        selected = unit == MobilityUnit.SECONDS,
+                        onClick = {
+                            onUpdate {
+                                it.copy(
+                                    unit = MobilityUnit.SECONDS,
+                                    durationSeconds = it.durationSeconds ?: 1,
+                                    reps = null,
+                                )
+                            }
+                        },
+                        label = { Text("Segundos") },
+                    )
+                    FilterChip(
+                        selected = unit == MobilityUnit.REPS,
+                        onClick = {
+                            onUpdate { it.copy(unit = MobilityUnit.REPS, durationSeconds = null) }
+                        },
+                        label = { Text("Repeticiones") },
+                    )
+                }
+                TextButton(
+                    onClick = { showRestPicker = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.textButtonColors(contentColor = accentColor),
+                ) {
+                    Text("Descanso entre series: ${formatRestSummary(mobility.restBetweenSeconds)}")
                 }
             }
         }
+    }
+    if (showRestPicker) {
+        KpknNativeTimePickerDialog(
+            title = "Descanso entre series",
+            initialHour = (mobility.restBetweenSeconds / 60).coerceIn(0, 23),
+            initialMinute = (mobility.restBetweenSeconds % 60).coerceIn(0, 59),
+            hint = "Minutos : segundos",
+            onConfirm = { minutes, seconds ->
+                onUpdate { it.copy(restBetweenSeconds = (minutes * 60 + seconds).coerceAtLeast(0)) }
+                showRestPicker = false
+            },
+            onDismiss = { showRestPicker = false },
+        )
     }
 }
 
@@ -229,6 +334,8 @@ private fun WarmupPreparationCard(
     onUpdate: ((WarmupSetDefinition) -> WarmupSetDefinition) -> Unit,
     onRemove: () -> Unit,
 ) {
+    val restSeconds = warmup.restBetween ?: 60
+    var showRestPicker by remember(warmup.id) { mutableStateOf(false) }
     val normalizedPercentage = normalizeWarmupPercentage(warmup.percentageOfWorkingWeight)
     val suggestedLoad = resolved1RM?.takeIf { it > 0.0 }?.times(normalizedPercentage)
     Surface(
@@ -296,17 +403,12 @@ private fun WarmupPreparationCard(
                     }
                 }
             }
-            EditorMiniField(
-                label = "Descanso (s)",
-                value = (warmup.restBetween ?: 60).toString(),
-                stateKey = "warmup-rest-inline-${warmup.id}",
-                keyboardType = KeyboardType.Number,
-                accentColor = accentColor,
+            TextButton(
+                onClick = { showRestPicker = true },
                 modifier = Modifier.fillMaxWidth(),
-            ) { input ->
-                input.toIntOrNull()?.let { value ->
-                    onUpdate { it.copy(restBetween = value.coerceAtLeast(0)) }
-                }
+                colors = ButtonDefaults.textButtonColors(contentColor = accentColor),
+            ) {
+                Text("Descanso entre series: ${formatRestSummary(restSeconds)}")
             }
             Text(
                 suggestedLoad?.let { "Carga sugerida: ${formatEditableNumber(it)} kg" }
@@ -315,6 +417,19 @@ private fun WarmupPreparationCard(
                 color = Color.White.copy(alpha = 0.66f),
             )
         }
+    }
+    if (showRestPicker) {
+        KpknNativeTimePickerDialog(
+            title = "Descanso de aproximación",
+            initialHour = (restSeconds / 60).coerceIn(0, 23),
+            initialMinute = (restSeconds % 60).coerceIn(0, 59),
+            hint = "Minutos : segundos",
+            onConfirm = { minutes, seconds ->
+                onUpdate { it.copy(restBetween = (minutes * 60 + seconds).coerceAtLeast(0)) }
+                showRestPicker = false
+            },
+            onDismiss = { showRestPicker = false },
+        )
     }
 }
 

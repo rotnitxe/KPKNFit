@@ -20,6 +20,7 @@ internal fun Session.globalMobilityExercises(): List<Exercise> = parts
                 ),
             ),
             mobilitySeries = part.mobilitySeries,
+            mobilityConfig = part.mobilityConfig,
             trainingMode = TrainingMode.TIME,
             targetDurationMinutes = part.targetDurationMinutes,
         )

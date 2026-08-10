@@ -120,6 +120,7 @@ class WorkoutVoiceCommandHandler(
         fun reportWarmupStep(exerciseId: String, warmupSetId: String, usedWeightKg: Double?, reportedReps: Int?)
         fun recordWarmupHeaviness(exerciseId: String, warmupSetId: String, rpe: Double)
         fun markMobilityComplete(exerciseId: String, mobilitySeriesId: String, mobilitySetIndex: Int = 0)
+        fun markMobilityTotalComplete(exerciseId: String)
         fun reportMobilityStep(
             exerciseId: String,
             mobilitySeriesId: String,
@@ -129,6 +130,8 @@ class WorkoutVoiceCommandHandler(
         )
         fun skipRemainingPreparation(exerciseId: String)
         fun recordCardioSet(durationSeconds: Int, distanceKm: Double?, averageHeartRate: Int?): Boolean
+        fun startCardio(): Boolean
+        fun finishCardio(): Boolean
         fun setVoiceExerciseQueue(exerciseIds: List<String>)
         /** Mueve el ejercicio actual ±1 posición (estructura en vivo). */
         fun moveCurrentExercise(direction: Int)
@@ -614,6 +617,14 @@ class WorkoutVoiceCommandHandler(
                 ports.setSessionTimeLimit(command.minutes, command.persistToProgram)
                 voiceController.speakFeedbackUpdated("Límite de ${command.minutes} minutos aplicado${if (command.persistToProgram) " al programa" else " a esta sesión"}.")
             }
+            is VoiceSessionCommand.StartCardio -> {
+                if (ports.startCardio()) voiceController.speakFeedbackUpdated("Cardio iniciado.")
+                else voiceController.speakFeedbackUpdated("No encontré un cardio activo para iniciar.")
+            }
+            is VoiceSessionCommand.FinishCardio -> {
+                if (ports.finishCardio()) voiceController.speakFeedbackUpdated("Cardio finalizado y registrado.")
+                else voiceController.speakFeedbackUpdated("No pude registrar este cardio.")
+            }
             is VoiceSessionCommand.StartTimedSet -> startTimedSet()
             is VoiceSessionCommand.StopTimedSet -> stopTimedSet()
             is VoiceSessionCommand.CompletePreparationStep -> completePreparationStep()
@@ -650,6 +661,7 @@ class WorkoutVoiceCommandHandler(
                 WorkoutStepType.WARMUP -> step.stepKey !in state.warmupCompletedExerciseIds && step.exerciseId !in state.warmupCompletedExerciseIds
                 WorkoutStepType.MOBILITY,
                 WorkoutStepType.MOBILITY_GROUP -> step.stepKey !in state.mobilityCompletedExerciseIds
+                WorkoutStepType.MOBILITY_TOTAL -> step.stepKey !in state.mobilityTotalCompletedStepKeys
             }
         }.map { it.exerciseName }.distinct()
     }
@@ -762,6 +774,7 @@ class WorkoutVoiceCommandHandler(
             WorkoutStepType.MOBILITY_GROUP -> step.mobilitySeriesId?.let {
                 ports.markMobilityComplete(step.exerciseId, it, step.mobilitySetIndex)
             }
+            WorkoutStepType.MOBILITY_TOTAL -> ports.markMobilityTotalComplete(step.exerciseId)
             WorkoutStepType.WORKING_SET -> return
         }
         WorkoutVoiceDiagnosticLogger.event("preparation_step_completed", mapOf("type" to step.type.name, "exerciseId" to step.exerciseId, "stepKey" to step.stepKey))
@@ -818,6 +831,7 @@ class WorkoutVoiceCommandHandler(
                 )
                 return true
             }
+            WorkoutStepType.MOBILITY_TOTAL -> return false
             WorkoutStepType.CARDIO,
             WorkoutStepType.WORKING_SET -> return false
         }

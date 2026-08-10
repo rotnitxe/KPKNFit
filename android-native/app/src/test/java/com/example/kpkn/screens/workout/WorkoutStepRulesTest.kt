@@ -5,14 +5,18 @@ import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.CardioDetails
 import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.MobilitySeries
+import com.example.kpkn.data.models.MobilityConfig
+import com.example.kpkn.data.models.MobilityMode
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.UnilateralMode
 import com.example.kpkn.data.models.UnilateralSideOrder
 import com.example.kpkn.data.models.UnilateralTarget
 import com.example.kpkn.data.models.WarmupSetDefinition
+import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.domain.workout.SupersetRules
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class WorkoutStepRulesTest {
@@ -299,5 +303,77 @@ class WorkoutStepRulesTest {
 
         assertEquals(listOf("b", "a", "b", "a"), positions.map { it.exerciseId })
         assertEquals(listOf(0, 0, 1, 1), positions.map { it.setIndex })
+    }
+
+    @Test
+    fun surtido_mobility_emits_one_total_step_before_strength() {
+        val exercise = Exercise(
+            id = "squat",
+            name = "Sentadilla",
+            mobilityConfig = MobilityConfig(MobilityMode.SURTIDO, totalMinutes = 8),
+            mobilitySeries = listOf(
+                MobilitySeries(id = "ankle", name = "Tobillo", sets = 3, reps = "8"),
+                MobilitySeries(id = "hip", name = "Cadera", sets = 2, durationSeconds = 30),
+            ),
+            sets = listOf(ExerciseSet(id = "set-1", targetReps = 5)),
+        )
+        val session = Session(id = "s1", name = "Sesion", exercises = listOf(exercise))
+
+        val steps = WorkoutStepRules.buildSteps(session)
+
+        assertEquals(WorkoutStepType.MOBILITY_TOTAL, steps.first().type)
+        assertEquals(WorkoutStepRules.mobilityTotalStepKey("squat"), steps.first().stepKey)
+        assertEquals(8, steps.first().mobilityTotalMinutes)
+        assertEquals(2, steps.first().mobilitySeries.size)
+        assertEquals(WorkoutStepType.WORKING_SET, steps[1].type)
+        assertTrue(steps.none { it.type == WorkoutStepType.MOBILITY })
+    }
+
+    @Test
+    fun focused_mobility_keeps_series_steps_and_excludes_total_step() {
+        val exercise = Exercise(
+            id = "press",
+            name = "Press",
+            mobilityConfig = MobilityConfig(MobilityMode.ENFOCADO),
+            mobilitySeries = listOf(MobilitySeries(id = "shoulder", name = "Hombro", sets = 2, reps = "6")),
+            sets = listOf(ExerciseSet(id = "set-1", targetReps = 5)),
+        )
+
+        val steps = WorkoutStepRules.buildSteps(Session("s1", "Sesion", exercises = listOf(exercise)))
+
+        assertEquals(2, steps.count { it.type == WorkoutStepType.MOBILITY })
+        assertTrue(steps.none { it.type == WorkoutStepType.MOBILITY_TOTAL })
+        assertEquals(WorkoutStepType.WORKING_SET, steps.last().type)
+    }
+
+    @Test
+    fun first_incomplete_step_keeps_mobility_and_warmup_before_effective_set() {
+        val exercise = Exercise(
+            id = "deadlift",
+            name = "Peso muerto",
+            mobilitySeries = listOf(MobilitySeries(id = "hip", name = "Cadera")),
+            warmupSets = listOf(WarmupSetDefinition("warmup-1", 50.0, 5)),
+            sets = listOf(ExerciseSet("set-1"), ExerciseSet("set-2")),
+        )
+        val session = Session("s1", "Sesion", exercises = listOf(exercise))
+
+        val first = WorkoutStepRules.firstIncompleteStep(session)
+        val afterMobility = WorkoutStepRules.firstIncompleteStep(
+            session = session,
+            mobilityCompletedExerciseIds = setOf(WorkoutStepRules.mobilityStepKey("deadlift", "hip")),
+        )
+        val afterPreparation = WorkoutStepRules.firstIncompleteStep(
+            session = session,
+            mobilityCompletedExerciseIds = setOf(WorkoutStepRules.mobilityStepKey("deadlift", "hip")),
+            warmupCompletedExerciseIds = setOf(WorkoutStepRules.warmupStepKey("deadlift", "warmup-1")),
+        )
+
+        assertEquals(WorkoutStepType.MOBILITY, first?.type)
+        assertEquals(WorkoutStepType.WARMUP, afterMobility?.type)
+        assertEquals("deadlift_0", afterPreparation?.stepKey)
+        assertEquals(null, WorkoutStepRules.firstIncompleteStep(
+            session = Session("empty", "", exercises = emptyList()),
+            completedSets = mapOf(),
+        ))
     }
 }

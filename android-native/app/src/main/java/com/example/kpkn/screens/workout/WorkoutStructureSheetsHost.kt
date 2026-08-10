@@ -85,6 +85,9 @@ import com.example.kpkn.screens.sessioneditor.SideOrderChip
 import com.example.kpkn.screens.sessioneditor.UnilateralModeSelector
 import com.example.kpkn.screens.sessioneditor.components.CardioEditorCard
 import com.example.kpkn.screens.sessioneditor.components.ExercisePickerSheet
+import com.example.kpkn.screens.sessioneditor.CatalogLaunchOrigin
+import com.example.kpkn.screens.sessioneditor.CatalogLaunchRequest
+import com.example.kpkn.screens.sessioneditor.CatalogSelectionMode
 import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknSheet
@@ -190,7 +193,48 @@ internal fun WorkoutStructureSheetsHost(
     allUserTags: List<String>,
     context: Context,
     onNavigateToWikiLab: (String) -> Unit,
+    onOpenCatalog: ((CatalogLaunchRequest) -> Unit)? = null,
 ) {
+    val useFullPageCatalog = onOpenCatalog != null
+
+    LaunchedEffect(
+        useFullPageCatalog,
+        state.addCatalogToSupersetGroupId,
+        state.addCatalogSearchQuery,
+        state.addCatalogSelectedIds,
+        state.addExerciseAfterId,
+        state.addExerciseSearchQuery,
+        state.addExerciseSelectedIds,
+        state.showReplaceExercisePicker,
+        state.replaceTargetExerciseId,
+        state.replaceSearchQuery,
+    ) {
+        val open = onOpenCatalog ?: return@LaunchedEffect
+        val request = when {
+            state.addCatalogToSupersetGroupId != null -> CatalogLaunchRequest(
+                origin = CatalogLaunchOrigin.SUPERSET,
+                selectionMode = CatalogSelectionMode.SUPERSET,
+                targetExerciseId = state.addCatalogToSupersetGroupId,
+                selectedExerciseIds = state.addCatalogSelectedIds.toList(),
+                initialQuery = state.addCatalogSearchQuery,
+            )
+            state.addExerciseAfterId != null -> CatalogLaunchRequest(
+                origin = CatalogLaunchOrigin.LIVE_SESSION,
+                selectionMode = CatalogSelectionMode.MULTIPLE,
+                targetExerciseId = state.addExerciseAfterId,
+                selectedExerciseIds = state.addExerciseSelectedIds.toList(),
+                initialQuery = state.addExerciseSearchQuery,
+            )
+            state.showReplaceExercisePicker && state.replaceTargetExerciseId != null -> CatalogLaunchRequest(
+                origin = CatalogLaunchOrigin.REPLACEMENT,
+                selectionMode = CatalogSelectionMode.REPLACEMENT,
+                targetExerciseId = state.replaceTargetExerciseId,
+                initialQuery = state.replaceSearchQuery,
+            )
+            else -> null
+        }
+        request?.let(open)
+    }
     if (state.exerciseContextExerciseId != null) {
         val exerciseId = state.exerciseContextExerciseId!!
         val contextExercise = visibleExercises.firstOrNull { it.id == exerciseId }
@@ -921,7 +965,7 @@ internal fun WorkoutStructureSheetsHost(
         }
     }
 
-    if (state.addCatalogToSupersetGroupId != null) {
+    if (!useFullPageCatalog && state.addCatalogToSupersetGroupId != null) {
         val targetGroupId = state.addCatalogToSupersetGroupId!!
         val programRepository = remember(context) { com.example.kpkn.data.repository.ProgramRepository.getInstance() }
         val workoutLogs by programRepository.history.collectAsStateWithLifecycle()
@@ -974,7 +1018,7 @@ internal fun WorkoutStructureSheetsHost(
         }
     }
 
-    if (state.addExerciseAfterId != null) {
+    if (!useFullPageCatalog && state.addExerciseAfterId != null) {
         val targetExerciseId = state.addExerciseAfterId!!
         val programRepository = remember(context) { com.example.kpkn.data.repository.ProgramRepository.getInstance() }
         val workoutLogs by programRepository.history.collectAsStateWithLifecycle()
@@ -1027,7 +1071,7 @@ internal fun WorkoutStructureSheetsHost(
         }
     }
 
-    if (state.showReplaceExercisePicker && state.replaceTargetExerciseId != null) {
+    if (!useFullPageCatalog && state.showReplaceExercisePicker && state.replaceTargetExerciseId != null) {
         val programRepository = remember(context) { com.example.kpkn.data.repository.ProgramRepository.getInstance() }
         val workoutLogs by programRepository.history.collectAsStateWithLifecycle()
         val replaceTarget = visibleExercises.firstOrNull { it.id == state.replaceTargetExerciseId }

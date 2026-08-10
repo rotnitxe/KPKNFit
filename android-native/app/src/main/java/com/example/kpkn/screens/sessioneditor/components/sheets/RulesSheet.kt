@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -43,6 +44,7 @@ import com.example.kpkn.domain.sessionassistant.TimeCoachFatigueDelta
 import com.example.kpkn.screens.sessioneditor.DefaultIntensityType
 import com.example.kpkn.screens.sessioneditor.RuleScope
 import com.example.kpkn.screens.sessioneditor.SessionEditorUiState
+import com.example.kpkn.screens.sessioneditor.ApplyRulesOutcome
 import com.example.kpkn.screens.sessioneditor.SheetHeader
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
 import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
@@ -170,7 +172,7 @@ private fun formatDurationMinutes(minutes: Int?): String {
 @Composable
 internal fun RulesSheet(
     uiState: SessionEditorUiState,
-    onApplyRules: (String?) -> Unit,
+    onApplyRules: (String?) -> ApplyRulesOutcome,
     onRuleDefaultsChange: (String?, Int?, Int?, Double?, Int?, Int?, Int?, Int?, Boolean?, DefaultIntensityType?) -> Unit,
     onRuleLimitsChange: (Double?, Int?) -> Unit,
     onAdvancedRuleLimitsChange: (Double?, Double?, Int?, Boolean) -> Unit,
@@ -188,7 +190,7 @@ internal fun RulesSheet(
     onDismissTimeCoachSuggestion: (String) -> Unit = {},
     onRefreshTimeCoach: () -> Unit = {},
     onInitialTabConsumed: () -> Unit = {},
-    onSave: () -> Unit = {},
+
     onDismiss: () -> Unit = {},
 ) {
     @Suppress("UNUSED_PARAMETER")
@@ -563,7 +565,7 @@ internal fun RulesSheet(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            "Compuestos vs aislamiento",
+                            "Compuestos / Aislados",
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Black,
                             color = Color.White,
@@ -1153,30 +1155,13 @@ internal fun RulesSheet(
         }
         }
 
-        Row(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .background(KpknSheetTokens.Panel)
-                .padding(horizontal = 18.dp, vertical = 10.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            KpknSheetLightChip(
-                label = "Aplicar",
-                selected = false,
-                modifier = Modifier.weight(1f),
-                onClick = { onApplyRules(activeScopePartId) },
-            )
-            KpknSheetWhiteButton(
-                text = "Listo",
-                modifier = Modifier.weight(1f),
-                onClick = {
-                    onSave()
-                    onDismiss()
-                },
-            )
-        }
+        StickyActionBar(
+            modifier = Modifier.align(Alignment.BottomCenter),
+            onApply = {
+                val outcome = onApplyRules(activeScopePartId)
+                if (outcome is ApplyRulesOutcome.Applied) onDismiss()
+            },
+        )
     }
 
     saveTemplateName?.let { draftName ->
@@ -1234,6 +1219,28 @@ internal fun RulesSheet(
             dismissButton = {
                 KpknAlertDismissButton(text = "Cancelar", onClick = { renameTemplate = null })
             },
+        )
+    }
+}
+
+@Composable
+internal fun StickyActionBar(
+    modifier: Modifier = Modifier,
+    onApply: () -> Unit,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(Color.Black)
+            .navigationBarsPadding()
+            .padding(horizontal = 18.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        KpknSheetLightChip(
+            label = "Aplicar",
+            selected = false,
+            modifier = Modifier.fillMaxWidth(),
+            onClick = onApply,
         )
     }
 }

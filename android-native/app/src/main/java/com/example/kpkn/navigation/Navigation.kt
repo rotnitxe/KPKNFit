@@ -5,6 +5,8 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.ui.graphics.vector.ImageVector
+import android.net.Uri
+import com.example.kpkn.screens.sessioneditor.CatalogLaunchRequest
 
 // ─── Routes ─────────────────────────────────────────────────────────────────
 
@@ -62,6 +64,34 @@ sealed class KpknRoute(val route: String) {
         fun create(programId: String, sessionId: String) = "workout/$programId/$sessionId"
         const val ARG_PROGRAM_ID = "programId"
         const val ARG_SESSION_ID = "sessionId"
+    }
+
+    /** Full-screen catalog. The request itself lives in the previous entry's SavedStateHandle. */
+    object ExerciseCatalog : KpknRoute(
+        "exerciseCatalog?requestId={requestId}&origin={origin}&selectionMode={selectionMode}&targetExerciseId={targetExerciseId}&initialQuery={initialQuery}",
+    ) {
+        fun create(request: CatalogLaunchRequest): String = buildString {
+            append("exerciseCatalog?requestId=")
+            append(Uri.encode(request.requestId))
+            append("&origin=")
+            append(Uri.encode(request.origin.name))
+            append("&selectionMode=")
+            append(Uri.encode(request.selectionMode.name))
+            request.targetExerciseId?.let {
+                append("&targetExerciseId=")
+                append(Uri.encode(it))
+            }
+            if (request.initialQuery.isNotBlank()) {
+                append("&initialQuery=")
+                append(Uri.encode(request.initialQuery))
+            }
+        }
+
+        const val ARG_REQUEST_ID = "requestId"
+        const val ARG_ORIGIN = "origin"
+        const val ARG_SELECTION_MODE = "selectionMode"
+        const val ARG_TARGET_EXERCISE_ID = "targetExerciseId"
+        const val ARG_INITIAL_QUERY = "initialQuery"
     }
 
     object Competitions : KpknRoute("competitions")

@@ -37,6 +37,7 @@ data class Settings(
     /** Experimento: en Modo Música usar VOICE_COMMUNICATION (con cancelador de eco)
      *  en el mic del teléfono. Puede alterar el modo de audio; validar en físico. */
     val voiceMusicAec: Boolean = false,
+    val locationPermissionRequestedOnce: Boolean = false,
     /** Frases personalizadas del usuario → intensidad (se inyectan a la gramática). */
     val voiceCustomIntensityPhrases: List<CustomIntensityPhrase> = emptyList(),
 

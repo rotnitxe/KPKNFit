@@ -249,6 +249,7 @@ import kotlin.math.roundToInt
 
 import com.example.kpkn.screens.sessioneditor.SessionEditorSheet
 import com.example.kpkn.screens.sessioneditor.SessionEditorUiState
+import com.example.kpkn.screens.sessioneditor.ApplyRulesOutcome
 import com.example.kpkn.screens.sessioneditor.SessionSaveScope
 import com.example.kpkn.screens.sessioneditor.SessionDraftSnapshot
 import com.example.kpkn.screens.sessioneditor.SessionCloneApplyMode
@@ -360,7 +361,7 @@ internal fun SessionEditorSheets(
     onMultiSelectExercises: (List<ExerciseMuscleInfo>) -> List<String>,
     onToggleExerciseSelection: (String) -> Unit,
     onClearExerciseSelection: () -> Unit,
-    onApplyRules: (String?) -> Unit,
+    onApplyRules: (String?) -> ApplyRulesOutcome,
     onCloneCurrentToTargets: (Set<String>, Set<String>?, SessionCloneApplyMode) -> Unit,
     onImportFromSource: (String, Set<String>?, SessionCloneApplyMode) -> Unit,
     onSave: (SessionSaveScope) -> Unit,
@@ -390,6 +391,7 @@ internal fun SessionEditorSheets(
     onQuickActionOpenMobility: () -> Unit,
     onAddMobilityExercise: (MobilityExercise) -> Unit,
     onAddMobilityToPart: (MobilityExercise) -> Unit = {},
+    onRemoveMobilityExercise: (MobilityExercise) -> Unit = {},
     onAddCardio: (CardioCatalogItem) -> Unit = {},
     onQuickActionDelete: () -> Unit,
     onQuickActionCreateSuperset: () -> Unit,
@@ -404,6 +406,7 @@ internal fun SessionEditorSheets(
     onOpenSupersetCreator: (String?, List<String>) -> Unit,
     onOpenExerciseDetail: (String) -> Unit,
     onOpenCatalog: () -> Unit,
+    useFullPageCatalog: Boolean = false,
     allTemplates: List<SessionTemplate>,
     onSelectTemplate: (SessionTemplate) -> Unit,
     onConfirmApplyTemplate: (SessionTemplateApplyMode) -> Unit,
@@ -412,6 +415,14 @@ internal fun SessionEditorSheets(
 ) {
     val session = uiState.session ?: return
     if (uiState.sheet == SessionEditorSheet.NONE) return
+    val mobilityTargetSeries = when {
+        uiState.mobilityPartId != null -> session.parts.firstOrNull { it.id == uiState.mobilityPartId }?.mobilitySeries.orEmpty()
+        uiState.quickActionsExerciseId != null -> session.allExercises()
+            .firstOrNull { it.id == uiState.quickActionsExerciseId }
+            ?.mobilitySeries
+            .orEmpty()
+        else -> emptyList()
+    }
 
     // AUGE is rendered as an in-composition Liquid Glass overlay in SessionEditorScreen
     // (sibling of hazeSource). Do NOT put it in KpknSheet — blur would die.
@@ -422,7 +433,9 @@ internal fun SessionEditorSheets(
         session.allExercises().find { it.id == targetId }
     }
 
-     if (uiState.sheet == SessionEditorSheet.EXERCISE_PICKER) {
+    if (uiState.sheet == SessionEditorSheet.EXERCISE_PICKER && useFullPageCatalog) return
+
+    if (uiState.sheet == SessionEditorSheet.EXERCISE_PICKER) {
          var pendingPickerSelection by remember { mutableStateOf<List<ExerciseMuscleInfo>>(emptyList()) }
          var showPickerExitConfirm by remember { mutableStateOf(false) }
          val requestPickerDismiss = {
@@ -593,7 +606,9 @@ internal fun SessionEditorSheets(
             SessionEditorSheet.AUGE -> Unit // handled as glass overlay in SessionEditorScreen
             SessionEditorSheet.WARMUP -> WarmupSheet(exercise = warmupExercise, onSave = onWarmupSave)
             SessionEditorSheet.MOBILITY_PICKER -> MobilityPickerSheet(
+                selectedMobilityIds = mobilityTargetSeries.map { it.catalogIdentityKey() }.toSet(),
                 onAdd = if (uiState.mobilityPartId != null) onAddMobilityToPart else onAddMobilityExercise,
+                onRemove = onRemoveMobilityExercise,
                 onDismiss = onDismiss,
             )
             SessionEditorSheet.CARDIO_PICKER -> CardioCatalogSheet(onAdd = onAddCardio)
