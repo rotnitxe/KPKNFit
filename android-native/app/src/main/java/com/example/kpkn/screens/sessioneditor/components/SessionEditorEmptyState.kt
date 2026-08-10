@@ -6,21 +6,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.DirectionsRun
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -86,42 +79,38 @@ internal fun SessionEditorEmptyState(
                     .padding(horizontal = 20.dp, vertical = 20.dp),
             )
         }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Button(
-                onClick = onAddExercise,
-                modifier = Modifier
-                    .weight(1f)
-                    .height(46.dp),
-                shape = RoundedCornerShape(14.dp),
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(6.dp))
-                Text("Añadir ejercicio", fontWeight = FontWeight.SemiBold, maxLines = 1)
-            }
-            FilledTonalButton(
-                onClick = onAddGroup,
-                modifier = Modifier
-                    .weight(1f)
-                    .height(46.dp),
-                shape = RoundedCornerShape(14.dp),
-            ) {
-                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(6.dp))
-                Text("Nuevo grupo", fontWeight = FontWeight.SemiBold, maxLines = 1)
+                Button(
+                    onClick = onAddExercise,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(46.dp),
+                    shape = RoundedCornerShape(14.dp),
+                ) {
+                    Text("Añadir ejercicio", fontWeight = FontWeight.SemiBold, maxLines = 1)
+                }
+                FilledTonalButton(
+                    onClick = onAddGroup,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(46.dp),
+                    shape = RoundedCornerShape(14.dp),
+                ) {
+                    Text("Nuevo grupo", fontWeight = FontWeight.SemiBold, maxLines = 1)
+                }
             }
             FilledTonalButton(
                 onClick = onAddCardio,
                 modifier = Modifier
-                    .weight(1f)
+                    .fillMaxWidth()
                     .height(46.dp),
                 shape = RoundedCornerShape(14.dp),
             ) {
-                Icon(Icons.Default.DirectionsRun, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(6.dp))
-                Text("Cardio", fontWeight = FontWeight.SemiBold, maxLines = 1)
+                Text("Añadir cardio", fontWeight = FontWeight.SemiBold, maxLines = 1)
             }
         }
     }
