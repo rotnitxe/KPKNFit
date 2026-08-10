@@ -1437,50 +1437,6 @@ internal fun SetInputCardV2(
                         }
                     }
 
-
-
-                    // ── Indicador de ajuste aplicado ──
-                    if (readinessAdjustment != null && (readinessAdjustment.reductionPercent > 0.0 || readinessAdjustment.suggestedLoadMode != (currentSet.loadModeV2 ?: LoadModeV2.LOAD))) {
-                        val plannedMode = currentSet.loadModeV2 ?: LoadModeV2.LOAD
-                        val adjustmentText = when {
-                            readinessAdjustment.suggestedLoadMode == LoadModeV2.ASSISTED && plannedMode != LoadModeV2.ASSISTED -> {
-                                "Adaptado: +${readinessAdjustment.suggestedWeight.roundToInt()}kg Asistencia"
-                            }
-                            readinessAdjustment.suggestedLoadMode == LoadModeV2.BODYWEIGHT && plannedMode != LoadModeV2.BODYWEIGHT -> {
-                                "Adaptado: Usar Peso Corporal"
-                            }
-                            plannedMode == LoadModeV2.ASSISTED -> {
-                                "Adaptado: +${readinessAdjustment.suggestedWeight.roundToInt()}kg Asistencia"
-                            }
-                            else -> {
-                                "Adaptado −${(readinessAdjustment.reductionPercent * 100).roundToInt()}%"
-                            }
-                        }
-                        Spacer(Modifier.height(6.dp))
-                        Surface(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(8.dp),
-                            color = Color(0xFF1B3A1B),
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Icon(
-                                    Icons.Default.Info, null,
-                                    Modifier.size(14.dp),
-                                    tint = WorkoutUiTokens.successColor(),
-                                )
-                                Text(
-                                    adjustmentText,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = WorkoutUiTokens.successColor(),
-                                )
-                            }
-                        }
-                    }
                     }
                 }
             }
