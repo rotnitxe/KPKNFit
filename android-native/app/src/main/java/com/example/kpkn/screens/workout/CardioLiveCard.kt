@@ -2,13 +2,12 @@ package com.example.kpkn.screens.workout
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -36,19 +35,14 @@ import com.example.kpkn.data.models.CardioDetails
 import com.example.kpkn.data.models.CardioExecutionStatus
 import com.example.kpkn.data.models.CardioTimerState
 import com.example.kpkn.data.models.CompletedSet
-import com.example.kpkn.domain.cardio.CardioCalorieTargetEngine
 import com.example.kpkn.domain.cardio.CardioGuideEngine
-import com.example.kpkn.domain.calculations.CardioCalorieEngine
-import com.example.kpkn.domain.calculations.CardioCalorieInput
 import com.example.kpkn.services.cardio.CardioGpsState
 import com.example.kpkn.services.cardio.CardioGpsStatus
-import com.example.kpkn.ui.components.KpknNativeTimePickerDialog
 
 @Composable
 internal fun CardioLiveCard(
     details: CardioDetails,
     completedSet: CompletedSet?,
-    bodyWeightKg: Double?,
     accentColor: Color,
     executionState: CardioTimerState? = null,
     liveHeartRateBpm: Int? = null,
@@ -62,11 +56,8 @@ internal fun CardioLiveCard(
     onPauseGps: () -> Unit = {},
     onResumeGps: () -> Unit = {},
 ) {
-    var durationText by remember(details.targetDurationSeconds, completedSet?.timeSeconds) {
-        mutableStateOf(((completedSet?.timeSeconds ?: details.targetDurationSeconds) / 60).coerceAtLeast(1).toString())
-    }
-    var distanceText by remember(details.targetDistanceKm, completedSet?.distanceKm) {
-        mutableStateOf((completedSet?.distanceKm ?: details.targetDistanceKm)?.toString().orEmpty())
+    var distanceText by remember(completedSet?.distanceKm) {
+        mutableStateOf(completedSet?.distanceKm?.toString().orEmpty())
     }
     var heartRateText by remember(completedSet?.avgHeartRate) {
         mutableStateOf(completedSet?.avgHeartRate?.toString().orEmpty())
@@ -80,33 +71,22 @@ internal fun CardioLiveCard(
     val gpsMode = details.requiresGps
     val gpsHasData = gpsMode && gpsState?.let { it.pointCount > 0 || it.distanceMeters >= 10.0 } == true
     val gpsDurationSeconds = gpsState?.elapsedActiveSeconds?.takeIf { it > 0L }?.toInt()
-    val manualDurationSeconds = (durationText.toIntOrNull()?.coerceAtLeast(1) ?: (plannedDurationSeconds / 60)) * 60
     val durationSeconds = if (timerElapsedSeconds > 0) {
         timerElapsedSeconds
     } else if (gpsMode && gpsDurationSeconds != null) {
         gpsDurationSeconds
     } else {
-        manualDurationSeconds
+        0
     }
     val distanceKm = distanceText.replace(',', '.').toDoubleOrNull()
     val recordedDistanceKm = if (gpsHasData) gpsState?.distanceMeters?.div(1_000.0) else distanceKm
     val heartRate = (liveHeartRateBpm ?: heartRateText.toIntOrNull())?.coerceIn(30, 240)
-    val calorieTarget = CardioCalorieTargetEngine.estimate(details, bodyWeightKg)
-    val estimatedCalories = bodyWeightKg?.takeIf { it > 0 }?.let { weight ->
-        CardioCalorieEngine.estimate(
-            CardioCalorieInput(
-                details = details,
-                weightKg = weight,
-                durationSeconds = durationSeconds,
-                averageHeartRate = heartRate,
-            ),
-        )
-    }
-    val calorieProgress = if (calorieTarget != null && calorieTarget > 0) {
-        (estimatedCalories.orZero() / calorieTarget).toFloat().coerceIn(0f, 1f)
-    } else {
-        0f
-    }
+    val showsCadence = details.type in setOf(
+        com.example.kpkn.data.models.CardioType.TREADMILL,
+        com.example.kpkn.data.models.CardioType.ELLIPTICAL,
+        com.example.kpkn.data.models.CardioType.ROW_MACHINE,
+        com.example.kpkn.data.models.CardioType.BIKE_STATIONARY,
+    )
     val guide = remember(details.type, details.intensity) { CardioGuideEngine.guide(details) }
 
     LaunchedEffect(status) {
@@ -143,13 +123,6 @@ internal fun CardioLiveCard(
                         (timerElapsedSeconds.toFloat() / plannedDurationSeconds).coerceIn(0f, 1f)
                     } else 0f,
                     accentColor = accentColor,
-                )
-                CardioMetricCircle(
-                    label = "Calorías",
-                    value = estimatedCalories?.let { "%.0f".format(it) } ?: "—",
-                    progress = calorieProgress,
-                    accentColor = accentColor,
-                    footer = "estimación",
                 )
             }
 
@@ -205,16 +178,18 @@ internal fun CardioLiveCard(
                             color = if (isActive) accentColor else Color.White.copy(alpha = 0.55f),
                             style = MaterialTheme.typography.labelSmall,
                         )
-                        Text(
-                            when (zone) {
-                                "Calentamiento" -> "50-60 RPM"
-                                "Quema grasa" -> "60-70 RPM"
-                                "Aeróbico" -> "70-85 RPM"
-                                else -> "85+ RPM"
-                            },
-                            color = if (isActive) accentColor else Color.White.copy(alpha = 0.55f),
-                            style = MaterialTheme.typography.labelSmall,
-                        )
+                        if (showsCadence) {
+                            Text(
+                                when (zone) {
+                                    "Calentamiento" -> "50-60 RPM"
+                                    "Quema grasa" -> "60-70 RPM"
+                                    "Aeróbico" -> "70-85 RPM"
+                                    else -> "85+ RPM"
+                                },
+                                color = if (isActive) accentColor else Color.White.copy(alpha = 0.55f),
+                                style = MaterialTheme.typography.labelSmall,
+                            )
+                        }
                     }
                 }
             }
@@ -256,18 +231,12 @@ internal fun CardioLiveCard(
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                CardioLiveDurationField(
-                    durationMinutes = (durationSeconds / 60).coerceAtLeast(1),
-                    accentColor = accentColor,
-                    modifier = Modifier.weight(1f),
-                    onConfirm = { minutes -> durationText = minutes.toString() },
-                )
                 if (details.supportsDistance) {
                     CardioLiveAccentField(
                         value = if (gpsHasData) formatCardioDistance(recordedDistanceKm) else distanceText,
                         onValueChange = { distanceText = it.filter { char -> char.isDigit() || char == '.' || char == ',' }.take(8) },
                         modifier = Modifier.weight(1f),
-                        label = "Km",
+                        label = "Km (opcional)",
                         accentColor = accentColor,
                         readOnly = gpsHasData,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -277,9 +246,10 @@ internal fun CardioLiveCard(
                     value = liveHeartRateBpm?.toString() ?: heartRateText,
                     onValueChange = { heartRateText = it.filter(Char::isDigit).take(3) },
                     modifier = Modifier.weight(1f),
-                    label = "FC media",
+                    label = "FC media (opcional)",
                     accentColor = accentColor,
                     readOnly = liveHeartRateBpm != null,
+                    trailingIcon = { androidx.compose.material3.Icon(Icons.Default.Favorite, null, tint = accentColor) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 )
             }
@@ -291,17 +261,13 @@ internal fun CardioLiveCard(
                     fontWeight = FontWeight.Bold,
                 )
             }
-            Text(
-                "Objetivo calórico estimado: ${calorieTarget?.let { "%.0f kcal".format(it) } ?: "añade peso corporal"}",
-                color = Color.White.copy(alpha = 0.7f),
-            )
             Button(
                 onClick = {
                     onRequestRecord(durationSeconds, recordedDistanceKm, heartRate)
                     showRecordConfirmation = true
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = status != CardioExecutionStatus.RECORDED,
+                enabled = status !in setOf(CardioExecutionStatus.READY, CardioExecutionStatus.RECORDED),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = accentColor.copy(alpha = 0.92f),
                     contentColor = Color.White,
@@ -353,7 +319,6 @@ private fun CardioMetricCircle(
     value: String,
     progress: Float,
     accentColor: Color,
-    footer: String? = null,
 ) {
     Box(modifier = Modifier.size(132.dp), contentAlignment = Alignment.Center) {
         CircularProgressIndicator(
@@ -366,43 +331,7 @@ private fun CardioMetricCircle(
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(label, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.62f))
             Text(value, fontWeight = FontWeight.Black, color = Color.White)
-            footer?.let { Text(it, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.54f)) }
         }
-    }
-}
-
-@Composable
-private fun CardioLiveDurationField(
-    durationMinutes: Int,
-    accentColor: Color,
-    modifier: Modifier = Modifier,
-    onConfirm: (Int) -> Unit,
-) {
-    var showPicker by remember { mutableStateOf(false) }
-    Box(modifier = modifier) {
-        CardioLiveAccentField(
-            value = "${durationMinutes.coerceAtLeast(1)} min",
-            onValueChange = {},
-            label = "Minutos",
-            accentColor = accentColor,
-            readOnly = true,
-            trailingIcon = { androidx.compose.material3.Icon(Icons.Default.Timer, null, tint = accentColor) },
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Box(modifier = Modifier.matchParentSize().clickable { showPicker = true })
-    }
-    if (showPicker) {
-        KpknNativeTimePickerDialog(
-            title = "Duración de cardio",
-            initialHour = (durationMinutes / 60).coerceIn(0, 23),
-            initialMinute = (durationMinutes % 60).coerceIn(0, 59),
-            hint = "Horas : minutos",
-            onConfirm = { hour, minute ->
-                onConfirm((hour * 60 + minute).coerceAtLeast(1))
-                showPicker = false
-            },
-            onDismiss = { showPicker = false },
-        )
     }
 }
 
@@ -453,8 +382,6 @@ private fun CardioLiveAccentField(
         },
     )
 }
-
-private fun Double?.orZero(): Double = this ?: 0.0
 
 private fun formatCardioTime(totalSeconds: Int): String {
     val minutes = totalSeconds.coerceAtLeast(0) / 60

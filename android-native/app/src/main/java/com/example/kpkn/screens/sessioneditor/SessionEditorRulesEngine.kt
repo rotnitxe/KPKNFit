@@ -7,6 +7,8 @@ import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.TrainingMode
+import com.example.kpkn.data.models.UnilateralTarget
+import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.suggestRestSeconds
 import com.example.kpkn.domain.training.VolumeCalculator
@@ -82,6 +84,12 @@ object SessionEditorRulesEngine {
                 isIsolation -> (defaults.isolationRestSeconds ?: safeRest).coerceAtLeast(0)
                 else -> safeRest
             }
+            fun UnilateralTarget.applyRuleDefaults(): UnilateralTarget = copy(
+                targetReps = effectiveReps,
+                targetRPE = if (mode == IntensityMode.RPE) effectiveIntensity else null,
+                targetRIR = if (mode == IntensityMode.RIR) effectiveIntensity.roundToInt().coerceIn(0, 6) else null,
+                intensityMode = mode,
+            )
             val nextSets = List(safeSetCount) { index ->
                 val existing = sets.getOrNull(index)
                 if (existing?.isEmptySlot == true) return@List existing
@@ -93,7 +101,15 @@ object SessionEditorRulesEngine {
                     targetPercentageRM = null,
                     isFailure = mode == IntensityMode.FAILURE,
                 )
-                normalizeSet(target, this)
+                val normalized = normalizeSet(target, this)
+                if (!isEffectivelyUnilateral()) {
+                    normalized
+                } else {
+                    normalized.copy(
+                        leftTarget = normalized.leftTarget?.applyRuleDefaults(),
+                        rightTarget = normalized.rightTarget?.applyRuleDefaults(),
+                    )
+                }
             }
             return copy(
                 sets = nextSets,

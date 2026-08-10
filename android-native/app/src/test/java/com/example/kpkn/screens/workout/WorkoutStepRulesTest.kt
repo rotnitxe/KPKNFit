@@ -13,6 +13,7 @@ import com.example.kpkn.data.models.UnilateralMode
 import com.example.kpkn.data.models.UnilateralSideOrder
 import com.example.kpkn.data.models.UnilateralTarget
 import com.example.kpkn.data.models.WarmupSetDefinition
+import com.example.kpkn.data.models.normalizeMobilityCompatibility
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.domain.workout.SupersetRules
 import org.junit.Assert.assertEquals
@@ -123,7 +124,7 @@ class WorkoutStepRulesTest {
             steps.map { it.stepKey },
         )
         assertEquals(listOf(0, 1, 2), steps.take(3).map { it.mobilitySetIndex })
-        assertEquals(listOf(20, 20, 20), steps.take(3).map { it.mobilitySeries.single().restBetweenSeconds })
+        assertEquals(listOf(0, 0, 0), steps.take(3).map { it.mobilitySeries.single().restBetweenSeconds })
     }
 
     @Test
@@ -306,7 +307,7 @@ class WorkoutStepRulesTest {
     }
 
     @Test
-    fun surtido_mobility_emits_one_total_step_before_strength() {
+    fun legacy_surtido_input_uses_focused_series_steps_before_strength() {
         val exercise = Exercise(
             id = "squat",
             name = "Sentadilla",
@@ -321,12 +322,20 @@ class WorkoutStepRulesTest {
 
         val steps = WorkoutStepRules.buildSteps(session)
 
-        assertEquals(WorkoutStepType.MOBILITY_TOTAL, steps.first().type)
-        assertEquals(WorkoutStepRules.mobilityTotalStepKey("squat"), steps.first().stepKey)
-        assertEquals(8, steps.first().mobilityTotalMinutes)
-        assertEquals(2, steps.first().mobilitySeries.size)
-        assertEquals(WorkoutStepType.WORKING_SET, steps[1].type)
-        assertTrue(steps.none { it.type == WorkoutStepType.MOBILITY })
+        assertEquals(
+            listOf(
+                "squat_ankle",
+                "squat_ankle_set_1",
+                "squat_ankle_set_2",
+                "squat_hip",
+                "squat_hip_set_1",
+                "squat_0",
+            ),
+            steps.map { it.stepKey },
+        )
+        assertEquals(5, steps.count { it.type == WorkoutStepType.MOBILITY })
+        assertTrue(steps.none { it.type == WorkoutStepType.MOBILITY_TOTAL })
+        assertEquals(WorkoutStepType.WORKING_SET, steps.last().type)
     }
 
     @Test
@@ -344,6 +353,34 @@ class WorkoutStepRulesTest {
         assertEquals(2, steps.count { it.type == WorkoutStepType.MOBILITY })
         assertTrue(steps.none { it.type == WorkoutStepType.MOBILITY_TOTAL })
         assertEquals(WorkoutStepType.WORKING_SET, steps.last().type)
+    }
+
+    @Test
+    fun legacy_surtido_normalized_session_uses_focused_checklist_order() {
+        val session = Session(
+            "legacy",
+            "Sesion",
+            exercises = listOf(
+                Exercise(
+                    id = "press",
+                    name = "Press",
+                    mobilityConfig = MobilityConfig(MobilityMode.SURTIDO, totalMinutes = 6),
+                    mobilitySeries = listOf(
+                        MobilitySeries(id = "shoulder", name = "Hombro", sets = 2, reps = "6"),
+                    ),
+                    warmupSets = listOf(WarmupSetDefinition("warmup", 50.0, 5)),
+                    sets = listOf(ExerciseSet("set-1")),
+                ),
+            ),
+        ).normalizeMobilityCompatibility()
+
+        val steps = WorkoutStepRules.buildSteps(session)
+
+        assertEquals(MobilityMode.ENFOCADO, session.exercises.single().mobilityConfig?.mode)
+        assertEquals(
+            listOf(WorkoutStepType.MOBILITY, WorkoutStepType.MOBILITY, WorkoutStepType.WARMUP, WorkoutStepType.WORKING_SET),
+            steps.map { it.type },
+        )
     }
 
     @Test

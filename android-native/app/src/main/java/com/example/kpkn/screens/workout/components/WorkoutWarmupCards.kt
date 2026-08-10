@@ -6,6 +6,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Healing
 import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -319,6 +320,8 @@ data class WorkoutMobilityChecklistItem(
     val exerciseId: String,
     val exerciseName: String,
     val mobility: MobilitySeries,
+    val mobilitySetIndex: Int = 0,
+    val stepKey: String = "",
 )
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -456,20 +459,11 @@ fun WorkoutWarmupChecklistCard(
                                         fontWeight = FontWeight.Black,
                                         color = Color.White,
                                     )
-                                    set.restBetween?.takeIf { it > 0 }?.let { rest ->
-                                        Text(
-                                            text = "${rest}s descanso",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = Color.White.copy(alpha = 0.52f),
-                                            fontWeight = FontWeight.SemiBold,
-                                        )
-                                    }
                                 }
                                 FlowRow(
                                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                                     verticalArrangement = Arrangement.spacedBy(6.dp),
                                 ) {
-                                    WarmupMetricChip("${(display?.percentage ?: set.percentageOfWorkingWeight).toTrimmedNumberString()}%")
                                     WarmupMetricChip("${display?.reps ?: set.targetReps} reps")
                                     display?.targetWeight?.takeIf { it > 0.0 }?.let {
                                         WarmupMetricChip("${it.toTrimmedNumberString()} kg", emphasized = true)
@@ -672,12 +666,17 @@ fun WorkoutMobilitySeriesCard(
     mobilityItems: List<WorkoutMobilityChecklistItem>,
     completedExerciseIds: Set<String>,
     activeMobilityKey: String?,
-    onToggleComplete: (exerciseId: String, mobilityId: String, completed: Boolean) -> Unit,
+    globalTimerMinutes: Int = 0,
+    globalTimerRemainingSeconds: Int? = null,
+    globalTimerRunning: Boolean = false,
+    onStartGlobalTimer: () -> Unit = {},
+    onPauseGlobalTimer: () -> Unit = {},
+    onToggleComplete: (item: WorkoutMobilityChecklistItem, completed: Boolean) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val allDone = mobilityItems.isNotEmpty() && mobilityItems.all { item ->
-        "${item.exerciseId}_${item.mobility.id}" in completedExerciseIds
+        item.stepKey in completedExerciseIds
     }
 
     Surface(
@@ -712,14 +711,53 @@ fun WorkoutMobilitySeriesCard(
                 }
             }
 
+            val configuredSeconds = globalTimerMinutes.coerceAtLeast(1) * 60
+            val remainingSeconds = globalTimerRemainingSeconds ?: configuredSeconds
+            Surface(
+                shape = RoundedCornerShape(14.dp),
+                color = Color(0xFF66BB6A).copy(alpha = 0.08f),
+                border = BorderStroke(1.dp, Color(0xFF66BB6A).copy(alpha = 0.22f)),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 9.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Icon(Icons.Default.Timer, contentDescription = null, tint = Color(0xFF66BB6A))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            "Tiempo global",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Black,
+                            color = Color.White,
+                        )
+                        Text(
+                            formatChecklistDuration(remainingSeconds),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Black,
+                            color = Color(0xFF66BB6A),
+                        )
+                    }
+                    TextButton(
+                        onClick = if (globalTimerRunning) onPauseGlobalTimer else onStartGlobalTimer,
+                        colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF66BB6A)),
+                    ) {
+                        Text(if (globalTimerRunning) "Pausar" else "Iniciar", fontWeight = FontWeight.Black)
+                    }
+                }
+            }
+
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 mobilityItems.forEachIndexed { idx, item ->
                     val mob = item.mobility
-                    val mobKey = "${item.exerciseId}_${mob.id}"
+                    val mobKey = item.stepKey
                     val isCompleted = mobKey in completedExerciseIds
                     val isActive = activeMobilityKey == mobKey
 
                     Surface(
+                        onClick = { onToggleComplete(item, !isCompleted) },
                         shape = RoundedCornerShape(12.dp),
                         color = when {
                             isActive -> Color(0xFF66BB6A).copy(alpha = 0.16f)
@@ -764,9 +802,12 @@ fun WorkoutMobilitySeriesCard(
                                         overflow = TextOverflow.Ellipsis,
                                     )
                                     val detailText = buildString {
-                                        mob.durationSeconds?.let { append("${it}s") }
-                                        if (isNotEmpty() && mob.reps != null) append(" · ")
-                                        mob.reps?.let { append(it) }
+                                        append("Serie ${item.mobilitySetIndex + 1}")
+                                        if (mob.unit == com.example.kpkn.data.models.MobilityUnit.SECONDS) {
+                                            mob.durationSeconds?.let { append(" · ${it}s") }
+                                        } else {
+                                            mob.reps?.takeIf { it.isNotBlank() }?.let { append(" · $it reps") }
+                                        }
                                     }
                                     if (detailText.isNotBlank()) {
                                         Text(
@@ -820,7 +861,7 @@ fun WorkoutMobilitySeriesCard(
                     Button(
                         onClick = {
                             mobilityItems.forEach { item ->
-                                onToggleComplete(item.exerciseId, item.mobility.id, true)
+                                if (item.stepKey !in completedExerciseIds) onToggleComplete(item, true)
                             }
                         },
                         modifier = Modifier
@@ -838,4 +879,9 @@ fun WorkoutMobilitySeriesCard(
             }
         }
     }
+}
+
+private fun formatChecklistDuration(totalSeconds: Int): String {
+    val safe = totalSeconds.coerceAtLeast(0)
+    return "%02d:%02d".format(safe / 60, safe % 60)
 }

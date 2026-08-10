@@ -76,6 +76,9 @@ internal fun ExerciseCatalogScreen(
             onDismiss = {
                 onResult(request.copy().let { CatalogResult(it.requestId, canceled = true) })
             },
+            // The page callback already writes the result and pops the route.
+            // Calling onDismiss after it would overwrite that result as canceled.
+            dismissAfterMultiSelect = false,
             opaqueSurface = true,
             initialCatalogDefinitionId = request.targetExerciseId?.let { targetId ->
                 catalog.firstOrNull { it.id == targetId }?.catalogDefinitionId

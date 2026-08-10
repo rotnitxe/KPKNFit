@@ -614,6 +614,12 @@ fun SessionEditorViewModel.applyRuleDefaultsToSession(partId: String? = null): A
     val state = currentUiState
     val target = state.activeVariantSession ?: return ApplyRulesOutcome.NoChanges
     val defaults = getRuleDefaultsForPart(partId)
+    val transformedTarget = SessionEditorRulesEngine.applyDefaults(
+        session = target,
+        defaults = defaults,
+        partId = partId,
+        exerciseIndex = exerciseIndex,
+    )
     val outcome = SessionEditorRulesEngine.evaluateApply(
         session = target,
         defaults = defaults,
@@ -621,14 +627,25 @@ fun SessionEditorViewModel.applyRuleDefaultsToSession(partId: String? = null): A
         exerciseIndex = exerciseIndex,
     )
     if (outcome is ApplyRulesOutcome.Applied) {
-        updateSession { session ->
-            SessionEditorRulesEngine.applyDefaults(
-                session = session,
-                defaults = defaults,
-                partId = partId,
-                exerciseIndex = exerciseIndex,
-            )
+        val updatedTarget = transformedTarget.copy(lastModifiedAtMs = System.currentTimeMillis())
+        val base = state.session ?: return ApplyRulesOutcome.NoChanges
+        val updatedBase = when (state.activeVariant) {
+            WeekVariant.A -> updatedTarget
+            WeekVariant.B -> base.copy(sessionB = updatedTarget)
+            WeekVariant.C -> base.copy(sessionC = updatedTarget)
+            WeekVariant.D -> base.copy(sessionD = updatedTarget)
         }
+        val committedState = state.copy(
+            session = updatedBase,
+            dayOfWeek = updatedTarget.dayOfWeek ?: state.dayOfWeek,
+            hasUnsavedChanges = updatedBase != state.originalSession,
+        )
+        replaceUiState(committedState)
+        // Persistir el mismo estado que acaba de recibir la UI evita que cerrar
+        // y reabrir el editor recupere la sesión anterior desde el draft.
+        persistDraft(committedState)
+        scheduleAugeRecalc()
+        scheduleAutoSave()
         closeSheet()
     }
     // En NoChanges / ScopeNotFound la sheet queda abierta para que el usuario ajuste valores.

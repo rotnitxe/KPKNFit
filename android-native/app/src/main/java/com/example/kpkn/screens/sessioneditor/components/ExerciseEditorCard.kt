@@ -131,6 +131,7 @@ internal fun ExerciseEditorCard(
     autoExpand: Boolean,
     onAutoExpandHandled: () -> Unit,
     suppressIndividualRest: Boolean = false,
+    enableDrag: Boolean = true,
 ) {
     var expanded by rememberSaveable(exercise.id) { mutableStateOf(false) }
     var showCustomUnitModal by remember { mutableStateOf(false) }
@@ -260,29 +261,33 @@ internal fun ExerciseEditorCard(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
             // Drag handle — caja angosta para no empujar el título; altura táctil conservada.
-            Box(
-                modifier = Modifier
-                    .width(28.dp)
-                    .height(44.dp)
-                    .pointerInput(exercise.id) {
-                        detectDragGestures(
-                            onDragStart = { offset -> onDragStart(offset) },
-                            onDragCancel = { onDragEnd() },
-                            onDragEnd = { onDragEnd() },
-                            onDrag = { change, dragAmount ->
-                                change.consume()
-                                onDrag(Offset(dragAmount.x, dragAmount.y))
-                            },
-                        )
-                    },
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = Icons.Default.DragHandle,
-                    contentDescription = "Mantén pulsado para reordenar ejercicio",
-                    tint = accentColor.copy(alpha = if (isDragging) 0.9f else 0.48f),
-                    modifier = Modifier.size(18.dp),
-                )
+            if (enableDrag) {
+                Box(
+                    modifier = Modifier
+                        .width(28.dp)
+                        .height(44.dp)
+                        .pointerInput(exercise.id) {
+                            detectDragGestures(
+                                onDragStart = { offset -> onDragStart(offset) },
+                                onDragCancel = { onDragEnd() },
+                                onDragEnd = { onDragEnd() },
+                                onDrag = { change, dragAmount ->
+                                    change.consume()
+                                    onDrag(Offset(dragAmount.x, dragAmount.y))
+                                },
+                            )
+                        },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.DragHandle,
+                        contentDescription = "Mantén pulsado para reordenar ejercicio",
+                        tint = accentColor.copy(alpha = if (isDragging) 0.9f else 0.48f),
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+            } else {
+                Spacer(Modifier.width(28.dp).height(44.dp))
             }
             // Name & subtitle. The parent header owns expand and long-press actions.
             Column(

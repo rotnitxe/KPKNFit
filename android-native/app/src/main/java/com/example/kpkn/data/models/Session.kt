@@ -136,7 +136,7 @@ enum class MobilityUnit {
 @Serializable
 data class MobilityConfig(
     val mode: MobilityMode = MobilityMode.ENFOCADO,
-    /** Total block duration used only by [MobilityMode.SURTIDO]. */
+    /** Global timer duration for the mobility block, in minutes. */
     val totalMinutes: Int = 0,
 )
 
@@ -307,7 +307,7 @@ data class MobilitySeries(
     val sets: Int = 1,
     val reps: String? = null,
     val durationSeconds: Int? = null,
-    /** Rest inserted between sets of this mobility series. */
+    /** Legacy field kept for JSON compatibility; mobility no longer schedules per-series rest. */
     val restBetweenSeconds: Int = 0,
     val notes: String? = null,
     val associatedDiscomforts: List<String> = emptyList(),

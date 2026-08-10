@@ -342,7 +342,7 @@ internal fun Session.normalizeSession(): Session {
         parts = normalizedParts,
         background = normalizedBackground,
         coverStyle = normalizedCoverStyle,
-    ))
+    ).normalizeMobilityCompatibility())
 }
 
 internal fun Exercise.normalizeExercise(): Exercise {

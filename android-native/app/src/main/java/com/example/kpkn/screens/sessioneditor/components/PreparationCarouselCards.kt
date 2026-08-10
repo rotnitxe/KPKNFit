@@ -17,11 +17,13 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -62,48 +64,18 @@ internal fun MobilityPreparationCarousel(
     onRemove: (String) -> Unit,
     onAdd: () -> Unit,
 ) {
-    val selectedMode = mobilityConfig?.mode ?: MobilityMode.ENFOCADO
-    val isSurtido = selectedMode == MobilityMode.SURTIDO
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            "Modo",
-            style = MaterialTheme.typography.labelSmall,
-            color = Color.White.copy(alpha = 0.62f),
-        )
-        FilterChip(
-            selected = !isSurtido,
-            onClick = { onUpdateConfig((mobilityConfig ?: MobilityConfig()).copy(mode = MobilityMode.ENFOCADO)) },
-            label = { Text("Enfocado") },
-        )
-        FilterChip(
-            selected = isSurtido,
-            onClick = { onUpdateConfig((mobilityConfig ?: MobilityConfig()).copy(mode = MobilityMode.SURTIDO)) },
-            label = { Text("Surtido") },
-        )
-        if (isSurtido) {
-            EditorMiniField(
-                label = "Total (min)",
-                value = (mobilityConfig?.totalMinutes ?: 1).coerceAtLeast(1).toString(),
-                stateKey = "mobility-total-minutes-${series.firstOrNull()?.id ?: "block"}",
-                keyboardType = KeyboardType.Number,
-                accentColor = accentColor,
-                modifier = Modifier.width(92.dp),
-            ) { input ->
-                input.toIntOrNull()?.let { minutes ->
-                    onUpdateConfig(
-                        (mobilityConfig ?: MobilityConfig(MobilityMode.SURTIDO, 1)).copy(
-                            mode = MobilityMode.SURTIDO,
-                            totalMinutes = minutes.coerceAtLeast(1),
-                        ),
-                    )
-                }
-            }
-        }
-    }
+    MobilityGlobalTimerField(
+        totalMinutes = mobilityConfig?.totalMinutes ?: 0,
+        accentColor = accentColor,
+        onConfirm = { minutes ->
+            onUpdateConfig(
+                MobilityConfig(
+                    mode = MobilityMode.ENFOCADO,
+                    totalMinutes = minutes,
+                ),
+            )
+        },
+    )
     val listState = rememberLazyListState()
     LazyRow(
         state = listState,
@@ -114,9 +86,12 @@ internal fun MobilityPreparationCarousel(
         items(series, key = { it.id }) { mobility ->
             MobilityPreparationCard(
                 mobility = mobility,
-                showPerExerciseFields = !isSurtido,
                 accentColor = accentColor,
-                onUpdate = { transform -> onUpdate(mobility.id, transform) },
+                onUpdate = { transform ->
+                    onUpdate(mobility.id) { current ->
+                        transform(current).copy(restBetweenSeconds = 0)
+                    }
+                },
                 onRemove = { onRemove(mobility.id) },
             )
         }
@@ -151,11 +126,9 @@ internal fun MobilityPreparationCarousel(
 private fun MobilityPreparationCard(
     mobility: MobilitySeries,
     accentColor: Color,
-    showPerExerciseFields: Boolean,
     onUpdate: ((MobilitySeries) -> MobilitySeries) -> Unit,
     onRemove: () -> Unit,
 ) {
-    var showRestPicker by remember(mobility.id) { mutableStateOf(false) }
     Surface(
         modifier = Modifier.width(268.dp),
         shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp),
@@ -194,7 +167,7 @@ private fun MobilityPreparationCard(
                     )
                 }
             }
-            if (showPerExerciseFields) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 EditorMiniField(
                     label = "Series",
                     value = mobility.sets.toString(),
@@ -234,7 +207,7 @@ private fun MobilityPreparationCard(
                     }
                 }
             }
-            if (showPerExerciseFields) {
+            run {
                 val unit = mobility.unit ?: if (mobility.durationSeconds != null) MobilityUnit.SECONDS else MobilityUnit.REPS
                 Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                     FilterChip(
@@ -258,29 +231,72 @@ private fun MobilityPreparationCard(
                         label = { Text("Repeticiones") },
                     )
                 }
-                TextButton(
-                    onClick = { showRestPicker = true },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.textButtonColors(contentColor = accentColor),
-                ) {
-                    Text("Descanso entre series: ${formatRestSummary(mobility.restBetweenSeconds)}")
-                }
             }
         }
     }
-    if (showRestPicker) {
+}
+
+@Composable
+private fun MobilityGlobalTimerField(
+    totalMinutes: Int,
+    accentColor: Color,
+    onConfirm: (Int) -> Unit,
+) {
+    var showPicker by remember { mutableStateOf(false) }
+    val normalizedMinutes = totalMinutes.coerceAtLeast(0)
+    OutlinedButton(
+        onClick = { showPicker = true },
+        modifier = Modifier
+            .fillMaxWidth(),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, accentColor.copy(alpha = 0.34f)),
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = accentColor.copy(alpha = 0.08f),
+            contentColor = Color.White,
+        ),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 9.dp),
+    ) {
+        Icon(
+            Icons.Default.Timer,
+            contentDescription = "Configurar tiempo global",
+            tint = accentColor,
+        )
+        Column(
+            modifier = Modifier.weight(1f),
+            horizontalAlignment = Alignment.Start,
+        ) {
+            Text(
+                "Tiempo global de movilidad",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color.White.copy(alpha = 0.90f),
+            )
+            Text(
+                if (normalizedMinutes > 0) formatMobilityTimer(normalizedMinutes) else "Configurar con reloj",
+                style = MaterialTheme.typography.labelSmall,
+                color = accentColor.copy(alpha = 0.88f),
+            )
+        }
+    }
+    if (showPicker) {
         KpknNativeTimePickerDialog(
-            title = "Descanso entre series",
-            initialHour = (mobility.restBetweenSeconds / 60).coerceIn(0, 23),
-            initialMinute = (mobility.restBetweenSeconds % 60).coerceIn(0, 59),
-            hint = "Minutos : segundos",
-            onConfirm = { minutes, seconds ->
-                onUpdate { it.copy(restBetweenSeconds = (minutes * 60 + seconds).coerceAtLeast(0)) }
-                showRestPicker = false
+            title = "Tiempo global de movilidad",
+            initialHour = (normalizedMinutes / 60).coerceIn(0, 23),
+            initialMinute = (normalizedMinutes % 60).coerceIn(0, 59),
+            hint = "Horas : minutos",
+            onConfirm = { hour, minute ->
+                onConfirm((hour * 60 + minute).coerceAtLeast(1))
+                showPicker = false
             },
-            onDismiss = { showRestPicker = false },
+            onDismiss = { showPicker = false },
         )
     }
+}
+
+private fun formatMobilityTimer(totalMinutes: Int): String {
+    val hours = totalMinutes / 60
+    val minutes = totalMinutes % 60
+    return if (hours > 0) "%d h %02d min".format(hours, minutes) else "$minutes min"
 }
 
 @Composable

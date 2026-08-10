@@ -368,7 +368,9 @@ internal fun GroupEditorCard(
     val partColor = partAccent.primary
     val dropScale by animateFloatAsState(if (isDropTarget) 1.01f else 1f, label = "partDropScale")
     val normalizedName = part.name.trim()
-    val displayName = if (normalizedName.isBlank()) "GRUPO" else normalizedName.uppercase()
+    // Keep the user's group name in the action so this control is clearly
+    // scoped to the container instead of looking like the global picker.
+    val displayName = if (normalizedName.isBlank()) "este grupo" else normalizedName
     val shouldShowDeleteChoice = part.exercises.isNotEmpty()
     val headerShape = if (collapsed) {
         RoundedCornerShape(16.dp)
@@ -610,7 +612,7 @@ internal fun GroupEditorCard(
                             ) {
                                 Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
                                 Spacer(Modifier.width(6.dp))
-                                Text("Agregar ejercicio en ${displayName}", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text("Añadir ejercicio a $displayName", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             }
                         }
                     }
@@ -707,7 +709,7 @@ private fun MobilityGroupInlineEditor(
         )
         if (mobilitySeries.isEmpty()) {
             Text(
-                "Añade movimientos para programar series, repeticiones y descansos.",
+                "Añade movimientos para programar series, repeticiones y un tiempo global.",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.White.copy(alpha = 0.62f),
             )

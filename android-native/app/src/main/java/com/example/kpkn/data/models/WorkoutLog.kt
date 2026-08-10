@@ -205,7 +205,7 @@ data class OngoingWorkoutState(
     val skippedExerciseIds: Set<String> = emptySet(),
     val warmupCompletedExerciseIds: Set<String> = emptySet(),
     val mobilityCompletedExerciseIds: Set<String> = emptySet(),
-    /** Stable keys for completed Surtido mobility blocks. */
+    /** Stable keys for legacy total mobility blocks; focused checklists use series keys. */
     val mobilityTotalCompletedStepKeys: Set<String> = emptySet(),
     val mobilityTotalTimerState: MobilityTotalTimerState? = null,
     val cardioTimerState: CardioTimerState? = null,

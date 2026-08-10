@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -21,7 +22,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.DirectionsRun
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -51,6 +51,7 @@ import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
+import com.example.kpkn.data.models.isCardio
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.domain.workout.SupersetRules
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -158,7 +159,7 @@ internal fun SessionEditorListItem(
                 } else {
                     0f
                 },
-                animationSpec = tween(160),
+                animationSpec = if (exercise.isCardio) snap() else tween(160),
                 label = "looseDnDShift",
             )
             Column(
@@ -204,7 +205,7 @@ internal fun SessionEditorListItem(
                 } else {
                     0f
                 },
-                animationSpec = tween(160),
+                animationSpec = if (exercise.isCardio) snap() else tween(160),
                 label = "partDnDShift",
             )
             Column(
@@ -254,7 +255,7 @@ internal fun SessionEditorListItem(
                 } else {
                     0f
                 },
-                animationSpec = tween(160),
+                animationSpec = if (supersetMembers.any { it.isCardio }) snap() else tween(160),
                 label = "looseSupersetDnDShift",
             )
             Column(
@@ -305,7 +306,7 @@ internal fun SessionEditorListItem(
                 } else {
                     0f
                 },
-                animationSpec = tween(160),
+                animationSpec = if (supersetMembers.any { it.isCardio }) snap() else tween(160),
                 label = "partSupersetDnDShift",
             )
             Column(
@@ -346,7 +347,7 @@ internal fun SessionEditorListItem(
 
         is SessionListItem.PartAddExercise -> {
             val part = groupedParts.firstOrNull { it.id == listItem.partId } ?: return
-            val displayName = part.name.trim().ifBlank { "GRUPO" }.uppercase()
+            val displayName = part.name.trim().ifBlank { "este grupo" }
             val partAccent = remember(part.color) { resolvePartAccent(part.color) }
             val footerShape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)
             Box(
@@ -358,28 +359,20 @@ internal fun SessionEditorListItem(
                     .padding(horizontal = 4.dp, vertical = 6.dp)
                     .onGloballyPositioned { onPartContentBoundsReport(part.id, it.boundsInWindow()) },
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 2.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                FilledTonalButton(
+                    onClick = { viewModel.openPicker(part.id) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp, vertical = 2.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
                 ) {
-                    FilledTonalButton(
-                        onClick = { viewModel.openPicker(part.id) },
-                        modifier = Modifier.weight(1f),
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 10.dp),
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text("Ejercicio", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
-                    }
-                    FilledTonalButton(
-                        onClick = { viewModel.openCardioPicker(part.id) },
-                        modifier = Modifier.weight(1f),
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 10.dp),
-                    ) {
-                        Icon(Icons.Default.DirectionsRun, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text("Cardio", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
-                    }
+                    Text(
+                        "Añadir ejercicio a $displayName",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.labelMedium,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 }
             }
         }
@@ -422,6 +415,7 @@ private fun LooseExerciseItem(
             partId = partId,
             isCompetitionMovement = exercise.matchesCompetitionMovement(competitionMovementIds),
             modifier = Modifier.fillMaxWidth(),
+            enableDrag = !exercise.isCardio,
             isDragging = draggingExerciseId == exercise.id,
             dragOffset = if (draggingExerciseId == exercise.id) draggingExerciseOffset else Offset.Zero,
             isDropTarget = (
@@ -503,6 +497,7 @@ private fun PartExerciseItem(
             partId = part.id,
             isCompetitionMovement = exercise.matchesCompetitionMovement(competitionMovementIds),
             modifier = Modifier.fillMaxWidth(),
+            enableDrag = !exercise.isCardio,
             isDragging = draggingExerciseId == exercise.id,
             dragOffset = if (draggingExerciseId == exercise.id) draggingExerciseOffset else Offset.Zero,
             isDropTarget = (
@@ -630,6 +625,7 @@ private fun LooseSupersetItem(
                     partId = partId,
                     isCompetitionMovement = member.matchesCompetitionMovement(competitionMovementIds),
                     modifier = Modifier.fillMaxWidth(),
+                    enableDrag = !member.isCardio,
                     isDragging = draggingExerciseId == member.id,
                     dragOffset = if (draggingExerciseId == member.id) draggingExerciseOffset else Offset.Zero,
                     isDropTarget = (
@@ -761,6 +757,7 @@ private fun PartSupersetItem(
                     partId = part.id,
                     isCompetitionMovement = member.matchesCompetitionMovement(competitionMovementIds),
                     modifier = Modifier.fillMaxWidth(),
+                    enableDrag = !member.isCardio,
                     isDragging = draggingExerciseId == member.id,
                     dragOffset = if (draggingExerciseId == member.id) draggingExerciseOffset else Offset.Zero,
                     isDropTarget = (

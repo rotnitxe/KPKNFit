@@ -113,6 +113,36 @@ class SessionSerializationTest {
     }
 
     @Test
+    fun legacy_surtido_session_is_migrated_to_focused_global_timer_without_series_rest() {
+        val session = Session(
+            id = "legacy-surtido",
+            name = "Movilidad antigua",
+            exercises = listOf(
+                Exercise(
+                    id = "stretch",
+                    name = "Stretch",
+                    mobilityConfig = MobilityConfig(MobilityMode.SURTIDO, totalMinutes = 7),
+                    mobilitySeries = listOf(
+                        MobilitySeries(
+                            id = "m1",
+                            name = "Stretch",
+                            sets = 2,
+                            durationSeconds = 30,
+                            restBetweenSeconds = 45,
+                        ),
+                    ),
+                ),
+            ),
+        ).normalizeMobilityCompatibility()
+
+        val exercise = session.exercises.single()
+        assertEquals(MobilityMode.ENFOCADO, exercise.mobilityConfig?.mode)
+        assertEquals(7, exercise.mobilityConfig?.totalMinutes)
+        assertEquals(0, exercise.mobilitySeries.single().restBetweenSeconds)
+        assertEquals(MobilityUnit.SECONDS, exercise.mobilitySeries.single().unit)
+    }
+
+    @Test
     fun mobility_series_round_trip_preserves_rest_between_seconds() {
         val original = MobilitySeries(
             id = "mob-round-trip",

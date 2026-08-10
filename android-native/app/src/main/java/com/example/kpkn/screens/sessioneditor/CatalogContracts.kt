@@ -48,9 +48,24 @@ data class CatalogResult(
             CatalogResult(
                 requestId = request.requestId,
                 selectedExerciseIds = selected.map { it.id },
-                selectedConfigurationIds = selected.mapNotNull { it.catalogConfigurationId },
+                // Keep positional alignment with selectedExerciseIds. An item
+                // without a v2 configuration still occupies a slot so a later
+                // configuration cannot be applied to the wrong exercise.
+                selectedConfigurationIds = selected.map { it.catalogConfigurationId.orEmpty() },
             )
     }
+
+    /**
+     * Resolves the ID-only result against the caller's catalog index.
+     * Configuration IDs are preferred because they preserve the exact chips
+     * chosen in the page catalog; the definition/legacy ID remains a fallback
+     * for old payloads and custom exercises.
+     */
+    fun resolveSelectedInfos(index: Map<String, ExerciseMuscleInfo>): List<ExerciseMuscleInfo> =
+        selectedExerciseIds.mapIndexedNotNull { position, exerciseId ->
+            val configurationId = selectedConfigurationIds.getOrNull(position).orEmpty()
+            index[configurationId.lowercase()] ?: index[exerciseId.lowercase()]
+        }
 }
 
 /** Keys intentionally remain constant so a request survives recomposition and rotation. */

@@ -536,7 +536,6 @@ fun calculateSessionTimeBreakdown(
             ?: repsEstimate?.times(4)
             ?: 30
         warmupSec += secondsPerSet * setCount
-        warmupSec += mobility.restBetweenSeconds.coerceAtLeast(0) * (setCount - 1)
     }
 
     // IDs de supersets ya procesados (para no duplicar descanso intra-superset)
@@ -564,7 +563,6 @@ fun calculateSessionTimeBreakdown(
                 else -> 30 * setCount
             }
             warmupSec += mobilityDuration
-            warmupSec += mobility.restBetweenSeconds.coerceAtLeast(0) * (setCount - 1)
         }
 
         // Cardio is one continuous execution block. Use the embedded target as

@@ -840,13 +840,17 @@ class WorkoutViewModel(
         return loaded
     }
 
-    /** Rehydrates a Surtido timer after process death and accounts for wall-clock time. */
+    /** Rehydrates a persisted mobility timer after process death and accounts for wall-clock time. */
     private fun resumeRestoredMobilityTotalTimerIfNeeded() {
         val restored = _uiState.value.mobilityTotalTimerState
             ?.takeIf { it.isRunning }
             ?: return
+        val isGlobalTimer = visibleExercises(_uiState.value).any { candidate ->
+            WorkoutStepRules.mobilityGlobalTimerKey(candidate.id) == restored.stepKey
+        }
         val exercise = visibleExercises(_uiState.value).firstOrNull { candidate ->
-            WorkoutStepRules.mobilityTotalStepKey(candidate.id) == restored.stepKey
+            WorkoutStepRules.mobilityTotalStepKey(candidate.id) == restored.stepKey ||
+                WorkoutStepRules.mobilityGlobalTimerKey(candidate.id) == restored.stepKey
         } ?: return
         val elapsedSeconds = ((System.currentTimeMillis() - restored.updatedAtMs) / 1_000L)
             .coerceAtLeast(0L)
@@ -863,7 +867,22 @@ class WorkoutViewModel(
             )
         }
         if (remaining <= 0) {
-            markMobilityTotalComplete(exercise.id)
+            if (isGlobalTimer) {
+                _uiState.update { state ->
+                    state.copy(
+                        mobilityTotalTimerState = restored.copy(
+                            remainingSeconds = 0,
+                            isRunning = false,
+                            updatedAtMs = System.currentTimeMillis(),
+                        ),
+                    )
+                }
+                persistOngoingState()
+            } else {
+                markMobilityTotalComplete(exercise.id)
+            }
+        } else if (isGlobalTimer) {
+            startMobilityGlobalTimer(exercise.id, (restored.totalSeconds / 60).coerceAtLeast(1))
         } else {
             startMobilityTotalTimer(exercise.id, (restored.totalSeconds / 60).coerceAtLeast(1))
         }
@@ -2473,11 +2492,11 @@ class WorkoutViewModel(
         persistOngoingState()
     }
 
-    /** Completes exactly one mobility card and starts its configured rest. */
+    /** Completes exactly one planned mobility series occurrence. */
     fun completeMobilityStep(exerciseId: String, mobilityId: String, mobilitySetIndex: Int = 0) {
         val state = _uiState.value
         val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return
-        val mobility = exercise.mobilitySeries.firstOrNull { it.id == mobilityId } ?: return
+        if (exercise.mobilitySeries.none { it.id == mobilityId }) return
         val key = mobilityCompletionKey(exerciseId, mobilityId, mobilitySetIndex)
         if (key in state.mobilityCompletedExerciseIds) return
         _uiState.update {
@@ -2485,11 +2504,6 @@ class WorkoutViewModel(
         }
         persistOngoingState()
         nextSet(stopRest = false)
-        startPreparationRestIfNeeded(
-            seconds = mobility.restBetweenSeconds,
-            kind = RestTimerKind.STANDARD,
-            lastSet = null,
-        )
     }
 
     fun reportMobilityStep(
@@ -2596,6 +2610,64 @@ class WorkoutViewModel(
 
     fun completeMobilityTotalTimer(exerciseId: String) = markMobilityTotalComplete(exerciseId)
 
+    /**
+     * Runs the single focused-mobility timer without creating a navigation step.
+     * The checklist remains the source of completion; the timer is only the shared
+     * execution clock and is persisted in the ongoing workout state.
+     */
+    fun startMobilityGlobalTimer(exerciseId: String, totalMinutes: Int) {
+        val exercise = visibleExercises(_uiState.value).firstOrNull { it.id == exerciseId } ?: return
+        if (exercise.mobilitySeries.isEmpty()) return
+        val key = WorkoutStepRules.mobilityGlobalTimerKey(exerciseId)
+        val totalSeconds = totalMinutes.coerceAtLeast(1) * 60
+        val current = _uiState.value
+        if (current.mobilityTotalTimerState?.stepKey == key && current.mobilityTotalTimerState.isRunning) return
+        val remaining = current.mobilityTotalTimerState
+            ?.takeIf { it.stepKey == key }
+            ?.remainingSeconds
+            ?.takeIf { it > 0 }
+            ?.coerceAtMost(totalSeconds)
+            ?: totalSeconds
+        _uiState.update {
+            it.copy(
+                mobilityTotalTimerState = MobilityTotalTimerState(
+                    stepKey = key,
+                    totalSeconds = totalSeconds,
+                    remainingSeconds = remaining,
+                    isRunning = true,
+                    updatedAtMs = System.currentTimeMillis(),
+                ),
+            )
+        }
+        persistOngoingState()
+        mobilityTotalTimerJob?.cancel()
+        mobilityTotalTimerJob = viewModelScope.launch {
+            while (true) {
+                delay(1_000L)
+                val timer = _uiState.value.mobilityTotalTimerState
+                    ?.takeIf { it.stepKey == key && it.isRunning }
+                    ?: return@launch
+                val nextRemaining = (timer.remainingSeconds - 1).coerceAtLeast(0)
+                _uiState.update { state ->
+                    state.copy(
+                        mobilityTotalTimerState = timer.copy(
+                            remainingSeconds = nextRemaining,
+                            isRunning = nextRemaining > 0,
+                            updatedAtMs = System.currentTimeMillis(),
+                        ),
+                    )
+                }
+                persistOngoingState()
+                if (nextRemaining == 0) return@launch
+            }
+        }
+    }
+
+    fun pauseMobilityGlobalTimer() = pauseMobilityTotalTimer()
+
+    fun firstIncompleteStepForExercise(exercise: Exercise): WorkoutStep? =
+        stepNavigator.firstIncompleteStepForExercise(_uiState.value, exercise)
+
     fun skipRemainingPreparation(exerciseId: String) {
         val state = _uiState.value
         val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return
@@ -2605,15 +2677,9 @@ class WorkoutViewModel(
             }
         }
         val warmupKeys = exercise.warmupSets.map { warmupCompletionKey(exerciseId, it.id) }
-        val mobilityTotalKeys = if (exercise.mobilityConfig?.mode == MobilityMode.SURTIDO && exercise.mobilitySeries.isNotEmpty()) {
-            setOf(WorkoutStepRules.mobilityTotalStepKey(exerciseId))
-        } else {
-            emptySet()
-        }
         _uiState.update {
             it.copy(
                 mobilityCompletedExerciseIds = it.mobilityCompletedExerciseIds + mobilityKeys,
-                mobilityTotalCompletedStepKeys = it.mobilityTotalCompletedStepKeys + mobilityTotalKeys,
                 warmupCompletedExerciseIds = it.warmupCompletedExerciseIds + warmupKeys,
             )
         }

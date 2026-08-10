@@ -392,7 +392,9 @@ class SessionEditorViewModel(
             sessionId = fallbackDraft.id,
         )
         val draft = SupersetRules.normalizeSession(
-            resolveNewestSession(existing, fallbackDraft, persistedDraft).normalizedIdentityFields(),
+            resolveNewestSession(existing, fallbackDraft, persistedDraft)
+                .normalizeMobilityCompatibility()
+                .normalizedIdentityFields(),
         )
         val weekSessions = ensureSessionInList(week?.sessions.orEmpty(), draft)
         if (existing == null && week != null && targetWeekId.isNotBlank()) {
@@ -473,7 +475,9 @@ class SessionEditorViewModel(
 
         return SessionEditorUiState(
             session = draft,
-            originalSession = SupersetRules.normalizeSession((existing ?: draft).normalizedIdentityFields()),
+            originalSession = SupersetRules.normalizeSession(
+                (existing ?: draft).normalizeMobilityCompatibility().normalizedIdentityFields(),
+            ),
             loadErrorMessage = null,
             programId = programId,
             draftBundle = SessionDraftBundle(

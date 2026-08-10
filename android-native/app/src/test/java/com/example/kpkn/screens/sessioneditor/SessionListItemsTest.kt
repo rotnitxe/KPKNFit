@@ -1,6 +1,8 @@
 package com.example.kpkn.screens.sessioneditor
 
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.CardioDetails
+import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
 import org.junit.Assert.assertEquals
@@ -23,6 +25,25 @@ class SessionListItemsTest {
         val session = Session(id = "s1", name = "Pull", exercises = listOf(ex))
         val items = buildSessionListItems(session)
         assertTrue(items.any { it is SessionListItem.LooseExercise && it.exerciseId == "e1" })
+    }
+
+    @Test
+    fun buildSessionListItems_keepsCardioAtItsInsertionPosition() {
+        val first = Exercise(id = "e1", name = "Press", exerciseDbId = "press")
+        val cardio = Exercise(
+            id = "c1",
+            name = "Bicicleta",
+            cardioDetails = CardioDetails(type = CardioType.BIKE_STATIONARY),
+        )
+        val last = Exercise(id = "e2", name = "Remo", exerciseDbId = "row")
+        val items = buildSessionListItems(
+            Session(id = "s1", name = "Pull", exercises = listOf(first, cardio, last)),
+        )
+
+        assertEquals(
+            listOf("e1", "c1", "e2"),
+            items.filterIsInstance<SessionListItem.LooseExercise>().map { it.exerciseId },
+        )
     }
 
     @Test

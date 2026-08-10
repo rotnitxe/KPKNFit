@@ -3,7 +3,6 @@ package com.example.kpkn.screens.workout
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.MobilitySeries
-import com.example.kpkn.data.models.MobilityMode
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.UnilateralSideOrder
 import com.example.kpkn.data.models.isEffectivelyUnilateral
@@ -123,6 +122,9 @@ object WorkoutStepRules {
     }
 
     fun mobilityTotalStepKey(exerciseId: String): String = "${exerciseId}_mobility_total"
+
+    /** Persistent UI timer key for the focused mobility checklist. */
+    fun mobilityGlobalTimerKey(exerciseId: String): String = "${exerciseId}_mobility_global_timer"
 
     fun cardioStepKey(exerciseId: String): String = "${exerciseId}_cardio"
 
@@ -275,19 +277,6 @@ object WorkoutStepRules {
         steps: MutableList<WorkoutStep>,
     ) {
         if (exercise.mobilitySeries.isEmpty()) return
-        if (exercise.mobilityConfig?.mode == MobilityMode.SURTIDO) {
-            steps += WorkoutStep(
-                type = WorkoutStepType.MOBILITY_TOTAL,
-                exerciseId = exercise.id,
-                exerciseName = exerciseName,
-                stepKey = mobilityTotalStepKey(exercise.id),
-                supersetGroupId = groupId,
-                mobilityTotalMinutes = (exercise.mobilityConfig?.totalMinutes ?: 1).coerceAtLeast(1),
-                mobilitySeries = exercise.mobilitySeries,
-                restAfterKind = RestTimerKind.STANDARD,
-            )
-            return
-        }
         exercise.mobilitySeries.forEach { mobility ->
             repeat(mobility.sets.coerceAtLeast(1)) { mobilitySetIndex ->
                 steps += WorkoutStep(
@@ -298,7 +287,9 @@ object WorkoutStepRules {
                     mobilitySeriesId = mobility.id,
                     mobilitySetIndex = mobilitySetIndex,
                     supersetGroupId = groupId,
-                    mobilitySeries = listOf(mobility),
+                    // Mobility no longer has a per-series rest field. Keep old JSON readable,
+                    // but never carry that legacy pause into the live execution model.
+                    mobilitySeries = listOf(mobility.copy(restBetweenSeconds = 0)),
                     restAfterKind = RestTimerKind.STANDARD,
                 )
             }

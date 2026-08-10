@@ -38,7 +38,7 @@ class CardioTimeCalculationTest {
     }
 
     @Test
-    fun mobilitySeriesCountsDurationAndRestBetweenConfiguredSets() {
+    fun mobilitySeriesCountsDurationWithoutRestBetweenConfiguredSets() {
         val exercise = Exercise(
             id = "squat-1",
             name = "Sentadilla",
@@ -58,6 +58,6 @@ class CardioTimeCalculationTest {
             supersetGroups = emptyList(),
         )
 
-        assertEquals(90, breakdown.warmupSeconds)
+        assertEquals(60, breakdown.warmupSeconds)
     }
 }

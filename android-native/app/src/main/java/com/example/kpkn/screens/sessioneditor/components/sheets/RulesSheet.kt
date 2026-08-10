@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -310,7 +311,7 @@ internal fun RulesSheet(
         )
     }
 
-    Box(modifier = Modifier.fillMaxWidth()) {
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -369,7 +370,7 @@ internal fun RulesSheet(
                     onClick = { selectScope(RuleScope.PER_GROUP) },
                 )
                 KpknSheetGlassChip(
-                    label = "Comp. / ais.",
+                    label = "Compuestos / Aislados",
                     selected = selectedScope == RuleScope.COMPOUND_ISOLATION,
                     onClick = { selectScope(RuleScope.COMPOUND_ISOLATION) },
                 )

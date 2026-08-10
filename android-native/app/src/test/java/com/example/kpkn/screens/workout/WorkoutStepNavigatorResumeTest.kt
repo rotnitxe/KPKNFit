@@ -8,6 +8,7 @@ import com.example.kpkn.data.models.MobilityMode
 import com.example.kpkn.data.models.MobilitySeries
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WeekVariant
+import com.example.kpkn.data.models.WarmupSetDefinition
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -16,13 +17,24 @@ import org.junit.Test
 
 class WorkoutStepNavigatorResumeTest {
     @Test
-    fun firstIncompleteStep_restoresAssortedMobilityTotalBeforeWorkingSet() {
+    fun firstIncompleteStep_restoresMobilityChecklistBeforeWorkingSet() {
         val exercise = Exercise(
             id = "squat",
             name = "Sentadilla",
             mobilityConfig = MobilityConfig(MobilityMode.SURTIDO, totalMinutes = 6),
-            mobilitySeries = listOf(MobilitySeries(id = "ankle", name = "Tobillo", reps = "8")),
-            sets = listOf(ExerciseSet(id = "set-1")),
+            mobilitySeries = listOf(
+                MobilitySeries(id = "ankle", name = "Tobillo", sets = 2, reps = "8"),
+                MobilitySeries(id = "hip", name = "Cadera", sets = 1, durationSeconds = 30),
+            ),
+            warmupSets = listOf(
+                WarmupSetDefinition(id = "warmup-1", percentageOfWorkingWeight = 40.0, targetReps = 8),
+                WarmupSetDefinition(id = "warmup-2", percentageOfWorkingWeight = 60.0, targetReps = 5),
+            ),
+            sets = listOf(
+                ExerciseSet(id = "set-1"),
+                ExerciseSet(id = "set-2"),
+                ExerciseSet(id = "set-3"),
+            ),
         )
         val session = Session(id = "session", name = "Sesion", exercises = listOf(exercise))
         var state = WorkoutUiState(session = session)
@@ -62,12 +74,54 @@ class WorkoutStepNavigatorResumeTest {
             },
         )
 
-        assertEquals(WorkoutStepType.MOBILITY_TOTAL, navigator.firstIncompleteStep(state)?.type)
+        assertEquals(WorkoutStepType.MOBILITY, navigator.firstIncompleteStep(state)?.type)
+        assertEquals("squat_ankle", navigator.firstIncompleteStep(state)?.stepKey)
 
         state = state.copy(
-            mobilityTotalCompletedStepKeys = setOf(WorkoutStepRules.mobilityTotalStepKey("squat")),
+            mobilityCompletedExerciseIds = setOf(
+                WorkoutStepRules.mobilityStepKey("squat", "ankle"),
+            ),
+        )
+        assertEquals("squat_ankle_set_1", navigator.firstIncompleteStep(state)?.stepKey)
+
+        state = state.copy(
+            mobilityCompletedExerciseIds = state.mobilityCompletedExerciseIds +
+                WorkoutStepRules.mobilityStepKey("squat", "ankle", mobilitySetIndex = 1),
+        )
+        assertEquals("squat_hip", navigator.firstIncompleteStep(state)?.stepKey)
+
+        state = state.copy(
+            mobilityCompletedExerciseIds = state.mobilityCompletedExerciseIds +
+                WorkoutStepRules.mobilityStepKey("squat", "hip"),
+        )
+        assertEquals(WorkoutStepType.WARMUP, navigator.firstIncompleteStep(state)?.type)
+        assertEquals("squat_warmup_warmup-1", navigator.firstIncompleteStep(state)?.stepKey)
+
+        state = state.copy(
+            warmupCompletedExerciseIds = setOf(
+                WorkoutStepRules.warmupStepKey("squat", "warmup-1"),
+            ),
+        )
+        assertEquals("squat_warmup_warmup-2", navigator.firstIncompleteStep(state)?.stepKey)
+
+        state = state.copy(
+            warmupCompletedExerciseIds = state.warmupCompletedExerciseIds +
+                WorkoutStepRules.warmupStepKey("squat", "warmup-2"),
         )
         assertEquals(WorkoutStepType.WORKING_SET, navigator.firstIncompleteStep(state)?.type)
         assertEquals("squat_0", navigator.firstIncompleteStep(state)?.stepKey)
+
+        state = state.copy(
+            completedSets = mapOf(
+                WorkoutStepRules.workingStepKey("squat", 0) to CompletedSet(id = "done-0"),
+            ),
+        )
+        assertEquals("squat_1", navigator.firstIncompleteStep(state)?.stepKey)
+
+        state = state.copy(
+            completedSets = state.completedSets +
+                (WorkoutStepRules.workingStepKey("squat", 1) to CompletedSet(id = "done-1")),
+        )
+        assertEquals("squat_2", navigator.firstIncompleteStep(state)?.stepKey)
     }
 }

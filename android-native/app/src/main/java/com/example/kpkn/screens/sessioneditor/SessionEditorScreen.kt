@@ -168,7 +168,16 @@ fun SessionEditorScreen(
             when (event) {
                 Lifecycle.Event.ON_PAUSE,
                 Lifecycle.Event.ON_STOP -> viewModel.saveDraftForExit()
-                Lifecycle.Event.ON_RESUME -> viewModel.retryLoadSession()
+                Lifecycle.Event.ON_RESUME -> {
+                    // The editor ViewModel already owns the current session and
+                    // process-death recovery loads it in init. Reloading every
+                    // resume races catalog results (and other unsaved edits),
+                    // replacing them with the pre-navigation draft.
+                    val current = viewModel.uiState.value
+                    if (current.session == null || current.loadErrorMessage != null) {
+                        viewModel.retryLoadSession()
+                    }
+                }
                 else -> Unit
             }
         }
@@ -244,7 +253,7 @@ fun SessionEditorScreen(
         if (result.canceled) {
             viewModel.closeSheet()
         } else {
-            val infos = result.selectedExerciseIds.mapNotNull(exerciseInfoById::get)
+            val infos = result.resolveSelectedInfos(exerciseInfoById)
             if (targetExerciseId != null) {
                 infos.firstOrNull()?.let { info ->
                     viewModel.replaceExerciseInPart(targetPartId, targetExerciseId, info)

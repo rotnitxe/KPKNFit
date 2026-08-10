@@ -127,10 +127,32 @@ class WorkoutSessionHydrator(
         val restoredWarmupCompletedExerciseIds = resumedState?.warmupCompletedExerciseIds ?: emptySet()
         val restoredMobilityCompletedExerciseIds = resumedState?.mobilityCompletedExerciseIds ?: emptySet()
         val restoredMobilityTotalCompletedStepKeys = resumedState?.mobilityTotalCompletedStepKeys ?: emptySet()
-        val restoredMobilityTotalTimerState = resumedState?.mobilityTotalTimerState
+        val exercisesForMode = ports.sessionForActiveMode(restoredSession, restoredMode).materializedWorkoutExercises()
+        // Legacy Surtido completion was one block key. The current focused
+        // checklist needs every planned occurrence marked individually so resume
+        // cannot reopen a mobility block that was already completed.
+        val migratedMobilityCompletedExerciseIds = buildSet {
+            addAll(restoredMobilityCompletedExerciseIds)
+            exercisesForMode.forEach { exercise ->
+                if (WorkoutStepRules.mobilityTotalStepKey(exercise.id) in restoredMobilityTotalCompletedStepKeys) {
+                    exercise.mobilitySeries.forEach { mobility ->
+                        repeat(mobility.sets.coerceAtLeast(1)) { mobilitySetIndex ->
+                            add(WorkoutStepRules.mobilityStepKey(exercise.id, mobility.id, mobilitySetIndex))
+                        }
+                    }
+                }
+            }
+        }
+        val restoredMobilityTotalTimerState = resumedState?.mobilityTotalTimerState?.let { timer ->
+            val legacyExercise = exercisesForMode.firstOrNull { exercise ->
+                WorkoutStepRules.mobilityTotalStepKey(exercise.id) == timer.stepKey
+            }
+            legacyExercise?.let {
+                timer.copy(stepKey = WorkoutStepRules.mobilityGlobalTimerKey(it.id))
+            } ?: timer
+        }
         val restoredCardioTimerState = resumedState?.cardioTimerState
         val restoredPreparationReports = resumedState?.preparationReports ?: emptyMap()
-        val exercisesForMode = ports.sessionForActiveMode(restoredSession, restoredMode).materializedWorkoutExercises()
         val hydratedProfiles = ports.hydrateContextProfiles(
             exercises = exercisesForMode,
             resumedState = resumedState,
@@ -200,7 +222,7 @@ class WorkoutSessionHydrator(
             activeMode = restoredMode,
             completedSets = restoredCompletedSets,
             warmupCompletedExerciseIds = restoredWarmupCompletedExerciseIds,
-            mobilityCompletedExerciseIds = restoredMobilityCompletedExerciseIds,
+            mobilityCompletedExerciseIds = migratedMobilityCompletedExerciseIds,
             mobilityTotalCompletedStepKeys = restoredMobilityTotalCompletedStepKeys,
         )
         val restoredResumeStep = resumedState?.let { ports.firstIncompleteStep(resumeProbe) }
@@ -240,7 +262,7 @@ class WorkoutSessionHydrator(
                 completedSets = restoredCompletedSets,
                 skippedExerciseIds = restoredSkippedExerciseIds,
                 warmupCompletedExerciseIds = restoredWarmupCompletedExerciseIds,
-                mobilityCompletedExerciseIds = restoredMobilityCompletedExerciseIds,
+                mobilityCompletedExerciseIds = migratedMobilityCompletedExerciseIds,
                 mobilityTotalCompletedStepKeys = restoredMobilityTotalCompletedStepKeys,
                 mobilityTotalTimerState = restoredMobilityTotalTimerState,
                 cardioTimerState = restoredCardioTimerState,

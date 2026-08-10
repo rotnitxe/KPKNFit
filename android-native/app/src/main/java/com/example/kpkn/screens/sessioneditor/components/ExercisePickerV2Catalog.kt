@@ -79,6 +79,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.exercises.catalogv2.toLegacySelection
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
@@ -140,6 +141,7 @@ internal fun ExercisePickerV2Catalog(
     initialCatalogDefinitionId: String? = null,
     initialCatalogConfigurationId: String? = null,
     opaqueSurface: Boolean = false,
+    dismissAfterMultiSelect: Boolean = true,
 ) {
     val state by repository.state.collectAsStateWithLifecycle()
     val retryScope = rememberCoroutineScope()
@@ -166,7 +168,11 @@ internal fun ExercisePickerV2Catalog(
             modifier = Modifier
                 .fillMaxSize()
                 .imePadding()
-                .padding(horizontal = if (opaqueSurface) 16.dp else 12.dp, vertical = 8.dp),
+                .then(if (opaqueSurface) Modifier.statusBarsPadding() else Modifier)
+                // Edge-to-edge leaves the notification bar over the content.
+                // Keep an additional breathing band after the inset so the
+                // back affordance and title cannot sit against system icons.
+                .padding(horizontal = if (opaqueSurface) 16.dp else 12.dp, vertical = if (opaqueSurface) 14.dp else 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             if (opaqueSurface) {
@@ -262,6 +268,7 @@ internal fun ExercisePickerV2Catalog(
                         onDismiss = onDismiss,
                         initialCatalogDefinitionId = initialCatalogDefinitionId,
                         initialCatalogConfigurationId = initialCatalogConfigurationId,
+                        dismissAfterMultiSelect = dismissAfterMultiSelect,
                         hazeState = glassHaze,
                     )
                 }
@@ -322,6 +329,7 @@ private fun ColumnScope.CatalogReadyContent(
     onDismiss: () -> Unit,
     initialCatalogDefinitionId: String?,
     initialCatalogConfigurationId: String?,
+    dismissAfterMultiSelect: Boolean,
     hazeState: HazeState?,
 ) {
     val scope = rememberCoroutineScope()
@@ -852,7 +860,6 @@ private fun ColumnScope.CatalogReadyContent(
                         CatalogDescription(
                             definition = definition,
                             configuration = effectiveConfiguration,
-                            catalog = catalog,
                         )
 
                         Text(
@@ -1036,7 +1043,7 @@ private fun ColumnScope.CatalogReadyContent(
             Button(
                 onClick = {
                     val ids = onMultiSelect(selectedRows.value.values.toList())
-                    if (ids.isNotEmpty()) onDismiss()
+                    if (ids.isNotEmpty() && dismissAfterMultiSelect) onDismiss()
                 },
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(14.dp),
@@ -1089,20 +1096,9 @@ private val CATALOG_FILTER_MUSCLE_IDS = listOf(
 private fun CatalogDescription(
     definition: ExerciseDefinitionV2,
     configuration: com.example.kpkn.domain.exercises.catalogv2.ExerciseConfigurationV2?,
-    catalog: ExerciseCatalogV2?,
 ) {
     val configurationId = configuration?.id
     var descriptionExpanded by remember(definition.id, configurationId) { mutableStateOf(false) }
-    var techniqueExpanded by remember(definition.id, configurationId) { mutableStateOf(false) }
-    var muscleExpanded by remember(definition.id, configurationId) { mutableStateOf(false) }
-    var jointExpanded by remember(definition.id, configurationId) { mutableStateOf(false) }
-    val legacyInfo = remember(catalog, definition.id, configurationId) {
-        if (catalog != null && configuration != null) {
-            exactInfo(catalog, definition, configuration.id)
-        } else {
-            null
-        }
-    }
     val description = configuration?.profile?.description
         ?.takeIf { it.isNotBlank() }
         ?: definition.description
@@ -1123,51 +1119,6 @@ private fun CatalogDescription(
                 color = Color.White.copy(alpha = 0.82f),
                 style = MaterialTheme.typography.bodySmall,
             )
-            configuration?.profile?.benefits?.takeIf { it.isNotEmpty() }?.let { benefits ->
-                Text(
-                    "Qué aporta",
-                    color = Color.White.copy(alpha = 0.9f),
-                    fontWeight = FontWeight.SemiBold,
-                    style = MaterialTheme.typography.labelMedium,
-                )
-                benefits.forEach { benefit ->
-                    EditorialBullet(text = benefit, color = Color(0xFF4ADE80))
-                }
-            }
-        }
-
-        if (configuration?.profile?.techniqueSummary?.isNotBlank() == true) {
-            CatalogInfoAccordion(
-                title = "Técnica",
-                expanded = techniqueExpanded,
-                onToggle = { techniqueExpanded = !techniqueExpanded },
-            ) {
-                Text(
-                    configuration.profile.techniqueSummary,
-                    color = Color.White.copy(alpha = 0.78f),
-                    style = MaterialTheme.typography.bodySmall,
-                )
-            }
-        }
-
-        if (legacyInfo?.involvedMuscles?.isNotEmpty() == true) {
-            CatalogInfoAccordion(
-                title = "Involucramiento Muscular",
-                expanded = muscleExpanded,
-                onToggle = { muscleExpanded = !muscleExpanded },
-            ) {
-                MuscleInvolvementSection(legacyInfo, showHeader = false)
-            }
-        }
-
-        if (configuration?.profile?.jointInvolvement?.isNotEmpty() == true) {
-            CatalogInfoAccordion(
-                title = "Involucramiento Articular",
-                expanded = jointExpanded,
-                onToggle = { jointExpanded = !jointExpanded },
-            ) {
-                JointInvolvementSection(configuration.profile.jointInvolvement, showHeader = false)
-            }
         }
     }
 }
@@ -1650,16 +1601,20 @@ private fun SelectedExercisesAccordion(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .kpknGlassOrFallback(
-                hazeState = LocalHazeState.current,
-                shape = RoundedCornerShape(14.dp),
+            .clip(RoundedCornerShape(14.dp))
+            // This panel sits over the scrolling catalog; keep it fully
+            // opaque so exercise names never dissolve into the cards below.
+            .background(Color(0xFF1B222B))
+            .border(
+                BorderStroke(1.dp, Color.White.copy(alpha = 0.22f)),
+                RoundedCornerShape(14.dp),
             )
-            .padding(4.dp),
+            .padding(5.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Surface(
             shape = RoundedCornerShape(14.dp),
-            color = Color.Transparent,
+            color = Color(0xFF242C36),
             border = null,
             shadowElevation = 0.dp,
             modifier = Modifier

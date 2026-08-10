@@ -8,6 +8,7 @@ import com.example.kpkn.data.models.InvolvedMuscle
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.UnilateralTarget
 import com.example.kpkn.domain.workout.SupersetRules
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -231,6 +232,99 @@ class SessionEditorRulesEngineTest {
             partId = null,
         )
         assertEquals(30, overwrite.exercises.first().restBetweenSidesSeconds)
+    }
+
+    @Test
+    fun applyDefaults_updates_existing_unilateral_targets_without_creating_missing_side() {
+        val session = Session(
+            id = "session-unilateral-rules",
+            name = "Sesion",
+            exercises = listOf(
+                Exercise(
+                    id = "unilateral-exercise",
+                    name = "Split Squat",
+                    isUnilateral = true,
+                    sets = listOf(
+                        ExerciseSet(
+                            id = "unilateral-set",
+                            leftTarget = UnilateralTarget(targetReps = 10, targetRPE = 8.0),
+                            rightTarget = null,
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        val result = SessionEditorRulesEngine.applyDefaults(
+            session = session,
+            defaults = SessionEditorRuleDefaults(setCount = 1, reps = 6, rpe = 7.0),
+            partId = null,
+        )
+
+        val set = result.exercises.single().sets.single()
+        assertEquals(6, set.leftTarget?.targetReps)
+        assertEquals(7.0, set.leftTarget?.targetRPE ?: 0.0, 0.001)
+        assertNull(set.rightTarget)
+    }
+
+    @Test
+    fun applyDefaults_uses_compound_and_isolation_overrides_in_the_selected_scope() {
+        val compoundInfo = ExerciseMuscleInfo(
+            id = "compound",
+            name = "Compound",
+            articulationType = "MULTIARTICULAR",
+        )
+        val isolationInfo = ExerciseMuscleInfo(
+            id = "isolation",
+            name = "Isolation",
+            articulationType = "AISLADO",
+        )
+        val session = Session(
+            id = "session-compound-isolation-rules",
+            name = "Sesion",
+            exercises = listOf(
+                Exercise(
+                    id = "compound-exercise",
+                    name = "Compound",
+                    exerciseDbId = "compound",
+                    sets = listOf(ExerciseSet("compound-set")),
+                ),
+                Exercise(
+                    id = "isolation-exercise",
+                    name = "Isolation",
+                    exerciseDbId = "isolation",
+                    sets = listOf(ExerciseSet("isolation-set")),
+                ),
+            ),
+        )
+        val defaults = SessionEditorRuleDefaults(
+            scope = RuleScope.COMPOUND_ISOLATION,
+            setCount = 2,
+            reps = 10,
+            rpe = 8.0,
+            compoundReps = 5,
+            compoundRpe = 6.0,
+            compoundRestSeconds = 120,
+            isolationReps = 12,
+            isolationRpe = 9.0,
+            isolationRestSeconds = 45,
+        )
+
+        val result = SessionEditorRulesEngine.applyDefaults(
+            session = session,
+            defaults = defaults,
+            partId = null,
+            exerciseIndex = mapOf("compound" to compoundInfo, "isolation" to isolationInfo),
+        )
+
+        val compound = result.exercises.first { it.exerciseDbId == "compound" }
+        val isolation = result.exercises.first { it.exerciseDbId == "isolation" }
+        assertEquals(5, compound.sets.first().targetReps)
+        assertEquals(6.0, compound.sets.first().targetRPE ?: 0.0, 0.001)
+        assertEquals(120, compound.restTime)
+        assertEquals(12, isolation.sets.first().targetReps)
+        assertEquals(9.0, isolation.sets.first().targetRPE ?: 0.0, 0.001)
+        assertEquals(45, isolation.restTime)
     }
 
     @Test

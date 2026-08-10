@@ -14,12 +14,14 @@ fun MobilitySeries.normalizeForCompatibility(): MobilitySeries {
             unit = MobilityUnit.SECONDS,
             reps = null,
             durationSeconds = normalizedDuration,
+            restBetweenSeconds = 0,
         )
     } else {
         copy(
             unit = MobilityUnit.REPS,
             reps = normalizedReps,
             durationSeconds = null,
+            restBetweenSeconds = 0,
         )
     }
 }
@@ -30,8 +32,10 @@ fun MobilitySeries.catalogIdentityKey(): String =
 fun MobilityConfig.normalizedForCompatibility(hasSeries: Boolean): MobilityConfig? {
     if (!hasSeries) return this
     return copy(
-        mode = mode,
-        totalMinutes = if (mode == MobilityMode.SURTIDO) totalMinutes.coerceAtLeast(1) else totalMinutes.coerceAtLeast(0),
+        // Surtido was a temporary editor mode. Legacy payloads are executed as
+        // the current focused checklist while retaining the configured duration.
+        mode = MobilityMode.ENFOCADO,
+        totalMinutes = totalMinutes.coerceAtLeast(0),
     )
 }
 
