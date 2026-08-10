@@ -2948,9 +2948,6 @@ class WorkoutViewModel(
         return true
     }
 
-    fun getCardioProgressionSuggestion(exercise: Exercise) =
-        loadSuggestionController.getCardioProgressionSuggestion(exercise)
-
     fun resolvePendingRestSuggestion(useAdaptive: Boolean) {
         val pending = _uiState.value.pendingRestSuggestion ?: return
         _uiState.update {

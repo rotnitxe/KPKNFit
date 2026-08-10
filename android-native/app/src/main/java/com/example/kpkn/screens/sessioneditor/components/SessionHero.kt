@@ -96,19 +96,15 @@ private val HeroCompactShape = RoundedCornerShape(999.dp)
 @Composable
 internal fun SessionHero(
     session: Session,
-    hasChanges: Boolean,
-    autoSaveEnabled: Boolean,
     latestBodyMeasurement: BodyMeasurementEntry?,
     onNameChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
     onMeetBodyweightChange: (Double?) -> Unit,
     onSyncMeetBodyweight: () -> Unit,
-    onSave: () -> Unit,
     onOpenCoverSheet: () -> Unit,
     onOpenTransfer: () -> Unit,
     onOpenHistory: () -> Unit,
     onOpenRules: () -> Unit,
-    onOpenTime: () -> Unit,
     roadmapContent: @Composable () -> Unit = {},
     activeDayOfWeek: Int? = null,
     weekStartDay: Int = 1,
@@ -409,15 +405,11 @@ internal fun SessionHero(
 @Composable
 internal fun SessionHeroCompactOverlay(
     session: Session,
-    hasChanges: Boolean,
-    autoSaveEnabled: Boolean,
     hazeState: HazeState?,
-    onSave: () -> Unit,
     onOpenCoverSheet: () -> Unit,
     onOpenTransfer: () -> Unit,
     onOpenHistory: () -> Unit,
     onOpenRules: () -> Unit,
-    onOpenTime: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (hazeState == null) return

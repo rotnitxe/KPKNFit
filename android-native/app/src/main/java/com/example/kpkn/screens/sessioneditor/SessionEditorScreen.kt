@@ -499,8 +499,6 @@ fun SessionEditorScreen(
             item {
                 SessionHero(
                     session = session,
-                    hasChanges = uiState.hasUnsavedChanges,
-                    autoSaveEnabled = uiState.autoSaveEnabled,
                     latestBodyMeasurement = uiState.latestBodyMeasurement,
                     onNameChange = viewModel::updateSessionName,
                     onDescriptionChange = viewModel::updateSessionDescription,
@@ -514,12 +512,10 @@ fun SessionEditorScreen(
                             )
                         }
                     },
-                    onSave = { viewModel.openSheet(SessionEditorSheet.SAVE) },
                     onOpenCoverSheet = { viewModel.openSheet(SessionEditorSheet.BACKGROUND) },
                     onOpenTransfer = { viewModel.openSheet(SessionEditorSheet.TRANSFER) },
                     onOpenHistory = { viewModel.openSheet(SessionEditorSheet.HISTORY) },
                     onOpenRules = { viewModel.openRulesSheet(initialTab = 0) },
-                    onOpenTime = { viewModel.openRulesSheet(initialTab = 1) },
                     activeDayOfWeek = uiState.dayOfWeek,
                     weekStartDay = uiState.weekStartDay,
                     onSelectDay = { day -> viewModel.selectRoadmapDay(day) },
@@ -702,15 +698,11 @@ fun SessionEditorScreen(
         ) {
             SessionHeroCompactOverlay(
                 session = session,
-                hasChanges = uiState.hasUnsavedChanges,
-                autoSaveEnabled = uiState.autoSaveEnabled,
                 hazeState = hazeState,
-                onSave = { viewModel.openSheet(SessionEditorSheet.SAVE) },
                 onOpenCoverSheet = { viewModel.openSheet(SessionEditorSheet.BACKGROUND) },
                 onOpenTransfer = { viewModel.openSheet(SessionEditorSheet.TRANSFER) },
                 onOpenHistory = { viewModel.openSheet(SessionEditorSheet.HISTORY) },
                 onOpenRules = { viewModel.openRulesSheet(initialTab = 0) },
-                onOpenTime = { viewModel.openRulesSheet(initialTab = 1) },
             )
         }
 

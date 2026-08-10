@@ -81,10 +81,10 @@ internal fun CardioLiveCard(
     val gpsHasData = gpsMode && gpsState?.let { it.pointCount > 0 || it.distanceMeters >= 10.0 } == true
     val gpsDurationSeconds = gpsState?.elapsedActiveSeconds?.takeIf { it > 0L }?.toInt()
     val manualDurationSeconds = (durationText.toIntOrNull()?.coerceAtLeast(1) ?: (plannedDurationSeconds / 60)) * 60
-    val durationSeconds = if (gpsMode && gpsDurationSeconds != null) {
-        gpsDurationSeconds
-    } else if (timerElapsedSeconds > 0) {
+    val durationSeconds = if (timerElapsedSeconds > 0) {
         timerElapsedSeconds
+    } else if (gpsMode && gpsDurationSeconds != null) {
+        gpsDurationSeconds
     } else {
         manualDurationSeconds
     }
