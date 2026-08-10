@@ -354,24 +354,16 @@ class MainActivity : ComponentActivity() {
     }
 
     private var hasResumedOnce = false
+    private var locationPermissionRequestInFlight = false
 
     private fun requestRequiredPermissions() {
-        if (
+        val shouldRequestNotifications =
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
-        ) {
+        if (shouldRequestNotifications) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1001)
-        }
-        if (
-            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-        ) {
-            val alreadyRequested = com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.value.locationPermissionRequestedOnce
-            if (!alreadyRequested) {
-                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1002)
-                kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
-                    com.example.kpkn.data.repository.ProgramRepository.getInstance().updateSettings { it.copy(locationPermissionRequestedOnce = true) }
-                }
-            }
+        } else {
+            requestLocationPermissionIfNeeded()
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -379,6 +371,35 @@ class MainActivity : ComponentActivity() {
             val canScheduleExact = alarmManager?.canScheduleExactAlarms() == true
             if (!canScheduleExact) {
                 logKpknPermissionIssue("SCHEDULE_EXACT_ALARM")
+            }
+        }
+    }
+
+    @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 1001) {
+            // Android only presents one runtime permission dialog at a time. Chain
+            // location after the notification result instead of racing two requests.
+            requestLocationPermissionIfNeeded()
+        }
+    }
+
+    private fun requestLocationPermissionIfNeeded() {
+        if (
+            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+        ) {
+            val alreadyRequested = ProgramRepository.getInstance().settings.value.locationPermissionRequestedOnce
+            if (!alreadyRequested && !locationPermissionRequestInFlight) {
+                locationPermissionRequestInFlight = true
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1002)
+                lifecycleScope.launch(Dispatchers.IO) {
+                    ProgramRepository.getInstance().updateSettings { it.copy(locationPermissionRequestedOnce = true) }
+                }
             }
         }
     }

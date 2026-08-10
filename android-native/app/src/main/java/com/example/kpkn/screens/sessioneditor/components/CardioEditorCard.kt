@@ -152,7 +152,7 @@ internal fun CardioEditorCard(
                 }
                 if (details.requiresGps) {
                     Text(
-                        "Este cardio requiere ubicación. KPKN solicitará el permiso al iniciar el recorrido; si lo deniegas, conservarás el registro manual.",
+                        "Este cardio requiere ubicación. KPKN solicita el permiso al programarlo y al iniciar el recorrido si hace falta; si lo deniegas, conservarás el registro manual.",
                         style = MaterialTheme.typography.labelSmall,
                         color = Color.White.copy(alpha = 0.62f),
                     )
