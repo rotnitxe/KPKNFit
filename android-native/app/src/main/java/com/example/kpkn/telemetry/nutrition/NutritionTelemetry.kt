@@ -134,16 +134,21 @@ object NutritionTelemetry {
             fields: Map<String, Any?> = emptyMap(),
             error: Throwable? = null,
         ) {
-            val payload = LinkedHashMap<String, Any?>(fields)
-            payload["stage"] = name
-            payload["stageOrder"] = stageOrder.incrementAndGet()
-            payload["durationMs"] = durationMs.coerceAtLeast(0L)
-            payload["ok"] = ok
-            if (error != null) {
-                payload["errorType"] = error.javaClass.name
-                payload["errorMessage"] = error.message ?: ""
+            // CRI-ANALYSIS: la telemetría jamás debe lanzar (contrato del objeto). Si la
+            // emisión fallara, un stageEnded lanzando dentro del catch de stage() enmascararía
+            // el error original y, peor, convertiría un salvage exitoso en un falso fracaso.
+            runCatching {
+                val payload = LinkedHashMap<String, Any?>(fields)
+                payload["stage"] = name
+                payload["stageOrder"] = stageOrder.incrementAndGet()
+                payload["durationMs"] = durationMs.coerceAtLeast(0L)
+                payload["ok"] = ok
+                if (error != null) {
+                    payload["errorType"] = error.javaClass.name
+                    payload["errorMessage"] = error.message ?: ""
+                }
+                emit("analysis_stage", payload, traceId)
             }
-            emit("analysis_stage", payload, traceId)
         }
 
         /** Mide una etapa, registra el span y propaga cualquier fallo. */
@@ -162,11 +167,13 @@ object NutritionTelemetry {
         fun end(outcome: String, fields: Map<String, Any?> = emptyMap()) {
             if (closed) return
             closed = true
-            val payload = LinkedHashMap<String, Any?>(fields)
-            payload["outcome"] = outcome
-            payload["durationMs"] = (SystemClock.elapsedRealtime() - traceStartedAtMs).coerceAtLeast(0L)
-            payload["stageCount"] = stageOrder.get()
-            emit("analysis_end", payload, traceId)
+            runCatching {
+                val payload = LinkedHashMap<String, Any?>(fields)
+                payload["outcome"] = outcome
+                payload["durationMs"] = (SystemClock.elapsedRealtime() - traceStartedAtMs).coerceAtLeast(0L)
+                payload["stageCount"] = stageOrder.get()
+                emit("analysis_end", payload, traceId)
+            }
         }
     }
 

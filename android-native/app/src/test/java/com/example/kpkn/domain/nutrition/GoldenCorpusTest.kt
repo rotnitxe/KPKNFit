@@ -500,6 +500,9 @@ class GoldenCorpusTest {
         GoldenCase("ensaladita", listOf(Expectation("ensalada"))),
         GoldenCase("arros con pollo", listOf(Expectation("arroz con pollo"))),
         GoldenCase("fideos con salsa de tomate", listOf(Expectation("fideos"), Expectation("salsa de tomate"))),
+        // CRI-ANALYSIS: reproducción del reporte "no se pudo analizar esta descripción".
+        // Un plato común debe parsear sin lanzar: fideos + salsa de tomate + carne molida.
+        GoldenCase("fideos con salsa de tomate y un poco de carne molida", listOf(Expectation("fideos"), Expectation("salsa de tomate"), Expectation("carne molida"))),
         GoldenCase("una hallulla con mantequilla", listOf(Expectation("hallulla", gramsPositive = true, intent = AmountIntent.RESOLVED_SUBJECTIVE), Expectation("mantequilla"))),
         GoldenCase("cafecito", listOf(Expectation("cafe"))),
         GoldenCase("juguito de naranja", listOf(Expectation("juguito de naranja"))),

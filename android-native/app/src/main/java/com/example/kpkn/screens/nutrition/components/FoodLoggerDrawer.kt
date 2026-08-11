@@ -28,6 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -59,6 +60,7 @@ import com.example.kpkn.domain.nutrition.NutritionSourceKind
 import com.example.kpkn.domain.nutrition.getContextualDefaultServingSize
 import com.example.kpkn.domain.nutrition.COOKING_FACTORS
 import com.example.kpkn.domain.nutrition.SemanticPortionRetriever
+import com.example.kpkn.domain.nutrition.LastResortSplitter
 import com.example.kpkn.domain.nutrition.MacroValidator
 import com.example.kpkn.domain.nutrition.TagResolver
 import com.example.kpkn.domain.nutrition.FoodResolutionPort
@@ -103,12 +105,23 @@ private val CARBS_COLOR = Color(0xFF6750A4)
 private val FATS_COLOR = Color(0xFF006A6A)
 private val PRO_COLOR = Color(0xFF7C3AED)
 
+/** CRI-ANALYSIS: fragmento corto y seguro (errorType: mensaje) para mostrar en avisos
+ *  de fallo. On-device, truncado; ayuda a diagnosticar la causa raíz. Puro y top-level
+ *  para poder referenciarlo desde cualquier función local. */
+private fun technicalDetailOf(error: Throwable): String {
+    val message = error.message?.take(160)?.replace('\n', ' ').orEmpty()
+    return if (message.isBlank()) error.javaClass.simpleName else "${error.javaClass.simpleName}: $message"
+}
+
 private enum class AnalysisNoticeTone { INFO, WARNING }
 
 private data class AnalysisNotice(
     val title: String,
     val message: String,
     val tone: AnalysisNoticeTone,
+    /** CRI-ANALYSIS: detalle técnico de la excepción (errorType: mensaje), on-device.
+     *  Truncado. Solo para diagnóstico; nunca texto crudo de comidas. */
+    val technicalDetail: String? = null,
 )
 
 private data class ResolvedTag(
@@ -231,6 +244,7 @@ fun FoodLoggerDrawer(
     var activeTab by remember { mutableIntStateOf(initialTab.coerceIn(0, 1)) }
     var showSuccess by remember { mutableStateOf(false) }
     var isAnalyzing by remember { mutableStateOf(false) }
+    var isUsingAiRoute by remember { mutableStateOf(false) }
     var reviewRequired by remember { mutableStateOf(false) }
     var analysisStage by remember { mutableStateOf<ParseStage?>(null) }
     var analysisElapsedMs by remember { mutableStateOf(0L) }
@@ -429,18 +443,60 @@ fun FoodLoggerDrawer(
         analysisStartedAtMs = 0L
     }
 
-    fun analyzeDescription() {
+    /** CRI-ANALYSIS: último nivel del pipeline. No usa parser, dataset, resolver, Room
+     *  ni telemetría: solo separa la descripción en fragmentos y crea tags para revisar.
+     *  No puede lanzar (garantía del llamador vía runCatching). Devuelve si produjo tags.
+     *  Declarado AQUÍ (antes de analyzeDescription) porque las funciones locales no se
+     *  pueden referenciar antes de su declaración. */
+    fun createLastResortManualTags(raw: String): Boolean {
+        val fragments = LastResortSplitter.split(raw)
+        val trimmed = raw.trim()
+        if (fragments.isEmpty()) {
+            if (trimmed.isEmpty()) return false
+            tags = listOf(
+                ResolvedTag(
+                    tag = trimmed,
+                    portion = PortionPreset.MEDIUM,
+                    quantity = 1.0,
+                    analysisSource = AnalysisSource.RULES,
+                    statusText = "Análisis automático falló: selecciona el alimento y ajusta la cantidad.",
+                    isResolved = false,
+                    isFuzzyMatch = true,
+                ),
+            )
+            return true
+        }
+        tags = fragments.distinct().map { fragment ->
+            ResolvedTag(
+                tag = fragment,
+                portion = PortionPreset.MEDIUM,
+                quantity = 1.0,
+                analysisSource = AnalysisSource.RULES,
+                statusText = "Análisis automático falló: selecciona el alimento y ajusta la cantidad.",
+                isResolved = false,
+                isFuzzyMatch = true,
+            )
+        }
+        reviewRequired = true
+        return true
+    }
+
+    fun analyzeDescription(forceApi: Boolean = false) {
         if (description.isBlank() || isAnalyzing) return
+        // CRI-ANALYSIS: el sistema oficial SIEMPRE es local. DeepSeek es una ruta
+        // alternativa explícita (botón "Usar IA"), nunca el motor por defecto.
+        val useApi = forceApi || settings.useApiForDescriptions
+        isUsingAiRoute = forceApi
 
         analysisNotice = null
-        analysisStage = if (settings.useApiForDescriptions) ParseStage.ESTIMATING else ParseStage.INTERPRETING
+        analysisStage = if (useApi) ParseStage.ESTIMATING else ParseStage.INTERPRETING
         analysisStartedAtMs = System.currentTimeMillis()
         analysisElapsedMs = 0L
         KpknDiagnosticLogger.event(
             namespace = "nutrition",
             name = "analysis_started",
             fields = mapOf(
-                "usesDeepSeek" to settings.useApiForDescriptions,
+                "usesDeepSeek" to useApi,
                 "descriptionLength" to description.length,
             ),
         )
@@ -451,7 +507,7 @@ fun FoodLoggerDrawer(
             source = if (!initialDescription.isNullOrBlank()) "shared" else "manual",
             fields = mapOf(
                 "descriptionLength" to descriptionSnapshot.length,
-                "engine" to if (settings.useApiForDescriptions) "deepseek" else "local",
+                "engine" to if (useApi) "deepseek" else "local",
             ),
         )
         NutritionTelemetry.markInFlight(analysisTrace.traceId, "start")
@@ -522,7 +578,7 @@ fun FoodLoggerDrawer(
                 detectedContext = ContextDetector.detect(description)
                 NutritionTelemetry.markInFlight(analysisTrace.traceId, "parse")
                 val parseStartedAtMs = System.currentTimeMillis()
-                val parsed = if (settings.useApiForDescriptions) {
+                val parsed = if (useApi) {
                     val apiService = DeepSeekV4FlashClient(context)
                     val knownFoods = nutritionRepo.mealTemplates.value.flatMap { template ->
                         buildList {
@@ -645,6 +701,7 @@ fun FoodLoggerDrawer(
             } catch (pipelineError: Throwable) {
                 android.util.Log.w("FoodLogger", "Parse failed, usando determinístico", pipelineError)
                 analysisKcalRange = null
+                val pipelineDetail = technicalDetailOf(pipelineError)
                 analysisTrace.event(
                     "analysis_pipeline_failed",
                     mapOf(
@@ -655,22 +712,25 @@ fun FoodLoggerDrawer(
                 // CRASH-FIX: el fallback ejecuta las mismas operaciones que pueden
                 // fallar; va protegido en su propio try para que nunca escape.
                 NutritionTelemetry.markInFlight(analysisTrace.traceId, "salvage")
-                val salvaged = try {
+                val (salvageDetail, salvaged) = try {
                     analysisTrace.stage("salvage_parse") {
-                        val fallbackParsed = withContext(Dispatchers.Default) {
-                            parseMealDescription(
+                        withContext(Dispatchers.Default) {
+                            val fallbackParsed = parseMealDescription(
                                 description,
                                 SemanticPortionRetriever.retrieve(description),
                             )
+                            resolveTags(fallbackParsed)
                         }
-                        resolveTags(fallbackParsed)
-                        lastAnalyzedDescription = description
                     }
-                    true
+                    // CRI-ANALYSIS: el éxito del salvage NO depende de la telemetría
+                    // (stage ya no puede lanzar por emisión). LastAnalyzed solo tras éxito.
+                    lastAnalyzedDescription = description
+                    null to true
                 } catch (cancelled: CancellationException) {
                     NutritionTelemetry.clearInFlight()
                     throw cancelled
                 } catch (salvageError: Throwable) {
+                    val salvageFailedDetail = technicalDetailOf(salvageError)
                     analysisTrace.event(
                         "analysis_salvage_failed",
                         mapOf(
@@ -678,37 +738,73 @@ fun FoodLoggerDrawer(
                             "message" to (salvageError.message ?: ""),
                         ),
                     )
-                    false
+                    // ÚLTIMO NIVEL: independiente de parser/dataset/resolver/Room. Crea tags
+                    // manuales no-resueltos desde un split trivial para que NUNCA quede un
+                    // callejón sin salida. runCatching: no puede lanzar.
+                    val lastResortOk = runCatching {
+                        createLastResortManualTags(description)
+                    }.getOrDefault(false)
+                    if (lastResortOk) lastAnalyzedDescription = description
+                    salvageFailedDetail to lastResortOk
                 }
-                analysisNotice = if (salvaged) {
-                    AnalysisNotice(
+                analysisNotice = when {
+                    salvaged -> AnalysisNotice(
                         title = "No se pudo leer la comida completa",
                         message = "Preparamos una versión base del registro para que puedas revisarla y guardar igual.",
                         tone = AnalysisNoticeTone.WARNING,
+                        technicalDetail = pipelineDetail,
                     )
-                } else {
-                    AnalysisNotice(
+                    salvageDetail != null -> AnalysisNotice(
+                        title = if (tags.isNotEmpty()) "Preparamos un borrador manual" else "No se pudo analizar esta descripción",
+                        message = if (tags.isNotEmpty()) {
+                            "El análisis automático falló; revisa cada alimento y ajústalo antes de guardar."
+                        } else {
+                            "Inténtalo de nuevo o registra los alimentos manualmente."
+                        },
+                        tone = AnalysisNoticeTone.WARNING,
+                        technicalDetail = salvageDetail,
+                    )
+                    else -> AnalysisNotice(
                         title = "No se pudo analizar esta descripción",
                         message = "Inténtalo de nuevo o registra los alimentos manualmente.",
                         tone = AnalysisNoticeTone.WARNING,
+                        technicalDetail = pipelineDetail,
                     )
                 }
-                endTraceOnce(if (salvaged) "salvaged" else "failed")
+                endTraceOnce(if (salvaged) "salvaged" else if (tags.isNotEmpty()) "last_resort" else "failed")
             } finally {
                 KpknDiagnosticLogger.event(
                     namespace = "nutrition",
                     name = "analysis_finished",
                     fields = mapOf(
                         "tagCount" to tags.size,
-                        "usesDeepSeek" to settings.useApiForDescriptions,
+                        "usesDeepSeek" to useApi,
                     ),
                 )
                 NutritionTelemetry.clearInFlight()
                 isAnalyzing = false
+                isUsingAiRoute = false
                 analysisStage = null
                 analysisStartedAtMs = 0L
             }
         }
+    }
+
+    /** CRI-ANALYSIS: ruta alternativa explícita de IA. Solo se activa desde el botón
+     *  discreto "Usar IA" y requiere API key configurada. Nunca es el motor por defecto. */
+    fun analyzeWithAi() {
+        val key = DeepSeekCredentialStore.read(context).orEmpty().trim()
+        if (key.isBlank()) {
+            analysisNotice = AnalysisNotice(
+                title = "Configura tu API key para usar IA",
+                message = "Toca el engranaje de IA para ingresar tu clave de DeepSeek.",
+                tone = AnalysisNoticeTone.INFO,
+            )
+            openApiConfigDialog()
+            return
+        }
+        if (description.isBlank()) return
+        analyzeDescription(forceApi = true)
     }
 
     LaunchedEffect(initialDescription, initialTab) {
@@ -1365,12 +1461,12 @@ fun FoodLoggerDrawer(
                         }
 
                         AnimatedVisibility(
-                            visible = settings.useApiForDescriptions && isAnalyzing,
+                            visible = isUsingAiRoute && isAnalyzing,
                             enter = fadeIn() + expandVertically(),
                             exit = fadeOut() + shrinkVertically(),
                         ) {
                             AiAnalysisPanel(
-                                usingApi = settings.useApiForDescriptions,
+                                usingApi = isUsingAiRoute,
                                 providerLabel = "DeepSeek V4 Flash",
                                 stage = analysisStage,
                                 elapsedMs = analysisElapsedMs,
@@ -1426,6 +1522,23 @@ fun FoodLoggerDrawer(
                             horizontalArrangement = Arrangement.End,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
+                            // CRI-ANALYSIS: ruta alternativa de IA, discreta y solo visible
+                            // con API key configurada. El sistema oficial siempre es local.
+                            if (DeepSeekCredentialStore.read(context).orEmpty().isNotBlank()) {
+                                TextButton(
+                                    onClick = {
+                                        if (description.isNotBlank()) analyzeWithAi()
+                                        else openApiConfigDialog()
+                                    },
+                                ) {
+                                    Icon(Icons.Default.AutoAwesome, null, modifier = Modifier.size(14.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        "Usar IA",
+                                        style = MaterialTheme.typography.bodySmall,
+                                    )
+                                }
+                            }
                             if (learnedMemoryCleared) {
                                 Text(
                                     "Memoria de aprendizaje borrada",
@@ -1580,14 +1693,13 @@ fun FoodLoggerDrawer(
                                 Text("${kotlin.math.round(tagTotals.calories).toInt()} kcal", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
                                 // IT3: incertidumbre como rango — referencia del dataset local.
                                 // CRASH-FIX: lectura segura; el estado puede cambiar durante recomposición.
-                                if (!settings.useApiForDescriptions) {
-                                    analysisKcalRange?.let { (minK, maxK) ->
-                                        Text(
-                                            "referencia ${minK}–${maxK} kcal",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = Color.White.copy(alpha = 0.6f),
-                                        )
-                                    }
+                                // CRI-ANALYSIS: siempre visible; el motor oficial es local por defecto.
+                                analysisKcalRange?.let { (minK, maxK) ->
+                                    Text(
+                                        "referencia ${minK}–${maxK} kcal",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color.White.copy(alpha = 0.6f),
+                                    )
                                 }
                             }
                             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -1616,7 +1728,7 @@ fun FoodLoggerDrawer(
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (descriptionEdited) MaterialTheme.colorScheme.primary
                                              else if (hasTags) Color(0xFF2E7D32)
-                                             else (if (settings.useApiForDescriptions) PRO_COLOR else MaterialTheme.colorScheme.primary)
+                                             else MaterialTheme.colorScheme.primary
                         ),
                         enabled = !isAnalyzing && (hasTags || description.isNotBlank())
                     ) {
@@ -1631,7 +1743,7 @@ fun FoodLoggerDrawer(
                         } else {
                             val icon = if (descriptionEdited) Icons.Default.Refresh
                                        else if (hasTags) Icons.Default.Check
-                                       else (if (settings.useApiForDescriptions) Icons.Default.AutoAwesome else Icons.Default.FlashOn)
+                                       else Icons.Default.FlashOn
                             val label = if (descriptionEdited) "ACTUALIZAR Y BUSCAR"
                                         else if (hasTags) "GUARDAR"
                                         else "REGISTRAR"
@@ -1844,6 +1956,14 @@ private fun AnalysisNoticeCard(notice: AnalysisNotice) {
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                notice.technicalDetail?.let { detail ->
+                    Text(
+                        text = detail,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontFamily = FontFamily.Monospace,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    )
+                }
             }
         }
     }

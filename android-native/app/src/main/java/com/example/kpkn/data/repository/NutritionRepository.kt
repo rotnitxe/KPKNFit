@@ -189,13 +189,16 @@ class NutritionRepository private constructor(
 
         val localFoods = _foodDatabase.value.map(::normalizeFoodItem)
 
-        val customMatches = db.nutritionDao()
-            .searchCustomFoods(normalizedQuery, 120)
-            .map { normalizeFoodItem(it.toFoodItem()) }
+        // CRI-ANALYSIS: estas dos llamadas DAO eran las ÚNICAS del flujo de análisis
+        // sin runCatching. Corren desde resolveTags vía staticFood() para cualquier tag
+        // sin match estático sistemáticamente; si la DB fallara, tumbaban pipeline Y salvage.
+        val customMatches = runCatching {
+            db.nutritionDao().searchCustomFoods(normalizedQuery, 120)
+        }.getOrDefault(emptyList()).map { normalizeFoodItem(it.toFoodItem()) }
 
-        val normalizedGlobal = db.nutritionDao()
-            .searchGlobalFoodsNormalized(normalizedQuery, 150)
-            .map { normalizeFoodItem(it.toFoodItem()) }
+        val normalizedGlobal = runCatching {
+            db.nutritionDao().searchGlobalFoodsNormalized(normalizedQuery, 150)
+        }.getOrDefault(emptyList()).map { normalizeFoodItem(it.toFoodItem()) }
 
         val ftsQuery = buildFtsQuery(queryTokens)
         val ftsGlobal = if (ftsQuery.isNotBlank()) {
@@ -440,14 +443,17 @@ class NutritionRepository private constructor(
         if (datasetKnowledgeReady) return
         datasetKnowledgeMutex.withLock {
             if (datasetKnowledgeReady) return@withLock
+            // CRI-ANALYSIS: install() (con require lanzable) antes quedaba FUERA del
+            // runCatching; un fallo ahí propagaba desde prepareSemanticDataset() y
+            // resolveFoodWithSmartResolver() a la vez (pipeline + salvage).
             runCatching {
-                DatasetKnowledgeStore.load(appContext)
-            }.onSuccess { snapshot ->
+                val snapshot = DatasetKnowledgeStore.load(appContext)
                 SemanticPortionRetriever.install(snapshot)
                 datasetKnowledgeReady = true
+            }.onSuccess {
                 android.util.Log.i(
                     "NutritionRepository",
-                    "Dataset knowledge ready: ${snapshot.documentCount} docs, v${snapshot.formatVersion}",
+                    "Dataset knowledge ready: ${SemanticPortionRetriever.status().documentCount} docs, v${SemanticPortionRetriever.status().formatVersion}",
                 )
             }.onFailure { error ->
                 android.util.Log.w("NutritionRepository", "Dataset knowledge load failed", error)

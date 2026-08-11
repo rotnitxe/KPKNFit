@@ -154,38 +154,43 @@ object KpknDiagnosticLogger {
         sessionId: String? = null,
         reportId: String? = null,
     ): String? = synchronized(lock) {
-        val context = appContext ?: return@synchronized null
-        val safeNamespace = namespace.safeNamespace()
-        val area = areaFor(safeNamespace)
-        val subsystem = subsystemFor(safeNamespace)
-        val day = DAY_FORMAT.format(Instant.now())
-        val directory = File(context.filesDir, "$LOG_ROOT/$area/$day").apply { mkdirs() }
-        prune(directory)
-        val eventId = UUID.randomUUID().toString()
-        val resolvedSessionId = sessionId ?: activeSessionId()
-        val payload = linkedMapOf<String, Any?>(
-            "schemaVersion" to SCHEMA_VERSION,
-            "eventId" to eventId,
-            "timestamp" to Instant.now().toString(),
-            "elapsedMs" to (SystemClock.elapsedRealtime() - processStartedElapsedMs).coerceAtLeast(0L),
-            "area" to area,
-            "subsystem" to subsystem,
-            "event" to name.take(180),
-            "screen" to screen,
-            "sessionId" to resolvedSessionId,
-            "traceId" to (traceId ?: eventId),
-            "process" to processKind(context),
-        )
-        fields.forEach { (key, value) ->
-            if (key !in RESERVED_FIELDS) payload[key] = value
-        }
-        val line = JsonObject(
-            payload.mapValues { (key, value) ->
-                if (key.isSensitiveKey()) JsonPrimitive("[REDACTED]") else value.toJsonElement()
-            },
-        ).toString()
-        val file = activeFileFor(directory, area, resolvedSessionId)
-        try {
+        val context = appContext
+        if (context == null) return@synchronized null
+        // CRI-ANALYSIS: el cuerpo completo va en runCatching. Antes solo el FileOutputStream
+        // estaba protegido: prune()/serialización/activeFileFor() podían lanzar y propagaban
+        // desde NutritionTelemetry.emit() tumbando el análisis (pipeline + salvage) con un
+        // falso fracaso. La telemetría debe PROMETER que nunca lanza.
+        runCatching {
+            val safeNamespace = namespace.safeNamespace()
+            val area = areaFor(safeNamespace)
+            val subsystem = subsystemFor(safeNamespace)
+            val day = DAY_FORMAT.format(Instant.now())
+            val directory = File(context.filesDir, "$LOG_ROOT/$area/$day").apply { mkdirs() }
+            prune(directory)
+            val eventId = UUID.randomUUID().toString()
+            val resolvedSessionId = sessionId ?: activeSessionId()
+            val payload = linkedMapOf<String, Any?>(
+                "schemaVersion" to SCHEMA_VERSION,
+                "eventId" to eventId,
+                "timestamp" to Instant.now().toString(),
+                "elapsedMs" to (SystemClock.elapsedRealtime() - processStartedElapsedMs).coerceAtLeast(0L),
+                "area" to area,
+                "subsystem" to subsystem,
+                "event" to name.take(180),
+                "screen" to screen,
+                "sessionId" to resolvedSessionId,
+                "traceId" to (traceId ?: eventId),
+                "process" to processKind(context),
+            )
+            fields.forEach { (key, value) ->
+                if (key !in RESERVED_FIELDS) payload[key] = value
+            }
+            val line = JsonObject(
+                payload.mapValues { (key, value) ->
+                    if (key.isSensitiveKey()) JsonPrimitive("[REDACTED]") else value.toJsonElement()
+                },
+            ).toString()
+            val file = activeFileFor(directory, area, resolvedSessionId)
             FileOutputStream(file, true).use { output ->
                 output.write(line.toByteArray(Charsets.UTF_8))
                 output.write('\n'.code)
@@ -193,10 +198,9 @@ object KpknDiagnosticLogger {
             }
             KpknDiagnosticStorage.enqueueMirror(context, area, file, line)
             eventId
-        } catch (error: Exception) {
+        }.onFailure { error ->
             Log.e(TAG, "Unable to write diagnostic event", error)
-            null
-        }
+        }.getOrNull()
     }
 
     fun exception(
