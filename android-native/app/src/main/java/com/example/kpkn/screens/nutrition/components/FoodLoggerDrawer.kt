@@ -492,7 +492,9 @@ fun FoodLoggerDrawer(
             return true
         }
         tags = fragments.distinct().map(::manualTag)
-        reviewRequired = true
+        // CRI-AUDIT (P4): no forzar el banner "datos incompletos o fuera de rango": los tags
+        // del último nivel son estimaciones GUARDABLES (isResolved=true) que ya llevan su
+        // propia nota "revisa los macros antes de guardar".
         return true
     }
 
