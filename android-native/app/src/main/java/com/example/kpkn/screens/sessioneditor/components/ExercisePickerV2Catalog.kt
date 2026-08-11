@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -479,26 +478,34 @@ private fun ColumnScope.CatalogReadyContent(
     LaunchedEffect(query, searchHits) {
         if (query.isNotBlank()) listState.scrollToItem(0)
     }
-    LaunchedEffect(expandedDefinitionId, definitions, visibleCustomExercises) {
+
+    var filterBarHeight by remember { mutableStateOf(0) }
+    var selectionPanelHeight by remember { mutableStateOf(84) }
+    val density = LocalDensity.current
+
+    LaunchedEffect(expandedDefinitionId, definitions, visibleCustomExercises, filterBarHeight, selectionPanelHeight) {
         val targetId = expandedDefinitionId ?: return@LaunchedEffect
         val customOffset = if (visibleCustomExercises.isNotEmpty()) visibleCustomExercises.size + 1 else 0
         val indexInDefinitions = definitions.indexOfFirst { it.id == targetId }
         if (indexInDefinitions < 0) return@LaunchedEffect
         val targetIndex = 1 + customOffset + indexInDefinitions
-        listState.animateScrollToItem(targetIndex)
-        // Settle the expanded card near the upper third of the viewport so the
-        // options never sit glued to the top or bottom edge of the sheet.
+        // First snap the card into view instantly, then settle it in the visible
+        // region that sits below the fixed filter overlay with a single smooth
+        // pass, so the options never hide behind the filters or stick to the
+        // bottom edge. Chaining animated scrolls here (animateScrollToItem +
+        // animateScrollBy) made the card jump up and then down again — that's
+        // the unstable motion we avoid.
+        listState.scrollToItem(targetIndex)
         val itemInfo = listState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
             ?: return@LaunchedEffect
         val viewportHeight = listState.layoutInfo.viewportSize.height
-        val desiredTop = (viewportHeight / 3) - (itemInfo.size / 2)
+        val visibleTop = filterBarHeight + 18
+        val visibleBottom = viewportHeight - selectionPanelHeight
+        val visibleHeight = (visibleBottom - visibleTop).coerceAtLeast(itemInfo.size)
+        val desiredTop = visibleTop + (visibleHeight / 3) - (itemInfo.size / 2)
         val delta = itemInfo.offset - desiredTop
         if (delta != 0) listState.animateScrollBy(delta.toFloat())
     }
-
-    var filterBarHeight by remember { mutableStateOf(0) }
-    var selectionPanelHeight by remember { mutableStateOf(84) }
-    val density = LocalDensity.current
     Box(Modifier.fillMaxWidth().weight(1f)) {
         LazyColumn(
             state = listState,
@@ -570,6 +577,9 @@ private fun ColumnScope.CatalogReadyContent(
             // an apparently incomplete state while the summary says otherwise.
             val effectiveSelectedOptions = selectedConfiguration?.selectedOptions ?: selectedOptions
             val effectiveConfiguration = selectedConfiguration ?: default
+            val effectiveExerciseInfo = remember(catalog, definition.id, resolvedConfigurationId) {
+                exactInfo(catalog, definition, resolvedConfigurationId)
+            }
             val isSelected = definition.id in selectedRows.value ||
                 selectedConfigurationId?.let { it in selectedExercisesIds } == true
             val isExpanded = expandedDefinitionId == definition.id
@@ -762,8 +772,6 @@ private fun ColumnScope.CatalogReadyContent(
                                 axis to axis.options
                                     .filter { it.enabled || effectiveSelectedOptions[axis.axis] == it.value }
                             }
-                            val totalChips = axesWithOptions.sumOf { it.second.size }
-                            val compactAxes = totalChips <= 7 && axesWithOptions.size > 1
                             val selectOption: (axis: String, value: String) -> Unit = { axis, value ->
                                 val newDraft = draftAfterAxisSelection(
                                     definition = definition,
@@ -773,84 +781,29 @@ private fun ColumnScope.CatalogReadyContent(
                                 )
                                 draftByDefinition.value = draftByDefinition.value + (definition.id to newDraft)
                             }
-                            if (compactAxes) {
-                                FlowRow(
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            axesWithOptions.forEachIndexed { axisIndex, (axis, visibleOptions) ->
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
                                     verticalArrangement = Arrangement.spacedBy(6.dp),
                                 ) {
-                                    axesWithOptions.forEach { (axis, visibleOptions) ->
-                                        FlowRow(
-                                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                            verticalArrangement = Arrangement.spacedBy(4.dp),
-                                        ) {
-                                            Text(
-                                                "${exerciseCatalogAxisLabel(axis.axis, definition.id)}:",
-                                                color = Color.White.copy(alpha = 0.72f),
-                                                style = MaterialTheme.typography.labelSmall,
+                                    Text(
+                                        "${axisIndex + 1}. ${exerciseCatalogAxisLabel(axis.axis, definition.id)}",
+                                        color = Color.White.copy(alpha = 0.72f),
+                                        style = MaterialTheme.typography.labelSmall,
+                                    )
+                                    FlowRow(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                                    ) {
+                                        visibleOptions.forEach { option ->
+                                            AxisChip(
+                                                value = option.value,
+                                                definitionId = definition.id,
+                                                selected = effectiveSelectedOptions[axis.axis] == option.value,
+                                                enabled = option.enabled,
+                                                onClick = { selectOption(axis.axis, option.value) },
                                             )
-                                            visibleOptions.forEach { option ->
-                                                AxisChip(
-                                                    value = option.value,
-                                                    definitionId = definition.id,
-                                                    selected = effectiveSelectedOptions[axis.axis] == option.value,
-                                                    enabled = option.enabled,
-                                                    onClick = { selectOption(axis.axis, option.value) },
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            } else {
-                                axesWithOptions.forEachIndexed { axisIndex, (axis, visibleOptions) ->
-                                    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                                        if (visibleOptions.size <= 4) {
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                            ) {
-                                                Text(
-                                                    "${axisIndex + 1}. ${exerciseCatalogAxisLabel(axis.axis, definition.id)}",
-                                                    color = Color.White.copy(alpha = 0.72f),
-                                                    style = MaterialTheme.typography.labelSmall,
-                                                    modifier = Modifier.widthIn(min = 96.dp),
-                                                )
-                                                FlowRow(
-                                                    modifier = Modifier.weight(1f),
-                                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                                    verticalArrangement = Arrangement.spacedBy(6.dp),
-                                                ) {
-                                                    visibleOptions.forEach { option ->
-                                                        AxisChip(
-                                                            value = option.value,
-                                                            definitionId = definition.id,
-                                                            selected = effectiveSelectedOptions[axis.axis] == option.value,
-                                                            enabled = option.enabled,
-                                                            onClick = { selectOption(axis.axis, option.value) },
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        } else {
-                                            Text(
-                                                "${axisIndex + 1}. ${exerciseCatalogAxisLabel(axis.axis, definition.id)}",
-                                                color = Color.White.copy(alpha = 0.72f),
-                                                style = MaterialTheme.typography.labelSmall,
-                                            )
-                                            FlowRow(
-                                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                                verticalArrangement = Arrangement.spacedBy(6.dp),
-                                            ) {
-                                                visibleOptions.forEach { option ->
-                                                    AxisChip(
-                                                        value = option.value,
-                                                        definitionId = definition.id,
-                                                        selected = effectiveSelectedOptions[axis.axis] == option.value,
-                                                        enabled = option.enabled,
-                                                        onClick = { selectOption(axis.axis, option.value) },
-                                                    )
-                                                }
-                                            }
                                         }
                                     }
                                 }
@@ -860,6 +813,13 @@ private fun ColumnScope.CatalogReadyContent(
                         CatalogDescription(
                             definition = definition,
                             configuration = effectiveConfiguration,
+                        )
+
+                        CatalogInvolvementAccordions(
+                            joints = effectiveConfiguration?.profile?.jointInvolvement
+                                ?.takeIf { it.isNotEmpty() }
+                                .orEmpty(),
+                            info = effectiveExerciseInfo?.takeIf { it.involvedMuscles.isNotEmpty() },
                         )
 
                         Text(
@@ -1099,9 +1059,12 @@ private fun CatalogDescription(
 ) {
     val configurationId = configuration?.id
     var descriptionExpanded by remember(definition.id, configurationId) { mutableStateOf(false) }
-    val description = configuration?.profile?.description
-        ?.takeIf { it.isNotBlank() }
-        ?: definition.description
+    // v7: la descripción principal es la de la definición (estructura 3 frases
+    // con veredicto dedicado). El matiz de la variante seleccionada se muestra
+    // como texto secundario si existe y difiere de la definición.
+    val definitionDescription = definition.description
+    val variantDescription = configuration?.profile?.description
+        ?.takeIf { it.isNotBlank() && it.trim() != definitionDescription.trim() }
 
     Column(
         modifier = Modifier
@@ -1115,10 +1078,56 @@ private fun CatalogDescription(
             onToggle = { descriptionExpanded = !descriptionExpanded },
         ) {
             Text(
-                description,
+                definitionDescription,
                 color = Color.White.copy(alpha = 0.82f),
                 style = MaterialTheme.typography.bodySmall,
             )
+            if (variantDescription != null) {
+                Text(
+                    variantDescription,
+                    color = Color.White.copy(alpha = 0.68f),
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Los involucramientos (muscular y articular) se despliegan como acordeón,
+ * con el muscular primero y el articular debajo, para ahorrar espacio.
+ */
+@Composable
+private fun CatalogInvolvementAccordions(
+    info: ExerciseMuscleInfo?,
+    joints: List<JointInvolvementV2>,
+) {
+    var muscleExpanded by remember { mutableStateOf(false) }
+    var jointExpanded by remember { mutableStateOf(false) }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 2.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        info?.let { muscleInfo ->
+            CatalogInfoAccordion(
+                title = "Involucramiento Muscular",
+                expanded = muscleExpanded,
+                onToggle = { muscleExpanded = !muscleExpanded },
+            ) {
+                MuscleInvolvementSection(muscleInfo, showHeader = false)
+            }
+        }
+        if (joints.isNotEmpty()) {
+            CatalogInfoAccordion(
+                title = "Involucramiento Articular",
+                expanded = jointExpanded,
+                onToggle = { jointExpanded = !jointExpanded },
+            ) {
+                JointInvolvementSection(joints, showHeader = false)
+            }
         }
     }
 }
