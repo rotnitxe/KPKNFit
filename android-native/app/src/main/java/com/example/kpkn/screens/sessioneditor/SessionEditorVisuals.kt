@@ -6,6 +6,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,7 +30,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -163,6 +165,13 @@ internal fun DragLiftPreview(
     val density = LocalDensity.current
     val x = rect.left - root.left + offset.x
     val y = rect.top - root.top + offset.y
+    var lifted by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { lifted = true }
+    val liftScale by animateFloatAsState(
+        targetValue = if (lifted) 1.05f else 1f,
+        animationSpec = spring(dampingRatio = 0.5f, stiffness = 420f),
+        label = "drag-lift-scale",
+    )
     Surface(
         modifier = modifier
             .offset {
@@ -172,8 +181,8 @@ internal fun DragLiftPreview(
             .heightIn(min = 70.dp)
             .zIndex(100f)
             .graphicsLayer {
-                scaleX = 1.03f
-                scaleY = 1.03f
+                scaleX = liftScale
+                scaleY = liftScale
                 alpha = 0.96f
                 shadowElevation = 18.dp.toPx()
             },
@@ -218,6 +227,13 @@ internal fun DragPartLiftPreview(
     val density = LocalDensity.current
     val x = rect.left - root.left
     val y = rect.top - root.top + offsetY
+    var lifted by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { lifted = true }
+    val liftScale by animateFloatAsState(
+        targetValue = if (lifted) 1.05f else 1f,
+        animationSpec = spring(dampingRatio = 0.5f, stiffness = 420f),
+        label = "drag-part-lift-scale",
+    )
     Surface(
         modifier = modifier
             .offset { IntOffset(x.roundToInt(), y.roundToInt()) }
@@ -225,8 +241,8 @@ internal fun DragPartLiftPreview(
             .heightIn(min = 56.dp)
             .zIndex(100f)
             .graphicsLayer {
-                scaleX = 1.03f
-                scaleY = 1.03f
+                scaleX = liftScale
+                scaleY = liftScale
                 alpha = 0.96f
                 shadowElevation = 18.dp.toPx()
             },
@@ -352,4 +368,3 @@ internal fun DarkChoiceChip(
         }
     }
 }
-

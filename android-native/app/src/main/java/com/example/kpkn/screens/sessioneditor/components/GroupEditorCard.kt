@@ -165,6 +165,8 @@ import com.example.kpkn.data.models.Session
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.geometry.Offset
@@ -362,6 +364,7 @@ internal fun GroupEditorCard(
     content: @Composable () -> Unit,
 ) {
     var showColorPicker by remember { mutableStateOf(false) }
+    val haptics = LocalHapticFeedback.current
     var showDeleteConfirm by remember(part.id) { mutableStateOf(false) }
     var showDeleteModeConfirm by remember(part.id) { mutableStateOf(false) }
     val partAccent = remember(part.color) { resolvePartAccent(part.color) }
@@ -434,9 +437,9 @@ internal fun GroupEditorCard(
                                 .height(44.dp)
                                 .pointerInput(part.id) {
                                     detectDragGestures(
-                                        onDragStart = { onDragStart() },
-                                        onDragCancel = { onDragEnd() },
-                                        onDragEnd = { onDragEnd() },
+                                        onDragStart = { haptics.performHapticFeedback(HapticFeedbackType.LongPress); onDragStart() },
+                                        onDragCancel = { haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove); onDragEnd() },
+                                        onDragEnd = { haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove); onDragEnd() },
                                         onDrag = { change, dragAmount ->
                                             change.consume()
                                             onDrag(dragAmount.y)

@@ -137,15 +137,6 @@ internal fun SessionEditorListItem(
                     }
                 },
                 onAddExercise = { viewModel.openPicker(part.id) },
-                onToggleMobilityGroup = { viewModel.togglePartMobilityGroup(part.id) },
-                onOpenMobilityPicker = { viewModel.openMobilityPickerForPart(part.id) },
-                onRemoveMobility = { mobilityId -> viewModel.removeMobilityFromPart(part.id, mobilityId) },
-                onUpdateMobility = { mobilityId, transform ->
-                    viewModel.updateMobilityInPart(part.id, mobilityId, transform)
-                },
-                onUpdateMobilityConfig = { config ->
-                    viewModel.updateMobilityConfigInPart(part.id, config)
-                },
                 headerOnly = true,
                 content = {},
             )
@@ -350,12 +341,28 @@ internal fun SessionEditorListItem(
             val displayName = part.name.trim().ifBlank { "este grupo" }
             val partAccent = remember(part.color) { resolvePartAccent(part.color) }
             val footerShape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)
+            // Slide the footer down in sync with the exercises above it when a drag
+            // targets the end of this part, so it doesn't stay frozen in place and
+            // visually detach from the rearranging cards.
+            val footerShiftY by animateFloatAsState(
+                targetValue = if (draggingExerciseId != null) {
+                    dragController.projectedFooterShiftFor(part.id, part.exercises.size)
+                } else {
+                    0f
+                },
+                animationSpec = tween(160),
+                label = "partAddFooterDnDShift",
+            )
+            if (exerciseDropTargetPartId == part.id && exerciseDropTargetIndex != null && exerciseDropTargetIndex >= part.exercises.size && draggingExerciseId != null) {
+                SessionEditorDropIndicator(visible = true, modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
+            }
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
                     .clip(footerShape)
                     .background(partAccent.brush(alpha = 0.06f))
+                    .graphicsLayer { translationY = footerShiftY }
                     .padding(horizontal = 4.dp, vertical = 6.dp)
                     .onGloballyPositioned { onPartContentBoundsReport(part.id, it.boundsInWindow()) },
             ) {
@@ -458,6 +465,8 @@ private fun LooseExerciseItem(
             },
         )
     }
+    val isLooseInsertBefore = exerciseDropTargetPartId == "__loose__" && exerciseDropTargetIndex == index && draggingExerciseId != null && draggingExerciseId != exercise.id
+    if (isLooseInsertBefore) { SessionEditorDropIndicator(visible = true) }
     ExerciseListDivider(
         exercise = exercise,
         index = index,
@@ -540,6 +549,8 @@ private fun PartExerciseItem(
             },
         )
     }
+    val isPartInsertBefore = exerciseDropTargetPartId == part.id && exerciseDropTargetIndex == index && draggingExerciseId != null && draggingExerciseId != exercise.id
+    if (isPartInsertBefore) { SessionEditorDropIndicator(visible = true) }
     ExerciseListDivider(
         exercise = exercise,
         index = index,

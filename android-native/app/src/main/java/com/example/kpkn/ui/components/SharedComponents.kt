@@ -1,6 +1,12 @@
 package com.example.kpkn.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
@@ -18,12 +24,15 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 // ─── SectionHeader ───────────────────────────────────────────────────────────
@@ -56,20 +65,18 @@ fun SwipeToDeleteCard(
     val density = LocalDensity.current
     val deleteThreshold = with(density) { 80.dp.toPx() }
     val maxReveal = with(density) { 128.dp.toPx() }
-    var offsetX by remember { mutableFloatStateOf(0f) }
+    val haptics = LocalHapticFeedback.current
+    val revealTrigger = with(density) { 24.dp.toPx() }
+
+    val offsetX = remember { Animatable(0f) }
+    val scope = rememberCoroutineScope()
+    var revealed by remember { mutableStateOf(false) }
+    var armed by remember { mutableStateOf(false) }
     var deleting by remember { mutableStateOf(false) }
-    val animatedOffset by animateFloatAsState(
-        targetValue = if (deleting) -maxReveal * 1.35f else offsetX,
-        label = "swipe-offset",
-    )
-    val animatedAlpha by animateFloatAsState(
-        targetValue = if (deleting) 0f else 1f,
-        label = "swipe-alpha",
-    )
 
     LaunchedEffect(deleting) {
         if (!deleting) return@LaunchedEffect
-        delay(180)
+        delay(190)
         onDelete()
     }
 
@@ -78,22 +85,44 @@ fun SwipeToDeleteCard(
             .fillMaxWidth()
             .clip(shape),
     ) {
-        // Delete background (visible when swiping left)
-        if (animatedOffset < 0f) {
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .background(
+        // Reactive delete background: slides with a parallax off the row and
+        // intensifies once the gesture arms the delete (no longer a static image).
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .offset { IntOffset((offsetX.value * 0.35f).roundToInt(), 0) }
+                .background(
+                    if (armed) {
+                        Brush.horizontalGradient(
+                            colors = listOf(
+                                Color(0xFF2A0A0F),
+                                Color(0xFF8A2030),
+                                MaterialTheme.colorScheme.error,
+                            ),
+                        )
+                    } else {
                         Brush.horizontalGradient(
                             colors = listOf(
                                 Color(0xFF21090D),
                                 Color(0xFF641722),
                                 MaterialTheme.colorScheme.error.copy(alpha = 0.94f),
                             ),
-                        ),
-                    ),
-                contentAlignment = Alignment.CenterEnd,
+                        )
+                    }
+                ),
+            contentAlignment = Alignment.CenterEnd,
+        ) {
+            // The label slides in only when a meaningful reveal happens.
+            AnimatedVisibility(
+                visible = revealed,
+                enter = fadeIn() + slideInHorizontally { it / 2 },
+                exit = fadeOut(),
             ) {
+                val iconScale by animateFloatAsState(
+                    targetValue = if (armed) 1.3f else 1f,
+                    animationSpec = spring(dampingRatio = 0.55f, stiffness = 500f),
+                    label = "swipe-delete-icon",
+                )
                 Row(
                     modifier = Modifier.padding(end = 20.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -103,7 +132,12 @@ fun SwipeToDeleteCard(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Eliminar",
                         tint = Color.White,
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier
+                            .size(18.dp)
+                            .graphicsLayer {
+                                scaleX = iconScale
+                                scaleY = iconScale
+                            },
                     )
                     Text(
                         "Eliminar",
@@ -118,20 +152,47 @@ fun SwipeToDeleteCard(
         // Draggable card
         Box(
             modifier = Modifier
-                .offset { IntOffset(animatedOffset.roundToInt(), 0) }
-                .graphicsLayer { alpha = animatedAlpha }
+                .offset { IntOffset(offsetX.value.roundToInt(), 0) }
+                .graphicsLayer {
+                    if (deleting) {
+                        alpha = 0f
+                        scaleX = 0.96f
+                        scaleY = 0.96f
+                    }
+                }
                 .draggable(
                     orientation = Orientation.Horizontal,
                     state = rememberDraggableState { delta ->
-                        val newOffset = offsetX + delta
                         // Only allow left swipe; the header owns this gesture.
-                        offsetX = newOffset.coerceIn(-maxReveal, 0f)
+                        val next = (offsetX.value + delta).coerceIn(-maxReveal, 0f)
+                        scope.launch { offsetX.snapTo(next) }
+                        val r = next < -revealTrigger
+                        if (r != revealed) revealed = r
+                        val a = next <= -deleteThreshold
+                        if (a != armed) {
+                            armed = a
+                            if (a) haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        }
                     },
                     onDragStopped = {
-                        if (offsetX <= -deleteThreshold) {
+                        if (offsetX.value <= -deleteThreshold) {
+                            revealed = true
                             deleting = true
+                            scope.launch {
+                                offsetX.animateTo(
+                                    targetValue = -maxReveal * 1.35f,
+                                    animationSpec = spring(dampingRatio = 0.6f, stiffness = 400f),
+                                )
+                            }
                         } else {
-                            offsetX = 0f
+                            revealed = false
+                            armed = false
+                            scope.launch {
+                                offsetX.animateTo(
+                                    targetValue = 0f,
+                                    animationSpec = spring(dampingRatio = 0.75f, stiffness = 650f),
+                                )
+                            }
                         }
                     },
                 ),

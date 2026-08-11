@@ -122,10 +122,14 @@ class RestTimerController(
         val scheduledId = activeRestTimerId
         timerJob = scope.launch {
             var lastElapsedSecond = -1
+            var lastRemaining = _remaining.value
             while (true) {
                 delay(500L)
                 val remainingNow = ((endMs - System.currentTimeMillis() + 500) / 1000L).toInt().coerceAtLeast(0)
-                _remaining.value = remainingNow
+                if (remainingNow != lastRemaining) {
+                    lastRemaining = remainingNow
+                    _remaining.value = remainingNow
+                }
                 val elapsed = ((System.currentTimeMillis() - restStartMs) / 1000L).toInt().coerceAtLeast(0)
                 if (elapsed != lastElapsedSecond) {
                     lastElapsedSecond = elapsed

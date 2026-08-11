@@ -7,6 +7,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -139,6 +141,7 @@ internal fun ExerciseEditorCard(
     var showGoalSheet by remember { mutableStateOf(false) }
     var showExerciseOptionsMenu by remember { mutableStateOf(false) }
     var mobilityBlockExpanded by rememberSaveable(exercise.id) { mutableStateOf(exercise.mobilitySeries.isNotEmpty()) }
+    val haptics = LocalHapticFeedback.current
     var warmupBlockExpanded by rememberSaveable(exercise.id) { mutableStateOf(exercise.warmupSets.isNotEmpty()) }
 
     val resolved1RM = remember(exercise.trainingMode, exercise.reference1RM, exercise.prFor1RM) {
@@ -268,9 +271,9 @@ internal fun ExerciseEditorCard(
                         .height(44.dp)
                         .pointerInput(exercise.id) {
                             detectDragGestures(
-                                onDragStart = { offset -> onDragStart(offset) },
-                                onDragCancel = { onDragEnd() },
-                                onDragEnd = { onDragEnd() },
+                                onDragStart = { offset -> haptics.performHapticFeedback(HapticFeedbackType.LongPress); onDragStart(offset) },
+                                onDragCancel = { haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove); onDragEnd() },
+                                onDragEnd = { haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove); onDragEnd() },
                                 onDrag = { change, dragAmount ->
                                     change.consume()
                                     onDrag(Offset(dragAmount.x, dragAmount.y))
