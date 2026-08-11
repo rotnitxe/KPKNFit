@@ -61,6 +61,7 @@ import com.example.kpkn.domain.nutrition.getContextualDefaultServingSize
 import com.example.kpkn.domain.nutrition.COOKING_FACTORS
 import com.example.kpkn.domain.nutrition.SemanticPortionRetriever
 import com.example.kpkn.domain.nutrition.LastResortSplitter
+import com.example.kpkn.domain.nutrition.NutritionHeuristicEstimator
 import com.example.kpkn.domain.nutrition.MacroValidator
 import com.example.kpkn.domain.nutrition.TagResolver
 import com.example.kpkn.domain.nutrition.FoodResolutionPort
@@ -451,32 +452,46 @@ fun FoodLoggerDrawer(
     fun createLastResortManualTags(raw: String): Boolean {
         val fragments = LastResortSplitter.split(raw)
         val trimmed = raw.trim()
-        if (fragments.isEmpty()) {
-            if (trimmed.isEmpty()) return false
-            tags = listOf(
-                ResolvedTag(
-                    tag = trimmed,
-                    portion = PortionPreset.MEDIUM,
-                    quantity = 1.0,
-                    analysisSource = AnalysisSource.RULES,
-                    statusText = "Análisis automático falló: selecciona el alimento y ajusta la cantidad.",
-                    isResolved = false,
-                    isFuzzyMatch = true,
-                ),
-            )
-            return true
-        }
-        tags = fragments.distinct().map { fragment ->
-            ResolvedTag(
+        // CRI-AUDIT (P4): el último nivel produce tags GUARDABLES (isResolved=true + macros
+        // estimados por el motor heurístico puro). Así una descripción común JAMÁS deja al
+        // usuario sin poder registrar, aunque todo el pipeline externo haya fallado.
+        fun manualTag(fragment: String): ResolvedTag {
+            val profile = runCatching {
+                NutritionHeuristicEstimator.estimatePer100g(fragment)
+            }.getOrNull()
+            val logged = profile?.let {
+                createLoggedFood(
+                    foodName = "$fragment (estimado)",
+                    amount = 100.0,
+                    calories = it.calories,
+                    protein = it.protein,
+                    carbs = it.carbs,
+                    fats = it.fats,
+                )
+            }
+            return ResolvedTag(
                 tag = fragment,
                 portion = PortionPreset.MEDIUM,
                 quantity = 1.0,
-                analysisSource = AnalysisSource.RULES,
-                statusText = "Análisis automático falló: selecciona el alimento y ajusta la cantidad.",
-                isResolved = false,
+                amountGrams = logged?.amount,
+                foodItem = null,
+                loggedFood = logged,
+                analysisSource = AnalysisSource.LOCAL_HEURISTIC,
+                statusText = if (logged != null) {
+                    "Estimación local: revisa los macros antes de guardar."
+                } else {
+                    "Análisis automático falló: selecciona el alimento y ajusta la cantidad."
+                },
+                isResolved = logged != null,
                 isFuzzyMatch = true,
             )
         }
+        if (fragments.isEmpty()) {
+            if (trimmed.isEmpty()) return false
+            tags = listOf(manualTag(trimmed))
+            return true
+        }
+        tags = fragments.distinct().map(::manualTag)
         reviewRequired = true
         return true
     }
@@ -575,7 +590,7 @@ fun FoodLoggerDrawer(
                     ?.takeIf { descriptionRetrieval.confidence >= 0.35 }
                     ?.let { kotlin.math.round(it.kcalMin).toInt() to kotlin.math.round(it.kcalMax).toInt() }
                     ?.takeIf { it.second - it.first >= 30 }
-                detectedContext = ContextDetector.detect(description)
+                detectedContext = ContextDetector.detect(descriptionSnapshot)
                 NutritionTelemetry.markInFlight(analysisTrace.traceId, "parse")
                 val parseStartedAtMs = System.currentTimeMillis()
                 val parsed = if (useApi) {
@@ -588,7 +603,7 @@ fun FoodLoggerDrawer(
                         }
                     }
                     val request = AiNutritionRequest(
-                        description = description,
+                        description = descriptionSnapshot,
                         knownFoods = knownFoods,
                     )
                     val result = withContext(Dispatchers.IO) {
@@ -630,7 +645,7 @@ fun FoodLoggerDrawer(
                             val items = reconcileParsedFoodItems(rawItems)
                             ParsedMealDescription(
                                 items = items,
-                                rawDescription = description,
+                                rawDescription = descriptionSnapshot,
                                 overallConfidence = aiResult.overallConfidence,
                                 analysisEngine = if (aiResult.usedModel) "external-api" else "deterministic",
                                 modelVersion = aiResult.modelVersion,
@@ -641,7 +656,7 @@ fun FoodLoggerDrawer(
                         onFailure = { error ->
                             if (settings.aiFallbackEnabled) {
                                 val fallback = withContext(Dispatchers.Default) {
-                                    parseMealDescription(description, descriptionRetrieval)
+                                    parseMealDescription(descriptionSnapshot, descriptionRetrieval)
                                 }
                                 fallback.copy(
                                     analysisEngine = "external-api-failed-fallback-deepseek"
@@ -666,7 +681,7 @@ fun FoodLoggerDrawer(
                         }
                     }
                     withContext(Dispatchers.Default) {
-                        parseMealDescription(description, descriptionRetrieval)
+                        parseMealDescription(descriptionSnapshot, descriptionRetrieval)
                     }
                 }
                 analysisTrace.stageEnded(
@@ -678,7 +693,13 @@ fun FoodLoggerDrawer(
                 analysisTrace.stage("resolve_tags") {
                     resolveTags(parsed)
                 }
-                lastAnalyzedDescription = description
+                // CRI-AUDIT (P2): si el parseo local devolvió 0 alimentos para un texto
+                // no-vacío, NUNCA dejar tags vacíos en silencio: caemos al último nivel
+                // para que el usuario siempre tenga algo que revisar y guardar.
+                if (tags.isEmpty() && !useApi && descriptionSnapshot.isNotBlank()) {
+                    createLastResortManualTags(descriptionSnapshot)
+                }
+                lastAnalyzedDescription = descriptionSnapshot
                 analysisNotice = buildAnalysisNotice(parsed) ?: datasetNotReadyNotice()
                 if (parsed.aiInferredFoods.isNotEmpty()) {
                     nutritionRepo.saveAiInferredFoods(parsed.aiInferredFoods)
@@ -716,15 +737,15 @@ fun FoodLoggerDrawer(
                     analysisTrace.stage("salvage_parse") {
                         withContext(Dispatchers.Default) {
                             val fallbackParsed = parseMealDescription(
-                                description,
-                                SemanticPortionRetriever.retrieve(description),
+                                descriptionSnapshot,
+                                SemanticPortionRetriever.retrieve(descriptionSnapshot),
                             )
                             resolveTags(fallbackParsed)
                         }
                     }
                     // CRI-ANALYSIS: el éxito del salvage NO depende de la telemetría
                     // (stage ya no puede lanzar por emisión). LastAnalyzed solo tras éxito.
-                    lastAnalyzedDescription = description
+                    lastAnalyzedDescription = descriptionSnapshot
                     null to true
                 } catch (cancelled: CancellationException) {
                     NutritionTelemetry.clearInFlight()
@@ -742,9 +763,9 @@ fun FoodLoggerDrawer(
                     // manuales no-resueltos desde un split trivial para que NUNCA quede un
                     // callejón sin salida. runCatching: no puede lanzar.
                     val lastResortOk = runCatching {
-                        createLastResortManualTags(description)
+                        createLastResortManualTags(descriptionSnapshot)
                     }.getOrDefault(false)
-                    if (lastResortOk) lastAnalyzedDescription = description
+                    if (lastResortOk) lastAnalyzedDescription = descriptionSnapshot
                     salvageFailedDetail to lastResortOk
                 }
                 analysisNotice = when {
@@ -805,6 +826,13 @@ fun FoodLoggerDrawer(
         }
         if (description.isBlank()) return
         analyzeDescription(forceApi = true)
+    }
+
+    // CRI-AUDIT (P0): precalentar dataset + índice de alimentos al abrir el registro,
+    // para que el primer toque de ANALIZAR no se topen con la carga (dataset 1.3MB + índice).
+    LaunchedEffect(Unit) {
+        nutritionRepo.prepareSemanticDataset()
+        nutritionRepo.initFoodIndex()
     }
 
     LaunchedEffect(initialDescription, initialTab) {
@@ -1194,6 +1222,14 @@ fun FoodLoggerDrawer(
         if (activeTags.any { !it.isResolved }) {
             NutritionTelemetry.event("save_rejected", mapOf("reason" to "unresolved_tags", "tags" to activeTags.size))
             reviewRequired = true
+            // CRI-AUDIT (P6): aviso explícito que nombra el alimento que bloquea el guardado,
+            // en vez de solo la franja genérica.
+            val blocking = activeTags.firstOrNull { !it.isResolved }?.tag
+            analysisNotice = AnalysisNotice(
+                title = "Falta confirmar: \"$blocking\"",
+                message = "Selecciona el alimento correcto y confirma su cantidad antes de guardar.",
+                tone = AnalysisNoticeTone.WARNING,
+            )
             return
         }
         val resolvedFoods = activeTags.mapNotNull { it.loggedFood }
@@ -1408,6 +1444,7 @@ fun FoodLoggerDrawer(
                             value = description,
                             onValueChange = { description = it },
                             modifier = Modifier.fillMaxWidth(),
+                            enabled = !isAnalyzing,
                             placeholder = {
                                 Text(
                                     "Ej: pollo a la plancha 200 g, arroz cocido 150 g, palta 80 g"

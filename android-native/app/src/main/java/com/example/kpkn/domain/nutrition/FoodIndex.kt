@@ -48,13 +48,18 @@ class FoodIndex {
 
     /**
      * Build index from Room GlobalFoodEntity list + static FoodItem lists.
+     * CRI-AUDIT: si el índice quedó construido VACÍO (p. ej. un toque de analizar
+     * durante la primera importación del catálogo, cuando la base aún no estaba
+     * poblada), se permite reconstruirlo la próxima vez que la data esté lista.
+     * Un índice vacío significaba resolución degradada (solo heurísticas) para toda
+     * la sesión sin modo de repararlo.
      */
     fun build(
         globalFoods: List<GlobalFoodEntity>,
         staticFoods: List<FoodItem>,
         staticAliases: Map<String, String> = emptyMap(),
     ) {
-        if (built) return
+        if (built && foods.size > 0) return
 
         // Index static foods (GENERIC_FOODS + CHILEAN_FOODS)
         for (food in staticFoods) {

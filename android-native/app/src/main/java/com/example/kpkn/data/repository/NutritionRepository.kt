@@ -423,7 +423,10 @@ class NutritionRepository private constructor(
         val normalizedQuery = FoodTemplateMatcher.normalizeSearchText(query)
         if (normalizedQuery.isBlank()) return null
 
+        // CRI-AUDIT: saltar templates sin alimentos — un match de template vacío hacía
+        // que el pipeline hiciera short-circuit con tags=[] sin ningún aviso (dead-end).
         return _mealTemplates.value
+            .filter { it.foods.isNotEmpty() }
             .mapNotNull { template ->
                 val score = FoodTemplateMatcher.score(template, normalizedQuery)
                 if (score >= FoodTemplateMatcher.THRESHOLD) template to score else null
@@ -438,11 +441,14 @@ class NutritionRepository private constructor(
     private val datasetKnowledgeMutex = Mutex()
     @Volatile
     private var datasetKnowledgeReady = false
+    // CRI-AUDIT: negative-cache. Si el dataset falla al cargar, no re-gunzipear 1.3MB en
+    // cada análisis; se reintenta solo en la próxima ejecución del proceso.
+    private var datasetKnowledgeFailed = false
 
     private suspend fun ensureDatasetKnowledge() {
-        if (datasetKnowledgeReady) return
+        if (datasetKnowledgeReady || datasetKnowledgeFailed) return
         datasetKnowledgeMutex.withLock {
-            if (datasetKnowledgeReady) return@withLock
+            if (datasetKnowledgeReady || datasetKnowledgeFailed) return@withLock
             // CRI-ANALYSIS: install() (con require lanzable) antes quedaba FUERA del
             // runCatching; un fallo ahí propagaba desde prepareSemanticDataset() y
             // resolveFoodWithSmartResolver() a la vez (pipeline + salvage).
@@ -456,6 +462,7 @@ class NutritionRepository private constructor(
                     "Dataset knowledge ready: ${SemanticPortionRetriever.status().documentCount} docs, v${SemanticPortionRetriever.status().formatVersion}",
                 )
             }.onFailure { error ->
+                datasetKnowledgeFailed = true
                 android.util.Log.w("NutritionRepository", "Dataset knowledge load failed", error)
             }
         }
@@ -475,7 +482,10 @@ class NutritionRepository private constructor(
 
     suspend fun initFoodIndex() = withContext(Dispatchers.Default) {
         synchronized(foodIndexLock) {
-            if (_foodIndex?.isBuilt() == true) return@withContext
+            // CRI-AUDIT: no salir si el índice está vacío — un build prematuro (toque de
+            // analizar durante la primera importación) dejaba un índice vacío congelado
+            // para toda la sesión. Ahora se reconstruye apenas la data esté poblada.
+            if (_foodIndex?.isBuilt() == true && _foodIndex?.size() ?: 0 > 0) return@withContext
         }
         try {
             val globalFoods = withContext(Dispatchers.IO) {
@@ -486,7 +496,7 @@ class NutritionRepository private constructor(
                 foodIndex.build(globalFoods, _foodDatabase.value, FOOD_ALIASES)
             }
             android.util.Log.i("NutritionRepository", "FoodIndex built: ${foodIndex.size()} foods indexed")
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             android.util.Log.w("NutritionRepository", "initFoodIndex failed", e)
         }
     }
