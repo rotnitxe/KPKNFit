@@ -939,25 +939,13 @@ fun SessionEditorScreen(
         onQuickActionOpenWarmup = viewModel::triggerQuickActionOpenWarmup,
         onQuickActionOpenMobility = viewModel::triggerQuickActionOpenMobility,
         onAddMobilityExercise = viewModel::addMobilityToQuickActionExercise,
-        onAddMobilityToPart = viewModel::addMobilityToPart,
         onRemoveMobilityExercise = { info ->
-            val mobilityPartId = uiState.mobilityPartId
             val quickActionsExerciseId = uiState.quickActionsExerciseId
-            val targetSeries = when {
-                mobilityPartId != null -> uiState.session?.parts
-                    ?.firstOrNull { it.id == mobilityPartId }
-                    ?.mobilitySeries
-                    .orEmpty()
-                quickActionsExerciseId != null -> uiState.session?.allExercises()
-                    ?.firstOrNull { it.id == quickActionsExerciseId }
-                    ?.mobilitySeries
-                    .orEmpty()
-                else -> emptyList()
-            }
+            val targetSeries = quickActionsExerciseId
+                ?.let { id -> uiState.session?.allExercises()?.firstOrNull { it.id == id }?.mobilitySeries }
+                .orEmpty()
             val existing = targetSeries.firstOrNull { it.catalogIdentityKey() == info.id }
-            if (existing != null && mobilityPartId != null) {
-                viewModel.removeMobilityFromPart(mobilityPartId, existing.id)
-            } else if (existing != null && quickActionsExerciseId != null) {
+            if (existing != null && quickActionsExerciseId != null) {
                 viewModel.removeMobilitySeries(uiState.quickActionsPartId, quickActionsExerciseId, existing.id)
             }
         },

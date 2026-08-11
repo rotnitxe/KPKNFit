@@ -11,7 +11,6 @@ fun SessionEditorViewModel.openCardioPicker(partId: String? = null) {
             sheet = SessionEditorSheet.CARDIO_PICKER,
             pickerTargetPartId = partId,
             pickerTargetExerciseId = null,
-            mobilityPartId = null,
             quickActionsPartId = null,
             quickActionsExerciseId = null,
             warmupExerciseId = null,

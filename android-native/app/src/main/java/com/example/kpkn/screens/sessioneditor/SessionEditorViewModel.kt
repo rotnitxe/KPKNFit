@@ -697,7 +697,6 @@ class SessionEditorViewModel(
                 exercises = exercises,
                 supersetGroups = session.allSupersetGroups(),
                 sessionWarmup = session.warmup,
-                globalMobilitySeries = session.parts.filter { it.isMobilityGroup }.flatMap { it.mobilitySeries },
                 restTimerDefaultSeconds = settingsVal.restTimerDefaultSeconds,
             )
         }.getOrNull()
@@ -938,11 +937,10 @@ class SessionEditorViewModel(
             val session = state.session ?: return@launch
             val settingsForBreakdown = repository.settings.value
             val breakdown = state.sessionTimeBreakdown ?: runCatching {
-                calculateSessionTimeBreakdown(
+calculateSessionTimeBreakdown(
                     exercises = session.allExercises(),
                     supersetGroups = session.allSupersetGroups(),
                     sessionWarmup = session.warmup,
-                    globalMobilitySeries = session.parts.filter { it.isMobilityGroup }.flatMap { it.mobilitySeries },
                     restTimerDefaultSeconds = settingsForBreakdown.restTimerDefaultSeconds,
                 )
             }.getOrNull() ?: return@launch
@@ -1025,7 +1023,6 @@ class SessionEditorViewModel(
                 pickerTargetPartId = null,
                 pickerTargetExerciseId = null,
                 warmupExerciseId = null,
-                mobilityPartId = null,
                 quickActionsPartId = null,
                 quickActionsExerciseId = null,
                 supersetManagerPartId = null,

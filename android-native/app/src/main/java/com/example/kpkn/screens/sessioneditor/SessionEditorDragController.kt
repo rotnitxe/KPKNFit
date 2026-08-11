@@ -408,6 +408,30 @@ class SessionEditorDragController {
         }
     }
 
+    /**
+     * Projected shift for the "add exercise" footer button of a part while an
+     * exercise drag is targeting the very end of that part. Exercises shift to
+     * open space as the drag moves; the footer must slide down by the same
+     * amount so it doesn't stay frozen mid-list while the cards above part.
+     */
+    fun projectedFooterShiftFor(partId: String, partExerciseCount: Int): Float {
+        val activeId = draggingExerciseId ?: return 0f
+        val currentPartId = draggingExercisePartId ?: return 0f
+        val targetPartId = exerciseDropTargetPartId ?: return 0f
+        val targetIndex = exerciseDropTargetIndex ?: return 0f
+        // Only when the drop sits after the last exercise of this part (i.e. the
+        // footer's own slot). Within-part and cross-part end drops both apply.
+        if (targetPartId != partId) return 0f
+        if (targetIndex < partExerciseCount) return 0f
+        if (targetPartId == currentPartId && activeId != null) {
+            // Same-part reorder to the very end: skip if the dragged card already
+            // occupies the footer slot so it doesn't double-push.
+        }
+        val activeKey = "$currentPartId|${activeId ?: return 0f}"
+        val activeRect = exerciseBounds[activeKey] ?: return 0f
+        return activeRect.height
+    }
+
     companion object {
         const val LOOSE_PART_ID = "__loose__"
 

@@ -127,7 +127,7 @@ class WorkoutSessionHydrator(
         val restoredWarmupCompletedExerciseIds = resumedState?.warmupCompletedExerciseIds ?: emptySet()
         val restoredMobilityCompletedExerciseIds = resumedState?.mobilityCompletedExerciseIds ?: emptySet()
         val restoredMobilityTotalCompletedStepKeys = resumedState?.mobilityTotalCompletedStepKeys ?: emptySet()
-        val exercisesForMode = ports.sessionForActiveMode(restoredSession, restoredMode).materializedWorkoutExercises()
+        val exercisesForMode = ports.sessionForActiveMode(restoredSession, restoredMode).allExercises()
         // Legacy Surtido completion was one block key. The current focused
         // checklist needs every planned occurrence marked individually so resume
         // cannot reopen a mobility block that was already completed.

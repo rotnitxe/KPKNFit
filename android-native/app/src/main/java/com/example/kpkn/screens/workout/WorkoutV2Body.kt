@@ -416,29 +416,27 @@ internal fun WorkoutV2Body(
                             // Global mobility groups carry one empty placeholder set only so the
                             // shared workout model can materialize them as an Exercise. That
                             // placeholder must never become a strength card in the live pager.
-                            if (!currentExercise.isGlobalMobilityGroup()) {
-                                // 3. Normal sets
-                                currentExercise.sets.forEachIndexed { i, set ->
-                                    if (isUnilateral) {
-                                        val expectedSides = currentExercise.expectedSidesForSet(i)
-                                        expectedSides.forEach { side ->
-                                            list.add(
-                                                WorkoutSetSwipePage(
-                                                    type = LivePageType.NORMAL,
-                                                    setIndex = i,
-                                                    side = side
-                                                )
-                                            )
-                                        }
-                                    } else {
+                            // 3. Normal sets
+                            currentExercise.sets.forEachIndexed { i, set ->
+                                if (isUnilateral) {
+                                    val expectedSides = currentExercise.expectedSidesForSet(i)
+                                    expectedSides.forEach { side ->
                                         list.add(
                                             WorkoutSetSwipePage(
                                                 type = LivePageType.NORMAL,
                                                 setIndex = i,
-                                                side = null
+                                                side = side
                                             )
                                         )
                                     }
+                                } else {
+                                    list.add(
+                                        WorkoutSetSwipePage(
+                                            type = LivePageType.NORMAL,
+                                            setIndex = i,
+                                            side = null
+                                        )
+                                    )
                                 }
                             }
                         }

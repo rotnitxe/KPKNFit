@@ -660,13 +660,18 @@ private fun ScoreSection(
         Text(helper, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             options.forEach { option ->
+                val isSelected = option.value == selectedValue
+                val selectedBg = MaterialTheme.colorScheme.primaryContainer
+                val selectedContent = MaterialTheme.colorScheme.onPrimaryContainer
+                val idleBg = MaterialTheme.colorScheme.surfaceContainerLowest
+                val idleContent = MaterialTheme.colorScheme.onSurface
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(18.dp))
                         .clickable { onSelect(option.value) },
                     shape = RoundedCornerShape(18.dp),
-                    color = if (option.value == selectedValue) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLowest,
+                    color = if (isSelected) selectedBg else idleBg,
                 ) {
                     Row(
                         modifier = Modifier
@@ -676,8 +681,16 @@ private fun ScoreSection(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(option.label, fontWeight = FontWeight.Bold)
-                            Text(option.detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                option.label,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isSelected) selectedContent else idleContent,
+                            )
+                            Text(
+                                option.detail,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (isSelected) selectedContent.copy(alpha = 0.72f) else MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                             repeat(3) { index ->
@@ -685,7 +698,13 @@ private fun ScoreSection(
                                     modifier = Modifier
                                         .size(8.dp)
                                         .clip(CircleShape)
-                                        .background(if (index < option.value) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant),
+                                        .background(
+                                            if (index < option.value) {
+                                                if (isSelected) selectedContent else MaterialTheme.colorScheme.primary
+                                            } else {
+                                                if (isSelected) selectedContent.copy(alpha = 0.25f) else MaterialTheme.colorScheme.surfaceVariant
+                                            },
+                                        ),
                                 )
                             }
                         }

@@ -1741,7 +1741,7 @@ class WorkoutViewModel(
 
     private fun visibleExercises(state: WorkoutUiState): List<Exercise> {
         val base = state.session ?: return emptyList()
-        val byMode = sessionForActiveMode(base, state.activeMode).materializedWorkoutExercises()
+        val byMode = sessionForActiveMode(base, state.activeMode).allExercises()
         if (state.skippedExerciseIds.isEmpty()) return byMode
         return byMode.filterNot { it.id in state.skippedExerciseIds }
     }

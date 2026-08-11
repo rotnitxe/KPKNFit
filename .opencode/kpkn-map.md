@@ -36,8 +36,8 @@
 - Verify the real code and Room schema when older docs disagree.
 
 <!-- KAUPOLIKAN_DYNAMIC_MAP_START -->
-Generated at: 2026-08-08T02:12:43.508Z
-Kotlin files: 460
+Generated at: 2026-08-11T05:17:59.340Z
+Kotlin files: 493
 Room version detected in KpknDatabase.kt: 20
 
 ### Entities
@@ -97,6 +97,7 @@ Room version detected in KpknDatabase.kt: 20
 - Settings: settings
 - SettingsAuge: settings/auge
 - SettingsData: settings/data
+- SettingsDiagnostics: settings/diagnostics
 - SettingsGeneral: settings/general
 - SettingsNotifications: settings/notifications
 - SettingsNutrition: settings/nutrition

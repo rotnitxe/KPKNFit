@@ -52,28 +52,13 @@ fun ProgramsScreen(
     val inactivePrograms by viewModel.inactivePrograms.collectAsState()
     val programQueue by viewModel.programQueue.collectAsState()
     var menuProgram by remember { mutableStateOf<Program?>(null) }
-    var showCreateSheet by remember { mutableStateOf(false) }
-
-    if (showCreateSheet) {
-        CreateProgramTemplateSheet(
-            onDismiss = { showCreateSheet = false },
-            onCreateBlank = {
-                showCreateSheet = false
-                onNavigateToProgram(viewModel.createBlankProgram())
-            },
-            onCreateFromTemplate = { template ->
-                showCreateSheet = false
-                onNavigateToProgram(viewModel.createProgramFromTemplate(template.id))
-            },
-        )
-    }
 
     if (programs.isEmpty()) {
         EmptyStateView(
             title = "Comienza Hoy",
             subtitle = "Aún no tienes programas configurados",
             actionLabel = "Crear primer programa",
-            onAction = { showCreateSheet = true },
+            onAction = { onCreateProgram() },
             modifier = Modifier.fillMaxSize().statusBarsPadding(),
         )
     } else {
@@ -103,7 +88,7 @@ fun ProgramsScreen(
                         )
                     }
                     Button(
-                        onClick = { showCreateSheet = true },
+                        onClick = { onCreateProgram() },
                         modifier = Modifier.wrapContentWidth(),
                         shape = MaterialTheme.shapes.extraLarge,
                         colors = ButtonDefaults.buttonColors(
@@ -222,7 +207,7 @@ private fun ActiveProgramCard(
     )
 
     SwipeToDeleteCard(
-        onDelete = { viewModel.archiveProgram(program.id) },
+        onDelete = { viewModel.deleteProgram(program.id) },
     ) {
         Card(
             modifier = Modifier
@@ -302,7 +287,7 @@ private fun InactiveProgramCard(
     val stats = viewModel.getProgramStats(program)
 
     SwipeToDeleteCard(
-        onDelete = { viewModel.archiveProgram(program.id) },
+        onDelete = { viewModel.deleteProgram(program.id) },
     ) {
         Card(
             modifier = Modifier

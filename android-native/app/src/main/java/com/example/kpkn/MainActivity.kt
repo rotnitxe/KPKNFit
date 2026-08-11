@@ -120,6 +120,7 @@ import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.isCompetitionMeet
@@ -1889,6 +1890,7 @@ private fun createProgramAndOpen(navController: androidx.navigation.NavHostContr
             id = programId,
             name = "Nuevo programa $nextNumber",
             coverImage = "gradient://ember",
+            structure = ProgramStructure.SIMPLE,
             macrocycles = listOf(
                 Macrocycle(
                     id = UUID.randomUUID().toString(),

@@ -41,51 +41,6 @@ class WorkoutStepRulesTest {
     }
 
     @Test
-    fun buildSteps_places_global_mobility_parts_before_strength_without_affecting_strength_order() {
-        val mobility = SessionPart(
-            id = "mobility-part",
-            name = "Movilidad global",
-            isMobilityGroup = true,
-            mobilitySeries = listOf(
-                MobilitySeries(id = "hips", name = "Cadera", durationSeconds = 45),
-                MobilitySeries(id = "ankles", name = "Tobillo", durationSeconds = 30),
-            ),
-        )
-        val strength = Exercise(id = "squat", name = "Sentadilla", sets = listOf(ExerciseSet("s1")))
-
-        val steps = WorkoutStepRules.buildSteps(
-            Session(id = "s", name = "Sesion", parts = listOf(mobility), exercises = listOf(strength)),
-        )
-
-        assertEquals(
-            listOf(WorkoutStepType.MOBILITY_GROUP, WorkoutStepType.MOBILITY_GROUP, WorkoutStepType.WORKING_SET),
-            steps.map { it.type },
-        )
-        assertEquals(listOf("hips", "ankles", "squat"), steps.map { it.mobilitySeriesId ?: it.exerciseId })
-        assertEquals("squat_0", steps.last().stepKey)
-    }
-
-    @Test
-    fun global_mobility_materialization_has_no_working_set_placeholder() {
-        val mobility = SessionPart(
-            id = "mobility-only",
-            name = "Movilidad global",
-            isMobilityGroup = true,
-            mobilitySeries = listOf(
-                MobilitySeries(id = "hips", name = "Cadera", sets = 2, durationSeconds = 30),
-            ),
-        )
-
-        val steps = WorkoutStepRules.buildSteps(
-            Session(id = "s", name = "Sesion", parts = listOf(mobility)),
-        )
-
-        assertEquals(2, steps.size)
-        assertEquals(listOf(WorkoutStepType.MOBILITY_GROUP, WorkoutStepType.MOBILITY_GROUP), steps.map { it.type })
-        assertEquals(listOf(0, 1), steps.map { it.mobilitySetIndex })
-    }
-
-    @Test
     fun buildSteps_ordersMobilityWarmupBeforeWorkingSets() {
         val exercise = Exercise(
             id = "squat",

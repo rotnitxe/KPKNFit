@@ -390,7 +390,6 @@ internal fun SessionEditorSheets(
     onQuickActionOpenWarmup: () -> Unit,
     onQuickActionOpenMobility: () -> Unit,
     onAddMobilityExercise: (MobilityExercise) -> Unit,
-    onAddMobilityToPart: (MobilityExercise) -> Unit = {},
     onRemoveMobilityExercise: (MobilityExercise) -> Unit = {},
     onAddCardio: (CardioCatalogItem) -> Unit = {},
     onQuickActionDelete: () -> Unit,
@@ -415,14 +414,9 @@ internal fun SessionEditorSheets(
 ) {
     val session = uiState.session ?: return
     if (uiState.sheet == SessionEditorSheet.NONE) return
-    val mobilityTargetSeries = when {
-        uiState.mobilityPartId != null -> session.parts.firstOrNull { it.id == uiState.mobilityPartId }?.mobilitySeries.orEmpty()
-        uiState.quickActionsExerciseId != null -> session.allExercises()
-            .firstOrNull { it.id == uiState.quickActionsExerciseId }
-            ?.mobilitySeries
-            .orEmpty()
-        else -> emptyList()
-    }
+    val mobilityTargetSeries = uiState.quickActionsExerciseId
+        ?.let { targetId -> session.allExercises().firstOrNull { it.id == targetId }?.mobilitySeries }
+        .orEmpty()
 
     // AUGE is rendered as an in-composition Liquid Glass overlay in SessionEditorScreen
     // (sibling of hazeSource). Do NOT put it in KpknSheet — blur would die.
@@ -607,7 +601,7 @@ internal fun SessionEditorSheets(
             SessionEditorSheet.WARMUP -> WarmupSheet(exercise = warmupExercise, onSave = onWarmupSave)
             SessionEditorSheet.MOBILITY_PICKER -> MobilityPickerSheet(
                 selectedMobilityIds = mobilityTargetSeries.map { it.catalogIdentityKey() }.toSet(),
-                onAdd = if (uiState.mobilityPartId != null) onAddMobilityToPart else onAddMobilityExercise,
+                onAdd = onAddMobilityExercise,
                 onRemove = onRemoveMobilityExercise,
                 onDismiss = onDismiss,
             )

@@ -43,14 +43,8 @@ object WorkoutStepRules {
     fun buildSteps(session: Session, visibleExercises: List<Exercise> = session.allExercises()): List<WorkoutStep> {
         val steps = mutableListOf<WorkoutStep>()
         val emittedSupersets = mutableSetOf<String>()
-        val globalMobility = session.globalMobilityExercises()
-        val globalIds = globalMobility.map { it.id }.toSet()
 
-        globalMobility.forEach { exercise ->
-            appendMobilityGroupSteps(exercise, steps)
-        }
-
-        visibleExercises.filterNot { it.id in globalIds }.forEach { exercise ->
+        visibleExercises.forEach { exercise ->
             val groupId = exercise.supersetGroupRefOrLegacyId()
             if (groupId != null) {
                 if (emittedSupersets.add(groupId)) {
@@ -97,12 +91,12 @@ object WorkoutStepRules {
         mobilityCompletedExerciseIds: Set<String> = emptySet(),
         mobilityTotalCompletedStepKeys: Set<String> = emptySet(),
     ): WorkoutStep? {
-        val visible = session.materializedWorkoutExercises()
+        val visible = session.allExercises()
         return buildSteps(session, visible).firstOrNull { step ->
             if (step.isEmptySlot) return@firstOrNull false
             when (step.type) {
                 WorkoutStepType.CARDIO -> "${step.exerciseId}_0" !in completedSets
-                WorkoutStepType.MOBILITY,
+WorkoutStepType.MOBILITY,
                 WorkoutStepType.MOBILITY_GROUP -> {
                     val mobilityId = step.mobilitySeriesId ?: return@firstOrNull false
                     mobilityStepKey(step.exerciseId, mobilityId, step.mobilitySetIndex) !in mobilityCompletedExerciseIds
@@ -221,19 +215,6 @@ object WorkoutStepRules {
                 steps = steps,
             )
         }
-    }
-
-    private fun appendMobilityGroupSteps(
-        exercise: Exercise,
-        steps: MutableList<WorkoutStep>,
-    ) {
-        appendMobilitySteps(
-            exercise = exercise,
-            type = WorkoutStepType.MOBILITY_GROUP,
-            exerciseName = exercise.name,
-            groupId = null,
-            steps = steps,
-        )
     }
 
     private fun appendCardioStep(

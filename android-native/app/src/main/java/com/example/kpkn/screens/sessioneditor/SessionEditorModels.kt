@@ -179,8 +179,6 @@ data class SessionEditorUiState(
     val pickerTargetPartId: String? = null,
     val pickerTargetExerciseId: String? = null,
     val warmupExerciseId: String? = null,
-    /** Part currently receiving an unbound mobility series from the picker. */
-    val mobilityPartId: String? = null,
     val quickActionsPartId: String? = null,
     val quickActionsExerciseId: String? = null,
     val collapsedPartIds: Set<String> = emptySet(),
