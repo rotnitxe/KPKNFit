@@ -54,7 +54,7 @@ class ExerciseCatalogV2BackendTest(unittest.TestCase):
 
     def test_runtime_loader_accepts_only_the_approved_catalog_and_preserves_rich_metadata(self) -> None:
         runtime = load_catalog(SOURCE)
-        self.assertEqual(runtime["catalogRevision"], "v2-approved-2026-08-08-c")
+        self.assertEqual(runtime["catalogRevision"], "v2-approved-2026-08-10-c")
         definition = runtime["families"][0]["definitions"][0]
         configuration = definition["configurations"][0]
         self.assertTrue(configuration["profile"]["automationEligible"])
@@ -66,7 +66,7 @@ class ExerciseCatalogV2BackendTest(unittest.TestCase):
     def test_editorial_android_ios_artifacts_have_one_hash_and_revision(self) -> None:
         self.assertEqual(
             verify_shared_catalog_artifacts(),
-            "dbd6f7a475907398aa7bfb0bacaa9d8619bff9d641aa7a160dc2deea9ff3bf16",
+            "20ecd23cb4766c341236e09d336bf1c3d3db3041ec6d8b3dd568de124acc0aa5",
         )
 
     def test_reverse_fly_is_one_parent_with_explicit_machine_and_cable_configs(self) -> None:
@@ -91,7 +91,9 @@ class ExerciseCatalogV2BackendTest(unittest.TestCase):
             for family in self.catalog["families"]
             for definition in family["definitions"]
         ]
-        instructional = re.compile(r"(?i)\b(?:ejecuta|mantén|mantener|configura|adopta|controla|selecciona)\b")
+        # v7.2: "se ejecuta" reflexivo/descriptivo permitido en descripciones de
+        # definición (apertura editorial aprobada); imperativos siguen fuera.
+        instructional = re.compile(r"(?i)\b(?:mantén|mantener|configura|adopta|controla|selecciona)\b")
         for definition in definitions:
             self.assertGreaterEqual(len(definition["description"].strip()), 40)
             self.assertIsNone(instructional.search(definition["description"]))

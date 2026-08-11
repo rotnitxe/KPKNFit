@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Remo en Barra T",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_barra_t",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina T con agarre amplio: las asas separan los codos y llevan el trabajo hacia romboides y trapecio medio.",
-                "El guiado limita la deriva, pero la amplitud elegida determina la posición del hombro durante el tirón."
+                "El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
+                "Grosor de espalda media garantizado, con sabor a gimnasio de siempre."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Máquina T con agarre amplio: las asas separan los codos y llevan el trabajo hacia romboides y trapecio medio. El guiado limita la deriva, pero la amplitud elegida determina la posición del hombro durante el tirón.",
+              "description": "Con máquina y agarre amplio, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -229,10 +229,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina T con agarre amplio: las asas separan los codos y llevan el trabajo hacia romboides y trapecio medio.",
-                    "El guiado limita la deriva, pero la amplitud elegida determina la posición del hombro durante el tirón."
+                    "El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
+                    "Grosor de espalda media garantizado, con sabor a gimnasio de siempre."
                   ],
-                  "description": "Máquina T con agarre amplio: las asas separan los codos y llevan el trabajo hacia romboides y trapecio medio. El guiado limita la deriva, pero la amplitud elegida determina la posición del hombro durante el tirón.",
+                  "description": "Con máquina y agarre amplio, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
                   "technique": "Máquina T con agarre amplio: las asas separan los codos y llevan el trabajo hacia romboides y trapecio medio. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido.",
                   "variantRationale": "Máquina T con agarre amplio: las asas separan los codos y llevan el trabajo hacia romboides y trapecio medio. El guiado limita la deriva, pero la amplitud elegida determina la posición del hombro durante el tirón."
                 },
@@ -247,7 +247,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo en Barra T",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "t_bar_row__machine__wide",
                   "definitionId": "t_bar_row",
                   "familyId": "back_t_bar_row",
@@ -333,7 +333,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_barra_t",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -344,16 +344,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Barra T con agarre amplio: las manos abiertas separan los codos y orientan el tirón hacia la espalda alta.",
-                "El anclaje permite cargar de forma estable, pero el torso debe permanecer firme para que la apertura no se convierta en impulso."
+                "El dorsal ancho trabaja con la barra T, que concentra la carga en un extremo. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
+                "Grosor de espalda media garantizado, con sabor a gimnasio de siempre."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Barra T con agarre amplio: las manos abiertas separan los codos y orientan el tirón hacia la espalda alta. El anclaje permite cargar de forma estable, pero el torso debe permanecer firme para que la apertura no se convierta en impulso.",
+              "description": "Con barra T y agarre amplio, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. El dorsal ancho trabaja con la barra T, que concentra la carga en un extremo. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
               "efc": 2.5,
               "equipmentId": "t_bar",
               "executionCues": [
@@ -550,10 +550,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra T con agarre amplio: las manos abiertas separan los codos y orientan el tirón hacia la espalda alta.",
-                    "El anclaje permite cargar de forma estable, pero el torso debe permanecer firme para que la apertura no se convierta en impulso."
+                    "El dorsal ancho trabaja con la barra T, que concentra la carga en un extremo. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
+                    "Grosor de espalda media garantizado, con sabor a gimnasio de siempre."
                   ],
-                  "description": "Barra T con agarre amplio: las manos abiertas separan los codos y orientan el tirón hacia la espalda alta. El anclaje permite cargar de forma estable, pero el torso debe permanecer firme para que la apertura no se convierta en impulso.",
+                  "description": "Con barra T y agarre amplio, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. El dorsal ancho trabaja con la barra T, que concentra la carga en un extremo. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
                   "technique": "Barra T con agarre amplio: las manos abiertas separan los codos y orientan el tirón hacia la espalda alta. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido.",
                   "variantRationale": "Barra T con agarre amplio: las manos abiertas separan los codos y orientan el tirón hacia la espalda alta. El anclaje permite cargar de forma estable, pero el torso debe permanecer firme para que la apertura no se convierta en impulso."
                 },
@@ -568,7 +568,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo en Barra T",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "t_bar_row__t_bar__wide",
                   "definitionId": "t_bar_row",
                   "familyId": "back_t_bar_row",
@@ -654,7 +654,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_barra_t",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -665,16 +665,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina T con agarre medio: el recorrido guiado coloca los codos en una diagonal intermedia entre dorsal y espalda alta.",
-                "La estación permite graduar la carga y repetir el ángulo sin que la barra se desplace lateralmente."
+                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho. El agarre medio equilibra el reparto del trabajo del dorsal ancho.",
+                "Grosor de espalda media garantizado, con sabor a gimnasio de siempre."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Máquina T con agarre medio: el recorrido guiado coloca los codos en una diagonal intermedia entre dorsal y espalda alta. La estación permite graduar la carga y repetir el ángulo sin que la barra se desplace lateralmente.",
+              "description": "Con máquina y agarre medio, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho. El agarre medio equilibra el reparto del trabajo del dorsal ancho.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -871,10 +871,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina T con agarre medio: el recorrido guiado coloca los codos en una diagonal intermedia entre dorsal y espalda alta.",
-                    "La estación permite graduar la carga y repetir el ángulo sin que la barra se desplace lateralmente."
+                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho. El agarre medio equilibra el reparto del trabajo del dorsal ancho.",
+                    "Grosor de espalda media garantizado, con sabor a gimnasio de siempre."
                   ],
-                  "description": "Máquina T con agarre medio: el recorrido guiado coloca los codos en una diagonal intermedia entre dorsal y espalda alta. La estación permite graduar la carga y repetir el ángulo sin que la barra se desplace lateralmente.",
+                  "description": "Con máquina y agarre medio, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho. El agarre medio equilibra el reparto del trabajo del dorsal ancho.",
                   "technique": "Máquina T con agarre medio: el recorrido guiado coloca los codos en una diagonal intermedia entre dorsal y espalda alta. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido.",
                   "variantRationale": "Máquina T con agarre medio: el recorrido guiado coloca los codos en una diagonal intermedia entre dorsal y espalda alta. La estación permite graduar la carga y repetir el ángulo sin que la barra se desplace lateralmente."
                 },
@@ -889,7 +889,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo en Barra T",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "t_bar_row__machine__medium",
                   "definitionId": "t_bar_row",
                   "familyId": "back_t_bar_row",
@@ -975,7 +975,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_barra_t",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -986,16 +986,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Barra T con agarre medio: el anclaje ofrece una línea diagonal y el codo queda entre el costado y la apertura de la espalda alta.",
-                "Es una posición intermedia para repartir el trabajo sin perder la estabilidad que aporta la carga guiada por el pivote."
+                "Con la barra T, el agarre cerrado y la carga en un extremo dan un tirón distinto para el dorsal ancho. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado.",
+                "Grosor de espalda media garantizado, con sabor a gimnasio de siempre."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Barra T con agarre medio: el anclaje ofrece una línea diagonal y el codo queda entre el costado y la apertura de la espalda alta. Es una posición intermedia para repartir el trabajo sin perder la estabilidad que aporta la carga guiada por el pivote.",
+              "description": "Con barra T y agarre medio, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. Con la barra T, el agarre cerrado y la carga en un extremo dan un tirón distinto para el dorsal ancho. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado.",
               "efc": 2.5,
               "equipmentId": "t_bar",
               "executionCues": [
@@ -1192,10 +1192,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra T con agarre medio: el anclaje ofrece una línea diagonal y el codo queda entre el costado y la apertura de la espalda alta.",
-                    "Es una posición intermedia para repartir el trabajo sin perder la estabilidad que aporta la carga guiada por el pivote."
+                    "Con la barra T, el agarre cerrado y la carga en un extremo dan un tirón distinto para el dorsal ancho. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado.",
+                    "Grosor de espalda media garantizado, con sabor a gimnasio de siempre."
                   ],
-                  "description": "Barra T con agarre medio: el anclaje ofrece una línea diagonal y el codo queda entre el costado y la apertura de la espalda alta. Es una posición intermedia para repartir el trabajo sin perder la estabilidad que aporta la carga guiada por el pivote.",
+                  "description": "Con barra T y agarre medio, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. Con la barra T, el agarre cerrado y la carga en un extremo dan un tirón distinto para el dorsal ancho. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado.",
                   "technique": "Barra T con agarre medio: el anclaje ofrece una línea diagonal y el codo queda entre el costado y la apertura de la espalda alta. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido.",
                   "variantRationale": "Barra T con agarre medio: el anclaje ofrece una línea diagonal y el codo queda entre el costado y la apertura de la espalda alta. Es una posición intermedia para repartir el trabajo sin perder la estabilidad que aporta la carga guiada por el pivote."
                 },
@@ -1210,7 +1210,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo en Barra T",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "t_bar_row__t_bar__medium",
                   "definitionId": "t_bar_row",
                   "familyId": "back_t_bar_row",
@@ -1296,7 +1296,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_barra_t",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1307,16 +1307,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina T con agarre cerrado: las asas acercan los codos al cuerpo y la guía mantiene la carga en una línea repetible.",
-                "La posición favorece una tracción más dirigida al dorsal sin exigir que el torso equilibre el aparato."
+                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
+                "Grosor de espalda media garantizado, con sabor a gimnasio de siempre."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Máquina T con agarre cerrado: las asas acercan los codos al cuerpo y la guía mantiene la carga en una línea repetible. La posición favorece una tracción más dirigida al dorsal sin exigir que el torso equilibre el aparato.",
+              "description": "Con máquina y agarre cerrado, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -1508,10 +1508,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina T con agarre cerrado: las asas acercan los codos al cuerpo y la guía mantiene la carga en una línea repetible.",
-                    "La posición favorece una tracción más dirigida al dorsal sin exigir que el torso equilibre el aparato."
+                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
+                    "Grosor de espalda media garantizado, con sabor a gimnasio de siempre."
                   ],
-                  "description": "Máquina T con agarre cerrado: las asas acercan los codos al cuerpo y la guía mantiene la carga en una línea repetible. La posición favorece una tracción más dirigida al dorsal sin exigir que el torso equilibre el aparato.",
+                  "description": "Con máquina y agarre cerrado, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
                   "technique": "Máquina T con agarre cerrado: las asas acercan los codos al cuerpo y la guía mantiene la carga en una línea repetible. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido.",
                   "variantRationale": "Máquina T con agarre cerrado: las asas acercan los codos al cuerpo y la guía mantiene la carga en una línea repetible. La posición favorece una tracción más dirigida al dorsal sin exigir que el torso equilibre el aparato."
                 },
@@ -1526,7 +1526,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo en Barra T",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "t_bar_row__machine__close",
                   "definitionId": "t_bar_row",
                   "familyId": "back_t_bar_row",
@@ -1611,7 +1611,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_barra_t",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1622,16 +1622,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Barra T con agarre cerrado: el anclaje mantiene una trayectoria estable mientras los codos avanzan cerca del costado.",
-                "La carga libre del extremo permite progresar con fuerza, aunque exige que el torso sostenga la base sin desplazarse."
+                "Con la barra T, el agarre cerrado y la carga en un extremo dan un tirón distinto para el dorsal ancho. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
+                "Grosor de espalda media garantizado, con sabor a gimnasio de siempre."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Barra T con agarre cerrado: el anclaje mantiene una trayectoria estable mientras los codos avanzan cerca del costado. La carga libre del extremo permite progresar con fuerza, aunque exige que el torso sostenga la base sin desplazarse.",
+              "description": "Con barra T y agarre cerrado, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. Con la barra T, el agarre cerrado y la carga en un extremo dan un tirón distinto para el dorsal ancho. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
               "efc": 2.5,
               "equipmentId": "t_bar",
               "executionCues": [
@@ -1823,10 +1823,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra T con agarre cerrado: el anclaje mantiene una trayectoria estable mientras los codos avanzan cerca del costado.",
-                    "La carga libre del extremo permite progresar con fuerza, aunque exige que el torso sostenga la base sin desplazarse."
+                    "Con la barra T, el agarre cerrado y la carga en un extremo dan un tirón distinto para el dorsal ancho. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
+                    "Grosor de espalda media garantizado, con sabor a gimnasio de siempre."
                   ],
-                  "description": "Barra T con agarre cerrado: el anclaje mantiene una trayectoria estable mientras los codos avanzan cerca del costado. La carga libre del extremo permite progresar con fuerza, aunque exige que el torso sostenga la base sin desplazarse.",
+                  "description": "Con barra T y agarre cerrado, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. Con la barra T, el agarre cerrado y la carga en un extremo dan un tirón distinto para el dorsal ancho. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
                   "technique": "Barra T con agarre cerrado: el anclaje mantiene una trayectoria estable mientras los codos avanzan cerca del costado. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido.",
                   "variantRationale": "Barra T con agarre cerrado: el anclaje mantiene una trayectoria estable mientras los codos avanzan cerca del costado. La carga libre del extremo permite progresar con fuerza, aunque exige que el torso sostenga la base sin desplazarse."
                 },
@@ -1841,7 +1841,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo en Barra T",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "t_bar_row__t_bar__close",
                   "definitionId": "t_bar_row",
                   "familyId": "back_t_bar_row",
@@ -1922,11 +1922,11 @@
           }
         ],
         "defaultConfigurationId": "t_bar_row__t_bar__medium",
-        "description": "La carga gira alrededor de un anclaje mientras el torso ofrece una base firme para llevar los codos hacia atrás. El agarre elegido cambia cuánto se comparte el esfuerzo entre dorsal, trapecio y espalda media.",
+        "description": "El Remo en Barra T es la tracción con la carga anclada en un extremo: el dorsal tira en un arco que se cierra hacia el pecho con un agarre naturalmente cerrado. Se ejecuta con el pecho cerca del soporte y la espalda firme, subiendo las placas hasta el torso y bajándolas sin soltar la tensión. Las máquinas de barra T con apoyo pectoral ofrecen la misma esencia sin pedirle nada a la lumbar. Grosor de espalda media garantizado, con sabor a gimnasio de siempre.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1950,7 +1950,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

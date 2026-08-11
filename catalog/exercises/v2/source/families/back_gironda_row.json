@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Remo Gironda",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_gironda",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Agarre amplio en el Gironda: los codos se separan y la espalda alta recibe más protagonismo durante el vaivén.",
-                "La variante exige que la inclinación del tronco siga siendo amplia pero organizada para no sustituir la tracción por impulso."
+                "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
+                "La elección de los puristas para sentir cada fibra de la espalda con una tensión que no da tregua."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Agarre amplio en el Gironda: los codos se separan y la espalda alta recibe más protagonismo durante el vaivén. La variante exige que la inclinación del tronco siga siendo amplia pero organizada para no sustituir la tracción por impulso.",
+              "description": "Con agarre amplio, el torso acompaña el recorrido con una inclinación amplia y la espalda corta el tirón con un arco más largo. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -228,10 +228,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Agarre amplio en el Gironda: los codos se separan y la espalda alta recibe más protagonismo durante el vaivén.",
-                    "La variante exige que la inclinación del tronco siga siendo amplia pero organizada para no sustituir la tracción por impulso."
+                    "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
+                    "La elección de los puristas para sentir cada fibra de la espalda con una tensión que no da tregua."
                   ],
-                  "description": "Agarre amplio en el Gironda: los codos se separan y la espalda alta recibe más protagonismo durante el vaivén. La variante exige que la inclinación del tronco siga siendo amplia pero organizada para no sustituir la tracción por impulso.",
+                  "description": "Con agarre amplio, el torso acompaña el recorrido con una inclinación amplia y la espalda corta el tirón con un arco más largo. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
                   "technique": "Agarre amplio en el Gironda: los codos se separan y la espalda alta recibe más protagonismo durante el vaivén. El recorrido nace de una inclinación controlada del torso; la espalda acompaña el vaivén sin perder la tensión en los dorsales.",
                   "variantRationale": "Agarre amplio en el Gironda: los codos se separan y la espalda alta recibe más protagonismo durante el vaivén. La variante exige que la inclinación del tronco siga siendo amplia pero organizada para no sustituir la tracción por impulso."
                 },
@@ -246,7 +246,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Gironda",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "gironda_row__wide",
                   "definitionId": "gironda_row",
                   "familyId": "back_gironda_row",
@@ -330,7 +330,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_gironda",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -341,16 +341,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Agarre medio en el Gironda: la trayectoria queda entre el tirón hacia la cintura y la apertura hacia la espalda alta.",
-                "El torso se inclina y vuelve de forma coordinada, repartiendo el trabajo entre dorsal, romboides y trapecio medio."
+                "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre medio equilibra el reparto del trabajo del dorsal ancho.",
+                "La elección de los puristas para sentir cada fibra de la espalda con una tensión que no da tregua."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Agarre medio en el Gironda: la trayectoria queda entre el tirón hacia la cintura y la apertura hacia la espalda alta. El torso se inclina y vuelve de forma coordinada, repartiendo el trabajo entre dorsal, romboides y trapecio medio.",
+              "description": "Con agarre medio, el torso acompaña el recorrido con una inclinación amplia y la espalda corta el tirón con un arco más largo. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre medio equilibra el reparto del trabajo del dorsal ancho.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -546,10 +546,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Agarre medio en el Gironda: la trayectoria queda entre el tirón hacia la cintura y la apertura hacia la espalda alta.",
-                    "El torso se inclina y vuelve de forma coordinada, repartiendo el trabajo entre dorsal, romboides y trapecio medio."
+                    "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre medio equilibra el reparto del trabajo del dorsal ancho.",
+                    "La elección de los puristas para sentir cada fibra de la espalda con una tensión que no da tregua."
                   ],
-                  "description": "Agarre medio en el Gironda: la trayectoria queda entre el tirón hacia la cintura y la apertura hacia la espalda alta. El torso se inclina y vuelve de forma coordinada, repartiendo el trabajo entre dorsal, romboides y trapecio medio.",
+                  "description": "Con agarre medio, el torso acompaña el recorrido con una inclinación amplia y la espalda corta el tirón con un arco más largo. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre medio equilibra el reparto del trabajo del dorsal ancho.",
                   "technique": "Agarre medio en el Gironda: la trayectoria queda entre el tirón hacia la cintura y la apertura hacia la espalda alta. El recorrido nace de una inclinación controlada del torso; la espalda acompaña el vaivén sin perder la tensión en los dorsales.",
                   "variantRationale": "Agarre medio en el Gironda: la trayectoria queda entre el tirón hacia la cintura y la apertura hacia la espalda alta. El torso se inclina y vuelve de forma coordinada, repartiendo el trabajo entre dorsal, romboides y trapecio medio."
                 },
@@ -564,7 +564,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Gironda",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "gironda_row__medium",
                   "definitionId": "gironda_row",
                   "familyId": "back_gironda_row",
@@ -648,7 +648,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_gironda",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -659,16 +659,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Agarre cerrado en el Gironda: los codos viajan cerca del cuerpo y el dorsal recibe una línea larga de tracción.",
-                "El torso acompaña el tirón con un vaivén deliberado; la amplitud procede de una inclinación controlada, no de un rebote."
+                "Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
+                "La elección de los puristas para sentir cada fibra de la espalda con una tensión que no da tregua."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Agarre cerrado en el Gironda: los codos viajan cerca del cuerpo y el dorsal recibe una línea larga de tracción. El torso acompaña el tirón con un vaivén deliberado; la amplitud procede de una inclinación controlada, no de un rebote.",
+              "description": "Con agarre cerrado, el torso acompaña el recorrido con una inclinación amplia y la espalda corta el tirón con un arco más largo. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -859,10 +859,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Agarre cerrado en el Gironda: los codos viajan cerca del cuerpo y el dorsal recibe una línea larga de tracción.",
-                    "El torso acompaña el tirón con un vaivén deliberado; la amplitud procede de una inclinación controlada, no de un rebote."
+                    "Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
+                    "La elección de los puristas para sentir cada fibra de la espalda con una tensión que no da tregua."
                   ],
-                  "description": "Agarre cerrado en el Gironda: los codos viajan cerca del cuerpo y el dorsal recibe una línea larga de tracción. El torso acompaña el tirón con un vaivén deliberado; la amplitud procede de una inclinación controlada, no de un rebote.",
+                  "description": "Con agarre cerrado, el torso acompaña el recorrido con una inclinación amplia y la espalda corta el tirón con un arco más largo. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
                   "technique": "Agarre cerrado en el Gironda: los codos viajan cerca del cuerpo y el dorsal recibe una línea larga de tracción. El recorrido nace de una inclinación controlada del torso; la espalda acompaña el vaivén sin perder la tensión en los dorsales.",
                   "variantRationale": "Agarre cerrado en el Gironda: los codos viajan cerca del cuerpo y el dorsal recibe una línea larga de tracción. El torso acompaña el tirón con un vaivén deliberado; la amplitud procede de una inclinación controlada, no de un rebote."
                 },
@@ -877,7 +877,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Gironda",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "gironda_row__close",
                   "definitionId": "gironda_row",
                   "familyId": "back_gironda_row",
@@ -956,11 +956,11 @@
           }
         ],
         "defaultConfigurationId": "gironda_row__medium",
-        "description": "La variante Gironda permite que el torso acompañe el recorrido con una inclinación amplia y controlada. El vaivén aumenta la amplitud del tirón y cambia el protagonismo entre dorsales y espalda alta respecto a un remo estricto.",
+        "description": "El Remo Gironda es la lectura más fina del remo en polea: el torso acompaña el recorrido con una inclinación amplia y el dorsal trabaja en un arco más largo que en el remo estricto. Se practica ante la polea baja con las rodillas suaves, dejando que el tronco siga la carga en la vuelta y cortando con la espalda al tirar. La elección de los puristas para sentir cada fibra de la espalda con una tensión que no da tregua.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -982,7 +982,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Dominadas",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_dominadas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Agarre amplio y palmas al frente: la dominada tradicional, con la espalda alta tomando protagonismo.",
-                "Una variante para trabajar la espalda alta con los codos abiertos."
+                "Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. El agarre amplio abre los codos y reparte el esfuerzo del dorsal ancho hacia la espalda alta. Las palmas al frente dejan el dorsal ancho al mando.",
+                "El rey de los ejercicios de espalda: cada repetición cuenta."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Agarre amplio y palmas al frente: la dominada tradicional, con la espalda alta tomando protagonismo. Una variante para trabajar la espalda alta con los codos abiertos.",
+              "description": "Con agarre amplio y agarre prono, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. El agarre amplio abre los codos y reparte el esfuerzo del dorsal ancho hacia la espalda alta. Las palmas al frente dejan el dorsal ancho al mando.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -227,10 +227,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Agarre amplio y palmas al frente: la dominada tradicional, con la espalda alta tomando protagonismo.",
-                    "Una variante para trabajar la espalda alta con los codos abiertos."
+                    "Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. El agarre amplio abre los codos y reparte el esfuerzo del dorsal ancho hacia la espalda alta. Las palmas al frente dejan el dorsal ancho al mando.",
+                    "El rey de los ejercicios de espalda: cada repetición cuenta."
                   ],
-                  "description": "Agarre amplio y palmas al frente: la dominada tradicional, con la espalda alta tomando protagonismo. Una variante para trabajar la espalda alta con los codos abiertos.",
+                  "description": "Con agarre amplio y agarre prono, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. El agarre amplio abre los codos y reparte el esfuerzo del dorsal ancho hacia la espalda alta. Las palmas al frente dejan el dorsal ancho al mando.",
                   "technique": "Agarre amplio y palmas al frente: la dominada tradicional, con la espalda alta tomando protagonismo. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
                   "variantRationale": "Agarre amplio y palmas al frente: la dominada tradicional, con la espalda alta tomando protagonismo. Una variante para trabajar la espalda alta con los codos abiertos."
                 },
@@ -245,7 +245,7 @@
                 },
                 "identity": {
                   "canonicalName": "Dominadas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "pull_up__pronated__wide",
                   "definitionId": "pull_up",
                   "familyId": "upper_vertical_pull_pull_up",
@@ -332,7 +332,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_dominadas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -343,16 +343,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Agarre medio y palmas al frente: el punto equilibrado entre fuerza y espalda.",
-                "La dominada de referencia para la mayoría."
+                "El dorsal ancho trabaja con el peso corporal como única carga. El agarre medio equilibra el reparto del trabajo del dorsal ancho. Las palmas al frente dejan el dorsal ancho al mando.",
+                "El rey de los ejercicios de espalda: cada repetición cuenta."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Agarre medio y palmas al frente: el punto equilibrado entre fuerza y espalda. La dominada de referencia para la mayoría.",
+              "description": "Con agarre medio y agarre prono, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. El dorsal ancho trabaja con el peso corporal como única carga. El agarre medio equilibra el reparto del trabajo del dorsal ancho. Las palmas al frente dejan el dorsal ancho al mando.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -540,10 +540,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Agarre medio y palmas al frente: el punto equilibrado entre fuerza y espalda.",
-                    "La dominada de referencia para la mayoría."
+                    "El dorsal ancho trabaja con el peso corporal como única carga. El agarre medio equilibra el reparto del trabajo del dorsal ancho. Las palmas al frente dejan el dorsal ancho al mando.",
+                    "El rey de los ejercicios de espalda: cada repetición cuenta."
                   ],
-                  "description": "Agarre medio y palmas al frente: el punto equilibrado entre fuerza y espalda. La dominada de referencia para la mayoría.",
+                  "description": "Con agarre medio y agarre prono, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. El dorsal ancho trabaja con el peso corporal como única carga. El agarre medio equilibra el reparto del trabajo del dorsal ancho. Las palmas al frente dejan el dorsal ancho al mando.",
                   "technique": "Agarre medio y palmas al frente: el punto equilibrado entre fuerza y espalda. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
                   "variantRationale": "Agarre medio y palmas al frente: el punto equilibrado entre fuerza y espalda. La dominada de referencia para la mayoría."
                 },
@@ -558,7 +558,7 @@
                 },
                 "identity": {
                   "canonicalName": "Dominadas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "pull_up__pronated__medium",
                   "definitionId": "pull_up",
                   "familyId": "upper_vertical_pull_pull_up",
@@ -643,7 +643,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_dominadas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -654,16 +654,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Agarre cerrado y palmas al frente: el dorsal se estira más con los codos bajos.",
-                "La variante profunda para la espalda media."
+                "Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra. Con las palmas al frente, el dorsal ancho manda.",
+                "El rey de los ejercicios de espalda: cada repetición cuenta."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Agarre cerrado y palmas al frente: el dorsal se estira más con los codos bajos. La variante profunda para la espalda media.",
+              "description": "Con agarre cerrado y agarre prono, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra. Con las palmas al frente, el dorsal ancho manda.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -851,10 +851,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Agarre cerrado y palmas al frente: el dorsal se estira más con los codos bajos.",
-                    "La variante profunda para la espalda media."
+                    "Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra. Con las palmas al frente, el dorsal ancho manda.",
+                    "El rey de los ejercicios de espalda: cada repetición cuenta."
                   ],
-                  "description": "Agarre cerrado y palmas al frente: el dorsal se estira más con los codos bajos. La variante profunda para la espalda media.",
+                  "description": "Con agarre cerrado y agarre prono, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra. Con las palmas al frente, el dorsal ancho manda.",
                   "technique": "Agarre cerrado y palmas al frente: el dorsal se estira más con los codos bajos. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
                   "variantRationale": "Agarre cerrado y palmas al frente: el dorsal se estira más con los codos bajos. La variante profunda para la espalda media."
                 },
@@ -869,7 +869,7 @@
                 },
                 "identity": {
                   "canonicalName": "Dominadas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "pull_up__pronated__close",
                   "definitionId": "pull_up",
                   "familyId": "upper_vertical_pull_pull_up",
@@ -954,7 +954,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_dominadas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -965,16 +965,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Agarre amplio y palmas hacia ti: el bíceps ayuda más con la palma supina.",
-                "Chin-up amplio que combina espalda y brazo."
+                "Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta. Con las palmas hacia ti, el bíceps gana protagonismo.",
+                "El rey de los ejercicios de espalda: cada repetición cuenta."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Agarre amplio y palmas hacia ti: el bíceps ayuda más con la palma supina. Chin-up amplio que combina espalda y brazo.",
+              "description": "Con agarre amplio y agarre supino, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta. Con las palmas hacia ti, el bíceps gana protagonismo.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -1170,10 +1170,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Agarre amplio y palmas hacia ti: el bíceps ayuda más con la palma supina.",
-                    "Chin-up amplio que combina espalda y brazo."
+                    "Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta. Con las palmas hacia ti, el bíceps gana protagonismo.",
+                    "El rey de los ejercicios de espalda: cada repetición cuenta."
                   ],
-                  "description": "Agarre amplio y palmas hacia ti: el bíceps ayuda más con la palma supina. Chin-up amplio que combina espalda y brazo.",
+                  "description": "Con agarre amplio y agarre supino, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta. Con las palmas hacia ti, el bíceps gana protagonismo.",
                   "technique": "Agarre amplio y palmas hacia ti: el bíceps ayuda más con la palma supina. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
                   "variantRationale": "Agarre amplio y palmas hacia ti: el bíceps ayuda más con la palma supina. Chin-up amplio que combina espalda y brazo."
                 },
@@ -1188,7 +1188,7 @@
                 },
                 "identity": {
                   "canonicalName": "Dominadas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "pull_up__supinated__wide",
                   "definitionId": "pull_up",
                   "familyId": "upper_vertical_pull_pull_up",
@@ -1275,7 +1275,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_dominadas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1286,16 +1286,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Agarre medio y palmas hacia ti: el bíceps trabaja de más y la subida aumenta la demanda del brazo.",
-                "La dominada habitual de muchos; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El dorsal ancho trabaja con el peso corporal como única carga. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado. Con las palmas hacia ti, el bíceps gana protagonismo.",
+                "El rey de los ejercicios de espalda: cada repetición cuenta."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Agarre medio y palmas hacia ti: el bíceps trabaja de más y la subida aumenta la demanda del brazo. La dominada habitual de muchos.",
+              "description": "Con agarre medio y agarre supino, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. El dorsal ancho trabaja con el peso corporal como única carga. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado. Con las palmas hacia ti, el bíceps gana protagonismo.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -1485,10 +1485,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Agarre medio y palmas hacia ti: el bíceps trabaja de más y la subida aumenta la demanda del brazo.",
-                    "La dominada habitual de muchos; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El dorsal ancho trabaja con el peso corporal como única carga. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado. Con las palmas hacia ti, el bíceps gana protagonismo.",
+                    "El rey de los ejercicios de espalda: cada repetición cuenta."
                   ],
-                  "description": "Agarre medio y palmas hacia ti: el bíceps trabaja de más y la subida aumenta la demanda del brazo. La dominada habitual de muchos.",
+                  "description": "Con agarre medio y agarre supino, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. El dorsal ancho trabaja con el peso corporal como única carga. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado. Con las palmas hacia ti, el bíceps gana protagonismo.",
                   "technique": "Agarre medio y palmas hacia ti: el bíceps trabaja de más y la subida aumenta la demanda del brazo. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
                   "variantRationale": "Agarre medio y palmas hacia ti: el bíceps trabaja de más y la subida aumenta la demanda del brazo. La dominada habitual de muchos."
                 },
@@ -1503,7 +1503,7 @@
                 },
                 "identity": {
                   "canonicalName": "Dominadas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "pull_up__supinated__medium",
                   "definitionId": "pull_up",
                   "familyId": "upper_vertical_pull_pull_up",
@@ -1589,7 +1589,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_dominadas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1600,16 +1600,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Agarre cerrado y palmas hacia ti: la chin-up por excelencia, con el bíceps cargado.",
-                "Una progresión directa hacia la dominada."
+                "El dorsal ancho trabaja con el peso corporal como única carga. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso. Las palmas hacia ti dan más protagonismo al bíceps.",
+                "El rey de los ejercicios de espalda: cada repetición cuenta."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Agarre cerrado y palmas hacia ti: la chin-up por excelencia, con el bíceps cargado. Una progresión directa hacia la dominada.",
+              "description": "Con agarre cerrado y agarre supino, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. El dorsal ancho trabaja con el peso corporal como única carga. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso. Las palmas hacia ti dan más protagonismo al bíceps.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -1799,10 +1799,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Agarre cerrado y palmas hacia ti: la chin-up por excelencia, con el bíceps cargado.",
-                    "Una progresión directa hacia la dominada."
+                    "El dorsal ancho trabaja con el peso corporal como única carga. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso. Las palmas hacia ti dan más protagonismo al bíceps.",
+                    "El rey de los ejercicios de espalda: cada repetición cuenta."
                   ],
-                  "description": "Agarre cerrado y palmas hacia ti: la chin-up por excelencia, con el bíceps cargado. Una progresión directa hacia la dominada.",
+                  "description": "Con agarre cerrado y agarre supino, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. El dorsal ancho trabaja con el peso corporal como única carga. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso. Las palmas hacia ti dan más protagonismo al bíceps.",
                   "technique": "Agarre cerrado y palmas hacia ti: la chin-up por excelencia, con el bíceps cargado. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
                   "variantRationale": "Agarre cerrado y palmas hacia ti: la chin-up por excelencia, con el bíceps cargado. Una progresión directa hacia la dominada."
                 },
@@ -1817,7 +1817,7 @@
                 },
                 "identity": {
                   "canonicalName": "Dominadas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "pull_up__supinated__close",
                   "definitionId": "pull_up",
                   "familyId": "upper_vertical_pull_pull_up",
@@ -1903,7 +1903,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_dominadas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1914,16 +1914,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Agarre amplio con palmas enfrentadas: el punto medio cómodo para el hombro.",
-                "Variante estable de la dominada amplia; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El dorsal ancho trabaja con el peso corporal como única carga. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta. Con las palmas enfrentadas, muñeca y codo viajan cómodos.",
+                "El rey de los ejercicios de espalda: cada repetición cuenta."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Agarre amplio con palmas enfrentadas: el punto medio cómodo para el hombro. Variante estable de la dominada amplia.",
+              "description": "Con agarre amplio y agarre neutro, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. El dorsal ancho trabaja con el peso corporal como única carga. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta. Con las palmas enfrentadas, muñeca y codo viajan cómodos.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -2117,10 +2117,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Agarre amplio con palmas enfrentadas: el punto medio cómodo para el hombro.",
-                    "Variante estable de la dominada amplia; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El dorsal ancho trabaja con el peso corporal como única carga. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta. Con las palmas enfrentadas, muñeca y codo viajan cómodos.",
+                    "El rey de los ejercicios de espalda: cada repetición cuenta."
                   ],
-                  "description": "Agarre amplio con palmas enfrentadas: el punto medio cómodo para el hombro. Variante estable de la dominada amplia.",
+                  "description": "Con agarre amplio y agarre neutro, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. El dorsal ancho trabaja con el peso corporal como única carga. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta. Con las palmas enfrentadas, muñeca y codo viajan cómodos.",
                   "technique": "Agarre amplio con palmas enfrentadas: el punto medio cómodo para el hombro. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
                   "variantRationale": "Agarre amplio con palmas enfrentadas: el punto medio cómodo para el hombro. Variante estable de la dominada amplia."
                 },
@@ -2135,7 +2135,7 @@
                 },
                 "identity": {
                   "canonicalName": "Dominadas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "pull_up__neutral__wide",
                   "definitionId": "pull_up",
                   "familyId": "upper_vertical_pull_pull_up",
@@ -2221,7 +2221,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_dominadas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2232,16 +2232,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Agarre medio con palmas enfrentadas: equilibrio entre espalda y brazo con hombros cómodos.",
-                "La versión más tolerante de la dominada."
+                "Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado. Las palmas enfrentadas cuidan muñeca y codo.",
+                "El rey de los ejercicios de espalda: cada repetición cuenta."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Agarre medio con palmas enfrentadas: equilibrio entre espalda y brazo con hombros cómodos. La versión más tolerante de la dominada.",
+              "description": "Con agarre medio y agarre neutro, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado. Las palmas enfrentadas cuidan muñeca y codo.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -2429,10 +2429,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Agarre medio con palmas enfrentadas: equilibrio entre espalda y brazo con hombros cómodos.",
-                    "La versión más tolerante de la dominada."
+                    "Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado. Las palmas enfrentadas cuidan muñeca y codo.",
+                    "El rey de los ejercicios de espalda: cada repetición cuenta."
                   ],
-                  "description": "Agarre medio con palmas enfrentadas: equilibrio entre espalda y brazo con hombros cómodos. La versión más tolerante de la dominada.",
+                  "description": "Con agarre medio y agarre neutro, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado. Las palmas enfrentadas cuidan muñeca y codo.",
                   "technique": "Agarre medio con palmas enfrentadas: equilibrio entre espalda y brazo con hombros cómodos. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
                   "variantRationale": "Agarre medio con palmas enfrentadas: equilibrio entre espalda y brazo con hombros cómodos. La versión más tolerante de la dominada."
                 },
@@ -2447,7 +2447,7 @@
                 },
                 "identity": {
                   "canonicalName": "Dominadas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "pull_up__neutral__medium",
                   "definitionId": "pull_up",
                   "familyId": "upper_vertical_pull_pull_up",
@@ -2532,7 +2532,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_dominadas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2543,16 +2543,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Agarre cerrado con palmas enfrentadas: el dorsal trabaja con mucho recorrido.",
-                "Variante profunda y cómoda para el hombro."
+                "Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra. Las palmas enfrentadas cuidan muñeca y codo.",
+                "El rey de los ejercicios de espalda: cada repetición cuenta."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Agarre cerrado con palmas enfrentadas: el dorsal trabaja con mucho recorrido. Variante profunda y cómoda para el hombro.",
+              "description": "Con agarre cerrado y agarre neutro, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra. Las palmas enfrentadas cuidan muñeca y codo.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -2740,10 +2740,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Agarre cerrado con palmas enfrentadas: el dorsal trabaja con mucho recorrido.",
-                    "Variante profunda y cómoda para el hombro."
+                    "Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra. Las palmas enfrentadas cuidan muñeca y codo.",
+                    "El rey de los ejercicios de espalda: cada repetición cuenta."
                   ],
-                  "description": "Agarre cerrado con palmas enfrentadas: el dorsal trabaja con mucho recorrido. Variante profunda y cómoda para el hombro.",
+                  "description": "Con agarre cerrado y agarre neutro, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra. Las palmas enfrentadas cuidan muñeca y codo.",
                   "technique": "Agarre cerrado con palmas enfrentadas: el dorsal trabaja con mucho recorrido. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
                   "variantRationale": "Agarre cerrado con palmas enfrentadas: el dorsal trabaja con mucho recorrido. Variante profunda y cómoda para el hombro."
                 },
@@ -2758,7 +2758,7 @@
                 },
                 "identity": {
                   "canonicalName": "Dominadas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "pull_up__neutral__close",
                   "definitionId": "pull_up",
                   "familyId": "upper_vertical_pull_pull_up",
@@ -2839,11 +2839,11 @@
           }
         ],
         "defaultConfigurationId": "pull_up__pronated__medium",
-        "description": "Te cuelgas de la barra y subes el pecho hasta ella. El ejercicio de espalda por excelencia: sin máquinas, sin excusas y muy gratificante.",
+        "description": "Las Dominadas son la tracción vertical por excelencia: el dorsal ancho sube todo tu peso hasta que el mentón supera la barra fija, con bíceps y trapecio cerrando el gesto. Se ejecutan colgado de una barra fija, subiendo sin balanceo y bajando con control; el agarre que elijas —prono, supino o neutro— reparte el énfasis entre espalda y brazo. El rey de los ejercicios de espalda: cada repetición cuenta.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -2868,7 +2868,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

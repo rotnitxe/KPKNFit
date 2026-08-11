@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren superior · trapezius · horizontal pull",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_band_pull_apart",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Banda al frente y separación hacia el pecho: la espalda alta se activa al instante.",
-                "El calentamiento útil de espalda y hombros."
+                "Con la banda, la resistencia crece a medida que avanza el trabajo del trapecio.",
+                "El antídoto portátil contra los hombros adelantados por el teclado."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Banda al frente y separación hacia el pecho: la espalda alta se activa al instante. El calentamiento útil de espalda y hombros.",
+              "description": "Con banda elástica, los brazos se abren al frente hasta que los omóplatos se juntan atrás. Con la banda, la resistencia crece a medida que avanza el trabajo del trapecio.",
               "efc": 2.5,
               "equipmentId": "band",
               "executionCues": [
@@ -210,10 +210,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Banda al frente y separación hacia el pecho: la espalda alta se activa al instante.",
-                    "El calentamiento útil de espalda y hombros."
+                    "Con la banda, la resistencia crece a medida que avanza el trabajo del trapecio.",
+                    "El antídoto portátil contra los hombros adelantados por el teclado."
                   ],
-                  "description": "Banda al frente y separación hacia el pecho: la espalda alta se activa al instante. El calentamiento útil de espalda y hombros.",
+                  "description": "Con banda elástica, los brazos se abren al frente hasta que los omóplatos se juntan atrás. Con la banda, la resistencia crece a medida que avanza el trabajo del trapecio.",
                   "technique": "Banda al frente y separación hacia el pecho: la espalda alta se activa al instante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Banda al frente y separación hacia el pecho: la espalda alta se activa al instante. El calentamiento útil de espalda y hombros."
                 },
@@ -228,7 +228,7 @@
                 },
                 "identity": {
                   "canonicalName": "Band Pull-Apart",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "back_band_pull_apart__default",
                   "definitionId": "back_band_pull_apart",
                   "familyId": "upper_horizontal_pull",
@@ -300,11 +300,11 @@
           }
         ],
         "defaultConfigurationId": "back_band_pull_apart__default",
-        "description": "Sujetas la banda al frente y la separas hasta el pecho. La espalda alta y los hombros se activan, útil para calentar y corregir postura.",
+        "description": "El Band Pull-Apart abre los brazos contra una banda elástica hasta que los omóplatos se juntan atrás: trapecio medio y deltoide posterior trabajando en un gesto que cabe en un bolsillo. Se ejecuta con los brazos extendidos al frente, separando la banda hasta tocar el pecho y regresando con calma. El antídoto portátil contra los hombros adelantados por el teclado.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -326,7 +326,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_banda",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -337,16 +337,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Banda anclada y tirón hacia el torso: el remo que cabe en cualquier mochila.",
-                "Espalda trabajando en casa o en el parque."
+                "Con la banda, la resistencia crece a medida que avanza el trabajo del trapecio.",
+                "El remo que viaja en la mochila y se monta en cualquier hotel."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Banda anclada y tirón hacia el torso: el remo que cabe en cualquier mochila. Espalda trabajando en casa o en el parque.",
+              "description": "Con banda elástica, sentado con las piernas extendidas, la banda anclada a los pies se recoge hacia la cintura. Con la banda, la resistencia crece a medida que avanza el trabajo del trapecio.",
               "efc": 2.5,
               "equipmentId": "band",
               "executionCues": [
@@ -540,10 +540,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Banda anclada y tirón hacia el torso: el remo que cabe en cualquier mochila.",
-                    "Espalda trabajando en casa o en el parque."
+                    "Con la banda, la resistencia crece a medida que avanza el trabajo del trapecio.",
+                    "El remo que viaja en la mochila y se monta en cualquier hotel."
                   ],
-                  "description": "Banda anclada y tirón hacia el torso: el remo que cabe en cualquier mochila. Espalda trabajando en casa o en el parque.",
+                  "description": "Con banda elástica, sentado con las piernas extendidas, la banda anclada a los pies se recoge hacia la cintura. Con la banda, la resistencia crece a medida que avanza el trabajo del trapecio.",
                   "technique": "Banda anclada y tirón hacia el torso: el remo que cabe en cualquier mochila. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Banda anclada y tirón hacia el torso: el remo que cabe en cualquier mochila. Espalda trabajando en casa o en el parque."
                 },
@@ -558,7 +558,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo en Banda Elástica",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "back_remo_banda__default",
                   "definitionId": "back_remo_banda",
                   "familyId": "upper_horizontal_pull",
@@ -632,11 +632,11 @@
           }
         ],
         "defaultConfigurationId": "back_remo_banda__default",
-        "description": "Con la banda anclada, tiras hacia el torso. El remo portable: práctico para entrenar fuera del gimnasio.",
+        "description": "El Remo en Banda Elástica monta el tirón horizontal sin gimnasio: la banda anclada a los pies y el dorsal ancho y trapecio tirando hacia la cintura. Se ejecuta sentado con las piernas extendidas, llevando los codos atrás y regresando sin que la banda afloje de golpe. Bíceps y espalda alta acompañan el gesto. El remo que viaja en la mochila y se monta en cualquier hotel.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -658,7 +658,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_gorilla_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -669,16 +669,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "benefits": [
-                "Mancuernas colgando y tirón con balanceo del torso: el remo gorila tradicional.",
-                "Fuerza de tracción de espalda con mancuernas."
+                "Con mancuernas, cada lado ajusta su línea y el trabajo del dorsal ancho se equilibra solo.",
+                "Potencia de espalda con un punto de picardía en cada brazada."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Mancuernas colgando y tirón con balanceo del torso: el remo gorila tradicional. Fuerza de tracción de espalda con mancuernas.",
+              "description": "Con mancuernas, con el tronco inclinado, cada tirón sube desde parado alternando brazos. Con mancuernas, cada lado ajusta su línea y el trabajo del dorsal ancho se equilibra solo.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -863,10 +863,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas colgando y tirón con balanceo del torso: el remo gorila tradicional.",
-                    "Fuerza de tracción de espalda con mancuernas."
+                    "Con mancuernas, cada lado ajusta su línea y el trabajo del dorsal ancho se equilibra solo.",
+                    "Potencia de espalda con un punto de picardía en cada brazada."
                   ],
-                  "description": "Mancuernas colgando y tirón con balanceo del torso: el remo gorila tradicional. Fuerza de tracción de espalda con mancuernas.",
+                  "description": "Con mancuernas, con el tronco inclinado, cada tirón sube desde parado alternando brazos. Con mancuernas, cada lado ajusta su línea y el trabajo del dorsal ancho se equilibra solo.",
                   "technique": "Mancuernas colgando y tirón con balanceo del torso: el remo gorila tradicional. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Mancuernas colgando y tirón con balanceo del torso: el remo gorila tradicional. Fuerza de tracción de espalda con mancuernas."
                 },
@@ -881,7 +881,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Gorilla",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "back_remo_gorilla_mancuernas__dumbbells",
                   "definitionId": "back_remo_gorilla_mancuernas",
                   "familyId": "upper_horizontal_pull",
@@ -966,7 +966,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_gorilla_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -977,16 +977,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "benefits": [
-                "Kettlebells colgando y tirón con balanceo: el agarre suma trabajo al remo gorila.",
-                "Variante completa para espalda y antebrazos."
+                "El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+                "Potencia de espalda con un punto de picardía en cada brazada."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Kettlebells colgando y tirón con balanceo: el agarre suma trabajo al remo gorila. Variante completa para espalda y antebrazos.",
+              "description": "Con kettlebell, con el tronco inclinado, cada tirón sube desde parado alternando brazos. El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -1171,10 +1171,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Kettlebells colgando y tirón con balanceo: el agarre suma trabajo al remo gorila.",
-                    "Variante completa para espalda y antebrazos."
+                    "El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+                    "Potencia de espalda con un punto de picardía en cada brazada."
                   ],
-                  "description": "Kettlebells colgando y tirón con balanceo: el agarre suma trabajo al remo gorila. Variante completa para espalda y antebrazos.",
+                  "description": "Con kettlebell, con el tronco inclinado, cada tirón sube desde parado alternando brazos. El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
                   "technique": "Kettlebells colgando y tirón con balanceo: el agarre suma trabajo al remo gorila. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Kettlebells colgando y tirón con balanceo: el agarre suma trabajo al remo gorila. Variante completa para espalda y antebrazos."
                 },
@@ -1189,7 +1189,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Gorilla",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "back_remo_gorilla_mancuernas__kettlebell",
                   "definitionId": "back_remo_gorilla_mancuernas",
                   "familyId": "upper_horizontal_pull",
@@ -1274,7 +1274,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_gorilla_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1285,16 +1285,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "benefits": [
-                "Polea y tirón con balanceo: la tensión constante cambia el remo gorila.",
-                "La versión precisa del remo de la fuerza de tracción."
+                "Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin.",
+                "Potencia de espalda con un punto de picardía en cada brazada."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Polea y tirón con balanceo: la tensión constante cambia el remo gorila. La versión precisa del remo de la fuerza de tracción.",
+              "description": "Con polea, con el tronco inclinado, cada tirón sube desde parado alternando brazos. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -1479,10 +1479,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea y tirón con balanceo: la tensión constante cambia el remo gorila.",
-                    "La versión precisa del remo de la fuerza de tracción."
+                    "Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin.",
+                    "Potencia de espalda con un punto de picardía en cada brazada."
                   ],
-                  "description": "Polea y tirón con balanceo: la tensión constante cambia el remo gorila. La versión precisa del remo de la fuerza de tracción.",
+                  "description": "Con polea, con el tronco inclinado, cada tirón sube desde parado alternando brazos. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin.",
                   "technique": "Polea y tirón con balanceo: la tensión constante cambia el remo gorila. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Polea y tirón con balanceo: la tensión constante cambia el remo gorila. La versión precisa del remo de la fuerza de tracción."
                 },
@@ -1497,7 +1497,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Gorilla",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "back_remo_gorilla_mancuernas__cable",
                   "definitionId": "back_remo_gorilla_mancuernas",
                   "familyId": "upper_horizontal_pull",
@@ -1578,11 +1578,11 @@
           }
         ],
         "defaultConfigurationId": "back_remo_gorilla_mancuernas__dumbbells",
-        "description": "Remo gorila: inclinado con las pesas colgando, tiras con la espalda y el torso balanceándose. El remo de la fuerza de tracción, exigente y con una demanda amplia.",
+        "description": "El Remo Gorilla alterna mancuernas partiendo del suelo y con el tronco inclinado: cada tirón sube desde parado y el dorsal produce fuerza de arranque una y otra vez. Se ejecuta con la espalda firme, tirando una mano mientras la otra espera, como un gorila moviendo carga. Kettlebells o polea baja sirven igual de bien. Potencia de espalda con un punto de picardía en cada brazada.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1608,7 +1608,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_invertido",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1619,16 +1619,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Colgado bajo la barra con el cuerpo recto, acercas el pecho a ella.",
-                "La dominada horizontal: espalda con tu propio peso y con progresión gradual."
+                "Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa.",
+                "La dominada de quien todavía no hace dominadas, y un remo serio para quien ya las hace."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Colgado bajo la barra con el cuerpo recto, acercas el pecho a ella. La dominada horizontal: espalda con tu propio peso y con progresión gradual.",
+              "description": "Con peso corporal, colgado bajo una barra fija, el cuerpo rígido sube el pecho hasta tocarla. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -1821,10 +1821,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Colgado bajo la barra con el cuerpo recto, acercas el pecho a ella.",
-                    "La dominada horizontal: espalda con tu propio peso y con progresión gradual."
+                    "Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa.",
+                    "La dominada de quien todavía no hace dominadas, y un remo serio para quien ya las hace."
                   ],
-                  "description": "Colgado bajo la barra con el cuerpo recto, acercas el pecho a ella. La dominada horizontal: espalda con tu propio peso y con progresión gradual.",
+                  "description": "Con peso corporal, colgado bajo una barra fija, el cuerpo rígido sube el pecho hasta tocarla. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa.",
                   "technique": "Colgado bajo la barra con el cuerpo recto, acercas el pecho a ella. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Colgado bajo la barra con el cuerpo recto, acercas el pecho a ella. La dominada horizontal: espalda con tu propio peso y con progresión gradual."
                 },
@@ -1839,7 +1839,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Invertido",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "back_remo_invertido__default",
                   "definitionId": "back_remo_invertido",
                   "familyId": "upper_horizontal_pull",
@@ -1914,11 +1914,11 @@
           }
         ],
         "defaultConfigurationId": "back_remo_invertido__default",
-        "description": "Colgado bajo una barra con el cuerpo recto, te acercas a ella. La dominada horizontal: espalda trabajando con tu propio peso.",
+        "description": "El Remo Invertido cuelga del lado contrario de una barra fija: debajo de ella, el cuerpo rígido sube el pecho hasta tocarla con el dorsal ancho tirando. Se ejecuta con los talones en el suelo y la cadera alta, bajando y subiendo sin que la cintura colapse. Bíceps, trapecio y erectores acompañan el tirón. La dominada de quien todavía no hace dominadas, y un remo serio para quien ya las hace.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1940,7 +1940,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_renegado_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1951,16 +1951,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuernas en plancha y remo de un brazo: el core combate el giro.",
-                "Espalda y abdomen en un mismo ejercicio."
+                "El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                "Espalda y abdomen en un solo gesto, eficiencia pura."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Mancuernas en plancha y remo de un brazo: el core combate el giro. Espalda y abdomen en un mismo ejercicio.",
+              "description": "Con mancuernas, desde la posición de plancha, un brazo rema mientras el cuerpo se niega a rotar. El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -2151,10 +2151,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas en plancha y remo de un brazo: el core combate el giro.",
-                    "Espalda y abdomen en un mismo ejercicio."
+                    "El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                    "Espalda y abdomen en un solo gesto, eficiencia pura."
                   ],
-                  "description": "Mancuernas en plancha y remo de un brazo: el core combate el giro. Espalda y abdomen en un mismo ejercicio.",
+                  "description": "Con mancuernas, desde la posición de plancha, un brazo rema mientras el cuerpo se niega a rotar. El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
                   "technique": "Mancuernas en plancha y remo de un brazo: el core combate el giro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Mancuernas en plancha y remo de un brazo: el core combate el giro. Espalda y abdomen en un mismo ejercicio."
                 },
@@ -2169,7 +2169,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Renegado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "back_remo_renegado_mancuernas__dumbbells",
                   "definitionId": "back_remo_renegado_mancuernas",
                   "familyId": "upper_horizontal_pull",
@@ -2255,7 +2255,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_renegado_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2266,16 +2266,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Kettlebells en plancha y remo de un brazo: la campana baja el centro de gravedad y exige más.",
-                "La variante avanzada del renegado; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+                "Espalda y abdomen en un solo gesto, eficiencia pura."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Kettlebells en plancha y remo de un brazo: la campana baja el centro de gravedad y exige más. La variante avanzada del renegado.",
+              "description": "Con kettlebell, desde la posición de plancha, un brazo rema mientras el cuerpo se niega a rotar. El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -2466,10 +2466,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Kettlebells en plancha y remo de un brazo: la campana baja el centro de gravedad y exige más.",
-                    "La variante avanzada del renegado; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+                    "Espalda y abdomen en un solo gesto, eficiencia pura."
                   ],
-                  "description": "Kettlebells en plancha y remo de un brazo: la campana baja el centro de gravedad y exige más. La variante avanzada del renegado.",
+                  "description": "Con kettlebell, desde la posición de plancha, un brazo rema mientras el cuerpo se niega a rotar. El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
                   "technique": "Kettlebells en plancha y remo de un brazo: la campana baja el centro de gravedad y exige más. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Kettlebells en plancha y remo de un brazo: la campana baja el centro de gravedad y exige más. La variante avanzada del renegado."
                 },
@@ -2484,7 +2484,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Renegado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "back_remo_renegado_mancuernas__kettlebell",
                   "definitionId": "back_remo_renegado_mancuernas",
                   "familyId": "upper_horizontal_pull",
@@ -2566,11 +2566,11 @@
           }
         ],
         "defaultConfigurationId": "back_remo_renegado_mancuernas__dumbbells",
-        "description": "En posición de plancha con mancuernas, remas un brazo a la vez. Espalda y core combatiendo el giro en cada repetición.",
+        "description": "El Remo Renegado mezcla plancha y remo en la misma repetición: desde la posición de flexión con mancuernas, un brazo rema mientras el resto del cuerpo se niega a rotar. Se ejecuta con los pies separados y la cadera quieta, alternando lados con la espalda plana. El core trabaja tanto como el dorsal en cada tirón. Espalda y abdomen en un solo gesto, eficiencia pura.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -2596,7 +2596,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_face_pull",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2607,16 +2607,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Cuerda a la altura de la cara: tiras abriendo los codos hacia los lados.",
-                "El ejercicio que cuida tus hombros mientras fortalece la espalda alta."
+                "Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
+                "La vitamina diaria de la salud del hombro, cortesía de la polea."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Cuerda a la altura de la cara: tiras abriendo los codos hacia los lados. El ejercicio que cuida tus hombros mientras fortalece la espalda alta.",
+              "description": "Con polea, la cuerda viaja hacia la cara abriendo los codos hasta que las manos quedan a la altura de las orejas. Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -2799,10 +2799,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Cuerda a la altura de la cara: tiras abriendo los codos hacia los lados.",
-                    "El ejercicio que cuida tus hombros mientras fortalece la espalda alta."
+                    "Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
+                    "La vitamina diaria de la salud del hombro, cortesía de la polea."
                   ],
-                  "description": "Cuerda a la altura de la cara: tiras abriendo los codos hacia los lados. El ejercicio que cuida tus hombros mientras fortalece la espalda alta.",
+                  "description": "Con polea, la cuerda viaja hacia la cara abriendo los codos hasta que las manos quedan a la altura de las orejas. Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
                   "technique": "Cuerda a la altura de la cara: tiras abriendo los codos hacia los lados. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Cuerda a la altura de la cara: tiras abriendo los codos hacia los lados. El ejercicio que cuida tus hombros mientras fortalece la espalda alta."
                 },
@@ -2817,7 +2817,7 @@
                 },
                 "identity": {
                   "canonicalName": "Face Pull",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "deltoides_face_pull__default",
                   "definitionId": "deltoides_face_pull",
                   "familyId": "upper_horizontal_pull",
@@ -2890,11 +2890,11 @@
           }
         ],
         "defaultConfigurationId": "deltoides_face_pull__default",
-        "description": "Tiras de la cuerda hacia la cara abriendo los codos. El ejercicio de la salud del hombro: deltoides posterior y espalda alta.",
+        "description": "El Face Pull trae la cuerda de la polea alta hacia la cara abriendo los codos: el deltoide posterior y el trapecio medio juntan los omóplatos en cada repetición. Se ejecuta con la cuerda doble, tirando hasta las orejas con los pulgares atrás y regresando sin perder la postura. El hombro se siente reorganizado al terminar. La vitamina diaria de la salud del hombro, cortesía de la polea.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -2912,7 +2912,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

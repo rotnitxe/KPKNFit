@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren inferior · neck · neck extension",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#neck_extension_cuello_arnes_polea",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Arnés o polea en la cabeza: llevas la cabeza atrás contra la tensión.",
-                "El cuello trabaja con resistencia constante."
+                "Con la polea, la tensión sobre el cuello se mantiene viva de principio a fin.",
+                "Un seguro barato para el cuello de cualquiera que entrene o trabaje sentado."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Usar velocidad, llevar la cabeza al extremo del recorrido o encoger los hombros."
               ],
-              "description": "Arnés o polea en la cabeza: llevas la cabeza atrás contra la tensión. El cuello trabaja con resistencia constante.",
+              "description": "Con polea, la cabeza viaja hacia atrás contra la resistencia apoyada en la nuca. Con la polea, la tensión sobre el cuello se mantiene viva de principio a fin.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
@@ -159,10 +159,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Arnés o polea en la cabeza: llevas la cabeza atrás contra la tensión.",
-                    "El cuello trabaja con resistencia constante."
+                    "Con la polea, la tensión sobre el cuello se mantiene viva de principio a fin.",
+                    "Un seguro barato para el cuello de cualquiera que entrene o trabaje sentado."
                   ],
-                  "description": "Arnés o polea en la cabeza: llevas la cabeza atrás contra la tensión. El cuello trabaja con resistencia constante.",
+                  "description": "Con polea, la cabeza viaja hacia atrás contra la resistencia apoyada en la nuca. Con la polea, la tensión sobre el cuello se mantiene viva de principio a fin.",
                   "technique": "Arnés o polea en la cabeza: llevas la cabeza atrás contra la tensión. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Arnés o polea en la cabeza: llevas la cabeza atrás contra la tensión. El cuello trabaja con resistencia constante."
                 },
@@ -177,7 +177,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensiones de Cuello",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "neck_extension_cuello__cable",
                   "definitionId": "neck_extension_cuello",
                   "familyId": "lower_neck_extension",
@@ -257,7 +257,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#neck_extension_cuello_arnes_polea",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -268,16 +268,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Disco en la nuca: subes la cabeza contra el peso del disco.",
-                "La forma simple y tradicional de fortalecer el cuello."
+                "Con el disco, el lastre es simple y directo sobre el cuello.",
+                "Un seguro barato para el cuello de cualquiera que entrene o trabaje sentado."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Usar velocidad, llevar la cabeza al extremo del recorrido o encoger los hombros."
               ],
-              "description": "Disco en la nuca: subes la cabeza contra el peso del disco. La forma simple y tradicional de fortalecer el cuello.",
+              "description": "Con disco, la cabeza viaja hacia atrás contra la resistencia apoyada en la nuca. Con el disco, el lastre es simple y directo sobre el cuello.",
               "efc": 2.0,
               "equipmentId": "plate",
               "executionCues": [
@@ -404,10 +404,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Disco en la nuca: subes la cabeza contra el peso del disco.",
-                    "La forma simple y tradicional de fortalecer el cuello."
+                    "Con el disco, el lastre es simple y directo sobre el cuello.",
+                    "Un seguro barato para el cuello de cualquiera que entrene o trabaje sentado."
                   ],
-                  "description": "Disco en la nuca: subes la cabeza contra el peso del disco. La forma simple y tradicional de fortalecer el cuello.",
+                  "description": "Con disco, la cabeza viaja hacia atrás contra la resistencia apoyada en la nuca. Con el disco, el lastre es simple y directo sobre el cuello.",
                   "technique": "Disco en la nuca: subes la cabeza contra el peso del disco. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Disco en la nuca: subes la cabeza contra el peso del disco. La forma simple y tradicional de fortalecer el cuello."
                 },
@@ -422,7 +422,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensiones de Cuello",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "neck_extension_cuello__plate",
                   "definitionId": "neck_extension_cuello",
                   "familyId": "lower_neck_extension",
@@ -498,11 +498,11 @@
           }
         ],
         "defaultConfigurationId": "neck_extension_cuello__cable",
-        "description": "Llevas la cabeza hacia atrás contra resistencia. Fortalece la zona trasera del cuello, clave para deportes de contacto y postura.",
+        "description": "Las Extensiones de Cuello trabajan la musculatura posterior de la nuca, la que sostiene la cabeza frente a las pantallas. Se ejecutan con la resistencia de la polea o un disco apoyada en la nuca, llevando la cabeza hacia atrás con calma y regresando sin rebote. El movimiento es pequeño y la carga debe ser modesta. Un seguro barato para el cuello de cualquiera que entrene o trabaje sentado.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -525,7 +525,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

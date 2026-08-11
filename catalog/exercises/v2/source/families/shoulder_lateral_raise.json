@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Elevación Lateral",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuernas sentado: el torso fijo elimina el impulso y el hombro trabaja limpio.",
-                "La elevación estricta, la útil para observar la trayectoria."
+                "Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
+                "La versión estricta para sentir el hombro trabajar de verdad."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
               ],
-              "description": "Mancuernas sentado: el torso fijo elimina el impulso y el hombro trabaja limpio. La elevación estricta, la útil para observar la trayectoria.",
+              "description": "Con mancuernas, sentado y sin impulso, los brazos suben a los lados hasta la altura de los hombros. Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -207,10 +207,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas sentado: el torso fijo elimina el impulso y el hombro trabaja limpio.",
-                    "La elevación estricta, la útil para observar la trayectoria."
+                    "Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
+                    "La versión estricta para sentir el hombro trabajar de verdad."
                   ],
-                  "description": "Mancuernas sentado: el torso fijo elimina el impulso y el hombro trabaja limpio. La elevación estricta, la útil para observar la trayectoria.",
+                  "description": "Con mancuernas, sentado y sin impulso, los brazos suben a los lados hasta la altura de los hombros. Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
                   "technique": "Mancuernas sentado: el torso fijo elimina el impulso y el hombro trabaja limpio. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Mancuernas sentado: el torso fijo elimina el impulso y el hombro trabaja limpio. La elevación estricta, la útil para observar la trayectoria."
                 },
@@ -225,7 +225,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales Sentado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "seated_lateral_raise__dumbbells",
                   "definitionId": "seated_lateral_raise",
                   "familyId": "shoulder_lateral_raise",
@@ -309,7 +309,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -320,16 +320,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea sentado: tensión constante y sin impulso posible.",
-                "El hombro lateral acumula fatiga local con la versión controlada."
+                "El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                "La versión estricta para sentir el hombro trabajar de verdad."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
               ],
-              "description": "Polea sentado: tensión constante y sin impulso posible. El hombro lateral acumula fatiga local con la versión controlada.",
+              "description": "Con polea, sentado y sin impulso, los brazos suben a los lados hasta la altura de los hombros. El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -504,10 +504,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea sentado: tensión constante y sin impulso posible.",
-                    "El hombro lateral acumula fatiga local con la versión controlada."
+                    "El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                    "La versión estricta para sentir el hombro trabajar de verdad."
                   ],
-                  "description": "Polea sentado: tensión constante y sin impulso posible. El hombro lateral acumula fatiga local con la versión controlada.",
+                  "description": "Con polea, sentado y sin impulso, los brazos suben a los lados hasta la altura de los hombros. El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
                   "technique": "Polea sentado: tensión constante y sin impulso posible. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Polea sentado: tensión constante y sin impulso posible. El hombro lateral acumula fatiga local con la versión controlada."
                 },
@@ -522,7 +522,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales Sentado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "seated_lateral_raise__cable",
                   "definitionId": "seated_lateral_raise",
                   "familyId": "shoulder_lateral_raise",
@@ -606,7 +606,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -617,16 +617,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina sentado: el guiado lleva el trabajo directo al deltoides lateral.",
-                "La opción más cómoda del press lateral sentado."
+                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del deltoide.",
+                "La versión estricta para sentir el hombro trabajar de verdad."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
               ],
-              "description": "Máquina sentado: el guiado lleva el trabajo directo al deltoides lateral. La opción más cómoda del press lateral sentado.",
+              "description": "Con máquina, sentado y sin impulso, los brazos suben a los lados hasta la altura de los hombros. En la máquina, la trayectoria guiada concentra todo el esfuerzo del deltoide.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -801,10 +801,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina sentado: el guiado lleva el trabajo directo al deltoides lateral.",
-                    "La opción más cómoda del press lateral sentado."
+                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del deltoide.",
+                    "La versión estricta para sentir el hombro trabajar de verdad."
                   ],
-                  "description": "Máquina sentado: el guiado lleva el trabajo directo al deltoides lateral. La opción más cómoda del press lateral sentado.",
+                  "description": "Con máquina, sentado y sin impulso, los brazos suben a los lados hasta la altura de los hombros. En la máquina, la trayectoria guiada concentra todo el esfuerzo del deltoide.",
                   "technique": "Máquina sentado: el guiado lleva el trabajo directo al deltoides lateral. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Máquina sentado: el guiado lleva el trabajo directo al deltoides lateral. La opción más cómoda del press lateral sentado."
                 },
@@ -819,7 +819,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales Sentado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "seated_lateral_raise__machine",
                   "definitionId": "seated_lateral_raise",
                   "familyId": "shoulder_lateral_raise",
@@ -903,7 +903,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -914,16 +914,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Kettlebell sentado: el agarre suma estabilidad extra al movimiento estricto.",
-                "Variante exigente del press lateral sentado."
+                "El deltoide trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+                "La versión estricta para sentir el hombro trabajar de verdad."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
               ],
-              "description": "Kettlebell sentado: el agarre suma estabilidad extra al movimiento estricto. Variante exigente del press lateral sentado.",
+              "description": "Con kettlebell, sentado y sin impulso, los brazos suben a los lados hasta la altura de los hombros. El deltoide trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -1098,10 +1098,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Kettlebell sentado: el agarre suma estabilidad extra al movimiento estricto.",
-                    "Variante exigente del press lateral sentado."
+                    "El deltoide trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+                    "La versión estricta para sentir el hombro trabajar de verdad."
                   ],
-                  "description": "Kettlebell sentado: el agarre suma estabilidad extra al movimiento estricto. Variante exigente del press lateral sentado.",
+                  "description": "Con kettlebell, sentado y sin impulso, los brazos suben a los lados hasta la altura de los hombros. El deltoide trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
                   "technique": "Kettlebell sentado: el agarre suma estabilidad extra al movimiento estricto. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Kettlebell sentado: el agarre suma estabilidad extra al movimiento estricto. Variante exigente del press lateral sentado."
                 },
@@ -1116,7 +1116,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales Sentado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "seated_lateral_raise__kettlebell",
                   "definitionId": "seated_lateral_raise",
                   "familyId": "shoulder_lateral_raise",
@@ -1196,11 +1196,11 @@
           }
         ],
         "defaultConfigurationId": "seated_lateral_raise__dumbbells",
-        "description": "El torso fijo elimina el impulso y el hombro trabaja limpio. La versión estricta de la elevación lateral.",
+        "description": "Las Elevaciones Laterales Sentado quitan las piernas y el balanceo de la ecuación: el deltoide medio levanta las mancuernas a los lados sin trampas disponibles. Se ejecutan en el banco con el torso firme, subiendo hasta la altura de los hombros y bajando despacio. Al estar sentado, cargas menores exigen más que las grandes de pie. La versión estricta para sentir el hombro trabajar de verdad.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1227,7 +1227,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1238,16 +1238,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuernas a los costados: subes hasta la altura del hombro con los brazos ligeramente abiertos.",
-                "La elevación lateral tradicional y más utilizada."
+                "Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
+                "El gesto que separa unos hombros normales de unos que enmarcan el torso."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
               ],
-              "description": "Mancuernas a los costados: subes hasta la altura del hombro con los brazos ligeramente abiertos. La elevación lateral tradicional y más utilizada.",
+              "description": "Con mancuernas, de pie, los brazos se elevan a los lados con los codos suaves y la bajada sin soltar la tensión. Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -1422,10 +1422,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas a los costados: subes hasta la altura del hombro con los brazos ligeramente abiertos.",
-                    "La elevación lateral tradicional y más utilizada."
+                    "Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
+                    "El gesto que separa unos hombros normales de unos que enmarcan el torso."
                   ],
-                  "description": "Mancuernas a los costados: subes hasta la altura del hombro con los brazos ligeramente abiertos. La elevación lateral tradicional y más utilizada.",
+                  "description": "Con mancuernas, de pie, los brazos se elevan a los lados con los codos suaves y la bajada sin soltar la tensión. Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
                   "technique": "Mancuernas a los costados: subes hasta la altura del hombro con los brazos ligeramente abiertos. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Mancuernas a los costados: subes hasta la altura del hombro con los brazos ligeramente abiertos. La elevación lateral tradicional y más utilizada."
                 },
@@ -1440,7 +1440,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales de Pie",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "standing_lateral_raise__dumbbells",
                   "definitionId": "standing_lateral_raise",
                   "familyId": "shoulder_lateral_raise",
@@ -1524,7 +1524,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1535,16 +1535,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea lateral: la tensión constante mantiene el hombro cargado en todo el arco.",
-                "La versión precisa que no deja descansar al deltoides."
+                "El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                "El gesto que separa unos hombros normales de unos que enmarcan el torso."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
               ],
-              "description": "Polea lateral: la tensión constante mantiene el hombro cargado en todo el arco. La versión precisa que no deja descansar al deltoides.",
+              "description": "Con polea, de pie, los brazos se elevan a los lados con los codos suaves y la bajada sin soltar la tensión. El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -1719,10 +1719,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea lateral: la tensión constante mantiene el hombro cargado en todo el arco.",
-                    "La versión precisa que no deja descansar al deltoides."
+                    "El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                    "El gesto que separa unos hombros normales de unos que enmarcan el torso."
                   ],
-                  "description": "Polea lateral: la tensión constante mantiene el hombro cargado en todo el arco. La versión precisa que no deja descansar al deltoides.",
+                  "description": "Con polea, de pie, los brazos se elevan a los lados con los codos suaves y la bajada sin soltar la tensión. El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
                   "technique": "Polea lateral: la tensión constante mantiene el hombro cargado en todo el arco. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Polea lateral: la tensión constante mantiene el hombro cargado en todo el arco. La versión precisa que no deja descansar al deltoides."
                 },
@@ -1737,7 +1737,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales de Pie",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "standing_lateral_raise__cable",
                   "definitionId": "standing_lateral_raise",
                   "familyId": "shoulder_lateral_raise",
@@ -1821,7 +1821,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1832,16 +1832,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina de elevaciones: el recorrido guiado concentra el deltoides lateral.",
-                "Cómoda y efectiva para rematar el hombro."
+                "El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+                "El gesto que separa unos hombros normales de unos que enmarcan el torso."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
               ],
-              "description": "Máquina de elevaciones: el recorrido guiado concentra el deltoides lateral. Cómoda y efectiva para rematar el hombro.",
+              "description": "Con máquina, de pie, los brazos se elevan a los lados con los codos suaves y la bajada sin soltar la tensión. El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -2016,10 +2016,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina de elevaciones: el recorrido guiado concentra el deltoides lateral.",
-                    "Cómoda y efectiva para rematar el hombro."
+                    "El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+                    "El gesto que separa unos hombros normales de unos que enmarcan el torso."
                   ],
-                  "description": "Máquina de elevaciones: el recorrido guiado concentra el deltoides lateral. Cómoda y efectiva para rematar el hombro.",
+                  "description": "Con máquina, de pie, los brazos se elevan a los lados con los codos suaves y la bajada sin soltar la tensión. El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones.",
                   "technique": "Máquina de elevaciones: el recorrido guiado concentra el deltoides lateral. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Máquina de elevaciones: el recorrido guiado concentra el deltoides lateral. Cómoda y efectiva para rematar el hombro."
                 },
@@ -2034,7 +2034,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales de Pie",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "standing_lateral_raise__machine",
                   "definitionId": "standing_lateral_raise",
                   "familyId": "shoulder_lateral_raise",
@@ -2118,7 +2118,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2129,16 +2129,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Kettlebell a los costados: el agarre suma trabajo y el movimiento se perciben distinto.",
-                "Variante alternativa de la elevación lateral."
+                "El deltoide trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+                "El gesto que separa unos hombros normales de unos que enmarcan el torso."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
               ],
-              "description": "Kettlebell a los costados: el agarre suma trabajo y el movimiento se perciben distinto. Variante alternativa de la elevación lateral.",
+              "description": "Con kettlebell, de pie, los brazos se elevan a los lados con los codos suaves y la bajada sin soltar la tensión. El deltoide trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -2313,10 +2313,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Kettlebell a los costados: el agarre suma trabajo y el movimiento se perciben distinto.",
-                    "Variante alternativa de la elevación lateral."
+                    "El deltoide trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+                    "El gesto que separa unos hombros normales de unos que enmarcan el torso."
                   ],
-                  "description": "Kettlebell a los costados: el agarre suma trabajo y el movimiento se perciben distinto. Variante alternativa de la elevación lateral.",
+                  "description": "Con kettlebell, de pie, los brazos se elevan a los lados con los codos suaves y la bajada sin soltar la tensión. El deltoide trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
                   "technique": "Kettlebell a los costados: el agarre suma trabajo y el movimiento se perciben distinto. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Kettlebell a los costados: el agarre suma trabajo y el movimiento se perciben distinto. Variante alternativa de la elevación lateral."
                 },
@@ -2331,7 +2331,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales de Pie",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "standing_lateral_raise__kettlebell",
                   "definitionId": "standing_lateral_raise",
                   "familyId": "shoulder_lateral_raise",
@@ -2411,11 +2411,11 @@
           }
         ],
         "defaultConfigurationId": "standing_lateral_raise__dumbbells",
-        "description": "Subes los brazos a los costados hasta la altura del hombro. El ejercicio que construye hombros anchos, Una variante utilizada.",
+        "description": "Las Elevaciones Laterales de Pie son el constructor de la anchura de hombros por antonomasia: el deltoide medio eleva los brazos a los lados contra la gravedad. Se ejecutan de pie con las mancuernas, subiendo hasta la horizontal con los codos suaves y bajando sin dejar caer el peso. En polea o máquina la tensión se vuelve continua. El gesto que separa unos hombros normales de unos que enmarcan el torso.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -2442,7 +2442,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2453,16 +2453,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea con recorrido completo: subes más allá del hombro, por encima de la cabeza.",
-                "El deltoides lateral trabaja en su rango máximo."
+                "Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
+                "La evolución del clásico para quien ya exprimió el gesto estándar."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
               ],
-              "description": "Polea con recorrido completo: subes más allá del hombro, por encima de la cabeza. El deltoides lateral trabaja en su rango máximo.",
+              "description": "Con polea, el arco lateral se alarga por debajo del punto de partida con la polea cruzada por detrás. Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -2637,10 +2637,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea con recorrido completo: subes más allá del hombro, por encima de la cabeza.",
-                    "El deltoides lateral trabaja en su rango máximo."
+                    "Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
+                    "La evolución del clásico para quien ya exprimió el gesto estándar."
                   ],
-                  "description": "Polea con recorrido completo: subes más allá del hombro, por encima de la cabeza. El deltoides lateral trabaja en su rango máximo.",
+                  "description": "Con polea, el arco lateral se alarga por debajo del punto de partida con la polea cruzada por detrás. Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
                   "technique": "Polea con recorrido completo: subes más allá del hombro, por encima de la cabeza. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Polea con recorrido completo: subes más allá del hombro, por encima de la cabeza. El deltoides lateral trabaja en su rango máximo."
                 },
@@ -2655,7 +2655,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales Super ROM",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "lateral_raise_super_rom__cable",
                   "definitionId": "lateral_raise_super_rom",
                   "familyId": "shoulder_lateral_raise",
@@ -2738,7 +2738,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2749,16 +2749,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuernas con recorrido completo: subes por encima de la cabeza en cada repetición.",
-                "La versión tradicional de la Super ROM; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                "La evolución del clásico para quien ya exprimió el gesto estándar."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
               ],
-              "description": "Mancuernas con recorrido completo: subes por encima de la cabeza en cada repetición. La versión tradicional de la Super ROM.",
+              "description": "Con mancuernas, el arco lateral se alarga por debajo del punto de partida con la polea cruzada por detrás. El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -2933,10 +2933,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas con recorrido completo: subes por encima de la cabeza en cada repetición.",
-                    "La versión tradicional de la Super ROM; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                    "La evolución del clásico para quien ya exprimió el gesto estándar."
                   ],
-                  "description": "Mancuernas con recorrido completo: subes por encima de la cabeza en cada repetición. La versión tradicional de la Super ROM.",
+                  "description": "Con mancuernas, el arco lateral se alarga por debajo del punto de partida con la polea cruzada por detrás. El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
                   "technique": "Mancuernas con recorrido completo: subes por encima de la cabeza en cada repetición. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Mancuernas con recorrido completo: subes por encima de la cabeza en cada repetición. La versión tradicional de la Super ROM."
                 },
@@ -2951,7 +2951,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales Super ROM",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "lateral_raise_super_rom__dumbbells",
                   "definitionId": "lateral_raise_super_rom",
                   "familyId": "shoulder_lateral_raise",
@@ -3034,7 +3034,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -3045,16 +3045,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina con recorrido completo: el guiado acompaña el arco hasta arriba.",
-                "La forma cómoda de llevar el hombro al límite."
+                "El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+                "La evolución del clásico para quien ya exprimió el gesto estándar."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
               ],
-              "description": "Máquina con recorrido completo: el guiado acompaña el arco hasta arriba. La forma cómoda de llevar el hombro al límite.",
+              "description": "Con máquina, el arco lateral se alarga por debajo del punto de partida con la polea cruzada por detrás. El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -3229,10 +3229,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina con recorrido completo: el guiado acompaña el arco hasta arriba.",
-                    "La forma cómoda de llevar el hombro al límite."
+                    "El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+                    "La evolución del clásico para quien ya exprimió el gesto estándar."
                   ],
-                  "description": "Máquina con recorrido completo: el guiado acompaña el arco hasta arriba. La forma cómoda de llevar el hombro al límite.",
+                  "description": "Con máquina, el arco lateral se alarga por debajo del punto de partida con la polea cruzada por detrás. El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones.",
                   "technique": "Máquina con recorrido completo: el guiado acompaña el arco hasta arriba. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Máquina con recorrido completo: el guiado acompaña el arco hasta arriba. La forma cómoda de llevar el hombro al límite."
                 },
@@ -3247,7 +3247,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales Super ROM",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "lateral_raise_super_rom__machine",
                   "definitionId": "lateral_raise_super_rom",
                   "familyId": "shoulder_lateral_raise",
@@ -3326,11 +3326,11 @@
           }
         ],
         "defaultConfigurationId": "lateral_raise_super_rom__cable",
-        "description": "Subes los brazos más allá de la horizontal, pasando por encima de la cabeza. La variante que lleva el hombro al límite de su recorrido.",
+        "description": "Las Elevaciones Laterales Super ROM alargan el recorrido por debajo del punto de partida: la polea cruza por detrás y el deltoide medio trabaja desde un estiramiento que la versión normal no toca. Se ejecutan con la polea baja cruzada, subiendo en el arco lateral completo hasta la horizontal. El rango extra se traduce en más tiempo bajo tensión por repetición. La evolución del clásico para quien ya exprimió el gesto estándar.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -3353,7 +3353,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

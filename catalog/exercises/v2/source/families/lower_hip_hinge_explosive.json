@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren inferior · hamstrings · hip hinge explosive",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_swing_kettlebell_dos_manos",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Impulsas la campana entre las piernas y la lanzas al pecho con la cadera.",
-                "Potencia, glúteos y un subidón de energía en cada repetición."
+                "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo de los isquiosurales.",
+                "El movimiento que enseña potencia de cadera y quema energía a partes iguales."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Convertir el gesto en una sentadilla, levantar la carga solo con los brazos o arquear la espalda."
               ],
-              "description": "Impulsas la campana entre las piernas y la lanzas al pecho con la cadera. Potencia, glúteos y un subidón de energía en cada repetición.",
+              "description": "Con kettlebell, la campana se balancea entre las piernas y sale lanzada hasta el pecho por la potencia de la cadera. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo de los isquiosurales.",
               "efc": 2.8,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -210,10 +210,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Impulsas la campana entre las piernas y la lanzas al pecho con la cadera.",
-                    "Potencia, glúteos y un subidón de energía en cada repetición."
+                    "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo de los isquiosurales.",
+                    "El movimiento que enseña potencia de cadera y quema energía a partes iguales."
                   ],
-                  "description": "Impulsas la campana entre las piernas y la lanzas al pecho con la cadera. Potencia, glúteos y un subidón de energía en cada repetición.",
+                  "description": "Con kettlebell, la campana se balancea entre las piernas y sale lanzada hasta el pecho por la potencia de la cadera. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo de los isquiosurales.",
                   "technique": "Impulsas la campana entre las piernas y la lanzas al pecho con la cadera. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Impulsas la campana entre las piernas y la lanzas al pecho con la cadera. Potencia, glúteos y un subidón de energía en cada repetición."
                 },
@@ -228,7 +228,7 @@
                 },
                 "identity": {
                   "canonicalName": "Swing con Kettlebell a Dos Manos",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hams_swing_kettlebell_dos_manos__default",
                   "definitionId": "hams_swing_kettlebell_dos_manos",
                   "familyId": "lower_hip_hinge_explosive",
@@ -301,11 +301,11 @@
           }
         ],
         "defaultConfigurationId": "hams_swing_kettlebell_dos_manos__default",
-        "description": "Impulsas la campana entre las piernas y la lanzas hasta la altura del pecho con la cadera. Potencia, glúteos y mucha energía.",
+        "description": "El Swing con Kettlebell a Dos Manos convierte la bisagra en un gesto balístico: la campana se balancea entre las piernas y sale lanzada hasta el pecho por la potencia de la cadera. Se ejecuta dejando que la kettlebell caiga y empujando el suelo con glúteos e isquiosurales, sin usar los brazos para subirla. Los erectores mantienen la espalda en cada vaivén. El movimiento que enseña potencia de cadera y quema energía a partes iguales.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -327,7 +327,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_swing_kettlebell_unilateral",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -338,16 +338,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "La campana viaja con una sola mano y el torso aguanta el giro.",
-                "Variante avanzada que suma estabilidad al swing tradicional."
+                "Los isquiosurales trabajan con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+                "La progresión natural cuando el swing básico ya se domina."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Convertir el gesto en una sentadilla, levantar la carga solo con los brazos o arquear la espalda."
               ],
-              "description": "La campana viaja con una sola mano y el torso aguanta el giro. Variante avanzada que suma estabilidad al swing tradicional.",
+              "description": "Con kettlebell, la campana se balancea con una sola mano mientras el torso impide la rotación en cada vaivén. Los isquiosurales trabajan con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
               "efc": 2.8,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -525,10 +525,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "La campana viaja con una sola mano y el torso aguanta el giro.",
-                    "Variante avanzada que suma estabilidad al swing tradicional."
+                    "Los isquiosurales trabajan con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+                    "La progresión natural cuando el swing básico ya se domina."
                   ],
-                  "description": "La campana viaja con una sola mano y el torso aguanta el giro. Variante avanzada que suma estabilidad al swing tradicional.",
+                  "description": "Con kettlebell, la campana se balancea con una sola mano mientras el torso impide la rotación en cada vaivén. Los isquiosurales trabajan con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
                   "technique": "La campana viaja con una sola mano y el torso aguanta el giro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "La campana viaja con una sola mano y el torso aguanta el giro. Variante avanzada que suma estabilidad al swing tradicional."
                 },
@@ -543,7 +543,7 @@
                 },
                 "identity": {
                   "canonicalName": "Swing con Kettlebell a Una Mano",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hams_swing_kettlebell_unilateral__default",
                   "definitionId": "hams_swing_kettlebell_unilateral",
                   "familyId": "lower_hip_hinge_explosive",
@@ -616,11 +616,11 @@
           }
         ],
         "defaultConfigurationId": "hams_swing_kettlebell_unilateral__default",
-        "description": "El impulso de cadera con una sola mano, con el torso aguantando el giro. Variante avanzada que añade estabilidad al swing tradicional.",
+        "description": "El Swing con Kettlebell a Una Mano añade el giro al vaivén: con una sola mano en la campana, el core debe impedir que el torso rote en cada balanceo. Se ejecuta igual que el swing a dos manos, pero el brazo libre busca equilibrio y la cadera trabaja con un extra de control. Los isquiosurales y el glúteo siguen siendo el motor. La progresión natural cuando el swing básico ya se domina.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -638,7 +638,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

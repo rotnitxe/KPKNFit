@@ -19,7 +19,7 @@ from curaduria_v4_descripciones import CFG_DESC, DEF_DESC
 ROOT = Path(__file__).resolve().parents[1]
 FAMILIES = ROOT / "catalog" / "exercises" / "v2" / "source" / "families"
 OUTPUT = ROOT / "catalog" / "exercises" / "v2" / "curation" / "editorial_briefs.json"
-REVISION = "v2-approved-2026-08-08-c"
+REVISION = "v2-approved-2026-08-10-c"
 
 
 NEW_DEFINITIONS: dict[str, str] = {

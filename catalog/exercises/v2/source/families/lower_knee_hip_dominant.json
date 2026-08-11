@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren inferior · quadriceps · knee hip dominant",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_cajon",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "benefits": [
-                "Bajas sentándote en el cajón y subes sin rebote: profundidad estable y fuerza de cuádriceps.",
-                "El maestro de la sentadilla; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+                "El maestro silencioso que enseña a bajar de verdad."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
               ],
-              "description": "Bajas sentándote en el cajón y subes sin rebote: profundidad estable y fuerza de cuádriceps. El maestro de la sentadilla.",
+              "description": "Con barra, la bajada se detiene sobre la superficie fija y la subida nace sin rebote. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -209,10 +209,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Bajas sentándote en el cajón y subes sin rebote: profundidad estable y fuerza de cuádriceps.",
-                    "El maestro de la sentadilla; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+                    "El maestro silencioso que enseña a bajar de verdad."
                   ],
-                  "description": "Bajas sentándote en el cajón y subes sin rebote: profundidad estable y fuerza de cuádriceps. El maestro de la sentadilla.",
+                  "description": "Con barra, la bajada se detiene sobre la superficie fija y la subida nace sin rebote. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
                   "technique": "Bajas sentándote en el cajón y subes sin rebote: profundidad estable y fuerza de cuádriceps. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Bajas sentándote en el cajón y subes sin rebote: profundidad estable y fuerza de cuádriceps. El maestro de la sentadilla."
                 },
@@ -227,7 +227,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla a Cajón",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "quads_sentadilla_cajon__default",
                   "definitionId": "quads_sentadilla_cajon",
                   "familyId": "lower_knee_hip_dominant",
@@ -301,11 +301,11 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_cajon__default",
-        "description": "Bajas sentándote en un cajón y te levantas sin rebote. Útil para aprender la profundidad y construir fuerza de cuádriceps con estabilidad.",
+        "description": "La Sentadilla a Cajón usa el cajón como referencia honesta de profundidad: se baja hasta tocarlo y se sube sin rebote, sin hacerse trampas con el rango. Se trabaja con la barra cargada en la espalda, sentando los glúteos en la superficie y levantándose desde esa pausa muerta. Los cuádriceps y los glúteos aprenden a producir fuerza desde el punto exacto de giro. El maestro silencioso que enseña a bajar de verdad.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -328,7 +328,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_sumo_frontal",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -339,16 +339,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "benefits": [
-                "Barra al frente con la postura amplia de sumo: torso erguido y piernas trabajando juntas.",
-                "Barra al frente con la postura amplia de sumo: torso erguido y piernas trabajando juntas."
+                "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+                "Una combinación que junta lo mejor de dos mundos exigentes."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
               ],
-              "description": "Barra al frente con la postura amplia de sumo: torso erguido y piernas trabajando juntas.",
+              "description": "Con barra, con la postura ancha y la carga al frente, el torso queda muy erguido. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -530,10 +530,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra al frente con la postura amplia de sumo: torso erguido y piernas trabajando juntas.",
-                    "Barra al frente con la postura amplia de sumo: torso erguido y piernas trabajando juntas."
+                    "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+                    "Una combinación que junta lo mejor de dos mundos exigentes."
                   ],
-                  "description": "Barra al frente con la postura amplia de sumo: torso erguido y piernas trabajando juntas.",
+                  "description": "Con barra, con la postura ancha y la carga al frente, el torso queda muy erguido. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
                   "technique": "Barra al frente con la postura amplia de sumo: torso erguido y piernas trabajando juntas. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Barra al frente con la postura amplia de sumo: torso erguido y piernas trabajando juntas. Barra al frente con la postura amplia de sumo: torso erguido y piernas trabajando juntas."
                 },
@@ -548,7 +548,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Sumo Frontal",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "quads_sentadilla_sumo_frontal__default",
                   "definitionId": "quads_sentadilla_sumo_frontal",
                   "familyId": "lower_knee_hip_dominant",
@@ -623,11 +623,11 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_sumo_frontal__default",
-        "description": "La barra al frente con la postura amplia de sumo. Torso erguido, cuádriceps y aductores trabajando juntos.",
+        "description": "La Sentadilla Sumo Frontal junta la postura ancha del sumo con la carga al frente: el torso se queda muy erguido y cuádriceps, aductores y glúteos trabajan sin que la espalda cargue el peso detrás. Se ejecuta con la barra en el estante delantero y los pies abiertos, descendiendo entre las caderas con el pecho orgulloso. El core se suma al esfuerzo sosteniendo la barra. Una combinación que junta lo mejor de dos mundos exigentes.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -650,7 +650,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_sumo_zercher",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -661,16 +661,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "benefits": [
-                "Barra en los codos con postura sumo: la combinación exigente que trabaja piernas y torso.",
-                "Barra en los codos con postura sumo: la combinación exigente que trabaja piernas y torso."
+                "La barra es la referencia para cargar el cuádriceps con peso de verdad.",
+                "Para quien ya domina las versiones por separado y busca un reto serio."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
               ],
-              "description": "Barra en los codos con postura sumo: la combinación exigente que trabaja piernas y torso.",
+              "description": "Con barra, con la postura ancha y el peso sujeto al pecho, el core trabaja a destajo. La barra es la referencia para cargar el cuádriceps con peso de verdad.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -852,10 +852,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra en los codos con postura sumo: la combinación exigente que trabaja piernas y torso.",
-                    "Barra en los codos con postura sumo: la combinación exigente que trabaja piernas y torso."
+                    "La barra es la referencia para cargar el cuádriceps con peso de verdad.",
+                    "Para quien ya domina las versiones por separado y busca un reto serio."
                   ],
-                  "description": "Barra en los codos con postura sumo: la combinación exigente que trabaja piernas y torso.",
+                  "description": "Con barra, con la postura ancha y el peso sujeto al pecho, el core trabaja a destajo. La barra es la referencia para cargar el cuádriceps con peso de verdad.",
                   "technique": "Barra en los codos con postura sumo: la combinación exigente que trabaja piernas y torso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Barra en los codos con postura sumo: la combinación exigente que trabaja piernas y torso. Barra en los codos con postura sumo: la combinación exigente que trabaja piernas y torso."
                 },
@@ -870,7 +870,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Sumo Zercher",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "quads_sentadilla_sumo_zercher__default",
                   "definitionId": "quads_sentadilla_sumo_zercher",
                   "familyId": "lower_knee_hip_dominant",
@@ -945,11 +945,11 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_sumo_zercher__default",
-        "description": "La barra en los codos con la postura amplia. La combinación de sumo y Zercher: exigente y con una demanda amplia.",
+        "description": "La Sentadilla Sumo Zercher mezcla la base ancha con la carga sujeta al pecho entre los brazos: el core trabaja a destajo mientras cuádriceps y aductores bajan y suben el peso. Se ejecuta sosteniendo la barra en el doblez de los brazos y las puntas hacia afuera, descendiendo con el torso firme. La suma de ambas exigencias la hace más dura que cualquiera de sus partes. Para quien ya domina las versiones por separado y busca un reto serio.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -968,7 +968,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

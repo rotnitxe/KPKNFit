@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Sentadilla Búlgara",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_bulgara_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Barra y pie trasero en el banco: la búlgara tradicional con carga.",
-                "El ejercicio unilateral más efectivo para las piernas."
+                "El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+                "El ejercicio unilateral más temido y más efectivo para las piernas."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Barra y pie trasero en el banco: la búlgara tradicional con carga. El ejercicio unilateral más efectivo para las piernas.",
+              "description": "Con barra, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -213,10 +213,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra y pie trasero en el banco: la búlgara tradicional con carga.",
-                    "El ejercicio unilateral más efectivo para las piernas."
+                    "El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+                    "El ejercicio unilateral más temido y más efectivo para las piernas."
                   ],
-                  "description": "Barra y pie trasero en el banco: la búlgara tradicional con carga. El ejercicio unilateral más efectivo para las piernas.",
+                  "description": "Con barra, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
                   "technique": "Barra y pie trasero en el banco: la búlgara tradicional con carga. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Barra y pie trasero en el banco: la búlgara tradicional con carga. El ejercicio unilateral más efectivo para las piernas."
                 },
@@ -231,7 +231,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "bulgarian_split_squat__barbell",
                   "definitionId": "bulgarian_split_squat",
                   "familyId": "unilateral_knee_dominant_bulgarian",
@@ -311,7 +311,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_bulgara_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -322,16 +322,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Smith y pie trasero en el banco: el guiado da estabilidad en la bajada.",
-                "Cómoda para cargar peso en la búlgara; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "En la Smith, la guía fija permite concentrar todo el esfuerzo del cuádriceps.",
+                "El ejercicio unilateral más temido y más efectivo para las piernas."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Smith y pie trasero en el banco: el guiado da estabilidad en la bajada. Cómoda para cargar peso en la búlgara.",
+              "description": "Con máquina Smith, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. En la Smith, la guía fija permite concentrar todo el esfuerzo del cuádriceps.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -512,10 +512,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith y pie trasero en el banco: el guiado da estabilidad en la bajada.",
-                    "Cómoda para cargar peso en la búlgara; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "En la Smith, la guía fija permite concentrar todo el esfuerzo del cuádriceps.",
+                    "El ejercicio unilateral más temido y más efectivo para las piernas."
                   ],
-                  "description": "Smith y pie trasero en el banco: el guiado da estabilidad en la bajada. Cómoda para cargar peso en la búlgara.",
+                  "description": "Con máquina Smith, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. En la Smith, la guía fija permite concentrar todo el esfuerzo del cuádriceps.",
                   "technique": "Smith y pie trasero en el banco: el guiado da estabilidad en la bajada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Smith y pie trasero en el banco: el guiado da estabilidad en la bajada. Cómoda para cargar peso en la búlgara."
                 },
@@ -530,7 +530,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "bulgarian_split_squat__smith_machine",
                   "definitionId": "bulgarian_split_squat",
                   "familyId": "unilateral_knee_dominant_bulgarian",
@@ -610,7 +610,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_bulgara_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -621,16 +621,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina de búlgara: el guiado y el apoyo fijo hacen el ejercicio más estable.",
-                "La opción cómoda para series exigentes; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+                "El ejercicio unilateral más temido y más efectivo para las piernas."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Máquina de búlgara: el guiado y el apoyo fijo hacen el ejercicio más estable. La opción cómoda para series exigentes.",
+              "description": "Con máquina, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -811,10 +811,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina de búlgara: el guiado y el apoyo fijo hacen el ejercicio más estable.",
-                    "La opción cómoda para series exigentes; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+                    "El ejercicio unilateral más temido y más efectivo para las piernas."
                   ],
-                  "description": "Máquina de búlgara: el guiado y el apoyo fijo hacen el ejercicio más estable. La opción cómoda para series exigentes.",
+                  "description": "Con máquina, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones.",
                   "technique": "Máquina de búlgara: el guiado y el apoyo fijo hacen el ejercicio más estable. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Máquina de búlgara: el guiado y el apoyo fijo hacen el ejercicio más estable. La opción cómoda para series exigentes."
                 },
@@ -829,7 +829,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "bulgarian_split_squat__machine",
                   "definitionId": "bulgarian_split_squat",
                   "familyId": "unilateral_knee_dominant_bulgarian",
@@ -909,7 +909,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_bulgara_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -920,16 +920,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuernas y pie trasero en el banco: la versión más equilibrada y utilizada.",
-                "Permite trabajar cada pierna por separado."
+                "Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
+                "El ejercicio unilateral más temido y más efectivo para las piernas."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Mancuernas y pie trasero en el banco: la versión más equilibrada y utilizada. Permite trabajar cada pierna por separado.",
+              "description": "Con mancuernas, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -1110,10 +1110,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas y pie trasero en el banco: la versión más equilibrada y utilizada.",
-                    "Permite trabajar cada pierna por separado."
+                    "Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
+                    "El ejercicio unilateral más temido y más efectivo para las piernas."
                   ],
-                  "description": "Mancuernas y pie trasero en el banco: la versión más equilibrada y utilizada. Permite trabajar cada pierna por separado.",
+                  "description": "Con mancuernas, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
                   "technique": "Mancuernas y pie trasero en el banco: la versión más equilibrada y utilizada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Mancuernas y pie trasero en el banco: la versión más equilibrada y utilizada. Permite trabajar cada pierna por separado."
                 },
@@ -1128,7 +1128,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "bulgarian_split_squat__dumbbells",
                   "definitionId": "bulgarian_split_squat",
                   "familyId": "unilateral_knee_dominant_bulgarian",
@@ -1208,7 +1208,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_bulgara_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1219,16 +1219,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea y pie trasero en el banco: la tensión constante se suma a la búlgara.",
-                "Variante precisa que mantiene el tensión durante todo el recorrido."
+                "El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                "El ejercicio unilateral más temido y más efectivo para las piernas."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Polea y pie trasero en el banco: la tensión constante se suma a la búlgara. Variante precisa que mantiene el tensión durante todo el recorrido.",
+              "description": "Con polea, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -1409,10 +1409,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea y pie trasero en el banco: la tensión constante se suma a la búlgara.",
-                    "Variante precisa que mantiene el tensión durante todo el recorrido."
+                    "El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                    "El ejercicio unilateral más temido y más efectivo para las piernas."
                   ],
-                  "description": "Polea y pie trasero en el banco: la tensión constante se suma a la búlgara. Variante precisa que mantiene el tensión durante todo el recorrido.",
+                  "description": "Con polea, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
                   "technique": "Polea y pie trasero en el banco: la tensión constante se suma a la búlgara. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Polea y pie trasero en el banco: la tensión constante se suma a la búlgara. Variante precisa que mantiene el tensión durante todo el recorrido."
                 },
@@ -1427,7 +1427,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "bulgarian_split_squat__cable",
                   "definitionId": "bulgarian_split_squat",
                   "familyId": "unilateral_knee_dominant_bulgarian",
@@ -1507,7 +1507,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_bulgara_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1518,16 +1518,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Kettlebell y pie trasero en el banco: el agarre suma trabajo al ejercicio.",
-                "Variante completa para pierna y antebrazos."
+                "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del cuádriceps.",
+                "El ejercicio unilateral más temido y más efectivo para las piernas."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Kettlebell y pie trasero en el banco: el agarre suma trabajo al ejercicio. Variante completa para pierna y antebrazos.",
+              "description": "Con kettlebell, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del cuádriceps.",
               "efc": 2.8,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -1708,10 +1708,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Kettlebell y pie trasero en el banco: el agarre suma trabajo al ejercicio.",
-                    "Variante completa para pierna y antebrazos."
+                    "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del cuádriceps.",
+                    "El ejercicio unilateral más temido y más efectivo para las piernas."
                   ],
-                  "description": "Kettlebell y pie trasero en el banco: el agarre suma trabajo al ejercicio. Variante completa para pierna y antebrazos.",
+                  "description": "Con kettlebell, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del cuádriceps.",
                   "technique": "Kettlebell y pie trasero en el banco: el agarre suma trabajo al ejercicio. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Kettlebell y pie trasero en el banco: el agarre suma trabajo al ejercicio. Variante completa para pierna y antebrazos."
                 },
@@ -1726,7 +1726,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "bulgarian_split_squat__kettlebell",
                   "definitionId": "bulgarian_split_squat",
                   "familyId": "unilateral_knee_dominant_bulgarian",
@@ -1802,11 +1802,11 @@
           }
         ],
         "defaultConfigurationId": "bulgarian_split_squat__dumbbells",
-        "description": "El pie trasero apoyado en un banco y bajando con la pierna delantera. El ejercicio unilateral más temido y más efectivo para las piernas.",
+        "description": "La Sentadilla Búlgara eleva el pie trasero al banco y convierte la zancada en estática y feroz: la pierna delantera baja y sube con todo el peso mientras la otra solo acompaña. Se ejecuta con mancuernas a los lados, descendiendo vertical sobre la pierna fija y subiendo sin empujar con la de atrás. Con barra a la espalda entra en otra categoría de sufrimiento. El ejercicio unilateral más temido y más efectivo para las piernas.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1832,7 +1832,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_bulgara_zercher",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1843,16 +1843,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "benefits": [
-                "Barra en los codos con el pie trasero en el banco: la búlgara con el torso trabajando de extra.",
-                "Exigente y con una demanda amplia; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+                "La búlgara más incómoda y una de las más completas que existen."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Barra en los codos con el pie trasero en el banco: la búlgara con el torso trabajando de extra. Exigente y con una demanda amplia.",
+              "description": "Con barra, con el pie trasero en el banco y la carga abrazada al torso, la bajada es vertical. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -2030,10 +2030,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra en los codos con el pie trasero en el banco: la búlgara con el torso trabajando de extra.",
-                    "Exigente y con una demanda amplia; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+                    "La búlgara más incómoda y una de las más completas que existen."
                   ],
-                  "description": "Barra en los codos con el pie trasero en el banco: la búlgara con el torso trabajando de extra. Exigente y con una demanda amplia.",
+                  "description": "Con barra, con el pie trasero en el banco y la carga abrazada al torso, la bajada es vertical. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
                   "technique": "Barra en los codos con el pie trasero en el banco: la búlgara con el torso trabajando de extra. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Barra en los codos con el pie trasero en el banco: la búlgara con el torso trabajando de extra. Exigente y con una demanda amplia."
                 },
@@ -2048,7 +2048,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara Zercher",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "bulgarian_zercher__barbell__zercher",
                   "definitionId": "bulgarian_zercher",
                   "familyId": "unilateral_knee_dominant_bulgarian",
@@ -2123,11 +2123,11 @@
           }
         ],
         "defaultConfigurationId": "bulgarian_zercher__barbell__zercher",
-        "description": "La búlgara con la carga en los codos frente al pecho. El torso trabaja de extra mientras la pierna delantera hace el trabajo pesado.",
+        "description": "La Sentadilla Búlgara Zercher sube la apuesta de la búlgara: la pierna trasera apoyada en el banco y la carga abrazada contra el torso. El cuádriceps de la pierna delantera trabaja mientras el abdomen sostiene el peso sin dejarlo caer. La bajada es vertical y la subida pide el pecho orgulloso y los codos firmes. La búlgara más incómoda y una de las más completas que existen.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -2147,7 +2147,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

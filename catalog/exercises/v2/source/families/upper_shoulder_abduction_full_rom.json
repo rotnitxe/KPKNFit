@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren superior · deltoid · shoulder abduction full rom",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_lu_raises",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento.",
-                "Un ejercicio poco común que cuida y fortalece el hombro."
+                "Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
+                "Un movimiento poco común que alcanza zonas del hombro que los gestos normales no tocan."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
               ],
-              "description": "Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento. Un ejercicio poco común que cuida y fortalece el hombro.",
+              "description": "Con mancuernas, los brazos suben formando primero una L y luego una U, con rotación externa del hombro. Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -205,10 +205,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento.",
-                    "Un ejercicio poco común que cuida y fortalece el hombro."
+                    "Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
+                    "Un movimiento poco común que alcanza zonas del hombro que los gestos normales no tocan."
                   ],
-                  "description": "Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento. Un ejercicio poco común que cuida y fortalece el hombro.",
+                  "description": "Con mancuernas, los brazos suben formando primero una L y luego una U, con rotación externa del hombro. Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
                   "technique": "Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento. Un ejercicio poco común que cuida y fortalece el hombro."
                 },
@@ -223,7 +223,7 @@
                 },
                 "identity": {
                   "canonicalName": "LU-Raises",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "deltoides_lu_raises__default",
                   "definitionId": "deltoides_lu_raises",
                   "familyId": "upper_shoulder_abduction_full_rom",
@@ -296,11 +296,11 @@
           }
         ],
         "defaultConfigurationId": "deltoides_lu_raises__default",
-        "description": "Subes los brazos con los codos doblados en forma de L y U. Un movimiento poco común que trabaja el manguito rotador y el hombro.",
+        "description": "Los LU-Raises combinan una elevación lateral con una rotación externa del hombro: las mancuernas suben formando primero una L y luego una U. Se ejecutan con los codos en el aire y la rotación controlada en cada fase del gesto. El deltoide posterior y los rotadores externos comparten el trabajo. Un movimiento poco común que alcanza zonas del hombro que los gestos normales no tocan.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -319,7 +319,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren inferior · forearm · wrist flexion extension",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_enrollamiento_muneca_rodillo",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Rodillo con cuerda y peso: enrollas la cuerda girando las muñecas hasta arriba y bajas lento.",
-                "El ejercicio de la tradicional; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Con el rodillo, cada giro exprime el agarre un poco más.",
+                "El agarre que forjaba a los levantadores de antes, incómodo y eficaz."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
               ],
-              "description": "Rodillo con cuerda y peso: enrollas la cuerda girando las muñecas hasta arriba y bajas lento. El ejercicio de la tradicional.",
+              "description": "Con rodillo de muñecas, la cuerda se enrolla en el rodillo giro a giro hasta subir la carga colgante. Con el rodillo, cada giro exprime el agarre un poco más.",
               "efc": 2.0,
               "equipmentId": "wrist_roller",
               "executionCues": [
@@ -180,10 +180,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Rodillo con cuerda y peso: enrollas la cuerda girando las muñecas hasta arriba y bajas lento.",
-                    "El ejercicio de la tradicional; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Con el rodillo, cada giro exprime el agarre un poco más.",
+                    "El agarre que forjaba a los levantadores de antes, incómodo y eficaz."
                   ],
-                  "description": "Rodillo con cuerda y peso: enrollas la cuerda girando las muñecas hasta arriba y bajas lento. El ejercicio de la tradicional.",
+                  "description": "Con rodillo de muñecas, la cuerda se enrolla en el rodillo giro a giro hasta subir la carga colgante. Con el rodillo, cada giro exprime el agarre un poco más.",
                   "technique": "Rodillo con cuerda y peso: enrollas la cuerda girando las muñecas hasta arriba y bajas lento. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Rodillo con cuerda y peso: enrollas la cuerda girando las muñecas hasta arriba y bajas lento. El ejercicio de la tradicional."
                 },
@@ -198,7 +198,7 @@
                 },
                 "identity": {
                   "canonicalName": "Enrollamiento de Muñeca con Rodillo y Cuerda",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "forearms_enrollamiento_muneca_rodillo__default",
                   "definitionId": "forearms_enrollamiento_muneca_rodillo",
                   "familyId": "lower_wrist_flexion_extension",
@@ -268,11 +268,11 @@
           }
         ],
         "defaultConfigurationId": "forearms_enrollamiento_muneca_rodillo__default",
-        "description": "Enrollamiento de muñeca con rodillo: enrollas y desenrollas una cuerda con peso girando la muñeca. El ejercicio de la tradicional para antebrazos exigentes.",
+        "description": "El Enrollamiento de Muñeca con Rodillo y Cuerda es el ejercicio de antebrazo de la vieja escuela: una cuerda con peso se enrolla en el rodillo giro a giro hasta subir la carga. Se ejecuta con los brazos al frente, enrollando hacia arriba y desenrollando con la misma calma. Flexores y extensores trabajan según el sentido del giro. El agarre que forjaba a los levantadores de antes, incómodo y eficaz.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -290,7 +290,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

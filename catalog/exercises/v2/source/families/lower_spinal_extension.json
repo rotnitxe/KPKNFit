@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren inferior · erector spinae · spinal extension",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_extension_lumbar",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "En el banco de hiperextensiones: bajas el torso y subes con la espalda trabajando.",
-                "El ejercicio base para una espalda fuerte."
+                "En la máquina, la trayectoria guiada concentra todo el esfuerzo de los erectores.",
+                "La base de una zona lumbar fuerte y resistente al día a día."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Buscar altura con hiperextensión, mover solo la zona lumbar o perder el apoyo."
               ],
-              "description": "En el banco de hiperextensiones: bajas el torso y subes con la espalda trabajando. El ejercicio base para una espalda fuerte.",
+              "description": "Con máquina, con las piernas fijas en el soporte, el torso baja y sube extendiendo la columna. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los erectores.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -182,10 +182,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "En el banco de hiperextensiones: bajas el torso y subes con la espalda trabajando.",
-                    "El ejercicio base para una espalda fuerte."
+                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo de los erectores.",
+                    "La base de una zona lumbar fuerte y resistente al día a día."
                   ],
-                  "description": "En el banco de hiperextensiones: bajas el torso y subes con la espalda trabajando. El ejercicio base para una espalda fuerte.",
+                  "description": "Con máquina, con las piernas fijas en el soporte, el torso baja y sube extendiendo la columna. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los erectores.",
                   "technique": "En el banco de hiperextensiones: bajas el torso y subes con la espalda trabajando. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "En el banco de hiperextensiones: bajas el torso y subes con la espalda trabajando. El ejercicio base para una espalda fuerte."
                 },
@@ -200,7 +200,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hiperextensiones de Espalda Baja",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "back_extension_lumbar__default",
                   "definitionId": "back_extension_lumbar",
                   "familyId": "lower_spinal_extension",
@@ -274,11 +274,11 @@
           }
         ],
         "defaultConfigurationId": "back_extension_lumbar__default",
-        "description": "En el banco, bajas el torso y subes con la espalda trabajando. El ejercicio base para una espalda fuerte y sin molestias.",
+        "description": "Las Hiperextensiones de Espalda Baja usan el banco romano para extender la columna contra la gravedad: los erectores suben y bajan el torso con las piernas fijas en el soporte. Se ejecutan bajando el tronco con la espalda neutra y regresando hasta la línea del cuerpo, sin pasarse de altura. La máquina o el banco dedicado es todo lo que hace falta. La base de una zona lumbar fuerte y resistente al día a día.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -302,7 +302,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_superman_suelo",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -313,16 +313,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Boca abajo en el suelo: levantas brazos y piernas a la vez y aguantas un momento.",
-                "Espalda baja y core trabajando sin máquinas."
+                "Los erectores trabajan con el peso corporal como única carga.",
+                "El punto de partida perfecto para cuidar la espalda antes de atreverse con el banco romano."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Buscar altura con hiperextensión, mover solo la zona lumbar o perder el apoyo."
               ],
-              "description": "Boca abajo en el suelo: levantas brazos y piernas a la vez y aguantas un momento. Espalda baja y core trabajando sin máquinas.",
+              "description": "Con peso corporal, boca abajo, brazos y piernas se elevan a la vez y se sostienen unos segundos. Los erectores trabajan con el peso corporal como única carga.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -477,10 +477,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Boca abajo en el suelo: levantas brazos y piernas a la vez y aguantas un momento.",
-                    "Espalda baja y core trabajando sin máquinas."
+                    "Los erectores trabajan con el peso corporal como única carga.",
+                    "El punto de partida perfecto para cuidar la espalda antes de atreverse con el banco romano."
                   ],
-                  "description": "Boca abajo en el suelo: levantas brazos y piernas a la vez y aguantas un momento. Espalda baja y core trabajando sin máquinas.",
+                  "description": "Con peso corporal, boca abajo, brazos y piernas se elevan a la vez y se sostienen unos segundos. Los erectores trabajan con el peso corporal como única carga.",
                   "technique": "Boca abajo en el suelo: levantas brazos y piernas a la vez y aguantas un momento. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Boca abajo en el suelo: levantas brazos y piernas a la vez y aguantas un momento. Espalda baja y core trabajando sin máquinas."
                 },
@@ -495,7 +495,7 @@
                 },
                 "identity": {
                   "canonicalName": "Superman en Suelo",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "back_superman_suelo__default",
                   "definitionId": "back_superman_suelo",
                   "familyId": "lower_spinal_extension",
@@ -568,11 +568,11 @@
           }
         ],
         "defaultConfigurationId": "back_superman_suelo__default",
-        "description": "Superman en el suelo: boca abajo, levantas brazos y piernas del piso a la vez. La espalda baja trabaja sin máquinas y el core también aumenta su tensión.",
+        "description": "El Superman en Suelo eleva brazos y piernas a la vez estando boca abajo: los erectores sostienen el arco unos segundos y regresan al suelo. Se ejecuta sin material, con pausas arriba y sin golpear el suelo al bajar. La espalda baja trabaja con el propio peso del cuerpo como carga. El punto de partida perfecto para cuidar la espalda antes de atreverse con el banco romano.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -594,7 +594,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_extension_lumbar",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -605,16 +605,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "benefits": [
-                "Carga en los codos en el banco a 45: subes el torso con la espalda baja haciendo el trabajo.",
-                "Exigente y controlada; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "La barra es la referencia para cargar los erectores con peso de verdad.",
+                "Una carga distinta para el banco de 45 grados, con el tronco entero comprometido."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Buscar altura con hiperextensión, mover solo la zona lumbar o perder el apoyo."
               ],
-              "description": "Carga en los codos en el banco a 45: subes el torso con la espalda baja haciendo el trabajo. Exigente y controlada.",
+              "description": "Con barra, sobre el banco de 45 grados con la carga sujeta entre los brazos, el torso pivota sobre las caderas. La barra es la referencia para cargar los erectores con peso de verdad.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -764,10 +764,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Carga en los codos en el banco a 45: subes el torso con la espalda baja haciendo el trabajo.",
-                    "Exigente y controlada; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "La barra es la referencia para cargar los erectores con peso de verdad.",
+                    "Una carga distinta para el banco de 45 grados, con el tronco entero comprometido."
                   ],
-                  "description": "Carga en los codos en el banco a 45: subes el torso con la espalda baja haciendo el trabajo. Exigente y controlada.",
+                  "description": "Con barra, sobre el banco de 45 grados con la carga sujeta entre los brazos, el torso pivota sobre las caderas. La barra es la referencia para cargar los erectores con peso de verdad.",
                   "technique": "Carga en los codos en el banco a 45: subes el torso con la espalda baja haciendo el trabajo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Carga en los codos en el banco a 45: subes el torso con la espalda baja haciendo el trabajo. Exigente y controlada."
                 },
@@ -782,7 +782,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hiperextensión a 45 Zercher para Espalda Baja",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "back_hiperextension_45_zercher_espalda_baja__default",
                   "definitionId": "back_hiperextension_45_zercher_espalda_baja",
                   "familyId": "lower_spinal_extension",
@@ -856,11 +856,11 @@
           }
         ],
         "defaultConfigurationId": "back_hiperextension_45_zercher_espalda_baja__default",
-        "description": "La carga en los codos mientras subes el torso en el banco inclinado. Exigente y controlada.",
+        "description": "La Hiperextensión a 45 Zercher para Espalda Baja añade la barra abrazada al torso en el banco inclinado: los erectores extienden la cadera y la columna con la carga pegada al pecho. Se ejecuta bajando el tronco y subiendo con la espalda firme y los brazos sujetando sin ayudar. La posición zercher añade trabajo de core al del lumbar. Una carga distinta para el banco de 45 grados, con el tronco entero comprometido.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -880,7 +880,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

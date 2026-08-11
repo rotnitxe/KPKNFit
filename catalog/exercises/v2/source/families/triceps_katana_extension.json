@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Extensión Katana",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#triceps_katana_polea",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea a un lado con ambas manos: tiras en diagonal abriendo como una katana.",
-                "El tríceps aumenta su tensión desde un ángulo moderno."
+                "El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. A dos lados, el trabajo del tríceps admite más carga total.",
+                "Elegante y distinto, con una congestión final sorprendente."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
               ],
-              "description": "Polea a un lado con ambas manos: tiras en diagonal abriendo como una katana. El tríceps aumenta su tensión desde un ángulo moderno.",
+              "description": "Con polea y a dos lados, de pie, el codo se extiende llevando la mano hacia atrás y arriba en un arco de desenvaine. El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. A dos lados, el trabajo del tríceps admite más carga total.",
               "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
@@ -186,10 +186,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea a un lado con ambas manos: tiras en diagonal abriendo como una katana.",
-                    "El tríceps aumenta su tensión desde un ángulo moderno."
+                    "El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. A dos lados, el trabajo del tríceps admite más carga total.",
+                    "Elegante y distinto, con una congestión final sorprendente."
                   ],
-                  "description": "Polea a un lado con ambas manos: tiras en diagonal abriendo como una katana. El tríceps aumenta su tensión desde un ángulo moderno.",
+                  "description": "Con polea y a dos lados, de pie, el codo se extiende llevando la mano hacia atrás y arriba en un arco de desenvaine. El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. A dos lados, el trabajo del tríceps admite más carga total.",
                   "technique": "Polea a un lado con ambas manos: tiras en diagonal abriendo como una katana. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
                   "variantRationale": "Polea a un lado con ambas manos: tiras en diagonal abriendo como una katana. El tríceps aumenta su tensión desde un ángulo moderno."
                 },
@@ -204,7 +204,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión Katana",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "katana_extension__cable__bilateral",
                   "definitionId": "katana_extension",
                   "familyId": "triceps_katana_extension",
@@ -284,7 +284,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#triceps_katana_polea",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -295,16 +295,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea con una mano en diagonal: cada tríceps trabaja por separado.",
-                "Útil para centrarse en un brazo a la vez."
+                "Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del tríceps se aísla y las asimetrías quedan al descubierto.",
+                "Elegante y distinto, con una congestión final sorprendente."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
               ],
-              "description": "Polea con una mano en diagonal: cada tríceps trabaja por separado. Útil para centrarse en un brazo a la vez.",
+              "description": "Con polea y a un lado, de pie, el codo se extiende llevando la mano hacia atrás y arriba en un arco de desenvaine. Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del tríceps se aísla y las asimetrías quedan al descubierto.",
               "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
@@ -458,10 +458,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea con una mano en diagonal: cada tríceps trabaja por separado.",
-                    "Útil para centrarse en un brazo a la vez."
+                    "Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del tríceps se aísla y las asimetrías quedan al descubierto.",
+                    "Elegante y distinto, con una congestión final sorprendente."
                   ],
-                  "description": "Polea con una mano en diagonal: cada tríceps trabaja por separado. Útil para centrarse en un brazo a la vez.",
+                  "description": "Con polea y a un lado, de pie, el codo se extiende llevando la mano hacia atrás y arriba en un arco de desenvaine. Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del tríceps se aísla y las asimetrías quedan al descubierto.",
                   "technique": "Polea con una mano en diagonal: cada tríceps trabaja por separado. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
                   "variantRationale": "Polea con una mano en diagonal: cada tríceps trabaja por separado. Útil para centrarse en un brazo a la vez."
                 },
@@ -476,7 +476,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión Katana",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "katana_extension__cable__unilateral",
                   "definitionId": "katana_extension",
                   "familyId": "triceps_katana_extension",
@@ -556,7 +556,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#triceps_katana_polea",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -567,16 +567,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Banda anclada a un lado con ambas manos: la resistencia crece al estirar en diagonal.",
-                "La versión portátil de la katana; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Con la banda, la resistencia crece a medida que avanza el trabajo del tríceps. Con ambos lados a la vez, el trabajo del tríceps se reparte.",
+                "Elegante y distinto, con una congestión final sorprendente."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
               ],
-              "description": "Banda anclada a un lado con ambas manos: la resistencia crece al estirar en diagonal. La versión portátil de la katana.",
+              "description": "Con banda elástica y a dos lados, de pie, el codo se extiende llevando la mano hacia atrás y arriba en un arco de desenvaine. Con la banda, la resistencia crece a medida que avanza el trabajo del tríceps. Con ambos lados a la vez, el trabajo del tríceps se reparte.",
               "efc": 2.2,
               "equipmentId": "band",
               "executionCues": [
@@ -730,10 +730,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Banda anclada a un lado con ambas manos: la resistencia crece al estirar en diagonal.",
-                    "La versión portátil de la katana; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Con la banda, la resistencia crece a medida que avanza el trabajo del tríceps. Con ambos lados a la vez, el trabajo del tríceps se reparte.",
+                    "Elegante y distinto, con una congestión final sorprendente."
                   ],
-                  "description": "Banda anclada a un lado con ambas manos: la resistencia crece al estirar en diagonal. La versión portátil de la katana.",
+                  "description": "Con banda elástica y a dos lados, de pie, el codo se extiende llevando la mano hacia atrás y arriba en un arco de desenvaine. Con la banda, la resistencia crece a medida que avanza el trabajo del tríceps. Con ambos lados a la vez, el trabajo del tríceps se reparte.",
                   "technique": "Banda anclada a un lado con ambas manos: la resistencia crece al estirar en diagonal. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
                   "variantRationale": "Banda anclada a un lado con ambas manos: la resistencia crece al estirar en diagonal. La versión portátil de la katana."
                 },
@@ -748,7 +748,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión Katana",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "katana_extension__band__bilateral",
                   "definitionId": "katana_extension",
                   "familyId": "triceps_katana_extension",
@@ -824,11 +824,11 @@
           }
         ],
         "defaultConfigurationId": "katana_extension__cable__bilateral",
-        "description": "La polea a un lado y tiras en diagonal abriendo el brazo como una katana. Un movimiento moderno y exigente que aumenta la tensión de el tríceps desde otro ángulo.",
+        "description": "La Extensión Katana desenfunda el brazo como una espada: de pie ante la polea, el codo se extiende llevando la mano hacia atrás y arriba en un arco de desenvaine. Se ejecuta a un brazo, con el torso ligeramente girado y la trayectoria limpia de principio a fin. Con banda el mismo gesto se monta en cualquier parte. Elegante y distinto, con una congestión final sorprendente.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -851,7 +851,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

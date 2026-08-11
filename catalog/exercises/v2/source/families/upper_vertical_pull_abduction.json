@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren superior · deltoid · vertical pull abduction",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_remo_menton",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Barra pegada al cuerpo hasta la barbilla: trapecios y hombros trabajando juntos.",
-                "Tradicional de los hombros, con el agarre medio para cuidar la articulación."
+                "La barra es la referencia para cargar el deltoide con peso de verdad.",
+                "Un tirón vertical que ensancha el hombro, siempre con un rango cómodo para la articulación."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Barra pegada al cuerpo hasta la barbilla: trapecios y hombros trabajando juntos. Tradicional de los hombros, con el agarre medio para cuidar la articulación.",
+              "description": "Con barra, la carga sube pegada al cuerpo hasta la barbilla con los codos liderando el camino. La barra es la referencia para cargar el deltoide con peso de verdad.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -212,10 +212,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra pegada al cuerpo hasta la barbilla: trapecios y hombros trabajando juntos.",
-                    "Tradicional de los hombros, con el agarre medio para cuidar la articulación."
+                    "La barra es la referencia para cargar el deltoide con peso de verdad.",
+                    "Un tirón vertical que ensancha el hombro, siempre con un rango cómodo para la articulación."
                   ],
-                  "description": "Barra pegada al cuerpo hasta la barbilla: trapecios y hombros trabajando juntos. Tradicional de los hombros, con el agarre medio para cuidar la articulación.",
+                  "description": "Con barra, la carga sube pegada al cuerpo hasta la barbilla con los codos liderando el camino. La barra es la referencia para cargar el deltoide con peso de verdad.",
                   "technique": "Barra pegada al cuerpo hasta la barbilla: trapecios y hombros trabajando juntos. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Barra pegada al cuerpo hasta la barbilla: trapecios y hombros trabajando juntos. Tradicional de los hombros, con el agarre medio para cuidar la articulación."
                 },
@@ -230,7 +230,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo al Mentón",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "deltoides_remo_menton__default",
                   "definitionId": "deltoides_remo_menton",
                   "familyId": "upper_vertical_pull_abduction",
@@ -304,11 +304,11 @@
           }
         ],
         "defaultConfigurationId": "deltoides_remo_menton__default",
-        "description": "Subes la barra pegada al cuerpo hasta la barbilla. Trapecios y hombros trabajando juntos, con cuidado de no forzar el hombro.",
+        "description": "El Remo al Mentón sube la barra pegada al cuerpo hasta la altura de la barbilla: el deltoide lateral y el trapecio tiran con los codos liderando el camino. Se ejecuta con las manos al ancho de los hombros o menos, elevando con los codos siempre por encima de las manos. El bíceps asiste en la tracción. Un tirón vertical que ensancha el hombro, siempre con un rango cómodo para la articulación.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -327,7 +327,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

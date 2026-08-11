@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Core · abdominals · lateral trunk flexion",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#core_inclinacion_lateral",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "De pie o sentado, te inclinas hacia el lado cargando el oblicuo.",
-                "Movimiento corto, sensación larga: útil para terminar el día de abdomen."
+                "El abdomen trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                "Un detalle de cintura que solo funciona con cargas pacientes y técnica limpia."
               ],
               "bodyRegion": "CORE",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Girar en vez de inclinar, desplazar la pelvis o acelerar la vuelta."
               ],
-              "description": "De pie o sentado, te inclinas hacia el lado cargando el oblicuo. Movimiento corto, sensación larga: útil para terminar el día de abdomen.",
+              "description": "Con mancuernas, el tronco se inclina de lado con la carga en una mano y regresa a la vertical sin girar. El abdomen trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -175,10 +175,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "De pie o sentado, te inclinas hacia el lado cargando el oblicuo.",
-                    "Movimiento corto, sensación larga: útil para terminar el día de abdomen."
+                    "El abdomen trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                    "Un detalle de cintura que solo funciona con cargas pacientes y técnica limpia."
                   ],
-                  "description": "De pie o sentado, te inclinas hacia el lado cargando el oblicuo. Movimiento corto, sensación larga: útil para terminar el día de abdomen.",
+                  "description": "Con mancuernas, el tronco se inclina de lado con la carga en una mano y regresa a la vertical sin girar. El abdomen trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
                   "technique": "De pie o sentado, te inclinas hacia el lado cargando el oblicuo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "De pie o sentado, te inclinas hacia el lado cargando el oblicuo. Movimiento corto, sensación larga: útil para terminar el día de abdomen."
                 },
@@ -193,7 +193,7 @@
                 },
                 "identity": {
                   "canonicalName": "Inclinación Lateral",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "core_inclinacion_lateral__default",
                   "definitionId": "core_inclinacion_lateral",
                   "familyId": "core_lateral_trunk_flexion",
@@ -264,11 +264,11 @@
           }
         ],
         "defaultConfigurationId": "core_inclinacion_lateral__default",
-        "description": "Inclinación del tronco: te doblas hacia un lado y vuelves, trabajando los oblicuos de forma aislada. El movimiento pequeño que define la cintura cuando se hace con paciencia.",
+        "description": "La Inclinación Lateral concentra el esfuerzo en los oblicuos con un gesto mínimo: el tronco se dobla de lado cargando una mancuerna y regresa a la vertical. Se ejecuta de pie con el peso en una sola mano, inclinándose sin girar el torso y volviendo despacio. El abdomen trabaja en su versión más lateral. Un detalle de cintura que solo funciona con cargas pacientes y técnica limpia.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -287,7 +287,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

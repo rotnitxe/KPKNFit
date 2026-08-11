@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Zancada Caminando",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_zancada_caminando",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Barra en la espalda y pasos al frente: cada zancada exige frenar, estabilizar y volver a empujar sin perder la línea.",
-                "La carga bilateral permite convertir el desplazamiento en un trabajo exigente de piernas y glúteos."
+                "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+                "El quemador de piernas que también entrena el corazón."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Barra en la espalda y pasos al frente: cada zancada exige frenar, estabilizar y volver a empujar sin perder la línea. La carga bilateral permite convertir el desplazamiento en un trabajo exigente de piernas y glúteos.",
+              "description": "Con barra, cada paso es una zancada completa que avanza sin pausa por la sala. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -219,10 +219,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra en la espalda y pasos al frente: cada zancada exige frenar, estabilizar y volver a empujar sin perder la línea.",
-                    "La carga bilateral permite convertir el desplazamiento en un trabajo exigente de piernas y glúteos."
+                    "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+                    "El quemador de piernas que también entrena el corazón."
                   ],
-                  "description": "Barra en la espalda y pasos al frente: cada zancada exige frenar, estabilizar y volver a empujar sin perder la línea. La carga bilateral permite convertir el desplazamiento en un trabajo exigente de piernas y glúteos.",
+                  "description": "Con barra, cada paso es una zancada completa que avanza sin pausa por la sala. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
                   "technique": "Barra en la espalda y pasos al frente: cada zancada exige frenar, estabilizar y volver a empujar sin perder la línea. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Barra en la espalda y pasos al frente: cada zancada exige frenar, estabilizar y volver a empujar sin perder la línea. La carga bilateral permite convertir el desplazamiento en un trabajo exigente de piernas y glúteos."
                 },
@@ -237,7 +237,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Caminando",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "walking_lunge__barbell",
                   "definitionId": "walking_lunge",
                   "familyId": "lower_walking_lunge",
@@ -319,7 +319,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_zancada_caminando",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -330,16 +330,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Smith y pasos al frente: el guiado da estabilidad mientras avanzas.",
-                "Cómoda para caminar con carga sin miedo."
+                "El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+                "El quemador de piernas que también entrena el corazón."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Smith y pasos al frente: el guiado da estabilidad mientras avanzas. Cómoda para caminar con carga sin miedo.",
+              "description": "Con máquina Smith, cada paso es una zancada completa que avanza sin pausa por la sala. El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -526,10 +526,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith y pasos al frente: el guiado da estabilidad mientras avanzas.",
-                    "Cómoda para caminar con carga sin miedo."
+                    "El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+                    "El quemador de piernas que también entrena el corazón."
                   ],
-                  "description": "Smith y pasos al frente: el guiado da estabilidad mientras avanzas. Cómoda para caminar con carga sin miedo.",
+                  "description": "Con máquina Smith, cada paso es una zancada completa que avanza sin pausa por la sala. El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
                   "technique": "Smith y pasos al frente: el guiado da estabilidad mientras avanzas. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Smith y pasos al frente: el guiado da estabilidad mientras avanzas. Cómoda para caminar con carga sin miedo."
                 },
@@ -544,7 +544,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Caminando",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "walking_lunge__smith_machine",
                   "definitionId": "walking_lunge",
                   "familyId": "lower_walking_lunge",
@@ -626,7 +626,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_zancada_caminando",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -637,16 +637,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuernas y pasos al frente: la versión más equilibrada para caminar con zancadas.",
-                "Una variante utilizada para series largas."
+                "El cuádriceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                "El quemador de piernas que también entrena el corazón."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Mancuernas y pasos al frente: la versión más equilibrada para caminar con zancadas. Una variante utilizada para series largas.",
+              "description": "Con mancuernas, cada paso es una zancada completa que avanza sin pausa por la sala. El cuádriceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -833,10 +833,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas y pasos al frente: la versión más equilibrada para caminar con zancadas.",
-                    "Una variante utilizada para series largas."
+                    "El cuádriceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                    "El quemador de piernas que también entrena el corazón."
                   ],
-                  "description": "Mancuernas y pasos al frente: la versión más equilibrada para caminar con zancadas. Una variante utilizada para series largas.",
+                  "description": "Con mancuernas, cada paso es una zancada completa que avanza sin pausa por la sala. El cuádriceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
                   "technique": "Mancuernas y pasos al frente: la versión más equilibrada para caminar con zancadas. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Mancuernas y pasos al frente: la versión más equilibrada para caminar con zancadas. Una variante utilizada para series largas."
                 },
@@ -851,7 +851,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Caminando",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "walking_lunge__dumbbells",
                   "definitionId": "walking_lunge",
                   "familyId": "lower_walking_lunge",
@@ -933,7 +933,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_zancada_caminando",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -944,16 +944,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Kettlebells y pasos al frente: el agarre trabaja mientras las piernas avanzan.",
-                "Variante completa para todo el cuerpo; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del cuádriceps.",
+                "El quemador de piernas que también entrena el corazón."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Kettlebells y pasos al frente: el agarre trabaja mientras las piernas avanzan. Variante completa para todo el cuerpo.",
+              "description": "Con kettlebell, cada paso es una zancada completa que avanza sin pausa por la sala. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del cuádriceps.",
               "efc": 2.8,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -1140,10 +1140,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Kettlebells y pasos al frente: el agarre trabaja mientras las piernas avanzan.",
-                    "Variante completa para todo el cuerpo; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del cuádriceps.",
+                    "El quemador de piernas que también entrena el corazón."
                   ],
-                  "description": "Kettlebells y pasos al frente: el agarre trabaja mientras las piernas avanzan. Variante completa para todo el cuerpo.",
+                  "description": "Con kettlebell, cada paso es una zancada completa que avanza sin pausa por la sala. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del cuádriceps.",
                   "technique": "Kettlebells y pasos al frente: el agarre trabaja mientras las piernas avanzan. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Kettlebells y pasos al frente: el agarre trabaja mientras las piernas avanzan. Variante completa para todo el cuerpo."
                 },
@@ -1158,7 +1158,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Caminando",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "walking_lunge__kettlebell",
                   "definitionId": "walking_lunge",
                   "familyId": "lower_walking_lunge",
@@ -1240,7 +1240,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_zancada_caminando",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1251,16 +1251,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea y pasos al frente: la tensión constante hace cada zancada más exigente.",
-                "Una caminata que se recuerda al día siguiente."
+                "El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                "El quemador de piernas que también entrena el corazón."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Polea y pasos al frente: la tensión constante hace cada zancada más exigente. Una caminata que se recuerda al día siguiente.",
+              "description": "Con polea, cada paso es una zancada completa que avanza sin pausa por la sala. El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -1447,10 +1447,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea y pasos al frente: la tensión constante hace cada zancada más exigente.",
-                    "Una caminata que se recuerda al día siguiente."
+                    "El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                    "El quemador de piernas que también entrena el corazón."
                   ],
-                  "description": "Polea y pasos al frente: la tensión constante hace cada zancada más exigente. Una caminata que se recuerda al día siguiente.",
+                  "description": "Con polea, cada paso es una zancada completa que avanza sin pausa por la sala. El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
                   "technique": "Polea y pasos al frente: la tensión constante hace cada zancada más exigente. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Polea y pasos al frente: la tensión constante hace cada zancada más exigente. Una caminata que se recuerda al día siguiente."
                 },
@@ -1465,7 +1465,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Caminando",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "walking_lunge__cable",
                   "definitionId": "walking_lunge",
                   "familyId": "lower_walking_lunge",
@@ -1543,11 +1543,11 @@
           }
         ],
         "defaultConfigurationId": "walking_lunge__dumbbells",
-        "description": "Das pasos al frente sin parar, avanzando por el gimnasio. Piernas, glúteos y una resistencia mental que se entrena a la vez.",
+        "description": "La Zancada Caminando encadena pasos largos sin pausa: cada zancada alimenta la siguiente y las piernas acumulan trabajo mientras el cuerpo avanza por la sala. Se ejecuta alternando piernas con el torso erguido, sin detenerse entre pasos y con la zancada completa en cada apoyo. Glúteos y cuádriceps arden a los veinte metros. Con barra o mancuernas el desplazamiento se vuelve una prueba de resistencia seria. El quemador de piernas que también entrena el corazón.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1569,7 +1569,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

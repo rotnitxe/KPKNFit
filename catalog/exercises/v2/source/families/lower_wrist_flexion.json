@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Curl de muñeca sentado",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_curl_muneca_de_pie_tras_espalda_barra",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "benefits": [
-                "Barra tras la espalda con los antebrazos extendidos: flexionas la muñeca contra la barra.",
-                "Estiramiento y trabajo profundo del antebrazo."
+                "La barra es la referencia para cargar el antebrazo con peso de verdad.",
+                "Un gesto antiguo que construye muñecas de acero como siempre."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
               ],
-              "description": "Barra tras la espalda con los antebrazos extendidos: flexionas la muñeca contra la barra. Estiramiento y trabajo profundo del antebrazo.",
+              "description": "Con barra, con la barra a la altura de los glúteos tras la espalda, las muñecas la enrollan hacia arriba. La barra es la referencia para cargar el antebrazo con peso de verdad.",
               "efc": 2.0,
               "equipmentId": "barbell",
               "executionCues": [
@@ -186,10 +186,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra tras la espalda con los antebrazos extendidos: flexionas la muñeca contra la barra.",
-                    "Estiramiento y trabajo profundo del antebrazo."
+                    "La barra es la referencia para cargar el antebrazo con peso de verdad.",
+                    "Un gesto antiguo que construye muñecas de acero como siempre."
                   ],
-                  "description": "Barra tras la espalda con los antebrazos extendidos: flexionas la muñeca contra la barra. Estiramiento y trabajo profundo del antebrazo.",
+                  "description": "Con barra, con la barra a la altura de los glúteos tras la espalda, las muñecas la enrollan hacia arriba. La barra es la referencia para cargar el antebrazo con peso de verdad.",
                   "technique": "Barra tras la espalda con los antebrazos extendidos: flexionas la muñeca contra la barra. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor.",
                   "variantRationale": "Barra tras la espalda con los antebrazos extendidos: flexionas la muñeca contra la barra. Estiramiento y trabajo profundo del antebrazo."
                 },
@@ -204,7 +204,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Muñeca de Pie Tras Espalda con Barra",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "forearms_curl_muneca_de_pie_tras_espalda_barra__default",
                   "definitionId": "forearms_curl_muneca_de_pie_tras_espalda_barra",
                   "familyId": "lower_wrist_flexion",
@@ -276,11 +276,11 @@
           }
         ],
         "defaultConfigurationId": "forearms_curl_muneca_de_pie_tras_espalda_barra__default",
-        "description": "Curl de muñeca de pie con la barra tras la espalda: los antebrazos están extendidos y la muñeca flexiona contra la barra. Variante tradicional que estira y trabaja el antebrazo a fondo.",
+        "description": "El Curl de Muñeca de Pie Tras Espalda con Barra trabaja los flexores con la barra escondida detrás del cuerpo: las muñecas enrollan la barra hacia arriba sin mover los brazos. Se ejecuta de pie, con la barra a la altura de los glúteos y los dedos haciendo todo el trabajo. La posición añade un estiramiento extra al antebrazo. Un gesto antiguo que construye muñecas de acero como siempre.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -302,7 +302,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_curl_muneca_sentado",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -313,16 +313,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuernas con los antebrazos apoyados: cada muñeca flexiona por separado y el peso no permite que el codo fabrique impulso.",
-                "La opción ofrece control preciso para corregir diferencias entre manos."
+                "El antebrazo trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                "Antebrazos densos a golpe de muñeca, sin atajos."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
               ],
-              "description": "Mancuernas con los antebrazos apoyados: cada muñeca flexiona por separado y el peso no permite que el codo fabrique impulso. La opción ofrece control preciso para corregir diferencias entre manos.",
+              "description": "Con mancuernas, con el antebrazo apoyado en el muslo y la palma arriba, la mano enrolla la carga hacia arriba. El antebrazo trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -472,10 +472,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas con los antebrazos apoyados: cada muñeca flexiona por separado y el peso no permite que el codo fabrique impulso.",
-                    "La opción ofrece control preciso para corregir diferencias entre manos."
+                    "El antebrazo trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                    "Antebrazos densos a golpe de muñeca, sin atajos."
                   ],
-                  "description": "Mancuernas con los antebrazos apoyados: cada muñeca flexiona por separado y el peso no permite que el codo fabrique impulso. La opción ofrece control preciso para corregir diferencias entre manos.",
+                  "description": "Con mancuernas, con el antebrazo apoyado en el muslo y la palma arriba, la mano enrolla la carga hacia arriba. El antebrazo trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
                   "technique": "Mancuernas con los antebrazos apoyados: cada muñeca flexiona por separado y el peso no permite que el codo fabrique impulso. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor.",
                   "variantRationale": "Mancuernas con los antebrazos apoyados: cada muñeca flexiona por separado y el peso no permite que el codo fabrique impulso. La opción ofrece control preciso para corregir diferencias entre manos."
                 },
@@ -490,7 +490,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Muñeca",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "forearms_curl_muneca_sentado__dumbbells",
                   "definitionId": "forearms_curl_muneca_sentado",
                   "familyId": "lower_wrist_flexion",
@@ -571,7 +571,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_curl_muneca_sentado",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -582,16 +582,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Barra con los antebrazos apoyados: las dos muñecas suben juntas contra la barra.",
-                "Este trabajo de muñeca tradicional del gimnasio."
+                "La barra es la referencia para cargar el antebrazo con peso de verdad.",
+                "Antebrazos densos a golpe de muñeca, sin atajos."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
               ],
-              "description": "Barra con los antebrazos apoyados: las dos muñecas suben juntas contra la barra. Este trabajo de muñeca tradicional del gimnasio.",
+              "description": "Con barra, con el antebrazo apoyado en el muslo y la palma arriba, la mano enrolla la carga hacia arriba. La barra es la referencia para cargar el antebrazo con peso de verdad.",
               "efc": 2.0,
               "equipmentId": "barbell",
               "executionCues": [
@@ -741,10 +741,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra con los antebrazos apoyados: las dos muñecas suben juntas contra la barra.",
-                    "Este trabajo de muñeca tradicional del gimnasio."
+                    "La barra es la referencia para cargar el antebrazo con peso de verdad.",
+                    "Antebrazos densos a golpe de muñeca, sin atajos."
                   ],
-                  "description": "Barra con los antebrazos apoyados: las dos muñecas suben juntas contra la barra. Este trabajo de muñeca tradicional del gimnasio.",
+                  "description": "Con barra, con el antebrazo apoyado en el muslo y la palma arriba, la mano enrolla la carga hacia arriba. La barra es la referencia para cargar el antebrazo con peso de verdad.",
                   "technique": "Barra con los antebrazos apoyados: las dos muñecas suben juntas contra la barra. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor.",
                   "variantRationale": "Barra con los antebrazos apoyados: las dos muñecas suben juntas contra la barra. Este trabajo de muñeca tradicional del gimnasio."
                 },
@@ -759,7 +759,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Muñeca",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "forearms_curl_muneca_sentado__barbell",
                   "definitionId": "forearms_curl_muneca_sentado",
                   "familyId": "lower_wrist_flexion",
@@ -840,7 +840,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_curl_muneca_sentado",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -851,16 +851,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Barra EZ con los antebrazos apoyados: el agarre girado alivia la muñeca y el trabajo permanece total.",
-                "La opción cómoda; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El antebrazo trabaja con la barra EZ, que cuida las muñecas en todo el arco.",
+                "Antebrazos densos a golpe de muñeca, sin atajos."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
               ],
-              "description": "Barra EZ con los antebrazos apoyados: el agarre girado alivia la muñeca y el trabajo permanece total. La opción cómoda.",
+              "description": "Con barra EZ, con el antebrazo apoyado en el muslo y la palma arriba, la mano enrolla la carga hacia arriba. El antebrazo trabaja con la barra EZ, que cuida las muñecas en todo el arco.",
               "efc": 2.0,
               "equipmentId": "ez_bar",
               "executionCues": [
@@ -1010,10 +1010,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra EZ con los antebrazos apoyados: el agarre girado alivia la muñeca y el trabajo permanece total.",
-                    "La opción cómoda; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El antebrazo trabaja con la barra EZ, que cuida las muñecas en todo el arco.",
+                    "Antebrazos densos a golpe de muñeca, sin atajos."
                   ],
-                  "description": "Barra EZ con los antebrazos apoyados: el agarre girado alivia la muñeca y el trabajo permanece total. La opción cómoda.",
+                  "description": "Con barra EZ, con el antebrazo apoyado en el muslo y la palma arriba, la mano enrolla la carga hacia arriba. El antebrazo trabaja con la barra EZ, que cuida las muñecas en todo el arco.",
                   "technique": "Barra EZ con los antebrazos apoyados: el agarre girado alivia la muñeca y el trabajo permanece total. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor.",
                   "variantRationale": "Barra EZ con los antebrazos apoyados: el agarre girado alivia la muñeca y el trabajo permanece total. La opción cómoda."
                 },
@@ -1028,7 +1028,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Muñeca",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "forearms_curl_muneca_sentado__ez_bar",
                   "definitionId": "forearms_curl_muneca_sentado",
                   "familyId": "lower_wrist_flexion",
@@ -1109,7 +1109,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_curl_muneca_sentado",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1120,16 +1120,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea con los antebrazos apoyados: la tensión constante mantiene la muñeca cargada en todo el recorrido.",
-                "Variante precisa y efectiva; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Con la polea, la tensión sobre el antebrazo se mantiene viva de principio a fin.",
+                "Antebrazos densos a golpe de muñeca, sin atajos."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
               ],
-              "description": "Polea con los antebrazos apoyados: la tensión constante mantiene la muñeca cargada en todo el recorrido. Variante precisa y efectiva.",
+              "description": "Con polea, con el antebrazo apoyado en el muslo y la palma arriba, la mano enrolla la carga hacia arriba. Con la polea, la tensión sobre el antebrazo se mantiene viva de principio a fin.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
@@ -1279,10 +1279,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea con los antebrazos apoyados: la tensión constante mantiene la muñeca cargada en todo el recorrido.",
-                    "Variante precisa y efectiva; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Con la polea, la tensión sobre el antebrazo se mantiene viva de principio a fin.",
+                    "Antebrazos densos a golpe de muñeca, sin atajos."
                   ],
-                  "description": "Polea con los antebrazos apoyados: la tensión constante mantiene la muñeca cargada en todo el recorrido. Variante precisa y efectiva.",
+                  "description": "Con polea, con el antebrazo apoyado en el muslo y la palma arriba, la mano enrolla la carga hacia arriba. Con la polea, la tensión sobre el antebrazo se mantiene viva de principio a fin.",
                   "technique": "Polea con los antebrazos apoyados: la tensión constante mantiene la muñeca cargada en todo el recorrido. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor.",
                   "variantRationale": "Polea con los antebrazos apoyados: la tensión constante mantiene la muñeca cargada en todo el recorrido. Variante precisa y efectiva."
                 },
@@ -1297,7 +1297,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Muñeca",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "forearms_curl_muneca_sentado__cable",
                   "definitionId": "forearms_curl_muneca_sentado",
                   "familyId": "lower_wrist_flexion",
@@ -1374,11 +1374,11 @@
           }
         ],
         "defaultConfigurationId": "forearms_curl_muneca_sentado__dumbbells",
-        "description": "Este trabajo de muñeca: con los antebrazos apoyados, subes y bajas la muñeca con la palma hacia arriba. El ejercicio base para unos antebrazos fuertes y un agarre de acero.",
+        "description": "El Curl de Muñeca sentado es el constructor directo de los flexores del antebrazo: con el brazo apoyado en el muslo y la palma arriba, la mano enrolla la carga hacia arriba. Se ejecuta con mancuerna, barra o polea, en un arco pequeño y con repeticiones pacientes. La polea da tensión constante si la mancuerna se queda corta. Antebrazos densos a golpe de muñeca, sin atajos.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1400,7 +1400,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren inferior · forearm · wrist extension",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_curl_muneca_inverso_sentado",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea con las palmas hacia abajo: la mano sube contra una tensión que permanece presente durante todo el recorrido.",
-                "La carga graduable permite trabajar los extensores sin que el antebrazo abandone el apoyo."
+                "El antebrazo trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                "El equilibrante que previene el codo de tenista."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
               ],
-              "description": "Polea con las palmas hacia abajo: la mano sube contra una tensión que permanece presente durante todo el recorrido. La carga graduable permite trabajar los extensores sin que el antebrazo abandone el apoyo.",
+              "description": "Con polea, con las palmas hacia abajo y el antebrazo apoyado, el dorso de la mano sube contra la carga. El antebrazo trabaja con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
@@ -182,10 +182,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea con las palmas hacia abajo: la mano sube contra una tensión que permanece presente durante todo el recorrido.",
-                    "La carga graduable permite trabajar los extensores sin que el antebrazo abandone el apoyo."
+                    "El antebrazo trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                    "El equilibrante que previene el codo de tenista."
                   ],
-                  "description": "Polea con las palmas hacia abajo: la mano sube contra una tensión que permanece presente durante todo el recorrido. La carga graduable permite trabajar los extensores sin que el antebrazo abandone el apoyo.",
+                  "description": "Con polea, con las palmas hacia abajo y el antebrazo apoyado, el dorso de la mano sube contra la carga. El antebrazo trabaja con la polea, que mantiene la tensión constante en todo el arco.",
                   "technique": "Polea con las palmas hacia abajo: la mano sube contra una tensión que permanece presente durante todo el recorrido. El antebrazo se fija mientras el dorso de la mano sube contra la resistencia; el recorrido se mantiene corto y limpio.",
                   "variantRationale": "Polea con las palmas hacia abajo: la mano sube contra una tensión que permanece presente durante todo el recorrido. La carga graduable permite trabajar los extensores sin que el antebrazo abandone el apoyo."
                 },
@@ -200,7 +200,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Muñeca",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "forearms_curl_muneca_inverso_sentado__cable",
                   "definitionId": "forearms_curl_muneca_inverso_sentado",
                   "familyId": "lower_wrist_extension",
@@ -281,7 +281,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_curl_muneca_inverso_sentado",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -292,16 +292,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuernas con las palmas hacia abajo: ambas muñecas pueden moverse con una carga independiente y fácil de colocar.",
-                "Es la alternativa más sencilla para localizar el trabajo en la cara posterior del antebrazo."
+                "Con mancuernas, cada lado ajusta su línea y el trabajo del antebrazo se equilibra solo.",
+                "El equilibrante que previene el codo de tenista."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
               ],
-              "description": "Mancuernas con las palmas hacia abajo: ambas muñecas pueden moverse con una carga independiente y fácil de colocar. Es la alternativa más sencilla para localizar el trabajo en la cara posterior del antebrazo.",
+              "description": "Con mancuernas, con las palmas hacia abajo y el antebrazo apoyado, el dorso de la mano sube contra la carga. Con mancuernas, cada lado ajusta su línea y el trabajo del antebrazo se equilibra solo.",
               "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -451,10 +451,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas con las palmas hacia abajo: ambas muñecas pueden moverse con una carga independiente y fácil de colocar.",
-                    "Es la alternativa más sencilla para localizar el trabajo en la cara posterior del antebrazo."
+                    "Con mancuernas, cada lado ajusta su línea y el trabajo del antebrazo se equilibra solo.",
+                    "El equilibrante que previene el codo de tenista."
                   ],
-                  "description": "Mancuernas con las palmas hacia abajo: ambas muñecas pueden moverse con una carga independiente y fácil de colocar. Es la alternativa más sencilla para localizar el trabajo en la cara posterior del antebrazo.",
+                  "description": "Con mancuernas, con las palmas hacia abajo y el antebrazo apoyado, el dorso de la mano sube contra la carga. Con mancuernas, cada lado ajusta su línea y el trabajo del antebrazo se equilibra solo.",
                   "technique": "Mancuernas con las palmas hacia abajo: ambas muñecas pueden moverse con una carga independiente y fácil de colocar. El antebrazo se fija mientras el dorso de la mano sube contra la resistencia; el recorrido se mantiene corto y limpio.",
                   "variantRationale": "Mancuernas con las palmas hacia abajo: ambas muñecas pueden moverse con una carga independiente y fácil de colocar. Es la alternativa más sencilla para localizar el trabajo en la cara posterior del antebrazo."
                 },
@@ -469,7 +469,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Muñeca",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "forearms_curl_muneca_inverso_sentado__dumbbells",
                   "definitionId": "forearms_curl_muneca_inverso_sentado",
                   "familyId": "lower_wrist_extension",
@@ -550,7 +550,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_curl_muneca_inverso_sentado",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -561,16 +561,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Barra con las palmas abajo: las dos muñecas suben juntas contra la barra.",
-                "El tradicional para el antebrazo posterior."
+                "Con la barra, la carga sube al máximo y la progresión del antebrazo se mide sin trampa.",
+                "El equilibrante que previene el codo de tenista."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
               ],
-              "description": "Barra con las palmas abajo: las dos muñecas suben juntas contra la barra. El tradicional para el antebrazo posterior.",
+              "description": "Con barra, con las palmas hacia abajo y el antebrazo apoyado, el dorso de la mano sube contra la carga. Con la barra, la carga sube al máximo y la progresión del antebrazo se mide sin trampa.",
               "efc": 2.0,
               "equipmentId": "barbell",
               "executionCues": [
@@ -720,10 +720,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra con las palmas abajo: las dos muñecas suben juntas contra la barra.",
-                    "El tradicional para el antebrazo posterior."
+                    "Con la barra, la carga sube al máximo y la progresión del antebrazo se mide sin trampa.",
+                    "El equilibrante que previene el codo de tenista."
                   ],
-                  "description": "Barra con las palmas abajo: las dos muñecas suben juntas contra la barra. El tradicional para el antebrazo posterior.",
+                  "description": "Con barra, con las palmas hacia abajo y el antebrazo apoyado, el dorso de la mano sube contra la carga. Con la barra, la carga sube al máximo y la progresión del antebrazo se mide sin trampa.",
                   "technique": "Barra con las palmas abajo: las dos muñecas suben juntas contra la barra. El antebrazo se fija mientras el dorso de la mano sube contra la resistencia; el recorrido se mantiene corto y limpio.",
                   "variantRationale": "Barra con las palmas abajo: las dos muñecas suben juntas contra la barra. El tradicional para el antebrazo posterior."
                 },
@@ -738,7 +738,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Muñeca",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "forearms_curl_muneca_inverso_sentado__barbell",
                   "definitionId": "forearms_curl_muneca_inverso_sentado",
                   "familyId": "lower_wrist_extension",
@@ -819,7 +819,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_curl_muneca_inverso_sentado",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -830,16 +830,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Barra EZ con las palmas abajo: agarre cómodo y trabajo directo del antebrazo.",
-                "La opción tolerante con las muñecas; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Con la barra EZ, la muñeca viaja cómoda sin perder estímulo del antebrazo.",
+                "El equilibrante que previene el codo de tenista."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
               ],
-              "description": "Barra EZ con las palmas abajo: agarre cómodo y trabajo directo del antebrazo. La opción tolerante con las muñecas.",
+              "description": "Con barra EZ, con las palmas hacia abajo y el antebrazo apoyado, el dorso de la mano sube contra la carga. Con la barra EZ, la muñeca viaja cómoda sin perder estímulo del antebrazo.",
               "efc": 2.0,
               "equipmentId": "ez_bar",
               "executionCues": [
@@ -989,10 +989,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra EZ con las palmas abajo: agarre cómodo y trabajo directo del antebrazo.",
-                    "La opción tolerante con las muñecas; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Con la barra EZ, la muñeca viaja cómoda sin perder estímulo del antebrazo.",
+                    "El equilibrante que previene el codo de tenista."
                   ],
-                  "description": "Barra EZ con las palmas abajo: agarre cómodo y trabajo directo del antebrazo. La opción tolerante con las muñecas.",
+                  "description": "Con barra EZ, con las palmas hacia abajo y el antebrazo apoyado, el dorso de la mano sube contra la carga. Con la barra EZ, la muñeca viaja cómoda sin perder estímulo del antebrazo.",
                   "technique": "Barra EZ con las palmas abajo: agarre cómodo y trabajo directo del antebrazo. El antebrazo se fija mientras el dorso de la mano sube contra la resistencia; el recorrido se mantiene corto y limpio.",
                   "variantRationale": "Barra EZ con las palmas abajo: agarre cómodo y trabajo directo del antebrazo. La opción tolerante con las muñecas."
                 },
@@ -1007,7 +1007,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Muñeca",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "forearms_curl_muneca_inverso_sentado__ez_bar",
                   "definitionId": "forearms_curl_muneca_inverso_sentado",
                   "familyId": "lower_wrist_extension",
@@ -1084,11 +1084,11 @@
           }
         ],
         "defaultConfigurationId": "forearms_curl_muneca_inverso_sentado__dumbbells",
-        "description": "Con los antebrazos apoyados y las palmas hacia abajo, subes la mano contra resistencia. El complemento útil para antebrazos equilibrados y muñecas sanas.",
+        "description": "La Extensión de Muñeca trabaja el dorso del antebrazo, el lado que los curls normales olvidan: con las palmas hacia abajo, el dorso de la mano sube contra la carga. Se ejecuta con el antebrazo apoyado en el muslo y una mancuerna ligera, extendiendo la muñeca despacio. Con polea o barra EZ el mismo gesto con otro tacto. El equilibrante que previene el codo de tenista.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1110,7 +1110,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

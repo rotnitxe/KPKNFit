@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Step-Up a Cajón",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_step_up_cajon",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Barra en la espalda y subida al cajón: fuerza y estabilidad en cada paso.",
-                "El step-up tradicional con carga; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+                "La medida exacta de la fuerza de cada pierna por separado."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Barra en la espalda y subida al cajón: fuerza y estabilidad en cada paso. El step-up tradicional con carga.",
+              "description": "Con barra, un pie sube a la plataforma y la pierna de apoyo impulsa el cuerpo hasta quedar de pie sobre ella. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -219,10 +219,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra en la espalda y subida al cajón: fuerza y estabilidad en cada paso.",
-                    "El step-up tradicional con carga; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+                    "La medida exacta de la fuerza de cada pierna por separado."
                   ],
-                  "description": "Barra en la espalda y subida al cajón: fuerza y estabilidad en cada paso. El step-up tradicional con carga.",
+                  "description": "Con barra, un pie sube a la plataforma y la pierna de apoyo impulsa el cuerpo hasta quedar de pie sobre ella. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
                   "technique": "Barra en la espalda y subida al cajón: fuerza y estabilidad en cada paso. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Barra en la espalda y subida al cajón: fuerza y estabilidad en cada paso. El step-up tradicional con carga."
                 },
@@ -237,7 +237,7 @@
                 },
                 "identity": {
                   "canonicalName": "Step-Up a Cajón",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "step_up__barbell",
                   "definitionId": "step_up",
                   "familyId": "lower_step_up",
@@ -319,7 +319,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_step_up_cajon",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -330,16 +330,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Smith y subida al cajón: el guiado cuida el equilibrio mientras subes.",
-                "Estable para cargar peso en el step-up; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "En la Smith, la guía fija permite concentrar todo el esfuerzo del cuádriceps.",
+                "La medida exacta de la fuerza de cada pierna por separado."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Smith y subida al cajón: el guiado cuida el equilibrio mientras subes. Estable para cargar peso en el step-up.",
+              "description": "Con máquina Smith, un pie sube a la plataforma y la pierna de apoyo impulsa el cuerpo hasta quedar de pie sobre ella. En la Smith, la guía fija permite concentrar todo el esfuerzo del cuádriceps.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -526,10 +526,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith y subida al cajón: el guiado cuida el equilibrio mientras subes.",
-                    "Estable para cargar peso en el step-up; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "En la Smith, la guía fija permite concentrar todo el esfuerzo del cuádriceps.",
+                    "La medida exacta de la fuerza de cada pierna por separado."
                   ],
-                  "description": "Smith y subida al cajón: el guiado cuida el equilibrio mientras subes. Estable para cargar peso en el step-up.",
+                  "description": "Con máquina Smith, un pie sube a la plataforma y la pierna de apoyo impulsa el cuerpo hasta quedar de pie sobre ella. En la Smith, la guía fija permite concentrar todo el esfuerzo del cuádriceps.",
                   "technique": "Smith y subida al cajón: el guiado cuida el equilibrio mientras subes. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Smith y subida al cajón: el guiado cuida el equilibrio mientras subes. Estable para cargar peso en el step-up."
                 },
@@ -544,7 +544,7 @@
                 },
                 "identity": {
                   "canonicalName": "Step-Up a Cajón",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "step_up__smith_machine",
                   "definitionId": "step_up",
                   "familyId": "lower_step_up",
@@ -626,7 +626,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_step_up_cajon",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -637,16 +637,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuernas y subida al cajón: la versión más equilibrada y cómoda del step-up.",
-                "Una variante utilizada para trabajar piernas y glúteos."
+                "Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
+                "La medida exacta de la fuerza de cada pierna por separado."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Mancuernas y subida al cajón: la versión más equilibrada y cómoda del step-up. Una variante utilizada para trabajar piernas y glúteos.",
+              "description": "Con mancuernas, un pie sube a la plataforma y la pierna de apoyo impulsa el cuerpo hasta quedar de pie sobre ella. Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -833,10 +833,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas y subida al cajón: la versión más equilibrada y cómoda del step-up.",
-                    "Una variante utilizada para trabajar piernas y glúteos."
+                    "Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
+                    "La medida exacta de la fuerza de cada pierna por separado."
                   ],
-                  "description": "Mancuernas y subida al cajón: la versión más equilibrada y cómoda del step-up. Una variante utilizada para trabajar piernas y glúteos.",
+                  "description": "Con mancuernas, un pie sube a la plataforma y la pierna de apoyo impulsa el cuerpo hasta quedar de pie sobre ella. Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
                   "technique": "Mancuernas y subida al cajón: la versión más equilibrada y cómoda del step-up. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Mancuernas y subida al cajón: la versión más equilibrada y cómoda del step-up. Una variante utilizada para trabajar piernas y glúteos."
                 },
@@ -851,7 +851,7 @@
                 },
                 "identity": {
                   "canonicalName": "Step-Up a Cajón",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "step_up__dumbbells",
                   "definitionId": "step_up",
                   "familyId": "lower_step_up",
@@ -933,7 +933,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_step_up_cajon",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -944,16 +944,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Kettlebell y subida al cajón: el agarre suma trabajo al movimiento.",
-                "Variante completa para pierna y antebrazos."
+                "El cuádriceps trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+                "La medida exacta de la fuerza de cada pierna por separado."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Kettlebell y subida al cajón: el agarre suma trabajo al movimiento. Variante completa para pierna y antebrazos.",
+              "description": "Con kettlebell, un pie sube a la plataforma y la pierna de apoyo impulsa el cuerpo hasta quedar de pie sobre ella. El cuádriceps trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
               "efc": 2.8,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -1140,10 +1140,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Kettlebell y subida al cajón: el agarre suma trabajo al movimiento.",
-                    "Variante completa para pierna y antebrazos."
+                    "El cuádriceps trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+                    "La medida exacta de la fuerza de cada pierna por separado."
                   ],
-                  "description": "Kettlebell y subida al cajón: el agarre suma trabajo al movimiento. Variante completa para pierna y antebrazos.",
+                  "description": "Con kettlebell, un pie sube a la plataforma y la pierna de apoyo impulsa el cuerpo hasta quedar de pie sobre ella. El cuádriceps trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
                   "technique": "Kettlebell y subida al cajón: el agarre suma trabajo al movimiento. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Kettlebell y subida al cajón: el agarre suma trabajo al movimiento. Variante completa para pierna y antebrazos."
                 },
@@ -1158,7 +1158,7 @@
                 },
                 "identity": {
                   "canonicalName": "Step-Up a Cajón",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "step_up__kettlebell",
                   "definitionId": "step_up",
                   "familyId": "lower_step_up",
@@ -1240,7 +1240,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_step_up_cajon",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1251,16 +1251,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea y subida al cajón: la tensión constante añade exigencia a cada paso.",
-                "Un step-up preciso para variar la rutina de pierna."
+                "Con la polea, la tensión sobre el cuádriceps se mantiene viva de principio a fin.",
+                "La medida exacta de la fuerza de cada pierna por separado."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Polea y subida al cajón: la tensión constante añade exigencia a cada paso. Un step-up preciso para variar la rutina de pierna.",
+              "description": "Con polea, un pie sube a la plataforma y la pierna de apoyo impulsa el cuerpo hasta quedar de pie sobre ella. Con la polea, la tensión sobre el cuádriceps se mantiene viva de principio a fin.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -1447,10 +1447,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea y subida al cajón: la tensión constante añade exigencia a cada paso.",
-                    "Un step-up preciso para variar la rutina de pierna."
+                    "Con la polea, la tensión sobre el cuádriceps se mantiene viva de principio a fin.",
+                    "La medida exacta de la fuerza de cada pierna por separado."
                   ],
-                  "description": "Polea y subida al cajón: la tensión constante añade exigencia a cada paso. Un step-up preciso para variar la rutina de pierna.",
+                  "description": "Con polea, un pie sube a la plataforma y la pierna de apoyo impulsa el cuerpo hasta quedar de pie sobre ella. Con la polea, la tensión sobre el cuádriceps se mantiene viva de principio a fin.",
                   "technique": "Polea y subida al cajón: la tensión constante añade exigencia a cada paso. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Polea y subida al cajón: la tensión constante añade exigencia a cada paso. Un step-up preciso para variar la rutina de pierna."
                 },
@@ -1465,7 +1465,7 @@
                 },
                 "identity": {
                   "canonicalName": "Step-Up a Cajón",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "step_up__cable",
                   "definitionId": "step_up",
                   "familyId": "lower_step_up",
@@ -1543,11 +1543,11 @@
           }
         ],
         "defaultConfigurationId": "step_up__dumbbells",
-        "description": "Subes a un cajón empujando con una pierna y bajas con control. El ejercicio de pierna que corrige desequilibrios y enciende los glúteos.",
+        "description": "El Step-Up a Cajón convierte subir un escalón en fuerza unilateral real: la pierna de arriba eleva todo el cuerpo sin ayuda de la de abajo. Se ejecuta apoyando el pie entero en el cajón, subiendo hasta extender la cadera y bajando despacio sin empujarse con el pie del suelo. Cuádriceps y glúteo se turnan según la inclinación del torso. Con barra o mancuernas se carga como un básico más. La medida exacta de la fuerza de cada pierna por separado.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1569,7 +1569,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

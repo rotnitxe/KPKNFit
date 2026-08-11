@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Jalón al Pecho",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_jalon_pecho_polea",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea alta con ambas manos: tiras de la barra hacia el pecho.",
-                "El jalón tradicional que construye dorsales."
+                "Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
+                "La fábrica de espalda ancha para quien aún no domina la barra fija."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Polea alta con ambas manos: tiras de la barra hacia el pecho. El jalón tradicional que construye dorsales.",
+              "description": "Con polea y a dos lados, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -227,10 +227,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea alta con ambas manos: tiras de la barra hacia el pecho.",
-                    "El jalón tradicional que construye dorsales."
+                    "Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
+                    "La fábrica de espalda ancha para quien aún no domina la barra fija."
                   ],
-                  "description": "Polea alta con ambas manos: tiras de la barra hacia el pecho. El jalón tradicional que construye dorsales.",
+                  "description": "Con polea y a dos lados, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
                   "technique": "Polea alta con ambas manos: tiras de la barra hacia el pecho. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
                   "variantRationale": "Polea alta con ambas manos: tiras de la barra hacia el pecho. El jalón tradicional que construye dorsales."
                 },
@@ -245,7 +245,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jalón al Pecho",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "lat_pulldown__bilateral__cable",
                   "definitionId": "lat_pulldown",
                   "familyId": "upper_vertical_pull_lat_pulldown",
@@ -330,7 +330,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_jalon_pecho_polea",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -341,16 +341,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea alta con una mano: cada dorsal trabaja por separado con tensión constante.",
-                "Útil para corregir desequilibrios; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del dorsal ancho se aísla y las asimetrías quedan al descubierto.",
+                "La fábrica de espalda ancha para quien aún no domina la barra fija."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Polea alta con una mano: cada dorsal trabaja por separado con tensión constante. Útil para corregir desequilibrios.",
+              "description": "Con polea y a un lado, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del dorsal ancho se aísla y las asimetrías quedan al descubierto.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -545,10 +545,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea alta con una mano: cada dorsal trabaja por separado con tensión constante.",
-                    "Útil para corregir desequilibrios; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del dorsal ancho se aísla y las asimetrías quedan al descubierto.",
+                    "La fábrica de espalda ancha para quien aún no domina la barra fija."
                   ],
-                  "description": "Polea alta con una mano: cada dorsal trabaja por separado con tensión constante. Útil para corregir desequilibrios.",
+                  "description": "Con polea y a un lado, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del dorsal ancho se aísla y las asimetrías quedan al descubierto.",
                   "technique": "Polea alta con una mano: cada dorsal trabaja por separado con tensión constante. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
                   "variantRationale": "Polea alta con una mano: cada dorsal trabaja por separado con tensión constante. Útil para corregir desequilibrios."
                 },
@@ -563,7 +563,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jalón al Pecho",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "lat_pulldown__unilateral__cable",
                   "definitionId": "lat_pulldown",
                   "familyId": "upper_vertical_pull_lat_pulldown",
@@ -648,7 +648,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_jalon_pecho_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -659,16 +659,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina de jalón con ambas manos: el guiado hace el recorrido más estable.",
-                "La opción cómoda para cargar espalda; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo del dorsal ancho admite más carga total.",
+                "La fábrica de espalda ancha para quien aún no domina la barra fija."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Máquina de jalón con ambas manos: el guiado hace el recorrido más estable. La opción cómoda para cargar espalda.",
+              "description": "Con máquina y a dos lados, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo del dorsal ancho admite más carga total.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -863,10 +863,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina de jalón con ambas manos: el guiado hace el recorrido más estable.",
-                    "La opción cómoda para cargar espalda; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo del dorsal ancho admite más carga total.",
+                    "La fábrica de espalda ancha para quien aún no domina la barra fija."
                   ],
-                  "description": "Máquina de jalón con ambas manos: el guiado hace el recorrido más estable. La opción cómoda para cargar espalda.",
+                  "description": "Con máquina y a dos lados, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo del dorsal ancho admite más carga total.",
                   "technique": "Máquina de jalón con ambas manos: el guiado hace el recorrido más estable. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
                   "variantRationale": "Máquina de jalón con ambas manos: el guiado hace el recorrido más estable. La opción cómoda para cargar espalda."
                 },
@@ -881,7 +881,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jalón al Pecho",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "lat_pulldown__bilateral__machine",
                   "definitionId": "lat_pulldown",
                   "familyId": "upper_vertical_pull_lat_pulldown",
@@ -966,7 +966,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_jalon_pecho_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -977,16 +977,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina con una mano y un dorsal a la vez: el apoyo guiado elimina parte del equilibrio mientras cada lado completa su propio tirón.",
-                "Útil para comparar fuerza y recorrido entre dorsales."
+                "El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo del dorsal ancho se hace en solitario y las diferencias salen a la vista.",
+                "La fábrica de espalda ancha para quien aún no domina la barra fija."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Máquina con una mano y un dorsal a la vez: el apoyo guiado elimina parte del equilibrio mientras cada lado completa su propio tirón. Útil para comparar fuerza y recorrido entre dorsales.",
+              "description": "Con máquina y a un lado, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo del dorsal ancho se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -1181,10 +1181,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina con una mano y un dorsal a la vez: el apoyo guiado elimina parte del equilibrio mientras cada lado completa su propio tirón.",
-                    "Útil para comparar fuerza y recorrido entre dorsales."
+                    "El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo del dorsal ancho se hace en solitario y las diferencias salen a la vista.",
+                    "La fábrica de espalda ancha para quien aún no domina la barra fija."
                   ],
-                  "description": "Máquina con una mano y un dorsal a la vez: el apoyo guiado elimina parte del equilibrio mientras cada lado completa su propio tirón. Útil para comparar fuerza y recorrido entre dorsales.",
+                  "description": "Con máquina y a un lado, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo del dorsal ancho se hace en solitario y las diferencias salen a la vista.",
                   "technique": "Máquina con una mano y un dorsal a la vez: el apoyo guiado elimina parte del equilibrio mientras cada lado completa su propio tirón. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
                   "variantRationale": "Máquina con una mano y un dorsal a la vez: el apoyo guiado elimina parte del equilibrio mientras cada lado completa su propio tirón. Útil para comparar fuerza y recorrido entre dorsales."
                 },
@@ -1199,7 +1199,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jalón al Pecho",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "lat_pulldown__unilateral__machine",
                   "definitionId": "lat_pulldown",
                   "familyId": "upper_vertical_pull_lat_pulldown",
@@ -1284,7 +1284,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_jalon_banda",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1295,16 +1295,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Banda anclada arriba y tirón con ambos brazos: la carga aumenta al acercar las manos al pecho.",
-                "El recorrido elástico ofrece una opción práctica para entrenar el dorsal sin una máquina."
+                "Con la banda, la resistencia crece a medida que avanza el trabajo del dorsal ancho. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
+                "La fábrica de espalda ancha para quien aún no domina la barra fija."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Banda anclada arriba y tirón con ambos brazos: la carga aumenta al acercar las manos al pecho. El recorrido elástico ofrece una opción práctica para entrenar el dorsal sin una máquina.",
+              "description": "Con banda elástica y a dos lados, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. Con la banda, la resistencia crece a medida que avanza el trabajo del dorsal ancho. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
               "efc": 2.5,
               "equipmentId": "band",
               "executionCues": [
@@ -1499,10 +1499,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Banda anclada arriba y tirón con ambos brazos: la carga aumenta al acercar las manos al pecho.",
-                    "El recorrido elástico ofrece una opción práctica para entrenar el dorsal sin una máquina."
+                    "Con la banda, la resistencia crece a medida que avanza el trabajo del dorsal ancho. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
+                    "La fábrica de espalda ancha para quien aún no domina la barra fija."
                   ],
-                  "description": "Banda anclada arriba y tirón con ambos brazos: la carga aumenta al acercar las manos al pecho. El recorrido elástico ofrece una opción práctica para entrenar el dorsal sin una máquina.",
+                  "description": "Con banda elástica y a dos lados, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. Con la banda, la resistencia crece a medida que avanza el trabajo del dorsal ancho. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
                   "technique": "Banda anclada arriba y tirón con ambos brazos: la carga aumenta al acercar las manos al pecho. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
                   "variantRationale": "Banda anclada arriba y tirón con ambos brazos: la carga aumenta al acercar las manos al pecho. El recorrido elástico ofrece una opción práctica para entrenar el dorsal sin una máquina."
                 },
@@ -1517,7 +1517,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jalón al Pecho",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "lat_pulldown__bilateral__band",
                   "definitionId": "lat_pulldown",
                   "familyId": "upper_vertical_pull_lat_pulldown",
@@ -1602,7 +1602,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_jalon_banda",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1613,16 +1613,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Banda con una mano: tensión progresiva en un dorsal a la vez.",
-                "Variante sencilla y útil para acumular trabajo."
+                "Con la banda, la resistencia crece a medida que avanza el trabajo del dorsal ancho. A un lado, el trabajo del dorsal ancho se hace en solitario y las diferencias salen a la vista.",
+                "La fábrica de espalda ancha para quien aún no domina la barra fija."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Banda con una mano: tensión progresiva en un dorsal a la vez. Variante sencilla y útil para acumular trabajo.",
+              "description": "Con banda elástica y a un lado, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. Con la banda, la resistencia crece a medida que avanza el trabajo del dorsal ancho. A un lado, el trabajo del dorsal ancho se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.5,
               "equipmentId": "band",
               "executionCues": [
@@ -1817,10 +1817,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Banda con una mano: tensión progresiva en un dorsal a la vez.",
-                    "Variante sencilla y útil para acumular trabajo."
+                    "Con la banda, la resistencia crece a medida que avanza el trabajo del dorsal ancho. A un lado, el trabajo del dorsal ancho se hace en solitario y las diferencias salen a la vista.",
+                    "La fábrica de espalda ancha para quien aún no domina la barra fija."
                   ],
-                  "description": "Banda con una mano: tensión progresiva en un dorsal a la vez. Variante sencilla y útil para acumular trabajo.",
+                  "description": "Con banda elástica y a un lado, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. Con la banda, la resistencia crece a medida que avanza el trabajo del dorsal ancho. A un lado, el trabajo del dorsal ancho se hace en solitario y las diferencias salen a la vista.",
                   "technique": "Banda con una mano: tensión progresiva en un dorsal a la vez. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
                   "variantRationale": "Banda con una mano: tensión progresiva en un dorsal a la vez. Variante sencilla y útil para acumular trabajo."
                 },
@@ -1835,7 +1835,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jalón al Pecho",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "lat_pulldown__unilateral__band",
                   "definitionId": "lat_pulldown",
                   "familyId": "upper_vertical_pull_lat_pulldown",
@@ -1916,11 +1916,11 @@
           }
         ],
         "defaultConfigurationId": "lat_pulldown__bilateral__cable",
-        "description": "Sentado en la polea, tiras de la barra hacia el pecho. El ejercicio más utilizada para los dorsales y la forma más fácil de empezar con la espalda.",
+        "description": "El Jalón al Pecho es la tracción vertical con carga ajustable: el agarre desciende hasta la parte alta del pecho con el dorsal ancho y el trapecio tirando y el bíceps cerrando el gesto. Se ejecuta sentado con los muslos fijos, llevando los codos hacia el torso y regresando sin soltar la tensión. Con banda se monta en casa; la máquina permite progresar al kilo. La fábrica de espalda ancha para quien aún no domina la barra fija.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1944,7 +1944,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

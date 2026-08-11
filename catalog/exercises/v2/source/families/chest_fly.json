@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Aperturas de Pecho",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_aperturas_planas_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuernas en apertura declinada: el arco baja y el pectoral inferior se estira a fondo.",
-                "La variante que completa la parte baja del pecho."
+                "Con mancuernas, cada lado ajusta su línea y el trabajo del pectoral se equilibra solo.",
+                "El acabado inferior del pectoral tiene aquí su herramienta específica."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Mancuernas en apertura declinada: el arco baja y el pectoral inferior se estira a fondo. La variante que completa la parte baja del pecho.",
+              "description": "Con mancuernas, en declive, los brazos dibujan un arco amplio y el borde inferior del pectoral toma el protagonismo. Con mancuernas, cada lado ajusta su línea y el trabajo del pectoral se equilibra solo.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -212,10 +212,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas en apertura declinada: el arco baja y el pectoral inferior se estira a fondo.",
-                    "La variante que completa la parte baja del pecho."
+                    "Con mancuernas, cada lado ajusta su línea y el trabajo del pectoral se equilibra solo.",
+                    "El acabado inferior del pectoral tiene aquí su herramienta específica."
                   ],
-                  "description": "Mancuernas en apertura declinada: el arco baja y el pectoral inferior se estira a fondo. La variante que completa la parte baja del pecho.",
+                  "description": "Con mancuernas, en declive, los brazos dibujan un arco amplio y el borde inferior del pectoral toma el protagonismo. Con mancuernas, cada lado ajusta su línea y el trabajo del pectoral se equilibra solo.",
                   "technique": "Mancuernas en apertura declinada: el arco baja y el pectoral inferior se estira a fondo. El ángulo declinado dirige el arco hacia la zona inferior del pecho; la amplitud se detiene antes de perder la posición del hombro.",
                   "variantRationale": "Mancuernas en apertura declinada: el arco baja y el pectoral inferior se estira a fondo. La variante que completa la parte baja del pecho."
                 },
@@ -230,7 +230,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Declinadas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "decline_chest_fly__dumbbells",
                   "definitionId": "decline_chest_fly",
                   "familyId": "chest_fly",
@@ -310,7 +310,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_aperturas_planas_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -321,16 +321,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea en apertura declinada: tensión constante en el pectoral inferior de punta a punta.",
-                "Cambio de ángulo que se perciben como una novedad refrescante."
+                "Con la polea, la tensión sobre el pectoral se mantiene viva de principio a fin.",
+                "El acabado inferior del pectoral tiene aquí su herramienta específica."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Polea en apertura declinada: tensión constante en el pectoral inferior de punta a punta. Cambio de ángulo que se perciben como una novedad refrescante.",
+              "description": "Con polea, en declive, los brazos dibujan un arco amplio y el borde inferior del pectoral toma el protagonismo. Con la polea, la tensión sobre el pectoral se mantiene viva de principio a fin.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -510,10 +510,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea en apertura declinada: tensión constante en el pectoral inferior de punta a punta.",
-                    "Cambio de ángulo que se perciben como una novedad refrescante."
+                    "Con la polea, la tensión sobre el pectoral se mantiene viva de principio a fin.",
+                    "El acabado inferior del pectoral tiene aquí su herramienta específica."
                   ],
-                  "description": "Polea en apertura declinada: tensión constante en el pectoral inferior de punta a punta. Cambio de ángulo que se perciben como una novedad refrescante.",
+                  "description": "Con polea, en declive, los brazos dibujan un arco amplio y el borde inferior del pectoral toma el protagonismo. Con la polea, la tensión sobre el pectoral se mantiene viva de principio a fin.",
                   "technique": "Polea en apertura declinada: tensión constante en el pectoral inferior de punta a punta. El ángulo declinado dirige el arco hacia la zona inferior del pecho; la amplitud se detiene antes de perder la posición del hombro.",
                   "variantRationale": "Polea en apertura declinada: tensión constante en el pectoral inferior de punta a punta. Cambio de ángulo que se perciben como una novedad refrescante."
                 },
@@ -528,7 +528,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Declinadas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "decline_chest_fly__cable",
                   "definitionId": "decline_chest_fly",
                   "familyId": "chest_fly",
@@ -608,7 +608,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_aperturas_pec_deck",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -619,16 +619,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina declinada de aperturas: el guiado apunta directo a la parte baja del pecho.",
-                "Cómoda, estable y útil para acumular trabajo para completar el pecho."
+                "El pectoral trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+                "El acabado inferior del pectoral tiene aquí su herramienta específica."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Máquina declinada de aperturas: el guiado apunta directo a la parte baja del pecho. Cómoda, estable y útil para acumular trabajo para completar el pecho.",
+              "description": "Con máquina, en declive, los brazos dibujan un arco amplio y el borde inferior del pectoral toma el protagonismo. El pectoral trabaja en la máquina, con el recorrido guiado y sin distracciones.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -808,10 +808,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina declinada de aperturas: el guiado apunta directo a la parte baja del pecho.",
-                    "Cómoda, estable y útil para acumular trabajo para completar el pecho."
+                    "El pectoral trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+                    "El acabado inferior del pectoral tiene aquí su herramienta específica."
                   ],
-                  "description": "Máquina declinada de aperturas: el guiado apunta directo a la parte baja del pecho. Cómoda, estable y útil para acumular trabajo para completar el pecho.",
+                  "description": "Con máquina, en declive, los brazos dibujan un arco amplio y el borde inferior del pectoral toma el protagonismo. El pectoral trabaja en la máquina, con el recorrido guiado y sin distracciones.",
                   "technique": "Máquina declinada de aperturas: el guiado apunta directo a la parte baja del pecho. El ángulo declinado dirige el arco hacia la zona inferior del pecho; la amplitud se detiene antes de perder la posición del hombro.",
                   "variantRationale": "Máquina declinada de aperturas: el guiado apunta directo a la parte baja del pecho. Cómoda, estable y útil para acumular trabajo para completar el pecho."
                 },
@@ -826,7 +826,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Declinadas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "decline_chest_fly__machine",
                   "definitionId": "decline_chest_fly",
                   "familyId": "chest_fly",
@@ -902,11 +902,11 @@
           }
         ],
         "defaultConfigurationId": "decline_chest_fly__dumbbells",
-        "description": "Aperturas en banco declinado: el arco baja y el pectoral inferior toma el protagonismo. Útil para completar el pecho con un estiramiento profundo que se perciben de maravilla.",
+        "description": "Las Aperturas Declinadas ponen el torso cabeza abajo para apuntar al borde inferior del pectoral: el arco se abre desde un ángulo que rara vez se entrena aislado. Se ejecutan en banco declinado con las piernas aseguradas, abriendo las mancuernas con los codos suaves y cerrando sobre el pecho bajo. El acabado inferior del pectoral tiene aquí su herramienta específica.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -932,7 +932,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_aperturas_planas_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -943,16 +943,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuernas en banco plano: los brazos dibujan un arco amplio y el pectoral recibe el estiramiento en la parte baja.",
-                "La gravedad concentra más exigencia cuando las manos se separan del centro."
+                "Con mancuernas, cada lado ajusta su línea y el trabajo del pectoral se equilibra solo.",
+                "El modelador del pecho por excelencia y su mejor estiramiento cargado."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Mancuernas en banco plano: los brazos dibujan un arco amplio y el pectoral recibe el estiramiento en la parte baja. La gravedad concentra más exigencia cuando las manos se separan del centro.",
+              "description": "Con mancuernas, los brazos se abren en un abrazo amplio sobre el banco y el pectoral se estira bajo carga en cada apertura. Con mancuernas, cada lado ajusta su línea y el trabajo del pectoral se equilibra solo.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -1132,10 +1132,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas en banco plano: los brazos dibujan un arco amplio y el pectoral recibe el estiramiento en la parte baja.",
-                    "La gravedad concentra más exigencia cuando las manos se separan del centro."
+                    "Con mancuernas, cada lado ajusta su línea y el trabajo del pectoral se equilibra solo.",
+                    "El modelador del pecho por excelencia y su mejor estiramiento cargado."
                   ],
-                  "description": "Mancuernas en banco plano: los brazos dibujan un arco amplio y el pectoral recibe el estiramiento en la parte baja. La gravedad concentra más exigencia cuando las manos se separan del centro.",
+                  "description": "Con mancuernas, los brazos se abren en un abrazo amplio sobre el banco y el pectoral se estira bajo carga en cada apertura. Con mancuernas, cada lado ajusta su línea y el trabajo del pectoral se equilibra solo.",
                   "technique": "Mancuernas en banco plano: los brazos dibujan un arco amplio y el pectoral recibe el estiramiento en la parte baja. Los brazos describen un arco amplio sin convertir el gesto en un press; el pecho recibe el estiramiento y se cierra sin rebote.",
                   "variantRationale": "Mancuernas en banco plano: los brazos dibujan un arco amplio y el pectoral recibe el estiramiento en la parte baja. La gravedad concentra más exigencia cuando las manos se separan del centro."
                 },
@@ -1150,7 +1150,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Planas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "flat_chest_fly__dumbbells",
                   "definitionId": "flat_chest_fly",
                   "familyId": "chest_fly",
@@ -1230,7 +1230,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_aperturas_planas_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1241,16 +1241,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea en banco plano: la tensión permanece desde la apertura hasta el cierre y el pectoral no encuentra un punto de descanso claro.",
-                "La altura del cable permite ajustar la línea del arco sin cambiar el objetivo del ejercicio."
+                "El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                "El modelador del pecho por excelencia y su mejor estiramiento cargado."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Polea en banco plano: la tensión permanece desde la apertura hasta el cierre y el pectoral no encuentra un punto de descanso claro. La altura del cable permite ajustar la línea del arco sin cambiar el objetivo del ejercicio.",
+              "description": "Con polea, los brazos se abren en un abrazo amplio sobre el banco y el pectoral se estira bajo carga en cada apertura. El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -1430,10 +1430,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea en banco plano: la tensión permanece desde la apertura hasta el cierre y el pectoral no encuentra un punto de descanso claro.",
-                    "La altura del cable permite ajustar la línea del arco sin cambiar el objetivo del ejercicio."
+                    "El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                    "El modelador del pecho por excelencia y su mejor estiramiento cargado."
                   ],
-                  "description": "Polea en banco plano: la tensión permanece desde la apertura hasta el cierre y el pectoral no encuentra un punto de descanso claro. La altura del cable permite ajustar la línea del arco sin cambiar el objetivo del ejercicio.",
+                  "description": "Con polea, los brazos se abren en un abrazo amplio sobre el banco y el pectoral se estira bajo carga en cada apertura. El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco.",
                   "technique": "Polea en banco plano: la tensión permanece desde la apertura hasta el cierre y el pectoral no encuentra un punto de descanso claro. Los brazos describen un arco amplio sin convertir el gesto en un press; el pecho recibe el estiramiento y se cierra sin rebote.",
                   "variantRationale": "Polea en banco plano: la tensión permanece desde la apertura hasta el cierre y el pectoral no encuentra un punto de descanso claro. La altura del cable permite ajustar la línea del arco sin cambiar el objetivo del ejercicio."
                 },
@@ -1448,7 +1448,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Planas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "flat_chest_fly__cable",
                   "definitionId": "flat_chest_fly",
                   "familyId": "chest_fly",
@@ -1528,7 +1528,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_aperturas_pec_deck",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1539,16 +1539,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina de aperturas: recorrido guiado y tensión constante en el pecho.",
-                "La opción más cómoda para concentrarte solo en abrir y cerrar."
+                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del pectoral.",
+                "El modelador del pecho por excelencia y su mejor estiramiento cargado."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Máquina de aperturas: recorrido guiado y tensión constante en el pecho. La opción más cómoda para concentrarte solo en abrir y cerrar.",
+              "description": "Con máquina, los brazos se abren en un abrazo amplio sobre el banco y el pectoral se estira bajo carga en cada apertura. En la máquina, la trayectoria guiada concentra todo el esfuerzo del pectoral.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -1728,10 +1728,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina de aperturas: recorrido guiado y tensión constante en el pecho.",
-                    "La opción más cómoda para concentrarte solo en abrir y cerrar."
+                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del pectoral.",
+                    "El modelador del pecho por excelencia y su mejor estiramiento cargado."
                   ],
-                  "description": "Máquina de aperturas: recorrido guiado y tensión constante en el pecho. La opción más cómoda para concentrarte solo en abrir y cerrar.",
+                  "description": "Con máquina, los brazos se abren en un abrazo amplio sobre el banco y el pectoral se estira bajo carga en cada apertura. En la máquina, la trayectoria guiada concentra todo el esfuerzo del pectoral.",
                   "technique": "Máquina de aperturas: recorrido guiado y tensión constante en el pecho. Los brazos describen un arco amplio sin convertir el gesto en un press; el pecho recibe el estiramiento y se cierra sin rebote.",
                   "variantRationale": "Máquina de aperturas: recorrido guiado y tensión constante en el pecho. La opción más cómoda para concentrarte solo en abrir y cerrar."
                 },
@@ -1746,7 +1746,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Planas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "flat_chest_fly__machine",
                   "definitionId": "flat_chest_fly",
                   "familyId": "chest_fly",
@@ -1822,11 +1822,11 @@
           }
         ],
         "defaultConfigurationId": "flat_chest_fly__dumbbells",
-        "description": "Abres y cierras los brazos en arco sobre el pecho, como abrazando un árbol grande. Concentra el pectoral como ningún press y la sensación de tensión en el pecho es marcada.",
+        "description": "Las Aperturas Planas son el estiramiento del pectoral convertido en ejercicio: los brazos se abren en arco sobre el banco y el pectoral se alarga bajo carga como en ningún press. Se ejecutan con mancuernas y los codos ligeramente flexionados, bajando en un abrazo amplio hasta la línea del pecho y cerrando sin chocarlas arriba. En polea la tensión sobrevive al punto alto, justo donde las mancuernas perdonan. El modelador del pecho por excelencia y su mejor estiramiento cargado.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1852,7 +1852,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_aperturas_planas_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1863,16 +1863,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuernas en apertura inclinada: el arco se eleva y la parte alta del pecho toma el mando.",
-                "Trabajo preciso para definir la zona superior."
+                "El pectoral trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                "Detalle fino para un pecho completo visto de frente."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Mancuernas en apertura inclinada: el arco se eleva y la parte alta del pecho toma el mando. Trabajo preciso para definir la zona superior.",
+              "description": "Con mancuernas, en el banco inclinado, el arco de los brazos se inclina y el foco sube a la parte alta del pecho. El pectoral trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -2052,10 +2052,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas en apertura inclinada: el arco se eleva y la parte alta del pecho toma el mando.",
-                    "Trabajo preciso para definir la zona superior."
+                    "El pectoral trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                    "Detalle fino para un pecho completo visto de frente."
                   ],
-                  "description": "Mancuernas en apertura inclinada: el arco se eleva y la parte alta del pecho toma el mando. Trabajo preciso para definir la zona superior.",
+                  "description": "Con mancuernas, en el banco inclinado, el arco de los brazos se inclina y el foco sube a la parte alta del pecho. El pectoral trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
                   "technique": "Mancuernas en apertura inclinada: el arco se eleva y la parte alta del pecho toma el mando. El banco inclinado eleva la trayectoria de las manos y exige cerrar el arco sobre la parte alta del pecho sin encoger los hombros.",
                   "variantRationale": "Mancuernas en apertura inclinada: el arco se eleva y la parte alta del pecho toma el mando. Trabajo preciso para definir la zona superior."
                 },
@@ -2070,7 +2070,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Inclinadas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "incline_chest_fly__dumbbells",
                   "definitionId": "incline_chest_fly",
                   "familyId": "chest_fly",
@@ -2150,7 +2150,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_aperturas_planas_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2161,16 +2161,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea en apertura inclinada: el ángulo alto con tensión continua carga la parte alta.",
-                "Una combinación que sienta el pecho desde el primer tirón."
+                "Con la polea, la tensión sobre el pectoral se mantiene viva de principio a fin.",
+                "Detalle fino para un pecho completo visto de frente."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Polea en apertura inclinada: el ángulo alto con tensión continua carga la parte alta. Una combinación que sienta el pecho desde el primer tirón.",
+              "description": "Con polea, en el banco inclinado, el arco de los brazos se inclina y el foco sube a la parte alta del pecho. Con la polea, la tensión sobre el pectoral se mantiene viva de principio a fin.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -2350,10 +2350,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea en apertura inclinada: el ángulo alto con tensión continua carga la parte alta.",
-                    "Una combinación que sienta el pecho desde el primer tirón."
+                    "Con la polea, la tensión sobre el pectoral se mantiene viva de principio a fin.",
+                    "Detalle fino para un pecho completo visto de frente."
                   ],
-                  "description": "Polea en apertura inclinada: el ángulo alto con tensión continua carga la parte alta. Una combinación que sienta el pecho desde el primer tirón.",
+                  "description": "Con polea, en el banco inclinado, el arco de los brazos se inclina y el foco sube a la parte alta del pecho. Con la polea, la tensión sobre el pectoral se mantiene viva de principio a fin.",
                   "technique": "Polea en apertura inclinada: el ángulo alto con tensión continua carga la parte alta. El banco inclinado eleva la trayectoria de las manos y exige cerrar el arco sobre la parte alta del pecho sin encoger los hombros.",
                   "variantRationale": "Polea en apertura inclinada: el ángulo alto con tensión continua carga la parte alta. Una combinación que sienta el pecho desde el primer tirón."
                 },
@@ -2368,7 +2368,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Inclinadas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "incline_chest_fly__cable",
                   "definitionId": "incline_chest_fly",
                   "familyId": "chest_fly",
@@ -2448,7 +2448,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_aperturas_pec_deck",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2459,16 +2459,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina inclinada de aperturas: el guiado sube el foco a la zona alta sin esfuerzo extra.",
-                "Fácil de cargar y útil para acumular trabajo para definir."
+                "El pectoral trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+                "Detalle fino para un pecho completo visto de frente."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Máquina inclinada de aperturas: el guiado sube el foco a la zona alta sin esfuerzo extra. Fácil de cargar y útil para acumular trabajo para definir.",
+              "description": "Con máquina, en el banco inclinado, el arco de los brazos se inclina y el foco sube a la parte alta del pecho. El pectoral trabaja en la máquina, con el recorrido guiado y sin distracciones.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -2648,10 +2648,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina inclinada de aperturas: el guiado sube el foco a la zona alta sin esfuerzo extra.",
-                    "Fácil de cargar y útil para acumular trabajo para definir."
+                    "El pectoral trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+                    "Detalle fino para un pecho completo visto de frente."
                   ],
-                  "description": "Máquina inclinada de aperturas: el guiado sube el foco a la zona alta sin esfuerzo extra. Fácil de cargar y útil para acumular trabajo para definir.",
+                  "description": "Con máquina, en el banco inclinado, el arco de los brazos se inclina y el foco sube a la parte alta del pecho. El pectoral trabaja en la máquina, con el recorrido guiado y sin distracciones.",
                   "technique": "Máquina inclinada de aperturas: el guiado sube el foco a la zona alta sin esfuerzo extra. El banco inclinado eleva la trayectoria de las manos y exige cerrar el arco sobre la parte alta del pecho sin encoger los hombros.",
                   "variantRationale": "Máquina inclinada de aperturas: el guiado sube el foco a la zona alta sin esfuerzo extra. Fácil de cargar y útil para acumular trabajo para definir."
                 },
@@ -2666,7 +2666,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Inclinadas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "incline_chest_fly__machine",
                   "definitionId": "incline_chest_fly",
                   "familyId": "chest_fly",
@@ -2742,11 +2742,11 @@
           }
         ],
         "defaultConfigurationId": "incline_chest_fly__dumbbells",
-        "description": "Aperturas en banco inclinado: el arco de los brazos se inclina y el foco sube a la parte alta del pecho. Trabajo preciso de apertura para definir y desarrollar la zona superior.",
+        "description": "Las Aperturas Inclinadas llevan el abrazo amplio a la parte alta del pecho: en el banco inclinado, el estiramiento bajo carga se concentra en las fibras claviculares del pectoral. Se ejecutan como su hermana plana pero con el torso elevado, dejando que las mancuernas abran el arco hasta sentir el tirón y cerrando con control. La máquina de aperturas sostiene la trayectoria cuando la fatiga empieza a mandar. Detalle fino para un pecho completo visto de frente.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -2772,7 +2772,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_aperturas_inversas_maquina_pec_deck",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2783,16 +2783,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina Pec Deck invertida con ambos brazos: el deltoides posterior y la espalda alta trabajan juntos en cada apertura.",
-                "El ejercicio más utilizada para corregir postura."
+                "El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones. Con ambos lados a la vez, el trabajo del deltoide se reparte.",
+                "El seguro de postura y equilibrio de hombros que todo programa necesita."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
               ],
-              "description": "Máquina Pec Deck invertida con ambos brazos: el deltoides posterior y la espalda alta trabajan juntos en cada apertura. El ejercicio más utilizada para corregir postura.",
+              "description": "Con máquina y a dos lados, los brazos viajan hacia atrás contra la resistencia y la cara posterior del hombro hace el trabajo. El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones. Con ambos lados a la vez, el trabajo del deltoide se reparte.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -2973,10 +2973,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina Pec Deck invertida con ambos brazos: el deltoides posterior y la espalda alta trabajan juntos en cada apertura.",
-                    "El ejercicio más utilizada para corregir postura."
+                    "El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones. Con ambos lados a la vez, el trabajo del deltoide se reparte.",
+                    "El seguro de postura y equilibrio de hombros que todo programa necesita."
                   ],
-                  "description": "Máquina Pec Deck invertida con ambos brazos: el deltoides posterior y la espalda alta trabajan juntos en cada apertura. El ejercicio más utilizada para corregir postura.",
+                  "description": "Con máquina y a dos lados, los brazos viajan hacia atrás contra la resistencia y la cara posterior del hombro hace el trabajo. El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones. Con ambos lados a la vez, el trabajo del deltoide se reparte.",
                   "technique": "Máquina Pec Deck invertida con ambos brazos: el deltoides posterior y la espalda alta trabajan juntos en cada apertura. Los brazos se abren hacia atrás con el torso estable; la variante unilateral permite terminar cada lado sin que el hombro contrario compense.",
                   "variantRationale": "Máquina Pec Deck invertida con ambos brazos: el deltoides posterior y la espalda alta trabajan juntos en cada apertura. El ejercicio más utilizada para corregir postura."
                 },
@@ -2991,7 +2991,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Inversas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "reverse_pec_fly__bilateral__machine",
                   "definitionId": "reverse_pec_fly",
                   "familyId": "chest_fly",
@@ -3078,7 +3078,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_aperturas_inversas_maquina_pec_deck",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -3089,16 +3089,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina Pec Deck invertida de un lado a la vez: concentra cada deltoides posterior y corrige desequilibrios entre hombros.",
-                "Muy útil para quien entrena asimétrico; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo del deltoide se hace en solitario y las diferencias salen a la vista.",
+                "El seguro de postura y equilibrio de hombros que todo programa necesita."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
               ],
-              "description": "Máquina Pec Deck invertida de un lado a la vez: concentra cada deltoides posterior y corrige desequilibrios entre hombros. Muy útil para quien entrena asimétrico.",
+              "description": "Con máquina y a un lado, los brazos viajan hacia atrás contra la resistencia y la cara posterior del hombro hace el trabajo. El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo del deltoide se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -3279,10 +3279,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina Pec Deck invertida de un lado a la vez: concentra cada deltoides posterior y corrige desequilibrios entre hombros.",
-                    "Muy útil para quien entrena asimétrico; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo del deltoide se hace en solitario y las diferencias salen a la vista.",
+                    "El seguro de postura y equilibrio de hombros que todo programa necesita."
                   ],
-                  "description": "Máquina Pec Deck invertida de un lado a la vez: concentra cada deltoides posterior y corrige desequilibrios entre hombros. Muy útil para quien entrena asimétrico.",
+                  "description": "Con máquina y a un lado, los brazos viajan hacia atrás contra la resistencia y la cara posterior del hombro hace el trabajo. El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo del deltoide se hace en solitario y las diferencias salen a la vista.",
                   "technique": "Máquina Pec Deck invertida de un lado a la vez: concentra cada deltoides posterior y corrige desequilibrios entre hombros. Los brazos se abren hacia atrás con el torso estable; la variante unilateral permite terminar cada lado sin que el hombro contrario compense.",
                   "variantRationale": "Máquina Pec Deck invertida de un lado a la vez: concentra cada deltoides posterior y corrige desequilibrios entre hombros. Muy útil para quien entrena asimétrico."
                 },
@@ -3297,7 +3297,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Inversas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "reverse_pec_fly__unilateral__machine",
                   "definitionId": "reverse_pec_fly",
                   "familyId": "chest_fly",
@@ -3384,7 +3384,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "editorial:configuration:reverse_pec_fly__standing__cable",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -3395,16 +3395,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea cruzada con ambos brazos: la tensión continua aumenta la fatiga local del deltoides posterior.",
-                "Variante precisa para completar el trabajo del hombro."
+                "El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco. A dos lados, el trabajo del deltoide admite más carga total.",
+                "El seguro de postura y equilibrio de hombros que todo programa necesita."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
               ],
-              "description": "Polea cruzada con ambos brazos: la tensión continua aumenta la fatiga local del deltoides posterior. Variante precisa para completar el trabajo del hombro.",
+              "description": "Con polea y a dos lados, los brazos viajan hacia atrás contra la resistencia y la cara posterior del hombro hace el trabajo. El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco. A dos lados, el trabajo del deltoide admite más carga total.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -3585,10 +3585,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea cruzada con ambos brazos: la tensión continua aumenta la fatiga local del deltoides posterior.",
-                    "Variante precisa para completar el trabajo del hombro."
+                    "El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco. A dos lados, el trabajo del deltoide admite más carga total.",
+                    "El seguro de postura y equilibrio de hombros que todo programa necesita."
                   ],
-                  "description": "Polea cruzada con ambos brazos: la tensión continua aumenta la fatiga local del deltoides posterior. Variante precisa para completar el trabajo del hombro.",
+                  "description": "Con polea y a dos lados, los brazos viajan hacia atrás contra la resistencia y la cara posterior del hombro hace el trabajo. El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco. A dos lados, el trabajo del deltoide admite más carga total.",
                   "technique": "Polea cruzada con ambos brazos: la tensión continua aumenta la fatiga local del deltoides posterior. Los brazos se abren hacia atrás con el torso estable; la variante unilateral permite terminar cada lado sin que el hombro contrario compense.",
                   "variantRationale": "Polea cruzada con ambos brazos: la tensión continua aumenta la fatiga local del deltoides posterior. Variante precisa para completar el trabajo del hombro."
                 },
@@ -3603,7 +3603,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Inversas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "reverse_pec_fly__bilateral__cable",
                   "definitionId": "reverse_pec_fly",
                   "familyId": "chest_fly",
@@ -3690,7 +3690,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "editorial:configuration:reverse_pec_fly__standing__cable",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -3701,16 +3701,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea con un solo brazo: cada hombro posterior trabaja por separado con tensión constante.",
-                "Útil para igualar ambos lados; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo del deltoide se aísla y las asimetrías quedan al descubierto.",
+                "El seguro de postura y equilibrio de hombros que todo programa necesita."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
               ],
-              "description": "Polea con un solo brazo: cada hombro posterior trabaja por separado con tensión constante. Útil para igualar ambos lados.",
+              "description": "Con polea y a un lado, los brazos viajan hacia atrás contra la resistencia y la cara posterior del hombro hace el trabajo. El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo del deltoide se aísla y las asimetrías quedan al descubierto.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -3891,10 +3891,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea con un solo brazo: cada hombro posterior trabaja por separado con tensión constante.",
-                    "Útil para igualar ambos lados; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo del deltoide se aísla y las asimetrías quedan al descubierto.",
+                    "El seguro de postura y equilibrio de hombros que todo programa necesita."
                   ],
-                  "description": "Polea con un solo brazo: cada hombro posterior trabaja por separado con tensión constante. Útil para igualar ambos lados.",
+                  "description": "Con polea y a un lado, los brazos viajan hacia atrás contra la resistencia y la cara posterior del hombro hace el trabajo. El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo del deltoide se aísla y las asimetrías quedan al descubierto.",
                   "technique": "Polea con un solo brazo: cada hombro posterior trabaja por separado con tensión constante. Los brazos se abren hacia atrás con el torso estable; la variante unilateral permite terminar cada lado sin que el hombro contrario compense.",
                   "variantRationale": "Polea con un solo brazo: cada hombro posterior trabaja por separado con tensión constante. Útil para igualar ambos lados."
                 },
@@ -3909,7 +3909,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Inversas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "reverse_pec_fly__unilateral__cable",
                   "definitionId": "reverse_pec_fly",
                   "familyId": "chest_fly",
@@ -3996,7 +3996,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_aperturas_inversas_maquina_pec_deck",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -4007,16 +4007,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuernas con ambos brazos: apertura inversa tradicional, con estiramiento al frente.",
-                "El movimiento de corrección postural por excelencia."
+                "El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Con ambos lados a la vez, el trabajo del deltoide se reparte.",
+                "El seguro de postura y equilibrio de hombros que todo programa necesita."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
               ],
-              "description": "Mancuernas con ambos brazos: apertura inversa tradicional, con estiramiento al frente. El movimiento de corrección postural por excelencia.",
+              "description": "Con mancuernas y a dos lados, los brazos viajan hacia atrás contra la resistencia y la cara posterior del hombro hace el trabajo. El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Con ambos lados a la vez, el trabajo del deltoide se reparte.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -4197,10 +4197,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas con ambos brazos: apertura inversa tradicional, con estiramiento al frente.",
-                    "El movimiento de corrección postural por excelencia."
+                    "El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Con ambos lados a la vez, el trabajo del deltoide se reparte.",
+                    "El seguro de postura y equilibrio de hombros que todo programa necesita."
                   ],
-                  "description": "Mancuernas con ambos brazos: apertura inversa tradicional, con estiramiento al frente. El movimiento de corrección postural por excelencia.",
+                  "description": "Con mancuernas y a dos lados, los brazos viajan hacia atrás contra la resistencia y la cara posterior del hombro hace el trabajo. El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Con ambos lados a la vez, el trabajo del deltoide se reparte.",
                   "technique": "Mancuernas con ambos brazos: apertura inversa tradicional, con estiramiento al frente. Los brazos se abren hacia atrás con el torso estable; la variante unilateral permite terminar cada lado sin que el hombro contrario compense.",
                   "variantRationale": "Mancuernas con ambos brazos: apertura inversa tradicional, con estiramiento al frente. El movimiento de corrección postural por excelencia."
                 },
@@ -4215,7 +4215,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Inversas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "reverse_pec_fly__bilateral__dumbbells",
                   "definitionId": "reverse_pec_fly",
                   "familyId": "chest_fly",
@@ -4302,7 +4302,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_aperturas_inversas_maquina_pec_deck",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -4313,16 +4313,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuerna con un solo brazo: deltoides posterior concentrado con máximo control.",
-                "Excelente para centrarse en un lado a la vez."
+                "El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A un lado, el trabajo del deltoide se hace en solitario y las diferencias salen a la vista.",
+                "El seguro de postura y equilibrio de hombros que todo programa necesita."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
               ],
-              "description": "Mancuerna con un solo brazo: deltoides posterior concentrado con máximo control. Excelente para centrarse en un lado a la vez.",
+              "description": "Con mancuernas y a un lado, los brazos viajan hacia atrás contra la resistencia y la cara posterior del hombro hace el trabajo. El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A un lado, el trabajo del deltoide se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -4503,10 +4503,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuerna con un solo brazo: deltoides posterior concentrado con máximo control.",
-                    "Excelente para centrarse en un lado a la vez."
+                    "El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A un lado, el trabajo del deltoide se hace en solitario y las diferencias salen a la vista.",
+                    "El seguro de postura y equilibrio de hombros que todo programa necesita."
                   ],
-                  "description": "Mancuerna con un solo brazo: deltoides posterior concentrado con máximo control. Excelente para centrarse en un lado a la vez.",
+                  "description": "Con mancuernas y a un lado, los brazos viajan hacia atrás contra la resistencia y la cara posterior del hombro hace el trabajo. El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A un lado, el trabajo del deltoide se hace en solitario y las diferencias salen a la vista.",
                   "technique": "Mancuerna con un solo brazo: deltoides posterior concentrado con máximo control. Los brazos se abren hacia atrás con el torso estable; la variante unilateral permite terminar cada lado sin que el hombro contrario compense.",
                   "variantRationale": "Mancuerna con un solo brazo: deltoides posterior concentrado con máximo control. Excelente para centrarse en un lado a la vez."
                 },
@@ -4521,7 +4521,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Inversas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "reverse_pec_fly__unilateral__dumbbells",
                   "definitionId": "reverse_pec_fly",
                   "familyId": "chest_fly",
@@ -4604,11 +4604,11 @@
           }
         ],
         "defaultConfigurationId": "reverse_pec_fly__bilateral__machine",
-        "description": "Aperturas invertidas: llevas los brazos hacia atrás abriendo el pecho, en máquina Pec Deck, polea o mancuernas. Es el ejercicio estrella para el deltoides posterior y la espalda alta: corrige postura y da forma al hombro.",
+        "description": "Las Aperturas Inversas son el espejo del trabajo de pecho: los brazos se abren hacia atrás y el deltoides posterior, con romboides y trapecio medio, escribe la otra mitad del hombro. Se practican en la máquina de aperturas invertida, separando los brazos con control sin dejar que las escápulas se adelanten. Con polea cruzada el trabajo puede hacerse a un brazo, ideal para pulir lados desiguales. El seguro de postura y equilibrio de hombros que todo programa necesita.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -4634,7 +4634,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

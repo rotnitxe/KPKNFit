@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Floor press",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_floor_press_barra",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro.",
-                "Un press plano con recorrido limitado y estable."
+                "Con la barra, la carga sube al máximo y la progresión del pectoral se mide sin trampa.",
+                "Fuerza de empuje segura para quien entrena sin banco o cuida sus hombros."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 3.2,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro. Un press plano con recorrido limitado y estable.",
+              "description": "Con barra, tumbado en el suelo, los codos tocan el piso en cada bajada y el recorrido se acorta protegiendo el hombro. Con la barra, la carga sube al máximo y la progresión del pectoral se mide sin trampa.",
               "efc": 3.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -217,10 +217,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro.",
-                    "Un press plano con recorrido limitado y estable."
+                    "Con la barra, la carga sube al máximo y la progresión del pectoral se mide sin trampa.",
+                    "Fuerza de empuje segura para quien entrena sin banco o cuida sus hombros."
                   ],
-                  "description": "Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro. Un press plano con recorrido limitado y estable.",
+                  "description": "Con barra, tumbado en el suelo, los codos tocan el piso en cada bajada y el recorrido se acorta protegiendo el hombro. Con la barra, la carga sube al máximo y la progresión del pectoral se mide sin trampa.",
                   "technique": "Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro. El suelo limita el descenso cuando los brazos llegan a la línea del torso; la subida parte de una pausa estable.",
                   "variantRationale": "Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro. Un press plano con recorrido limitado y estable."
                 },
@@ -235,7 +235,7 @@
                 },
                 "identity": {
                   "canonicalName": "Floor Press",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "floor_press__barbell",
                   "definitionId": "floor_press",
                   "familyId": "chest_floor_press",
@@ -317,7 +317,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_floor_press_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -328,16 +328,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado.",
-                "Útil para ganar fuerza de pecho cuidando el hombro."
+                "Con mancuernas, cada lado ajusta su línea y el trabajo del pectoral se equilibra solo.",
+                "Fuerza de empuje segura para quien entrena sin banco o cuida sus hombros."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.8,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado. Útil para ganar fuerza de pecho cuidando el hombro.",
+              "description": "Con mancuernas, tumbado en el suelo, los codos tocan el piso en cada bajada y el recorrido se acorta protegiendo el hombro. Con mancuernas, cada lado ajusta su línea y el trabajo del pectoral se equilibra solo.",
               "efc": 3.2,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -522,10 +522,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado.",
-                    "Útil para ganar fuerza de pecho cuidando el hombro."
+                    "Con mancuernas, cada lado ajusta su línea y el trabajo del pectoral se equilibra solo.",
+                    "Fuerza de empuje segura para quien entrena sin banco o cuida sus hombros."
                   ],
-                  "description": "Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado. Útil para ganar fuerza de pecho cuidando el hombro.",
+                  "description": "Con mancuernas, tumbado en el suelo, los codos tocan el piso en cada bajada y el recorrido se acorta protegiendo el hombro. Con mancuernas, cada lado ajusta su línea y el trabajo del pectoral se equilibra solo.",
                   "technique": "Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado. El suelo limita el descenso cuando los brazos llegan a la línea del torso; la subida parte de una pausa estable.",
                   "variantRationale": "Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado. Útil para ganar fuerza de pecho cuidando el hombro."
                 },
@@ -540,7 +540,7 @@
                 },
                 "identity": {
                   "canonicalName": "Floor Press",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "floor_press__dumbbells",
                   "definitionId": "floor_press",
                   "familyId": "chest_floor_press",
@@ -616,11 +616,11 @@
           }
         ],
         "defaultConfigurationId": "floor_press__barbell",
-        "description": "Press de pecho acostado en el suelo, con los codos tocando el piso en cada repetición. Reduce el recorrido, protege el hombro y te deja mover cargas pesadas con control.",
+        "description": "El Floor Press es el press de banca reducido a su mitad útil: desde el suelo, los codos tocan el piso y el recorrido muere justo donde el hombro empieza a sufrir. Se ejecuta tumbado con las rodillas flexionadas, bajando la barra hasta que los tríceps rozan el suelo y empujando sin rebote. Con mancuernas las muñecas pueden rotar a una posición más natural en la bajada. Fuerza de empuje segura para quien entrena sin banco o cuida sus hombros.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -641,7 +641,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

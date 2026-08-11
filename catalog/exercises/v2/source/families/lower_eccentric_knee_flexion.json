@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren inferior · hamstrings · eccentric knee flexion",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_curl_nordic_peso_corporal",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "De rodillas con los tobillos sujetos, bajas el cuerpo al frente frenando con los isquios.",
-                "La referencia para la parte trasera de la pierna."
+                "Sin más carga que el propio cuerpo, la exigencia de los isquiosurales es la justa.",
+                "La referencia mundial para proteger los isquiosurales de lesiones."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
               ],
-              "description": "De rodillas con los tobillos sujetos, bajas el cuerpo al frente frenando con los isquios. La referencia para la parte trasera de la pierna.",
+              "description": "Con peso corporal, de rodillas con los tobillos anclados, el cuerpo cae hacia delante frenado por los isquiosurales. Sin más carga que el propio cuerpo, la exigencia de los isquiosurales es la justa.",
               "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -204,10 +204,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "De rodillas con los tobillos sujetos, bajas el cuerpo al frente frenando con los isquios.",
-                    "La referencia para la parte trasera de la pierna."
+                    "Sin más carga que el propio cuerpo, la exigencia de los isquiosurales es la justa.",
+                    "La referencia mundial para proteger los isquiosurales de lesiones."
                   ],
-                  "description": "De rodillas con los tobillos sujetos, bajas el cuerpo al frente frenando con los isquios. La referencia para la parte trasera de la pierna.",
+                  "description": "Con peso corporal, de rodillas con los tobillos anclados, el cuerpo cae hacia delante frenado por los isquiosurales. Sin más carga que el propio cuerpo, la exigencia de los isquiosurales es la justa.",
                   "technique": "De rodillas con los tobillos sujetos, bajas el cuerpo al frente frenando con los isquios. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "De rodillas con los tobillos sujetos, bajas el cuerpo al frente frenando con los isquios. La referencia para la parte trasera de la pierna."
                 },
@@ -222,7 +222,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Nórdico (Nordic Hamstring Curl)",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hams_curl_nordic_peso_corporal__default",
                   "definitionId": "hams_curl_nordic_peso_corporal",
                   "familyId": "lower_eccentric_knee_flexion",
@@ -296,11 +296,11 @@
           }
         ],
         "defaultConfigurationId": "hams_curl_nordic_peso_corporal__default",
-        "description": "Curl nórdico: de rodillas con los tobillos sujetos, bajas el cuerpo hacia delante frenando con los isquios. El ejercicio más duro para la parte trasera de la pierna.",
+        "description": "El Curl Nórdico es el ejercicio de isquiosurales más temido con razón: de rodillas y con los tobillos anclados, el cuerpo cae hacia delante y los isquiosurales frenan el descenso hasta donde aguanten. Se ejecuta bajando lento con la cadera extendida y empujando con las manos lo justo para volver. El peso corporal basta y sobra. La referencia mundial para proteger los isquiosurales de lesiones.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -318,7 +318,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

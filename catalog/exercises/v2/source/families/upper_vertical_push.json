@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren superior · deltoid · vertical push",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_push_press",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Impulso de piernas y empuje de hombros: la barra vuela hasta arriba.",
-                "Potencia de todo el cuerpo en un movimiento explosivo."
+                "El deltoide trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+                "El puente explosivo entre la fuerza de piernas y la potencia del tren superior."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Impulso de piernas y empuje de hombros: la barra vuela hasta arriba. Potencia de todo el cuerpo en un movimiento explosivo.",
+              "description": "Con barra, una flexión rápida de rodillas lanza la carga y los brazos terminan el bloqueo arriba. El deltoide trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -210,10 +210,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Impulso de piernas y empuje de hombros: la barra vuela hasta arriba.",
-                    "Potencia de todo el cuerpo en un movimiento explosivo."
+                    "El deltoide trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+                    "El puente explosivo entre la fuerza de piernas y la potencia del tren superior."
                   ],
-                  "description": "Impulso de piernas y empuje de hombros: la barra vuela hasta arriba. Potencia de todo el cuerpo en un movimiento explosivo.",
+                  "description": "Con barra, una flexión rápida de rodillas lanza la carga y los brazos terminan el bloqueo arriba. El deltoide trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
                   "technique": "Impulso de piernas y empuje de hombros: la barra vuela hasta arriba. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
                   "variantRationale": "Impulso de piernas y empuje de hombros: la barra vuela hasta arriba. Potencia de todo el cuerpo en un movimiento explosivo."
                 },
@@ -228,7 +228,7 @@
                 },
                 "identity": {
                   "canonicalName": "Push Press",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "deltoides_push_press__default",
                   "definitionId": "deltoides_push_press",
                   "familyId": "upper_vertical_push",
@@ -302,11 +302,11 @@
           }
         ],
         "defaultConfigurationId": "deltoides_push_press__default",
-        "description": "Impulsas la barra con las piernas y terminas el empuje con los hombros. Potencia de todo el cuerpo para mover cargas pesadas por encima de la cabeza.",
+        "description": "El Push Press roba impulso de las piernas para el press de hombros: una flexión rápida de rodillas lanza la barra y el deltoide y el tríceps terminan el bloqueo arriba. La barra parte de los hombros: se hunden ligeramente las caderas y todo el cuerpo se extiende en cadena. Permite mover más peso que el press estricto. El puente explosivo entre la fuerza de piernas y la potencia del tren superior.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -325,7 +325,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

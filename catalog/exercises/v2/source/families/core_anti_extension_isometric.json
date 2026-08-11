@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Core · core · anti extension isometric",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#core_plancha",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie.",
-                "Simple de aprender, exigente para el core y útil para empezar."
+                "Sin más carga que el propio cuerpo, la exigencia de la zona media es la justa.",
+                "Una medida honesta de la fortaleza de la zona media que cabe en cualquier rutina."
               ],
               "bodyRegion": "CORE",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Arquear la espalda, girar con la carga o perder la tensión al final."
               ],
-              "description": "Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie. Simple de aprender, exigente para el core y útil para empezar.",
+              "description": "Con peso corporal, el cuerpo se mantiene en línea recta apoyado en antebrazos y puntas de los pies, sin que nada se mueva. Sin más carga que el propio cuerpo, la exigencia de la zona media es la justa.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -181,10 +181,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie.",
-                    "Simple de aprender, exigente para el core y útil para empezar."
+                    "Sin más carga que el propio cuerpo, la exigencia de la zona media es la justa.",
+                    "Una medida honesta de la fortaleza de la zona media que cabe en cualquier rutina."
                   ],
-                  "description": "Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie. Simple de aprender, exigente para el core y útil para empezar.",
+                  "description": "Con peso corporal, el cuerpo se mantiene en línea recta apoyado en antebrazos y puntas de los pies, sin que nada se mueva. Sin más carga que el propio cuerpo, la exigencia de la zona media es la justa.",
                   "technique": "Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie. Simple de aprender, exigente para el core y útil para empezar."
                 },
@@ -199,7 +199,7 @@
                 },
                 "identity": {
                   "canonicalName": "Plancha Abdominal",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "core_plancha__default",
                   "definitionId": "core_plancha",
                   "familyId": "core_anti_extension_isometric",
@@ -273,11 +273,11 @@
           }
         ],
         "defaultConfigurationId": "core_plancha__default",
-        "description": "Aguanta el cuerpo recto como una tabla apoyado en los antebrazos y las puntas de los pies. El isométrico tradicional que aumenta la demanda del abdomen con una demanda alta, sin moverte un centímetro.",
+        "description": "La Plancha Abdominal es la prueba de estabilidad más desnuda que existe: el core sostiene el cuerpo en línea recta sin que nada se mueva, solo con el peso corporal. Se ejecuta apoyando antebrazos y puntas de los pies, con el abdomen firme y la cadera sin hundirse ni elevarse durante toda la serie. El abdomen trabaja en segundo plano aguantando la postura. Una medida honesta de la fortaleza de la zona media que cabe en cualquier rutina.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -297,7 +297,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

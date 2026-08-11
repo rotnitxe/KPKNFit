@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren inferior · erector spinae · spinal flexion",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_jefferson_curl",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "benefits": [
-                "Barra en las manos y espalda que se redondea de forma progresiva: la carga acompaña cada segmento durante el descenso.",
-                "La versión bilateral permite comparar el recorrido vértebra a vértebra con una resistencia estable."
+                "La barra es la referencia para cargar los erectores con peso de verdad.",
+                "La lección de movilidad de la columna que pocos practican y muchos necesitan."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
               ],
-              "description": "Barra en las manos y espalda que se redondea de forma progresiva: la carga acompaña cada segmento durante el descenso. La versión bilateral permite comparar el recorrido vértebra a vértebra con una resistencia estable.",
+              "description": "Con barra, el tronco se redondea vértebra a vértebra hasta que las manos rozan el suelo y regresa enrollándose. La barra es la referencia para cargar los erectores con peso de verdad.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -191,10 +191,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra en las manos y espalda que se redondea de forma progresiva: la carga acompaña cada segmento durante el descenso.",
-                    "La versión bilateral permite comparar el recorrido vértebra a vértebra con una resistencia estable."
+                    "La barra es la referencia para cargar los erectores con peso de verdad.",
+                    "La lección de movilidad de la columna que pocos practican y muchos necesitan."
                   ],
-                  "description": "Barra en las manos y espalda que se redondea de forma progresiva: la carga acompaña cada segmento durante el descenso. La versión bilateral permite comparar el recorrido vértebra a vértebra con una resistencia estable.",
+                  "description": "Con barra, el tronco se redondea vértebra a vértebra hasta que las manos rozan el suelo y regresa enrollándose. La barra es la referencia para cargar los erectores con peso de verdad.",
                   "technique": "Barra en las manos y espalda que se redondea de forma progresiva: la carga acompaña cada segmento durante el descenso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Barra en las manos y espalda que se redondea de forma progresiva: la carga acompaña cada segmento durante el descenso. La versión bilateral permite comparar el recorrido vértebra a vértebra con una resistencia estable."
                 },
@@ -209,7 +209,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jefferson Curl",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "back_jefferson_curl__barbell",
                   "definitionId": "back_jefferson_curl",
                   "familyId": "lower_spinal_flexion",
@@ -295,7 +295,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_jefferson_curl",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -306,16 +306,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "benefits": [
-                "Mancuernas en las manos: cada brazo acompaña la curvatura sin depender de una barra que una ambos lados.",
-                "La carga libre ofrece una entrada más accesible al trabajo segmentado de la espalda."
+                "Los erectores trabajan con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                "La lección de movilidad de la columna que pocos practican y muchos necesitan."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
               ],
-              "description": "Mancuernas en las manos: cada brazo acompaña la curvatura sin depender de una barra que una ambos lados. La carga libre ofrece una entrada más accesible al trabajo segmentado de la espalda.",
+              "description": "Con mancuernas, el tronco se redondea vértebra a vértebra hasta que las manos rozan el suelo y regresa enrollándose. Los erectores trabajan con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -474,10 +474,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas en las manos: cada brazo acompaña la curvatura sin depender de una barra que una ambos lados.",
-                    "La carga libre ofrece una entrada más accesible al trabajo segmentado de la espalda."
+                    "Los erectores trabajan con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                    "La lección de movilidad de la columna que pocos practican y muchos necesitan."
                   ],
-                  "description": "Mancuernas en las manos: cada brazo acompaña la curvatura sin depender de una barra que una ambos lados. La carga libre ofrece una entrada más accesible al trabajo segmentado de la espalda.",
+                  "description": "Con mancuernas, el tronco se redondea vértebra a vértebra hasta que las manos rozan el suelo y regresa enrollándose. Los erectores trabajan con mancuernas, que dejan que cada lado corrija su trayectoria.",
                   "technique": "Mancuernas en las manos: cada brazo acompaña la curvatura sin depender de una barra que una ambos lados. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Mancuernas en las manos: cada brazo acompaña la curvatura sin depender de una barra que una ambos lados. La carga libre ofrece una entrada más accesible al trabajo segmentado de la espalda."
                 },
@@ -492,7 +492,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jefferson Curl",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "back_jefferson_curl__dumbbells",
                   "definitionId": "back_jefferson_curl",
                   "familyId": "lower_spinal_flexion",
@@ -578,7 +578,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_jefferson_curl",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -589,16 +589,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "benefits": [
-                "Smith: la barra guiada desciende con la espalda redondeada con estabilidad.",
-                "Una forma controlada de explorar el movimiento."
+                "Los erectores trabajan en la Smith, con la trayectoria guiada y estabilidad extra.",
+                "La lección de movilidad de la columna que pocos practican y muchos necesitan."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
               ],
-              "description": "Smith: la barra guiada desciende con la espalda redondeada con estabilidad. Una forma controlada de explorar el movimiento.",
+              "description": "Con máquina Smith, el tronco se redondea vértebra a vértebra hasta que las manos rozan el suelo y regresa enrollándose. Los erectores trabajan en la Smith, con la trayectoria guiada y estabilidad extra.",
               "efc": 2.5,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -757,10 +757,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith: la barra guiada desciende con la espalda redondeada con estabilidad.",
-                    "Una forma controlada de explorar el movimiento."
+                    "Los erectores trabajan en la Smith, con la trayectoria guiada y estabilidad extra.",
+                    "La lección de movilidad de la columna que pocos practican y muchos necesitan."
                   ],
-                  "description": "Smith: la barra guiada desciende con la espalda redondeada con estabilidad. Una forma controlada de explorar el movimiento.",
+                  "description": "Con máquina Smith, el tronco se redondea vértebra a vértebra hasta que las manos rozan el suelo y regresa enrollándose. Los erectores trabajan en la Smith, con la trayectoria guiada y estabilidad extra.",
                   "technique": "Smith: la barra guiada desciende con la espalda redondeada con estabilidad. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Smith: la barra guiada desciende con la espalda redondeada con estabilidad. Una forma controlada de explorar el movimiento."
                 },
@@ -775,7 +775,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jefferson Curl",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "back_jefferson_curl__smith_machine",
                   "definitionId": "back_jefferson_curl",
                   "familyId": "lower_spinal_flexion",
@@ -861,7 +861,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_jefferson_curl",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -872,16 +872,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "benefits": [
-                "Polea baja durante el redondeo: el cable conserva tensión cuando la espalda cambia de ángulo.",
-                "La resistencia continua permite usar menos carga y prestar más atención al control del recorrido."
+                "Los erectores trabajan con la polea, que mantiene la tensión constante en todo el arco.",
+                "La lección de movilidad de la columna que pocos practican y muchos necesitan."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
               ],
-              "description": "Polea baja durante el redondeo: el cable conserva tensión cuando la espalda cambia de ángulo. La resistencia continua permite usar menos carga y prestar más atención al control del recorrido.",
+              "description": "Con polea, el tronco se redondea vértebra a vértebra hasta que las manos rozan el suelo y regresa enrollándose. Los erectores trabajan con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -1040,10 +1040,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea baja durante el redondeo: el cable conserva tensión cuando la espalda cambia de ángulo.",
-                    "La resistencia continua permite usar menos carga y prestar más atención al control del recorrido."
+                    "Los erectores trabajan con la polea, que mantiene la tensión constante en todo el arco.",
+                    "La lección de movilidad de la columna que pocos practican y muchos necesitan."
                   ],
-                  "description": "Polea baja durante el redondeo: el cable conserva tensión cuando la espalda cambia de ángulo. La resistencia continua permite usar menos carga y prestar más atención al control del recorrido.",
+                  "description": "Con polea, el tronco se redondea vértebra a vértebra hasta que las manos rozan el suelo y regresa enrollándose. Los erectores trabajan con la polea, que mantiene la tensión constante en todo el arco.",
                   "technique": "Polea baja durante el redondeo: el cable conserva tensión cuando la espalda cambia de ángulo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Polea baja durante el redondeo: el cable conserva tensión cuando la espalda cambia de ángulo. La resistencia continua permite usar menos carga y prestar más atención al control del recorrido."
                 },
@@ -1058,7 +1058,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jefferson Curl",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "back_jefferson_curl__cable",
                   "definitionId": "back_jefferson_curl",
                   "familyId": "lower_spinal_flexion",
@@ -1140,11 +1140,11 @@
           }
         ],
         "defaultConfigurationId": "back_jefferson_curl__barbell",
-        "description": "Con la carga en las manos, doblas la espalda vértebra a vértebra hasta redondearla y vuelves igual de lento. El ejercicio de movilidad con una técnica que exige progresión y control.",
+        "description": "El Jefferson Curl redondea la columna vértebra a vértebra con carga ligera: los erectores se estiran bajo tensión en un descenso enrollado que sube desenrollándose. Se ejecuta de pie, dejando caer la barra o las mancuernas hacia el suelo con las piernas casi rectas y regresando con la misma calma. La carga debe ser simbólica; aquí el rango y el control mandan sobre el peso. La lección de movilidad de la columna que pocos practican y muchos necesitan.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1165,7 +1165,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

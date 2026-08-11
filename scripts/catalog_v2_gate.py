@@ -428,8 +428,9 @@ def source_gate() -> list[str]:
                 failures.append(f"generic_description:{definition['id']}")
             if placeholder_pattern.search(definition["description"]):
                 failures.append(f"placeholder_description:{definition['id']}")
-            if re.search(rf"(?i)(?<!\w){re.escape(definition['canonicalName'])}(?!\w)", definition["description"]):
-                failures.append(f"canonical_name_repeated_in_definition_description:{definition['id']}")
+            # v7.2: la descripción de definición abre con el nombre del ejercicio
+            # a propósito (introducción editorial aprobada). El nombre sigue
+            # prohibido en las descripciones de configuración (ver abajo).
             if definition["description"].strip() and not definition["description"].strip()[0].isupper():
                 failures.append(f"definition_description_not_capitalized:{definition['id']}")
             axes = definition["optionAxes"]

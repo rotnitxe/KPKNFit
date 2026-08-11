@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren inferior · quadriceps · unilateral knee dominant asymmetric",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_bulgara_jefferson",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "benefits": [
-                "Pie trasero en el banco y barra en posición Jefferson: dos ejercicios duros combinados en uno.",
-                "Pie trasero en el banco y barra en posición Jefferson: dos ejercicios duros combinados en uno."
+                "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+                "Para los que ya dominaron todo lo convencional y buscan territorio nuevo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Pie trasero en el banco y barra en posición Jefferson: dos ejercicios duros combinados en uno.",
+              "description": "Con barra, con el pie de atrás en alto y la barra entre las piernas, el descenso es vertical y asimétrico. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -210,10 +210,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Pie trasero en el banco y barra en posición Jefferson: dos ejercicios duros combinados en uno.",
-                    "Pie trasero en el banco y barra en posición Jefferson: dos ejercicios duros combinados en uno."
+                    "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+                    "Para los que ya dominaron todo lo convencional y buscan territorio nuevo."
                   ],
-                  "description": "Pie trasero en el banco y barra en posición Jefferson: dos ejercicios duros combinados en uno.",
+                  "description": "Con barra, con el pie de atrás en alto y la barra entre las piernas, el descenso es vertical y asimétrico. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
                   "technique": "Pie trasero en el banco y barra en posición Jefferson: dos ejercicios duros combinados en uno. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Pie trasero en el banco y barra en posición Jefferson: dos ejercicios duros combinados en uno. Pie trasero en el banco y barra en posición Jefferson: dos ejercicios duros combinados en uno."
                 },
@@ -228,7 +228,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara Jefferson",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "quads_sentadilla_bulgara_jefferson__default",
                   "definitionId": "quads_sentadilla_bulgara_jefferson",
                   "familyId": "lower_unilateral_knee_dominant_asymmetric",
@@ -304,11 +304,11 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_bulgara_jefferson__default",
-        "description": "Pie trasero en el banco y la barra en posición Jefferson. La combinación de dos ejercicios duros en uno.",
+        "description": "La Sentadilla Búlgara Jefferson monta la barra entre las piernas con el pie trasero elevado sobre el banco: dos rarezas en una que cargan el cuádriceps con una asimetría singular. Se practica agarrando la barra a horcajadas, bajando en vertical sobre la pierna de apoyo y regresando sin que el torso se tuerza. El agarre Jefferson cambia la línea de la carga por completo. Para los que ya dominaron todo lo convencional y buscan territorio nuevo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -327,7 +327,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

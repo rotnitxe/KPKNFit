@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren inferior · quadriceps · lateral knee dominant",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_cosaca",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Paso amplio al lado y bajada lateral con la otra pierna extendida: movilidad y fuerza de piernas en un movimiento elegante.",
-                "Paso amplio al lado y bajada lateral con la otra pierna extendida: movilidad y fuerza de piernas en un movimiento elegante."
+                "Sin más carga que el propio cuerpo, la exigencia del cuádriceps es la justa.",
+                "La sentadilla lateral que revela lo que falta por trabajar."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Paso amplio al lado y bajada lateral con la otra pierna extendida: movilidad y fuerza de piernas en un movimiento elegante.",
+              "description": "Con peso corporal, una pierna se hunde en flexión lateral mientras la otra se extiende hacia el costado. Sin más carga que el propio cuerpo, la exigencia del cuádriceps es la justa.",
               "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -205,10 +205,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Paso amplio al lado y bajada lateral con la otra pierna extendida: movilidad y fuerza de piernas en un movimiento elegante.",
-                    "Paso amplio al lado y bajada lateral con la otra pierna extendida: movilidad y fuerza de piernas en un movimiento elegante."
+                    "Sin más carga que el propio cuerpo, la exigencia del cuádriceps es la justa.",
+                    "La sentadilla lateral que revela lo que falta por trabajar."
                   ],
-                  "description": "Paso amplio al lado y bajada lateral con la otra pierna extendida: movilidad y fuerza de piernas en un movimiento elegante.",
+                  "description": "Con peso corporal, una pierna se hunde en flexión lateral mientras la otra se extiende hacia el costado. Sin más carga que el propio cuerpo, la exigencia del cuádriceps es la justa.",
                   "technique": "Paso amplio al lado y bajada lateral con la otra pierna extendida: movilidad y fuerza de piernas en un movimiento elegante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Paso amplio al lado y bajada lateral con la otra pierna extendida: movilidad y fuerza de piernas en un movimiento elegante. Paso amplio al lado y bajada lateral con la otra pierna extendida: movilidad y fuerza de piernas en un movimiento elegante."
                 },
@@ -223,7 +223,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Cosaca",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "quads_sentadilla_cosaca__default",
                   "definitionId": "quads_sentadilla_cosaca",
                   "familyId": "lower_lateral_knee_dominant",
@@ -296,11 +296,11 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_cosaca__default",
-        "description": "Das un paso muy amplio al lado y bajas hacia un lado con la otra pierna extendida. Movilidad, aductores y cuádriceps en un solo movimiento.",
+        "description": "La Sentadilla Cosaca traslada el peso a un lado con la otra pierna extendida: el cuádriceps de la pierna que flexiona se hunde en un rango enorme mientras la otra pierna estira el aductor. Se ejecuta desplazándose lateralmente hasta el fondo y regresando al centro, con el peso corporal como carga suficiente. Movilidad de cadera y fuerza unilateral en un solo gesto. La sentadilla lateral que revela lo que falta por trabajar.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -319,7 +319,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

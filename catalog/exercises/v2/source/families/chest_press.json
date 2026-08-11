@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Press de Banca",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_press_banca_plano_barra",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Con barra, mueves la mayor cantidad de peso y lo compruebas en cada sesión: los números no mienten.",
-                "El press plano tradicional, directo; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "La barra es la referencia para cargar el pectoral con peso de verdad.",
+                "El medidor más honesto de la fuerza de empuje y un constructor de pecho que nunca falla."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Con barra, mueves la mayor cantidad de peso y lo compruebas en cada sesión: los números no mienten. El press plano tradicional, directo.",
+              "description": "Con barra, tumbado en el banco, la carga baja al pecho y sube con el empuje completo de los brazos. La barra es la referencia para cargar el pectoral con peso de verdad.",
               "efc": 4.2,
               "equipmentId": "barbell",
               "executionCues": [
@@ -223,10 +223,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Con barra, mueves la mayor cantidad de peso y lo compruebas en cada sesión: los números no mienten.",
-                    "El press plano tradicional, directo; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "La barra es la referencia para cargar el pectoral con peso de verdad.",
+                    "El medidor más honesto de la fuerza de empuje y un constructor de pecho que nunca falla."
                   ],
-                  "description": "Con barra, mueves la mayor cantidad de peso y lo compruebas en cada sesión: los números no mienten. El press plano tradicional, directo.",
+                  "description": "Con barra, tumbado en el banco, la carga baja al pecho y sube con el empuje completo de los brazos. La barra es la referencia para cargar el pectoral con peso de verdad.",
                   "technique": "Con barra, mueves la mayor cantidad de peso y lo compruebas en cada sesión: los números no mienten. El banco fija la espalda y la carga desciende hacia la parte elegida del pecho antes de volver con los antebrazos alineados.",
                   "variantRationale": "Con barra, mueves la mayor cantidad de peso y lo compruebas en cada sesión: los números no mienten. El press plano tradicional, directo."
                 },
@@ -241,7 +241,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Plano",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "bench_press__barbell",
                   "definitionId": "bench_press",
                   "familyId": "chest_press",
@@ -334,7 +334,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_press_banca_plano_barra",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -345,16 +345,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Con mancuernas, cada brazo trabaja por su cuenta y el recorrido es más adaptable para el hombro.",
-                "La variante utilizada para equilibrio, desarrollo muscular y estabilidad."
+                "Con mancuernas, cada lado ajusta su línea y el trabajo del pectoral se equilibra solo.",
+                "El medidor más honesto de la fuerza de empuje y un constructor de pecho que nunca falla."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Con mancuernas, cada brazo trabaja por su cuenta y el recorrido es más adaptable para el hombro. La variante utilizada para equilibrio, desarrollo muscular y estabilidad.",
+              "description": "Con mancuernas, tumbado en el banco, la carga baja al pecho y sube con el empuje completo de los brazos. Con mancuernas, cada lado ajusta su línea y el trabajo del pectoral se equilibra solo.",
               "efc": 4.2,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -545,10 +545,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Con mancuernas, cada brazo trabaja por su cuenta y el recorrido es más adaptable para el hombro.",
-                    "La variante utilizada para equilibrio, desarrollo muscular y estabilidad."
+                    "Con mancuernas, cada lado ajusta su línea y el trabajo del pectoral se equilibra solo.",
+                    "El medidor más honesto de la fuerza de empuje y un constructor de pecho que nunca falla."
                   ],
-                  "description": "Con mancuernas, cada brazo trabaja por su cuenta y el recorrido es más adaptable para el hombro. La variante utilizada para equilibrio, desarrollo muscular y estabilidad.",
+                  "description": "Con mancuernas, tumbado en el banco, la carga baja al pecho y sube con el empuje completo de los brazos. Con mancuernas, cada lado ajusta su línea y el trabajo del pectoral se equilibra solo.",
                   "technique": "Con mancuernas, cada brazo trabaja por su cuenta y el recorrido es más adaptable para el hombro. El banco fija la espalda y la carga desciende hacia la parte elegida del pecho antes de volver con los antebrazos alineados.",
                   "variantRationale": "Con mancuernas, cada brazo trabaja por su cuenta y el recorrido es más adaptable para el hombro. La variante utilizada para equilibrio, desarrollo muscular y estabilidad."
                 },
@@ -563,7 +563,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Plano",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "bench_press__dumbbells",
                   "definitionId": "bench_press",
                   "familyId": "chest_press",
@@ -656,7 +656,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_press_banca_plano_barra",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -667,16 +667,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "En Smith, la barra va guiada y puedes cargar el pecho sin preocuparte por el equilibrio.",
-                "Útil para series pesadas en solitario con total control."
+                "En la Smith, la guía fija permite concentrar todo el esfuerzo del pectoral.",
+                "El medidor más honesto de la fuerza de empuje y un constructor de pecho que nunca falla."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "En Smith, la barra va guiada y puedes cargar el pecho sin preocuparte por el equilibrio. Útil para series pesadas en solitario con total control.",
+              "description": "Con máquina Smith, tumbado en el banco, la carga baja al pecho y sube con el empuje completo de los brazos. En la Smith, la guía fija permite concentrar todo el esfuerzo del pectoral.",
               "efc": 4.2,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -867,10 +867,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "En Smith, la barra va guiada y puedes cargar el pecho sin preocuparte por el equilibrio.",
-                    "Útil para series pesadas en solitario con total control."
+                    "En la Smith, la guía fija permite concentrar todo el esfuerzo del pectoral.",
+                    "El medidor más honesto de la fuerza de empuje y un constructor de pecho que nunca falla."
                   ],
-                  "description": "En Smith, la barra va guiada y puedes cargar el pecho sin preocuparte por el equilibrio. Útil para series pesadas en solitario con total control.",
+                  "description": "Con máquina Smith, tumbado en el banco, la carga baja al pecho y sube con el empuje completo de los brazos. En la Smith, la guía fija permite concentrar todo el esfuerzo del pectoral.",
                   "technique": "En Smith, la barra va guiada y puedes cargar el pecho sin preocuparte por el equilibrio. El banco fija la espalda y la carga desciende hacia la parte elegida del pecho antes de volver con los antebrazos alineados.",
                   "variantRationale": "En Smith, la barra va guiada y puedes cargar el pecho sin preocuparte por el equilibrio. Útil para series pesadas en solitario con total control."
                 },
@@ -885,7 +885,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Plano",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "bench_press__smith_machine",
                   "definitionId": "bench_press",
                   "familyId": "chest_press",
@@ -978,7 +978,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_press_banca_plano_barra",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -989,16 +989,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "En máquina, el recorrido fijo te deja concentrarte en empujar con el pecho con intensidad.",
-                "La versión más cómoda para acumular volumen sin desgaste."
+                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del pectoral.",
+                "El medidor más honesto de la fuerza de empuje y un constructor de pecho que nunca falla."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "En máquina, el recorrido fijo te deja concentrarte en empujar con el pecho con intensidad. La versión más cómoda para acumular volumen sin desgaste.",
+              "description": "Con máquina, tumbado en el banco, la carga baja al pecho y sube con el empuje completo de los brazos. En la máquina, la trayectoria guiada concentra todo el esfuerzo del pectoral.",
               "efc": 4.2,
               "equipmentId": "machine",
               "executionCues": [
@@ -1183,10 +1183,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "En máquina, el recorrido fijo te deja concentrarte en empujar con el pecho con intensidad.",
-                    "La versión más cómoda para acumular volumen sin desgaste."
+                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del pectoral.",
+                    "El medidor más honesto de la fuerza de empuje y un constructor de pecho que nunca falla."
                   ],
-                  "description": "En máquina, el recorrido fijo te deja concentrarte en empujar con el pecho con intensidad. La versión más cómoda para acumular volumen sin desgaste.",
+                  "description": "Con máquina, tumbado en el banco, la carga baja al pecho y sube con el empuje completo de los brazos. En la máquina, la trayectoria guiada concentra todo el esfuerzo del pectoral.",
                   "technique": "En máquina, el recorrido fijo te deja concentrarte en empujar con el pecho con intensidad. El banco fija la espalda y la carga desciende hacia la parte elegida del pecho antes de volver con los antebrazos alineados.",
                   "variantRationale": "En máquina, el recorrido fijo te deja concentrarte en empujar con el pecho con intensidad. La versión más cómoda para acumular volumen sin desgaste."
                 },
@@ -1201,7 +1201,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Plano",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "bench_press__machine",
                   "definitionId": "bench_press",
                   "familyId": "chest_press",
@@ -1292,7 +1292,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_press_banca_plano_barra",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1303,16 +1303,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "En polea, la tensión constante llega hasta arriba del empuje y el pecho no descansa jamás.",
-                "Un cambio de estímulo exigente para el final de la rutina."
+                "El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                "El medidor más honesto de la fuerza de empuje y un constructor de pecho que nunca falla."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "En polea, la tensión constante llega hasta arriba del empuje y el pecho no descansa jamás. Un cambio de estímulo exigente para el final de la rutina.",
+              "description": "Con polea, tumbado en el banco, la carga baja al pecho y sube con el empuje completo de los brazos. El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 4.2,
               "equipmentId": "cable",
               "executionCues": [
@@ -1503,10 +1503,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "En polea, la tensión constante llega hasta arriba del empuje y el pecho no descansa jamás.",
-                    "Un cambio de estímulo exigente para el final de la rutina."
+                    "El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                    "El medidor más honesto de la fuerza de empuje y un constructor de pecho que nunca falla."
                   ],
-                  "description": "En polea, la tensión constante llega hasta arriba del empuje y el pecho no descansa jamás. Un cambio de estímulo exigente para el final de la rutina.",
+                  "description": "Con polea, tumbado en el banco, la carga baja al pecho y sube con el empuje completo de los brazos. El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco.",
                   "technique": "En polea, la tensión constante llega hasta arriba del empuje y el pecho no descansa jamás. El banco fija la espalda y la carga desciende hacia la parte elegida del pecho antes de volver con los antebrazos alineados.",
                   "variantRationale": "En polea, la tensión constante llega hasta arriba del empuje y el pecho no descansa jamás. Un cambio de estímulo exigente para el final de la rutina."
                 },
@@ -1521,7 +1521,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Plano",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "bench_press__cable",
                   "definitionId": "bench_press",
                   "familyId": "chest_press",
@@ -1614,7 +1614,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_press_banca_plano_barra",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1625,16 +1625,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Con kettlebell, el press se vuelve más inestable y el trabajo de estabilidad aumenta.",
-                "Variante menos habitual que exige concentración y aumenta la tensión del pecho."
+                "El pectoral trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+                "El medidor más honesto de la fuerza de empuje y un constructor de pecho que nunca falla."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Con kettlebell, el press se vuelve más inestable y el trabajo de estabilidad aumenta. Variante menos habitual que exige concentración y aumenta la tensión del pecho.",
+              "description": "Con kettlebell, tumbado en el banco, la carga baja al pecho y sube con el empuje completo de los brazos. El pectoral trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
               "efc": 4.2,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -1825,10 +1825,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Con kettlebell, el press se vuelve más inestable y el trabajo de estabilidad aumenta.",
-                    "Variante menos habitual que exige concentración y aumenta la tensión del pecho."
+                    "El pectoral trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+                    "El medidor más honesto de la fuerza de empuje y un constructor de pecho que nunca falla."
                   ],
-                  "description": "Con kettlebell, el press se vuelve más inestable y el trabajo de estabilidad aumenta. Variante menos habitual que exige concentración y aumenta la tensión del pecho.",
+                  "description": "Con kettlebell, tumbado en el banco, la carga baja al pecho y sube con el empuje completo de los brazos. El pectoral trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
                   "technique": "Con kettlebell, el press se vuelve más inestable y el trabajo de estabilidad aumenta. El banco fija la espalda y la carga desciende hacia la parte elegida del pecho antes de volver con los antebrazos alineados.",
                   "variantRationale": "Con kettlebell, el press se vuelve más inestable y el trabajo de estabilidad aumenta. Variante menos habitual que exige concentración y aumenta la tensión del pecho."
                 },
@@ -1843,7 +1843,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Plano",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "bench_press__kettlebell",
                   "definitionId": "bench_press",
                   "familyId": "chest_press",
@@ -1932,11 +1932,11 @@
           }
         ],
         "defaultConfigurationId": "bench_press__barbell",
-        "description": "Una referencia para el pecho: acostado en el banco, bajas la barra al pecho y la empujas con todo. Mide tu fuerza real de empuje, permite medir la fuerza de empuje con claridad y nunca pasa de moda.",
+        "description": "El Press de Banca Plano es el empuje horizontal de referencia: pectoral, deltoide anterior y tríceps contra la mayor carga que puedas mover tumbado. Se ejecuta con los pies firmes en el suelo: la barra baja al pecho con los codos bajo la muñeca y sube en línea casi vertical hasta bloquear los brazos. Hay días en que conviene cambiar de escenario: con mancuernas cada brazo se responsabiliza de su lado y los desbalances salen a la luz, perfecto como accesorio del press principal; y la Smith, con su recorrido guiado, es el lugar más seguro para visitar el fallo muscular. El medidor más honesto de la fuerza de empuje y un constructor de pecho que nunca falla.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1970,7 +1970,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_press_banca_plano_barra",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1981,16 +1981,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Barra en banco declinado: el ángulo apunta directo a la parte baja del pecho.",
-                "Complemento útil para el press plano con carga libre."
+                "Con la barra, la carga sube al máximo y la progresión del pectoral se mide sin trampa.",
+                "El especialista en dar densidad a la parte inferior del torso."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Barra en banco declinado: el ángulo apunta directo a la parte baja del pecho. Complemento útil para el press plano con carga libre.",
+              "description": "Con barra, con la cabeza por debajo de las caderas, el empuje apunta a la parte baja del pecho y el recorrido se acorta. Con la barra, la carga sube al máximo y la progresión del pectoral se mide sin trampa.",
               "efc": 4.2,
               "equipmentId": "barbell",
               "executionCues": [
@@ -2181,10 +2181,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra en banco declinado: el ángulo apunta directo a la parte baja del pecho.",
-                    "Complemento útil para el press plano con carga libre."
+                    "Con la barra, la carga sube al máximo y la progresión del pectoral se mide sin trampa.",
+                    "El especialista en dar densidad a la parte inferior del torso."
                   ],
-                  "description": "Barra en banco declinado: el ángulo apunta directo a la parte baja del pecho. Complemento útil para el press plano con carga libre.",
+                  "description": "Con barra, con la cabeza por debajo de las caderas, el empuje apunta a la parte baja del pecho y el recorrido se acorta. Con la barra, la carga sube al máximo y la progresión del pectoral se mide sin trampa.",
                   "technique": "Barra en banco declinado: el ángulo apunta directo a la parte baja del pecho. El respaldo declinado cambia la línea del empuje hacia el pecho inferior y acorta la sensación de recorrido en el hombro.",
                   "variantRationale": "Barra en banco declinado: el ángulo apunta directo a la parte baja del pecho. Complemento útil para el press plano con carga libre."
                 },
@@ -2199,7 +2199,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Declinado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "decline_bench_press__barbell",
                   "definitionId": "decline_bench_press",
                   "familyId": "chest_press",
@@ -2284,7 +2284,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_press_banca_plano_barra",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2295,16 +2295,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuernas en banco declinado: el trabajo cae a la parte inferior del pectoral con recorrido libre.",
-                "Variante precisa para dar forma al pecho."
+                "El pectoral trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                "El especialista en dar densidad a la parte inferior del torso."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Mancuernas en banco declinado: el trabajo cae a la parte inferior del pectoral con recorrido libre. Variante precisa para dar forma al pecho.",
+              "description": "Con mancuernas, con la cabeza por debajo de las caderas, el empuje apunta a la parte baja del pecho y el recorrido se acorta. El pectoral trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 4.2,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -2495,10 +2495,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas en banco declinado: el trabajo cae a la parte inferior del pectoral con recorrido libre.",
-                    "Variante precisa para dar forma al pecho."
+                    "El pectoral trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                    "El especialista en dar densidad a la parte inferior del torso."
                   ],
-                  "description": "Mancuernas en banco declinado: el trabajo cae a la parte inferior del pectoral con recorrido libre. Variante precisa para dar forma al pecho.",
+                  "description": "Con mancuernas, con la cabeza por debajo de las caderas, el empuje apunta a la parte baja del pecho y el recorrido se acorta. El pectoral trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
                   "technique": "Mancuernas en banco declinado: el trabajo cae a la parte inferior del pectoral con recorrido libre. El respaldo declinado cambia la línea del empuje hacia el pecho inferior y acorta la sensación de recorrido en el hombro.",
                   "variantRationale": "Mancuernas en banco declinado: el trabajo cae a la parte inferior del pectoral con recorrido libre. Variante precisa para dar forma al pecho."
                 },
@@ -2513,7 +2513,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Declinado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "decline_bench_press__dumbbells",
                   "definitionId": "decline_bench_press",
                   "familyId": "chest_press",
@@ -2598,7 +2598,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_press_banca_plano_barra",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2609,16 +2609,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Smith en banco declinado: barra guiada y ángulo bajo para aislar el pectoral inferior.",
-                "Cómoda para cargar peso y sentir la zona baja."
+                "En la Smith, la guía fija permite concentrar todo el esfuerzo del pectoral.",
+                "El especialista en dar densidad a la parte inferior del torso."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Smith en banco declinado: barra guiada y ángulo bajo para aislar el pectoral inferior. Cómoda para cargar peso y sentir la zona baja.",
+              "description": "Con máquina Smith, con la cabeza por debajo de las caderas, el empuje apunta a la parte baja del pecho y el recorrido se acorta. En la Smith, la guía fija permite concentrar todo el esfuerzo del pectoral.",
               "efc": 4.2,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -2809,10 +2809,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith en banco declinado: barra guiada y ángulo bajo para aislar el pectoral inferior.",
-                    "Cómoda para cargar peso y sentir la zona baja."
+                    "En la Smith, la guía fija permite concentrar todo el esfuerzo del pectoral.",
+                    "El especialista en dar densidad a la parte inferior del torso."
                   ],
-                  "description": "Smith en banco declinado: barra guiada y ángulo bajo para aislar el pectoral inferior. Cómoda para cargar peso y sentir la zona baja.",
+                  "description": "Con máquina Smith, con la cabeza por debajo de las caderas, el empuje apunta a la parte baja del pecho y el recorrido se acorta. En la Smith, la guía fija permite concentrar todo el esfuerzo del pectoral.",
                   "technique": "Smith en banco declinado: barra guiada y ángulo bajo para aislar el pectoral inferior. El respaldo declinado cambia la línea del empuje hacia el pecho inferior y acorta la sensación de recorrido en el hombro.",
                   "variantRationale": "Smith en banco declinado: barra guiada y ángulo bajo para aislar el pectoral inferior. Cómoda para cargar peso y sentir la zona baja."
                 },
@@ -2827,7 +2827,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Declinado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "decline_bench_press__smith_machine",
                   "definitionId": "decline_bench_press",
                   "familyId": "chest_press",
@@ -2912,7 +2912,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_press_banca_plano_barra",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2923,16 +2923,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina declinada: recorrido fijo y foco total en la parte baja del pecho.",
-                "La opción más limpia para rematar el pectoral inferior."
+                "El pectoral trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+                "El especialista en dar densidad a la parte inferior del torso."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Máquina declinada: recorrido fijo y foco total en la parte baja del pecho. La opción más limpia para rematar el pectoral inferior.",
+              "description": "Con máquina, con la cabeza por debajo de las caderas, el empuje apunta a la parte baja del pecho y el recorrido se acorta. El pectoral trabaja en la máquina, con el recorrido guiado y sin distracciones.",
               "efc": 4.2,
               "equipmentId": "machine",
               "executionCues": [
@@ -3117,10 +3117,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina declinada: recorrido fijo y foco total en la parte baja del pecho.",
-                    "La opción más limpia para rematar el pectoral inferior."
+                    "El pectoral trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+                    "El especialista en dar densidad a la parte inferior del torso."
                   ],
-                  "description": "Máquina declinada: recorrido fijo y foco total en la parte baja del pecho. La opción más limpia para rematar el pectoral inferior.",
+                  "description": "Con máquina, con la cabeza por debajo de las caderas, el empuje apunta a la parte baja del pecho y el recorrido se acorta. El pectoral trabaja en la máquina, con el recorrido guiado y sin distracciones.",
                   "technique": "Máquina declinada: recorrido fijo y foco total en la parte baja del pecho. El respaldo declinado cambia la línea del empuje hacia el pecho inferior y acorta la sensación de recorrido en el hombro.",
                   "variantRationale": "Máquina declinada: recorrido fijo y foco total en la parte baja del pecho. La opción más limpia para rematar el pectoral inferior."
                 },
@@ -3135,7 +3135,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Declinado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "decline_bench_press__machine",
                   "definitionId": "decline_bench_press",
                   "familyId": "chest_press",
@@ -3218,7 +3218,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_press_banca_plano_barra",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -3229,16 +3229,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea en banco declinado: tensión constante que mantiene la parte baja del pecho bajo una tensión intensa.",
-                "Variante alternativa que se agradece a mitad de rutina."
+                "El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                "El especialista en dar densidad a la parte inferior del torso."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Polea en banco declinado: tensión constante que mantiene la parte baja del pecho bajo una tensión intensa. Variante alternativa que se agradece a mitad de rutina.",
+              "description": "Con polea, con la cabeza por debajo de las caderas, el empuje apunta a la parte baja del pecho y el recorrido se acorta. El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 4.2,
               "equipmentId": "cable",
               "executionCues": [
@@ -3429,10 +3429,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea en banco declinado: tensión constante que mantiene la parte baja del pecho bajo una tensión intensa.",
-                    "Variante alternativa que se agradece a mitad de rutina."
+                    "El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                    "El especialista en dar densidad a la parte inferior del torso."
                   ],
-                  "description": "Polea en banco declinado: tensión constante que mantiene la parte baja del pecho bajo una tensión intensa. Variante alternativa que se agradece a mitad de rutina.",
+                  "description": "Con polea, con la cabeza por debajo de las caderas, el empuje apunta a la parte baja del pecho y el recorrido se acorta. El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco.",
                   "technique": "Polea en banco declinado: tensión constante que mantiene la parte baja del pecho bajo una tensión intensa. El respaldo declinado cambia la línea del empuje hacia el pecho inferior y acorta la sensación de recorrido en el hombro.",
                   "variantRationale": "Polea en banco declinado: tensión constante que mantiene la parte baja del pecho bajo una tensión intensa. Variante alternativa que se agradece a mitad de rutina."
                 },
@@ -3447,7 +3447,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Declinado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "decline_bench_press__cable",
                   "definitionId": "decline_bench_press",
                   "familyId": "chest_press",
@@ -3532,7 +3532,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_press_banca_plano_barra",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -3543,16 +3543,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Kettlebell en banco declinado: inestabilidad extra y trabajo enfocado en el pecho bajo.",
-                "Para quien busca salir de la zona cómoda."
+                "El pectoral trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+                "El especialista en dar densidad a la parte inferior del torso."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Kettlebell en banco declinado: inestabilidad extra y trabajo enfocado en el pecho bajo. Para quien busca salir de la zona cómoda.",
+              "description": "Con kettlebell, con la cabeza por debajo de las caderas, el empuje apunta a la parte baja del pecho y el recorrido se acorta. El pectoral trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
               "efc": 4.2,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -3743,10 +3743,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Kettlebell en banco declinado: inestabilidad extra y trabajo enfocado en el pecho bajo.",
-                    "Para quien busca salir de la zona cómoda."
+                    "El pectoral trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+                    "El especialista en dar densidad a la parte inferior del torso."
                   ],
-                  "description": "Kettlebell en banco declinado: inestabilidad extra y trabajo enfocado en el pecho bajo. Para quien busca salir de la zona cómoda.",
+                  "description": "Con kettlebell, con la cabeza por debajo de las caderas, el empuje apunta a la parte baja del pecho y el recorrido se acorta. El pectoral trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
                   "technique": "Kettlebell en banco declinado: inestabilidad extra y trabajo enfocado en el pecho bajo. El respaldo declinado cambia la línea del empuje hacia el pecho inferior y acorta la sensación de recorrido en el hombro.",
                   "variantRationale": "Kettlebell en banco declinado: inestabilidad extra y trabajo enfocado en el pecho bajo. Para quien busca salir de la zona cómoda."
                 },
@@ -3761,7 +3761,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Declinado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "decline_bench_press__kettlebell",
                   "definitionId": "decline_bench_press",
                   "familyId": "chest_press",
@@ -3842,11 +3842,11 @@
           }
         ],
         "defaultConfigurationId": "decline_bench_press__barbell",
-        "description": "Press en banco declinado, con la cabeza más baja que las caderas: ataca la parte baja del pecho desde un ángulo que se perciben distinto. Buen complemento para redondear el trabajo del press plano.",
+        "description": "El Press de Banca Declinado invierte la perspectiva: con la cabeza por debajo de las caderas, el empuje apunta a la porción inferior del pectoral y el recorrido se acorta un palmo. Se ejecuta con las piernas aseguradas bajo los rodillos, bajando la barra al borde del pecho y empujando en vertical. Muchos descubren aquí que pueden mover más peso que en el plano, y el pectoral bajo lo celebra. El especialista en dar densidad a la parte inferior del torso.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -3872,7 +3872,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_press_banca_plano_barra",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -3883,16 +3883,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Barra en banco inclinado: el empuje sube el foco a la parte alta del pecho y al hombro.",
-                "El press que más redondea el torso visto de frente."
+                "El pectoral trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+                "El complemento obligado para que el torso no se desarrolle solo por abajo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Barra en banco inclinado: el empuje sube el foco a la parte alta del pecho y al hombro. El press que más redondea el torso visto de frente.",
+              "description": "Con barra, con el respaldo inclinado, el empuje apunta a la zona superior del pecho y al hombro delantero. El pectoral trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
               "efc": 4.2,
               "equipmentId": "barbell",
               "executionCues": [
@@ -4083,10 +4083,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra en banco inclinado: el empuje sube el foco a la parte alta del pecho y al hombro.",
-                    "El press que más redondea el torso visto de frente."
+                    "El pectoral trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+                    "El complemento obligado para que el torso no se desarrolle solo por abajo."
                   ],
-                  "description": "Barra en banco inclinado: el empuje sube el foco a la parte alta del pecho y al hombro. El press que más redondea el torso visto de frente.",
+                  "description": "Con barra, con el respaldo inclinado, el empuje apunta a la zona superior del pecho y al hombro delantero. El pectoral trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
                   "technique": "Barra en banco inclinado: el empuje sube el foco a la parte alta del pecho y al hombro. El respaldo inclinado orienta el empuje hacia la zona alta del pecho; la barra o las manos regresan sin perder el apoyo escapular.",
                   "variantRationale": "Barra en banco inclinado: el empuje sube el foco a la parte alta del pecho y al hombro. El press que más redondea el torso visto de frente."
                 },
@@ -4101,7 +4101,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Inclinado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "incline_bench_press__barbell",
                   "definitionId": "incline_bench_press",
                   "familyId": "chest_press",
@@ -4186,7 +4186,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_press_banca_plano_barra",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -4197,16 +4197,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuernas en banco inclinado: la parte alta del pecho trabaja con recorrido libre y adaptable.",
-                "Se utiliza para cargar la porción superior del pectoral."
+                "El pectoral trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                "El complemento obligado para que el torso no se desarrolle solo por abajo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Mancuernas en banco inclinado: la parte alta del pecho trabaja con recorrido libre y adaptable. Se utiliza para cargar la porción superior del pectoral.",
+              "description": "Con mancuernas, con el respaldo inclinado, el empuje apunta a la zona superior del pecho y al hombro delantero. El pectoral trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 4.2,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -4397,10 +4397,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas en banco inclinado: la parte alta del pecho trabaja con recorrido libre y adaptable.",
-                    "Se utiliza para cargar la porción superior del pectoral."
+                    "El pectoral trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                    "El complemento obligado para que el torso no se desarrolle solo por abajo."
                   ],
-                  "description": "Mancuernas en banco inclinado: la parte alta del pecho trabaja con recorrido libre y adaptable. Se utiliza para cargar la porción superior del pectoral.",
+                  "description": "Con mancuernas, con el respaldo inclinado, el empuje apunta a la zona superior del pecho y al hombro delantero. El pectoral trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
                   "technique": "Mancuernas en banco inclinado: la parte alta del pecho trabaja con recorrido libre y adaptable. El respaldo inclinado orienta el empuje hacia la zona alta del pecho; la barra o las manos regresan sin perder el apoyo escapular.",
                   "variantRationale": "Mancuernas en banco inclinado: la parte alta del pecho trabaja con recorrido libre y adaptable. Se utiliza para cargar la porción superior del pectoral."
                 },
@@ -4415,7 +4415,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Inclinado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "incline_bench_press__dumbbells",
                   "definitionId": "incline_bench_press",
                   "familyId": "chest_press",
@@ -4500,7 +4500,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_press_banca_plano_barra",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -4511,16 +4511,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Smith en banco inclinado: barra guiada, ángulo alto y foco en el pectoral superior.",
-                "Estable para progresar con peso en solitario."
+                "En la Smith, la guía fija permite concentrar todo el esfuerzo del pectoral.",
+                "El complemento obligado para que el torso no se desarrolle solo por abajo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Smith en banco inclinado: barra guiada, ángulo alto y foco en el pectoral superior. Estable para progresar con peso en solitario.",
+              "description": "Con máquina Smith, con el respaldo inclinado, el empuje apunta a la zona superior del pecho y al hombro delantero. En la Smith, la guía fija permite concentrar todo el esfuerzo del pectoral.",
               "efc": 4.2,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -4711,10 +4711,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith en banco inclinado: barra guiada, ángulo alto y foco en el pectoral superior.",
-                    "Estable para progresar con peso en solitario."
+                    "En la Smith, la guía fija permite concentrar todo el esfuerzo del pectoral.",
+                    "El complemento obligado para que el torso no se desarrolle solo por abajo."
                   ],
-                  "description": "Smith en banco inclinado: barra guiada, ángulo alto y foco en el pectoral superior. Estable para progresar con peso en solitario.",
+                  "description": "Con máquina Smith, con el respaldo inclinado, el empuje apunta a la zona superior del pecho y al hombro delantero. En la Smith, la guía fija permite concentrar todo el esfuerzo del pectoral.",
                   "technique": "Smith en banco inclinado: barra guiada, ángulo alto y foco en el pectoral superior. El respaldo inclinado orienta el empuje hacia la zona alta del pecho; la barra o las manos regresan sin perder el apoyo escapular.",
                   "variantRationale": "Smith en banco inclinado: barra guiada, ángulo alto y foco en el pectoral superior. Estable para progresar con peso en solitario."
                 },
@@ -4729,7 +4729,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Inclinado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "incline_bench_press__smith_machine",
                   "definitionId": "incline_bench_press",
                   "familyId": "chest_press",
@@ -4814,7 +4814,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_press_banca_plano_barra",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -4825,16 +4825,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina inclinada: el recorrido fijo lleva la tensión directa a la parte alta del pecho.",
-                "Útil para terminar el día de pecho sin distracciones."
+                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del pectoral.",
+                "El complemento obligado para que el torso no se desarrolle solo por abajo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Máquina inclinada: el recorrido fijo lleva la tensión directa a la parte alta del pecho. Útil para terminar el día de pecho sin distracciones.",
+              "description": "Con máquina, con el respaldo inclinado, el empuje apunta a la zona superior del pecho y al hombro delantero. En la máquina, la trayectoria guiada concentra todo el esfuerzo del pectoral.",
               "efc": 4.2,
               "equipmentId": "machine",
               "executionCues": [
@@ -5019,10 +5019,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina inclinada: el recorrido fijo lleva la tensión directa a la parte alta del pecho.",
-                    "Útil para terminar el día de pecho sin distracciones."
+                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del pectoral.",
+                    "El complemento obligado para que el torso no se desarrolle solo por abajo."
                   ],
-                  "description": "Máquina inclinada: el recorrido fijo lleva la tensión directa a la parte alta del pecho. Útil para terminar el día de pecho sin distracciones.",
+                  "description": "Con máquina, con el respaldo inclinado, el empuje apunta a la zona superior del pecho y al hombro delantero. En la máquina, la trayectoria guiada concentra todo el esfuerzo del pectoral.",
                   "technique": "Máquina inclinada: el recorrido fijo lleva la tensión directa a la parte alta del pecho. El respaldo inclinado orienta el empuje hacia la zona alta del pecho; la barra o las manos regresan sin perder el apoyo escapular.",
                   "variantRationale": "Máquina inclinada: el recorrido fijo lleva la tensión directa a la parte alta del pecho. Útil para terminar el día de pecho sin distracciones."
                 },
@@ -5037,7 +5037,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Inclinado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "incline_bench_press__machine",
                   "definitionId": "incline_bench_press",
                   "familyId": "chest_press",
@@ -5120,7 +5120,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_press_banca_plano_barra",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -5131,16 +5131,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea en banco inclinado: tensión constante en la zona alta del pecho en todo el empuje.",
-                "Un remate preciso que se perciben desde la primera serie."
+                "El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                "El complemento obligado para que el torso no se desarrolle solo por abajo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Polea en banco inclinado: tensión constante en la zona alta del pecho en todo el empuje. Un remate preciso que se perciben desde la primera serie.",
+              "description": "Con polea, con el respaldo inclinado, el empuje apunta a la zona superior del pecho y al hombro delantero. El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 4.2,
               "equipmentId": "cable",
               "executionCues": [
@@ -5331,10 +5331,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea en banco inclinado: tensión constante en la zona alta del pecho en todo el empuje.",
-                    "Un remate preciso que se perciben desde la primera serie."
+                    "El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                    "El complemento obligado para que el torso no se desarrolle solo por abajo."
                   ],
-                  "description": "Polea en banco inclinado: tensión constante en la zona alta del pecho en todo el empuje. Un remate preciso que se perciben desde la primera serie.",
+                  "description": "Con polea, con el respaldo inclinado, el empuje apunta a la zona superior del pecho y al hombro delantero. El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco.",
                   "technique": "Polea en banco inclinado: tensión constante en la zona alta del pecho en todo el empuje. El respaldo inclinado orienta el empuje hacia la zona alta del pecho; la barra o las manos regresan sin perder el apoyo escapular.",
                   "variantRationale": "Polea en banco inclinado: tensión constante en la zona alta del pecho en todo el empuje. Un remate preciso que se perciben desde la primera serie."
                 },
@@ -5349,7 +5349,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Inclinado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "incline_bench_press__cable",
                   "definitionId": "incline_bench_press",
                   "familyId": "chest_press",
@@ -5434,7 +5434,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_press_banca_plano_barra",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -5445,16 +5445,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Kettlebell en banco inclinado: el ángulo alto más la inestabilidad encienden el pecho superior.",
-                "Variante exigente para rutinas distintas."
+                "El pectoral trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+                "El complemento obligado para que el torso no se desarrolle solo por abajo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Kettlebell en banco inclinado: el ángulo alto más la inestabilidad encienden el pecho superior. Variante exigente para rutinas distintas.",
+              "description": "Con kettlebell, con el respaldo inclinado, el empuje apunta a la zona superior del pecho y al hombro delantero. El pectoral trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
               "efc": 4.2,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -5645,10 +5645,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Kettlebell en banco inclinado: el ángulo alto más la inestabilidad encienden el pecho superior.",
-                    "Variante exigente para rutinas distintas."
+                    "El pectoral trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+                    "El complemento obligado para que el torso no se desarrolle solo por abajo."
                   ],
-                  "description": "Kettlebell en banco inclinado: el ángulo alto más la inestabilidad encienden el pecho superior. Variante exigente para rutinas distintas.",
+                  "description": "Con kettlebell, con el respaldo inclinado, el empuje apunta a la zona superior del pecho y al hombro delantero. El pectoral trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
                   "technique": "Kettlebell en banco inclinado: el ángulo alto más la inestabilidad encienden el pecho superior. El respaldo inclinado orienta el empuje hacia la zona alta del pecho; la barra o las manos regresan sin perder el apoyo escapular.",
                   "variantRationale": "Kettlebell en banco inclinado: el ángulo alto más la inestabilidad encienden el pecho superior. Variante exigente para rutinas distintas."
                 },
@@ -5663,7 +5663,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Inclinado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "incline_bench_press__kettlebell",
                   "definitionId": "incline_bench_press",
                   "familyId": "chest_press",
@@ -5744,11 +5744,11 @@
           }
         ],
         "defaultConfigurationId": "incline_bench_press__barbell",
-        "description": "Press en banco inclinado: el ángulo sube el foco a la parte alta del pecho y al hombro delantero. La versión que más desarrollo muscular construye y Una variante utilizada para cargar la parte de arriba.",
+        "description": "El Press de Banca Inclinado mueve el empuje hacia la parte alta del pectoral: el ángulo del banco recluta las fibras claviculares y el deltoide anterior sin soltar al tríceps. Se ejecuta igual de sólido que en plano, con la barra bajando a la zona alta del pecho y la espalda pegada al respaldo. Con mancuernas la bajada puede profundizar unos centímetros más, un estiramiento extra que el pectoral alto agradece. El complemento obligado para que el torso no se desarrolle solo por abajo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -5770,7 +5770,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

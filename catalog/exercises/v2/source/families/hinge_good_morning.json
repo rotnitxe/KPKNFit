@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Buenos Días",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_buenos_dias",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.6,
               "benefits": [
-                "Barra sobre los hombros con ambas piernas: la inclinación tradicional de cadera hacia delante.",
-                "Este ejercicio de cadera tradicional, exigente y productivo."
+                "La barra es la referencia para cargar los isquiosurales con peso de verdad. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+                "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Barra sobre los hombros con ambas piernas: la inclinación tradicional de cadera hacia delante. Este ejercicio de cadera tradicional, exigente y productivo.",
+              "description": "Con barra y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. La barra es la referencia para cargar los isquiosurales con peso de verdad. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -218,10 +218,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra sobre los hombros con ambas piernas: la inclinación tradicional de cadera hacia delante.",
-                    "Este ejercicio de cadera tradicional, exigente y productivo."
+                    "La barra es la referencia para cargar los isquiosurales con peso de verdad. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+                    "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
                   ],
-                  "description": "Barra sobre los hombros con ambas piernas: la inclinación tradicional de cadera hacia delante. Este ejercicio de cadera tradicional, exigente y productivo.",
+                  "description": "Con barra y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. La barra es la referencia para cargar los isquiosurales con peso de verdad. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
                   "technique": "Barra sobre los hombros con ambas piernas: la inclinación tradicional de cadera hacia delante. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
                   "variantRationale": "Barra sobre los hombros con ambas piernas: la inclinación tradicional de cadera hacia delante. Este ejercicio de cadera tradicional, exigente y productivo."
                 },
@@ -236,7 +236,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "good_morning__bilateral__barbell",
                   "definitionId": "good_morning",
                   "familyId": "hinge_good_morning",
@@ -325,7 +325,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_buenos_dias",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -336,16 +336,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.6,
               "benefits": [
-                "Barra en una sola pierna: el equilibrio añade trabajo a la cadera y la espalda baja.",
-                "Avanzado, profundo y muy revelador de desequilibrios."
+                "La barra es la referencia para cargar los isquiosurales con peso de verdad. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
+                "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Barra en una sola pierna: el equilibrio añade trabajo a la cadera y la espalda baja. Avanzado, profundo y muy revelador de desequilibrios.",
+              "description": "Con barra y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. La barra es la referencia para cargar los isquiosurales con peso de verdad. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -531,10 +531,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra en una sola pierna: el equilibrio añade trabajo a la cadera y la espalda baja.",
-                    "Avanzado, profundo y muy revelador de desequilibrios."
+                    "La barra es la referencia para cargar los isquiosurales con peso de verdad. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
+                    "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
                   ],
-                  "description": "Barra en una sola pierna: el equilibrio añade trabajo a la cadera y la espalda baja. Avanzado, profundo y muy revelador de desequilibrios.",
+                  "description": "Con barra y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. La barra es la referencia para cargar los isquiosurales con peso de verdad. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
                   "technique": "Barra en una sola pierna: el equilibrio añade trabajo a la cadera y la espalda baja. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
                   "variantRationale": "Barra en una sola pierna: el equilibrio añade trabajo a la cadera y la espalda baja. Avanzado, profundo y muy revelador de desequilibrios."
                 },
@@ -549,7 +549,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "good_morning__unilateral__barbell",
                   "definitionId": "good_morning",
                   "familyId": "hinge_good_morning",
@@ -638,7 +638,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_buenos_dias",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -649,16 +649,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.6,
               "benefits": [
-                "Barra de estabilidad sobre los hombros: los agarres frontales acercan la carga y hacen más cómoda la posición de las manos.",
-                "La variante conserva la exigencia de cadera, pero cambia cómo se sostiene el torso."
+                "Los isquiosurales trabajan con la barra de seguridad, que asienta la carga con comodidad. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+                "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Barra de estabilidad sobre los hombros: los agarres frontales acercan la carga y hacen más cómoda la posición de las manos. La variante conserva la exigencia de cadera, pero cambia cómo se sostiene el torso.",
+              "description": "Con barra de seguridad y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan con la barra de seguridad, que asienta la carga con comodidad. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
               "efc": 2.8,
               "equipmentId": "safety_bar",
               "executionCues": [
@@ -844,10 +844,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra de estabilidad sobre los hombros: los agarres frontales acercan la carga y hacen más cómoda la posición de las manos.",
-                    "La variante conserva la exigencia de cadera, pero cambia cómo se sostiene el torso."
+                    "Los isquiosurales trabajan con la barra de seguridad, que asienta la carga con comodidad. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+                    "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
                   ],
-                  "description": "Barra de estabilidad sobre los hombros: los agarres frontales acercan la carga y hacen más cómoda la posición de las manos. La variante conserva la exigencia de cadera, pero cambia cómo se sostiene el torso.",
+                  "description": "Con barra de seguridad y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan con la barra de seguridad, que asienta la carga con comodidad. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
                   "technique": "Barra de estabilidad sobre los hombros: los agarres frontales acercan la carga y hacen más cómoda la posición de las manos. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
                   "variantRationale": "Barra de estabilidad sobre los hombros: los agarres frontales acercan la carga y hacen más cómoda la posición de las manos. La variante conserva la exigencia de cadera, pero cambia cómo se sostiene el torso."
                 },
@@ -862,7 +862,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "good_morning__bilateral__safety_bar",
                   "definitionId": "good_morning",
                   "familyId": "hinge_good_morning",
@@ -951,7 +951,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_buenos_dias",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -962,16 +962,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.6,
               "benefits": [
-                "Barra de estabilidad en una pierna: comodidad del agarre más el reto del equilibrio.",
-                "Una combinación exigente para la cadena posterior."
+                "Los isquiosurales trabajan con la barra de seguridad, que asienta la carga con comodidad. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+                "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Barra de estabilidad en una pierna: comodidad del agarre más el reto del equilibrio. Una combinación exigente para la cadena posterior.",
+              "description": "Con barra de seguridad y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan con la barra de seguridad, que asienta la carga con comodidad. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "safety_bar",
               "executionCues": [
@@ -1157,10 +1157,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra de estabilidad en una pierna: comodidad del agarre más el reto del equilibrio.",
-                    "Una combinación exigente para la cadena posterior."
+                    "Los isquiosurales trabajan con la barra de seguridad, que asienta la carga con comodidad. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+                    "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
                   ],
-                  "description": "Barra de estabilidad en una pierna: comodidad del agarre más el reto del equilibrio. Una combinación exigente para la cadena posterior.",
+                  "description": "Con barra de seguridad y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan con la barra de seguridad, que asienta la carga con comodidad. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
                   "technique": "Barra de estabilidad en una pierna: comodidad del agarre más el reto del equilibrio. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
                   "variantRationale": "Barra de estabilidad en una pierna: comodidad del agarre más el reto del equilibrio. Una combinación exigente para la cadena posterior."
                 },
@@ -1175,7 +1175,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "good_morning__unilateral__safety_bar",
                   "definitionId": "good_morning",
                   "familyId": "hinge_good_morning",
@@ -1264,7 +1264,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_buenos_dias",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1275,16 +1275,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.6,
               "benefits": [
-                "Smith con ambas piernas: la barra guiada te permite ir profundo con control.",
-                "Útil para aprender el movimiento o cargar más peso."
+                "Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+                "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Smith con ambas piernas: la barra guiada te permite ir profundo con control. Útil para aprender el movimiento o cargar más peso.",
+              "description": "Con máquina Smith y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -1470,10 +1470,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith con ambas piernas: la barra guiada te permite ir profundo con control.",
-                    "Útil para aprender el movimiento o cargar más peso."
+                    "Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+                    "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
                   ],
-                  "description": "Smith con ambas piernas: la barra guiada te permite ir profundo con control. Útil para aprender el movimiento o cargar más peso.",
+                  "description": "Con máquina Smith y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
                   "technique": "Smith con ambas piernas: la barra guiada te permite ir profundo con control. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
                   "variantRationale": "Smith con ambas piernas: la barra guiada te permite ir profundo con control. Útil para aprender el movimiento o cargar más peso."
                 },
@@ -1488,7 +1488,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "good_morning__bilateral__smith_machine",
                   "definitionId": "good_morning",
                   "familyId": "hinge_good_morning",
@@ -1577,7 +1577,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_buenos_dias",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1588,16 +1588,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.6,
               "benefits": [
-                "Smith en una pierna: el guiado sostiene el equilibrio y la cadera trabaja a fondo.",
-                "Variante avanzada para corregir asimetrías."
+                "Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+                "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Smith en una pierna: el guiado sostiene el equilibrio y la cadera trabaja a fondo. Variante avanzada para corregir asimetrías.",
+              "description": "Con máquina Smith y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -1783,10 +1783,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith en una pierna: el guiado sostiene el equilibrio y la cadera trabaja a fondo.",
-                    "Variante avanzada para corregir asimetrías."
+                    "Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+                    "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
                   ],
-                  "description": "Smith en una pierna: el guiado sostiene el equilibrio y la cadera trabaja a fondo. Variante avanzada para corregir asimetrías.",
+                  "description": "Con máquina Smith y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
                   "technique": "Smith en una pierna: el guiado sostiene el equilibrio y la cadera trabaja a fondo. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
                   "variantRationale": "Smith en una pierna: el guiado sostiene el equilibrio y la cadera trabaja a fondo. Variante avanzada para corregir asimetrías."
                 },
@@ -1801,7 +1801,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "good_morning__unilateral__smith_machine",
                   "definitionId": "good_morning",
                   "familyId": "hinge_good_morning",
@@ -1890,7 +1890,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_buenos_dias",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1901,16 +1901,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.6,
               "benefits": [
-                "Máquina de este ejercicio de cadera: la cadera apoya en la almohadilla y el recorrido viene guiado.",
-                "La opción más estable para sentir el trabajo trasero."
+                "Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+                "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Máquina de este ejercicio de cadera: la cadera apoya en la almohadilla y el recorrido viene guiado. La opción más estable para sentir el trabajo trasero.",
+              "description": "Con máquina y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -2096,10 +2096,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina de este ejercicio de cadera: la cadera apoya en la almohadilla y el recorrido viene guiado.",
-                    "La opción más estable para sentir el trabajo trasero."
+                    "Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+                    "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
                   ],
-                  "description": "Máquina de este ejercicio de cadera: la cadera apoya en la almohadilla y el recorrido viene guiado. La opción más estable para sentir el trabajo trasero.",
+                  "description": "Con máquina y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
                   "technique": "Máquina de este ejercicio de cadera: la cadera apoya en la almohadilla y el recorrido viene guiado. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
                   "variantRationale": "Máquina de este ejercicio de cadera: la cadera apoya en la almohadilla y el recorrido viene guiado. La opción más estable para sentir el trabajo trasero."
                 },
@@ -2114,7 +2114,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "good_morning__bilateral__machine",
                   "definitionId": "good_morning",
                   "familyId": "hinge_good_morning",
@@ -2203,7 +2203,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_buenos_dias",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2214,16 +2214,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.6,
               "benefits": [
-                "Máquina en una pierna: el guiado cuida la postura mientras el lado trabajado hace todo el esfuerzo.",
-                "Útil para equilibrar ambos lados; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
+                "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Máquina en una pierna: el guiado cuida la postura mientras el lado trabajado hace todo el esfuerzo. Útil para equilibrar ambos lados.",
+              "description": "Con máquina y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -2409,10 +2409,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina en una pierna: el guiado cuida la postura mientras el lado trabajado hace todo el esfuerzo.",
-                    "Útil para equilibrar ambos lados; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
+                    "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
                   ],
-                  "description": "Máquina en una pierna: el guiado cuida la postura mientras el lado trabajado hace todo el esfuerzo. Útil para equilibrar ambos lados.",
+                  "description": "Con máquina y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
                   "technique": "Máquina en una pierna: el guiado cuida la postura mientras el lado trabajado hace todo el esfuerzo. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
                   "variantRationale": "Máquina en una pierna: el guiado cuida la postura mientras el lado trabajado hace todo el esfuerzo. Útil para equilibrar ambos lados."
                 },
@@ -2427,7 +2427,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "good_morning__unilateral__machine",
                   "definitionId": "good_morning",
                   "familyId": "hinge_good_morning",
@@ -2516,7 +2516,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_buenos_dias",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2527,16 +2527,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.6,
               "benefits": [
-                "Polea baja con ambas piernas: la tensión constante acompaña toda la inclinación.",
-                "Variante suave que mantiene el estímulo sin cargar la espalda."
+                "Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+                "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Polea baja con ambas piernas: la tensión constante acompaña toda la inclinación. Variante suave que mantiene el estímulo sin cargar la espalda.",
+              "description": "Con polea y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -2722,10 +2722,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea baja con ambas piernas: la tensión constante acompaña toda la inclinación.",
-                    "Variante suave que mantiene el estímulo sin cargar la espalda."
+                    "Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+                    "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
                   ],
-                  "description": "Polea baja con ambas piernas: la tensión constante acompaña toda la inclinación. Variante suave que mantiene el estímulo sin cargar la espalda.",
+                  "description": "Con polea y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
                   "technique": "Polea baja con ambas piernas: la tensión constante acompaña toda la inclinación. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
                   "variantRationale": "Polea baja con ambas piernas: la tensión constante acompaña toda la inclinación. Variante suave que mantiene el estímulo sin cargar la espalda."
                 },
@@ -2740,7 +2740,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "good_morning__bilateral__cable",
                   "definitionId": "good_morning",
                   "familyId": "hinge_good_morning",
@@ -2829,7 +2829,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_buenos_dias",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2840,16 +2840,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.6,
               "benefits": [
-                "Polea en una pierna: tensión continua y equilibrio en cada repetición.",
-                "Un este ejercicio de cadera preciso para trabajar la cadera de lado a lado."
+                "Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
+                "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Polea en una pierna: tensión continua y equilibrio en cada repetición. Un este ejercicio de cadera preciso para trabajar la cadera de lado a lado.",
+              "description": "Con polea y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -3035,10 +3035,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea en una pierna: tensión continua y equilibrio en cada repetición.",
-                    "Un este ejercicio de cadera preciso para trabajar la cadera de lado a lado."
+                    "Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
+                    "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
                   ],
-                  "description": "Polea en una pierna: tensión continua y equilibrio en cada repetición. Un este ejercicio de cadera preciso para trabajar la cadera de lado a lado.",
+                  "description": "Con polea y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
                   "technique": "Polea en una pierna: tensión continua y equilibrio en cada repetición. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
                   "variantRationale": "Polea en una pierna: tensión continua y equilibrio en cada repetición. Un este ejercicio de cadera preciso para trabajar la cadera de lado a lado."
                 },
@@ -3053,7 +3053,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "good_morning__unilateral__cable",
                   "definitionId": "good_morning",
                   "familyId": "hinge_good_morning",
@@ -3138,11 +3138,11 @@
           }
         ],
         "defaultConfigurationId": "good_morning__bilateral__barbell",
-        "description": "Este ejercicio de cadera: con la barra sobre los hombros, inclinas el torso hacia delante moviendo solo la cadera y vuelves arriba. El ejercicio que fortalece toda la espalda baja y las piernas, exigente y gratificante.",
+        "description": "El Buenos Días, o Good Morning, es una bisagra de cadera que pone a isquiosurales y glúteos a trabajar en un rango enorme, sometidos a mucha tensión mientras se estiran. Se ejecuta con la barra apoyada sobre los trapecios, igual que en una sentadilla: al flexionar la cadera el torso se inclina hacia delante y la parte trasera de las piernas empieza a estirarse, y la subida nace de empujar el suelo con la cadera. Quienes acumulan molestias en el hombro tienen en la barra de seguridad una aliada perfecta para seguir entrenándolo sin renunciar a la carga. Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -3170,7 +3170,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_buenos_dias_sentado",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -3181,16 +3181,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.6,
               "benefits": [
-                "Barra sentado en el banco: la cadera fija y la tensión directa en los isquios.",
-                "Menos peso que de pie, pero la sensación es inconfundible."
+                "La barra es la referencia para cargar los isquiosurales con peso de verdad.",
+                "La versión acotada que enseña dónde debe vivir el esfuerzo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Barra sentado en el banco: la cadera fija y la tensión directa en los isquios. Menos peso que de pie, pero la sensación es inconfundible.",
+              "description": "Con barra, sentado en el banco, el tronco baja hacia las rodillas con la cadera fija y la tensión directa en los isquiosurales. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -3375,10 +3375,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra sentado en el banco: la cadera fija y la tensión directa en los isquios.",
-                    "Menos peso que de pie, pero la sensación es inconfundible."
+                    "La barra es la referencia para cargar los isquiosurales con peso de verdad.",
+                    "La versión acotada que enseña dónde debe vivir el esfuerzo."
                   ],
-                  "description": "Barra sentado en el banco: la cadera fija y la tensión directa en los isquios. Menos peso que de pie, pero la sensación es inconfundible.",
+                  "description": "Con barra, sentado en el banco, el tronco baja hacia las rodillas con la cadera fija y la tensión directa en los isquiosurales. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
                   "technique": "Barra sentado en el banco: la cadera fija y la tensión directa en los isquios. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Barra sentado en el banco: la cadera fija y la tensión directa en los isquios. Menos peso que de pie, pero la sensación es inconfundible."
                 },
@@ -3393,7 +3393,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días Sentado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "good_morning_seated__barbell",
                   "definitionId": "good_morning_seated",
                   "familyId": "hinge_good_morning",
@@ -3477,7 +3477,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_buenos_dias_sentado",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -3488,16 +3488,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.6,
               "benefits": [
-                "Smith sentado: la barra guiada y la postura fija del banco.",
-                "Cómodo para progresar con estabilidad en el movimiento."
+                "En la Smith, la guía fija permite concentrar todo el esfuerzo de los isquiosurales.",
+                "La versión acotada que enseña dónde debe vivir el esfuerzo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Smith sentado: la barra guiada y la postura fija del banco. Cómodo para progresar con estabilidad en el movimiento.",
+              "description": "Con máquina Smith, sentado en el banco, el tronco baja hacia las rodillas con la cadera fija y la tensión directa en los isquiosurales. En la Smith, la guía fija permite concentrar todo el esfuerzo de los isquiosurales.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -3682,10 +3682,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith sentado: la barra guiada y la postura fija del banco.",
-                    "Cómodo para progresar con estabilidad en el movimiento."
+                    "En la Smith, la guía fija permite concentrar todo el esfuerzo de los isquiosurales.",
+                    "La versión acotada que enseña dónde debe vivir el esfuerzo."
                   ],
-                  "description": "Smith sentado: la barra guiada y la postura fija del banco. Cómodo para progresar con estabilidad en el movimiento.",
+                  "description": "Con máquina Smith, sentado en el banco, el tronco baja hacia las rodillas con la cadera fija y la tensión directa en los isquiosurales. En la Smith, la guía fija permite concentrar todo el esfuerzo de los isquiosurales.",
                   "technique": "Smith sentado: la barra guiada y la postura fija del banco. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Smith sentado: la barra guiada y la postura fija del banco. Cómodo para progresar con estabilidad en el movimiento."
                 },
@@ -3700,7 +3700,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días Sentado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "good_morning_seated__smith_machine",
                   "definitionId": "good_morning_seated",
                   "familyId": "hinge_good_morning",
@@ -3784,7 +3784,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_buenos_dias_sentado",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -3795,16 +3795,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.6,
               "benefits": [
-                "Barra de estabilidad sentado: agarre cómodo y cadera fija en el banco.",
-                "La variante más agradable para trabajar los isquios sentado."
+                "Con la barra de seguridad, los hombros descansan mientras el estímulo de los isquiosurales permanece intacto.",
+                "La versión acotada que enseña dónde debe vivir el esfuerzo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Barra de estabilidad sentado: agarre cómodo y cadera fija en el banco. La variante más agradable para trabajar los isquios sentado.",
+              "description": "Con barra de seguridad, sentado en el banco, el tronco baja hacia las rodillas con la cadera fija y la tensión directa en los isquiosurales. Con la barra de seguridad, los hombros descansan mientras el estímulo de los isquiosurales permanece intacto.",
               "efc": 2.8,
               "equipmentId": "safety_bar",
               "executionCues": [
@@ -3989,10 +3989,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra de estabilidad sentado: agarre cómodo y cadera fija en el banco.",
-                    "La variante más agradable para trabajar los isquios sentado."
+                    "Con la barra de seguridad, los hombros descansan mientras el estímulo de los isquiosurales permanece intacto.",
+                    "La versión acotada que enseña dónde debe vivir el esfuerzo."
                   ],
-                  "description": "Barra de estabilidad sentado: agarre cómodo y cadera fija en el banco. La variante más agradable para trabajar los isquios sentado.",
+                  "description": "Con barra de seguridad, sentado en el banco, el tronco baja hacia las rodillas con la cadera fija y la tensión directa en los isquiosurales. Con la barra de seguridad, los hombros descansan mientras el estímulo de los isquiosurales permanece intacto.",
                   "technique": "Barra de estabilidad sentado: agarre cómodo y cadera fija en el banco. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Barra de estabilidad sentado: agarre cómodo y cadera fija en el banco. La variante más agradable para trabajar los isquios sentado."
                 },
@@ -4007,7 +4007,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días Sentado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "good_morning_seated__safety_bar",
                   "definitionId": "good_morning_seated",
                   "familyId": "hinge_good_morning",
@@ -4087,11 +4087,11 @@
           }
         ],
         "defaultConfigurationId": "good_morning_seated__barbell",
-        "description": "La cadera queda apoyada en el banco y el trabajo se concentra en la parte trasera de las piernas y la espalda baja. Menos peso y mucha más sensación de tensión.",
+        "description": "El Buenos Días Sentado ata las piernas al banco y concentra toda la bisagra en la cadera: los isquiosurales se estiran con el torso inclinándose hacia delante y no hay impulso de piernas disponible. Se ejecuta sentado con la barra sobre los trapecios, bajando el pecho hacia las rodillas y regresando con la espalda neutra. La carga es menor que de pie, pero la sensación en la parte trasera es inconfundible. La versión acotada que enseña dónde debe vivir el esfuerzo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -4116,7 +4116,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_buenos_dias_zercher",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -4127,16 +4127,16 @@
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "benefits": [
-                "Barra en los codos, torso inclinándose hacia delante con la carga pegada al pecho.",
-                "El torso trabaja de más y la sensación en la cadera es distinta a cualquier buenos días."
+                "La barra es la referencia para cargar los isquiosurales con peso de verdad.",
+                "Una especialidad dura para quien ya exprimió las variantes convencionales."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Barra en los codos, torso inclinándose hacia delante con la carga pegada al pecho. El torso trabaja de más y la sensación en la cadera es distinta a cualquier buenos días.",
+              "description": "Con barra, con la carga abrazada en los codos, la inclinación frontal pone al core a trabajar el doble. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -4319,10 +4319,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra en los codos, torso inclinándose hacia delante con la carga pegada al pecho.",
-                    "El torso trabaja de más y la sensación en la cadera es distinta a cualquier buenos días."
+                    "La barra es la referencia para cargar los isquiosurales con peso de verdad.",
+                    "Una especialidad dura para quien ya exprimió las variantes convencionales."
                   ],
-                  "description": "Barra en los codos, torso inclinándose hacia delante con la carga pegada al pecho. El torso trabaja de más y la sensación en la cadera es distinta a cualquier buenos días.",
+                  "description": "Con barra, con la carga abrazada en los codos, la inclinación frontal pone al core a trabajar el doble. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
                   "technique": "Barra en los codos, torso inclinándose hacia delante con la carga pegada al pecho. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Barra en los codos, torso inclinándose hacia delante con la carga pegada al pecho. El torso trabaja de más y la sensación en la cadera es distinta a cualquier buenos días."
                 },
@@ -4337,7 +4337,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días Zercher",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "good_morning_zercher__default",
                   "definitionId": "good_morning_zercher",
                   "familyId": "hinge_good_morning",
@@ -4412,11 +4412,11 @@
           }
         ],
         "defaultConfigurationId": "good_morning_zercher__default",
-        "description": "La barra sujetada en los codos frente al pecho. Al quedar la carga más cerca del cuerpo, el torso y la cadera trabajan con una exigencia distinta.",
+        "description": "El Buenos Días Zercher traslada la carga al hueco de los codos y el gesto se vuelve otra historia: el core abraza la barra contra el pecho mientras la cadera ejecuta la misma inclinación de siempre. Glúteos e isquiosurales siguen mandando, pero el torso trabaja el doble para no desarmarse. La posición incomoda los brazos y exige técnica depurada. Una especialidad dura para quien ya exprimió las variantes convencionales.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -4436,7 +4436,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

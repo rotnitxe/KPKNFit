@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Rotaciones de Antebrazo",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_curl_muneca_sentado",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuerna ligera para girar la palma hacia arriba: el codo queda fijo y la mano recorre un arco corto y controlado.",
-                "Permite trabajar cada antebrazo por separado y comparar la movilidad de ambos lados."
+                "El antebrazo trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                "El detalle que protege el codo en curls y dominadas."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
               ],
-              "description": "Mancuerna ligera para girar la palma hacia arriba: el codo queda fijo y la mano recorre un arco corto y controlado. Permite trabajar cada antebrazo por separado y comparar la movilidad de ambos lados.",
+              "description": "Con mancuernas, la palma gira hacia arriba contra la resistencia con el codo pegado al costado. El antebrazo trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -188,10 +188,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuerna ligera para girar la palma hacia arriba: el codo queda fijo y la mano recorre un arco corto y controlado.",
-                    "Permite trabajar cada antebrazo por separado y comparar la movilidad de ambos lados."
+                    "El antebrazo trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                    "El detalle que protege el codo en curls y dominadas."
                   ],
-                  "description": "Mancuerna ligera para girar la palma hacia arriba: el codo queda fijo y la mano recorre un arco corto y controlado. Permite trabajar cada antebrazo por separado y comparar la movilidad de ambos lados.",
+                  "description": "Con mancuernas, la palma gira hacia arriba contra la resistencia con el codo pegado al costado. El antebrazo trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
                   "technique": "Mancuerna ligera para girar la palma hacia arriba: el codo queda fijo y la mano recorre un arco corto y controlado. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor.",
                   "variantRationale": "Mancuerna ligera para girar la palma hacia arriba: el codo queda fijo y la mano recorre un arco corto y controlado. Permite trabajar cada antebrazo por separado y comparar la movilidad de ambos lados."
                 },
@@ -206,7 +206,7 @@
                 },
                 "identity": {
                   "canonicalName": "Supinaciones",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "supination__dumbbells",
                   "definitionId": "supination",
                   "familyId": "lower_wrist_rotation",
@@ -288,7 +288,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_curl_muneca_sentado",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -299,16 +299,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea baja para girar la palma hacia arriba: la tensión acompaña el recorrido y impide que la mano quede sin resistencia al final.",
-                "La estación facilita ajustes pequeños cuando el objetivo es precisión más que carga absoluta."
+                "El antebrazo trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                "El detalle que protege el codo en curls y dominadas."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
               ],
-              "description": "Polea baja para girar la palma hacia arriba: la tensión acompaña el recorrido y impide que la mano quede sin resistencia al final. La estación facilita ajustes pequeños cuando el objetivo es precisión más que carga absoluta.",
+              "description": "Con polea, la palma gira hacia arriba contra la resistencia con el codo pegado al costado. El antebrazo trabaja con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
@@ -464,10 +464,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea baja para girar la palma hacia arriba: la tensión acompaña el recorrido y impide que la mano quede sin resistencia al final.",
-                    "La estación facilita ajustes pequeños cuando el objetivo es precisión más que carga absoluta."
+                    "El antebrazo trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                    "El detalle que protege el codo en curls y dominadas."
                   ],
-                  "description": "Polea baja para girar la palma hacia arriba: la tensión acompaña el recorrido y impide que la mano quede sin resistencia al final. La estación facilita ajustes pequeños cuando el objetivo es precisión más que carga absoluta.",
+                  "description": "Con polea, la palma gira hacia arriba contra la resistencia con el codo pegado al costado. El antebrazo trabaja con la polea, que mantiene la tensión constante en todo el arco.",
                   "technique": "Polea baja para girar la palma hacia arriba: la tensión acompaña el recorrido y impide que la mano quede sin resistencia al final. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor.",
                   "variantRationale": "Polea baja para girar la palma hacia arriba: la tensión acompaña el recorrido y impide que la mano quede sin resistencia al final. La estación facilita ajustes pequeños cuando el objetivo es precisión más que carga absoluta."
                 },
@@ -482,7 +482,7 @@
                 },
                 "identity": {
                   "canonicalName": "Supinaciones",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "supination__cable",
                   "definitionId": "supination",
                   "familyId": "lower_wrist_rotation",
@@ -560,11 +560,11 @@
           }
         ],
         "defaultConfigurationId": "supination__dumbbells",
-        "description": "La rotación hacia palma arriba trabaja el control preciso del antebrazo mientras el codo permanece como punto estable. Es un ejercicio pequeño y preciso para mejorar la resistencia de los músculos que orientan la mano.",
+        "description": "Las Supinaciones giran la palma hacia arriba contra resistencia: el supinador y el bíceps rotan el antebrazo en un gesto pequeño y específico. Se ejecutan con una mancuerna ligera o en polea, con el codo pegado al costado y la rotación completa en cada repetición. La muñeca aprende a girar fuerte. El detalle que protege el codo en curls y dominadas.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -591,7 +591,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_curl_muneca_sentado",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -602,16 +602,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuerna ligera para girar la palma hacia abajo: el codo actúa como ancla y el antebrazo organiza todo el movimiento.",
-                "El trabajo unilateral deja claro qué lado necesita más control o resistencia."
+                "Con mancuernas, cada lado ajusta su línea y el trabajo del antebrazo se equilibra solo.",
+                "El complemento que cierra el círculo de la salud del antebrazo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
               ],
-              "description": "Mancuerna ligera para girar la palma hacia abajo: el codo actúa como ancla y el antebrazo organiza todo el movimiento. El trabajo unilateral deja claro qué lado necesita más control o resistencia.",
+              "description": "Con mancuernas, la palma gira hacia abajo venciendo la resistencia con el codo fijo al costado. Con mancuernas, cada lado ajusta su línea y el trabajo del antebrazo se equilibra solo.",
               "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -761,10 +761,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuerna ligera para girar la palma hacia abajo: el codo actúa como ancla y el antebrazo organiza todo el movimiento.",
-                    "El trabajo unilateral deja claro qué lado necesita más control o resistencia."
+                    "Con mancuernas, cada lado ajusta su línea y el trabajo del antebrazo se equilibra solo.",
+                    "El complemento que cierra el círculo de la salud del antebrazo."
                   ],
-                  "description": "Mancuerna ligera para girar la palma hacia abajo: el codo actúa como ancla y el antebrazo organiza todo el movimiento. El trabajo unilateral deja claro qué lado necesita más control o resistencia.",
+                  "description": "Con mancuernas, la palma gira hacia abajo venciendo la resistencia con el codo fijo al costado. Con mancuernas, cada lado ajusta su línea y el trabajo del antebrazo se equilibra solo.",
                   "technique": "Mancuerna ligera para girar la palma hacia abajo: el codo actúa como ancla y el antebrazo organiza todo el movimiento. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor.",
                   "variantRationale": "Mancuerna ligera para girar la palma hacia abajo: el codo actúa como ancla y el antebrazo organiza todo el movimiento. El trabajo unilateral deja claro qué lado necesita más control o resistencia."
                 },
@@ -779,7 +779,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pronaciones",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "pronation__dumbbells",
                   "definitionId": "pronation",
                   "familyId": "lower_wrist_rotation",
@@ -859,7 +859,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_curl_muneca_sentado",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -870,16 +870,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea baja para girar la palma hacia abajo: la resistencia acompaña a la mano durante la rotación y se regula con mucha precisión.",
-                "Una opción cómoda para practicar el gesto sin convertirlo en un movimiento de hombro."
+                "El antebrazo trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                "El complemento que cierra el círculo de la salud del antebrazo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
               ],
-              "description": "Polea baja para girar la palma hacia abajo: la resistencia acompaña a la mano durante la rotación y se regula con mucha precisión. Una opción cómoda para practicar el gesto sin convertirlo en un movimiento de hombro.",
+              "description": "Con polea, la palma gira hacia abajo venciendo la resistencia con el codo fijo al costado. El antebrazo trabaja con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
@@ -1029,10 +1029,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea baja para girar la palma hacia abajo: la resistencia acompaña a la mano durante la rotación y se regula con mucha precisión.",
-                    "Una opción cómoda para practicar el gesto sin convertirlo en un movimiento de hombro."
+                    "El antebrazo trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                    "El complemento que cierra el círculo de la salud del antebrazo."
                   ],
-                  "description": "Polea baja para girar la palma hacia abajo: la resistencia acompaña a la mano durante la rotación y se regula con mucha precisión. Una opción cómoda para practicar el gesto sin convertirlo en un movimiento de hombro.",
+                  "description": "Con polea, la palma gira hacia abajo venciendo la resistencia con el codo fijo al costado. El antebrazo trabaja con la polea, que mantiene la tensión constante en todo el arco.",
                   "technique": "Polea baja para girar la palma hacia abajo: la resistencia acompaña a la mano durante la rotación y se regula con mucha precisión. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor.",
                   "variantRationale": "Polea baja para girar la palma hacia abajo: la resistencia acompaña a la mano durante la rotación y se regula con mucha precisión. Una opción cómoda para practicar el gesto sin convertirlo en un movimiento de hombro."
                 },
@@ -1047,7 +1047,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pronaciones",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "pronation__cable",
                   "definitionId": "pronation",
                   "familyId": "lower_wrist_rotation",
@@ -1123,11 +1123,11 @@
           }
         ],
         "defaultConfigurationId": "pronation__dumbbells",
-        "description": "La rotación hacia palma abajo exige que el antebrazo dirija la mano sin que el hombro compense el gesto. Su recorrido corto permite entrenar la pronación con una carga muy dosificable.",
+        "description": "Las Pronaciones giran la palma hacia abajo contra resistencia: el pronador trabaja el sentido contrario al de las supinaciones. Se ejecutan con mancuerna o polea, el codo quieto y la rotación lenta de principio a fin. El antebrazo se equilibra trabajando ambos giros. El complemento que cierra el círculo de la salud del antebrazo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1150,7 +1150,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

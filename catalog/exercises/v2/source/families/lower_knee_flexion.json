@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Curl de Isquiosurales",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_curl_femoral",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Acostado con el balón entre los pies: llevas el balón hacia el glúteo flexionando las rodillas.",
-                "Isquios y glúteos bajo una tensión intensa sin máquinas."
+                "Sin más carga que el propio cuerpo, la exigencia de los isquiosurales es la justa.",
+                "La opción casera para la parte trasera de la pierna cuando no hay gimnasio a mano."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
               ],
-              "description": "Acostado con el balón entre los pies: llevas el balón hacia el glúteo flexionando las rodillas. Isquios y glúteos bajo una tensión intensa sin máquinas.",
+              "description": "Con peso corporal, boca arriba con las pantorrillas sobre la pelota, los talones la acercan al glúteo. Sin más carga que el propio cuerpo, la exigencia de los isquiosurales es la justa.",
               "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -210,10 +210,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Acostado con el balón entre los pies: llevas el balón hacia el glúteo flexionando las rodillas.",
-                    "Isquios y glúteos bajo una tensión intensa sin máquinas."
+                    "Sin más carga que el propio cuerpo, la exigencia de los isquiosurales es la justa.",
+                    "La opción casera para la parte trasera de la pierna cuando no hay gimnasio a mano."
                   ],
-                  "description": "Acostado con el balón entre los pies: llevas el balón hacia el glúteo flexionando las rodillas. Isquios y glúteos bajo una tensión intensa sin máquinas.",
+                  "description": "Con peso corporal, boca arriba con las pantorrillas sobre la pelota, los talones la acercan al glúteo. Sin más carga que el propio cuerpo, la exigencia de los isquiosurales es la justa.",
                   "technique": "Acostado con el balón entre los pies: llevas el balón hacia el glúteo flexionando las rodillas. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Acostado con el balón entre los pies: llevas el balón hacia el glúteo flexionando las rodillas. Isquios y glúteos bajo una tensión intensa sin máquinas."
                 },
@@ -228,7 +228,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales con Balón",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "curl_isquios_con_balon__default",
                   "definitionId": "curl_isquios_con_balon",
                   "familyId": "lower_knee_flexion",
@@ -304,11 +304,11 @@
           }
         ],
         "defaultConfigurationId": "curl_isquios_con_balon__default",
-        "description": "Acostado, llevas el balón hacia el glúteo con las piernas. Isquios y glúteos trabajando en casa sin ninguna máquina.",
+        "description": "El Curl de Isquiosurales con Balón traslada el curl tumbado a la pelota de fitness: boca arriba con las pantorrillas sobre el balón, los talones la acercan al glúteo mientras la cadera se mantiene en puente. Se ejecuta con la espalda en el suelo, flexionando las rodillas para traer la pelota y estirando con calma. Los isquiosurales frenan y tiran con el cuerpo como única resistencia. La opción casera para la parte trasera de la pierna cuando no hay gimnasio a mano.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -332,7 +332,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_curl_femoral",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -343,16 +343,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Pies en los sliders y cuerpo extendido: flexionas las rodillas deslizando los pies hacia ti.",
-                "La versión exigente del curl en casa; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Con los deslizadores, cada centímetro desliza y la tensión de los isquiosurales no perdona.",
+                "La alternativa de suelo más exigente para la cadena posterior."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
               ],
-              "description": "Pies en los sliders y cuerpo extendido: flexionas las rodillas deslizando los pies hacia ti. La versión exigente del curl en casa.",
+              "description": "Con deslizadores, con los pies sobre los discos, los talones resbalan hacia el glúteo y regresan con la cadera alta. Con los deslizadores, cada centímetro desliza y la tensión de los isquiosurales no perdona.",
               "efc": 2.8,
               "equipmentId": "sliders",
               "executionCues": [
@@ -524,10 +524,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Pies en los sliders y cuerpo extendido: flexionas las rodillas deslizando los pies hacia ti.",
-                    "La versión exigente del curl en casa; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Con los deslizadores, cada centímetro desliza y la tensión de los isquiosurales no perdona.",
+                    "La alternativa de suelo más exigente para la cadena posterior."
                   ],
-                  "description": "Pies en los sliders y cuerpo extendido: flexionas las rodillas deslizando los pies hacia ti. La versión exigente del curl en casa.",
+                  "description": "Con deslizadores, con los pies sobre los discos, los talones resbalan hacia el glúteo y regresan con la cadera alta. Con los deslizadores, cada centímetro desliza y la tensión de los isquiosurales no perdona.",
                   "technique": "Pies en los sliders y cuerpo extendido: flexionas las rodillas deslizando los pies hacia ti. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Pies en los sliders y cuerpo extendido: flexionas las rodillas deslizando los pies hacia ti. La versión exigente del curl en casa."
                 },
@@ -542,7 +542,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales con Sliders",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "curl_isquios_con_sliders__default",
                   "definitionId": "curl_isquios_con_sliders",
                   "familyId": "lower_knee_flexion",
@@ -616,11 +616,11 @@
           }
         ],
         "defaultConfigurationId": "curl_isquios_con_sliders__default",
-        "description": "Los pies en los discos deslizantes y llevas el cuerpo hacia atrás flexionando las rodillas. La versión exigente para isquios en casa.",
+        "description": "El Curl de Isquiosurales con Sliders usa discos deslizantes bajo los talones para un curl tumbado sin aparatos: los pies resbalan hacia el glúteo y regresan mientras la cadera queda elevada. Se ejecuta con la espalda apoyada y el puente alto, deslizando con control en ambas direcciones. Los isquiosurales y el glúteo comparten un trabajo continuo y engañosamente duro. La alternativa de suelo más exigente para la cadena posterior.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -644,7 +644,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_curl_femoral_sentado_unilateral_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -655,16 +655,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina tumbado con ambas piernas: los talones suben al glúteo contra la resistencia.",
-                "El aislamiento tradicional de los isquios."
+                "En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. A dos lados, el trabajo de los isquiosurales admite más carga total.",
+                "El constructor básico de isquiosurales, cómodo y medible."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
               ],
-              "description": "Máquina tumbado con ambas piernas: los talones suben al glúteo contra la resistencia. El aislamiento tradicional de los isquios.",
+              "description": "Con máquina y a dos lados, boca abajo, los talones suben hacia el glúteo contra la almohadilla. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. A dos lados, el trabajo de los isquiosurales admite más carga total.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -790,10 +790,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina tumbado con ambas piernas: los talones suben al glúteo contra la resistencia.",
-                    "El aislamiento tradicional de los isquios."
+                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. A dos lados, el trabajo de los isquiosurales admite más carga total.",
+                    "El constructor básico de isquiosurales, cómodo y medible."
                   ],
-                  "description": "Máquina tumbado con ambas piernas: los talones suben al glúteo contra la resistencia. El aislamiento tradicional de los isquios.",
+                  "description": "Con máquina y a dos lados, boca abajo, los talones suben hacia el glúteo contra la almohadilla. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. A dos lados, el trabajo de los isquiosurales admite más carga total.",
                   "technique": "Máquina tumbado con ambas piernas: los talones suben al glúteo contra la resistencia. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
                   "variantRationale": "Máquina tumbado con ambas piernas: los talones suben al glúteo contra la resistencia. El aislamiento tradicional de los isquios."
                 },
@@ -808,7 +808,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Tumbado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "lying_leg_curl__bilateral__machine",
                   "definitionId": "lying_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -893,7 +893,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_curl_femoral_sentado_unilateral_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -904,16 +904,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina tumbado con una pierna: cada isquio trabaja sin ayuda del otro lado y corriges desequilibrios.",
-                "La versión precisa del curl tumbado; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
+                "El constructor básico de isquiosurales, cómodo y medible."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
               ],
-              "description": "Máquina tumbado con una pierna: cada isquio trabaja sin ayuda del otro lado y corriges desequilibrios. La versión precisa del curl tumbado.",
+              "description": "Con máquina y a un lado, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -1039,10 +1039,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina tumbado con una pierna: cada isquio trabaja sin ayuda del otro lado y corriges desequilibrios.",
-                    "La versión precisa del curl tumbado; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
+                    "El constructor básico de isquiosurales, cómodo y medible."
                   ],
-                  "description": "Máquina tumbado con una pierna: cada isquio trabaja sin ayuda del otro lado y corriges desequilibrios. La versión precisa del curl tumbado.",
+                  "description": "Con máquina y a un lado, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
                   "technique": "Máquina tumbado con una pierna: cada isquio trabaja sin ayuda del otro lado y corriges desequilibrios. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
                   "variantRationale": "Máquina tumbado con una pierna: cada isquio trabaja sin ayuda del otro lado y corriges desequilibrios. La versión precisa del curl tumbado."
                 },
@@ -1057,7 +1057,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Tumbado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "lying_leg_curl__unilateral__machine",
                   "definitionId": "lying_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -1142,7 +1142,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_curl_femoral_sentado_unilateral_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1153,16 +1153,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea tumbado con ambas piernas: la tensión constante sube los talones con los isquios cargados.",
-                "Variante exigente y con una demanda amplia."
+                "Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. A dos lados, el trabajo de los isquiosurales admite más carga total.",
+                "El constructor básico de isquiosurales, cómodo y medible."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
               ],
-              "description": "Polea tumbado con ambas piernas: la tensión constante sube los talones con los isquios cargados. Variante exigente y con una demanda amplia.",
+              "description": "Con polea y a dos lados, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. A dos lados, el trabajo de los isquiosurales admite más carga total.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -1288,10 +1288,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea tumbado con ambas piernas: la tensión constante sube los talones con los isquios cargados.",
-                    "Variante exigente y con una demanda amplia."
+                    "Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. A dos lados, el trabajo de los isquiosurales admite más carga total.",
+                    "El constructor básico de isquiosurales, cómodo y medible."
                   ],
-                  "description": "Polea tumbado con ambas piernas: la tensión constante sube los talones con los isquios cargados. Variante exigente y con una demanda amplia.",
+                  "description": "Con polea y a dos lados, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. A dos lados, el trabajo de los isquiosurales admite más carga total.",
                   "technique": "Polea tumbado con ambas piernas: la tensión constante sube los talones con los isquios cargados. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
                   "variantRationale": "Polea tumbado con ambas piernas: la tensión constante sube los talones con los isquios cargados. Variante exigente y con una demanda amplia."
                 },
@@ -1306,7 +1306,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Tumbado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "lying_leg_curl__bilateral__cable",
                   "definitionId": "lying_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -1391,7 +1391,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_curl_femoral_sentado_unilateral_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1402,16 +1402,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea tumbado con una pierna: tensión continua en un isquio a la vez.",
-                "Útil para igualar ambos lados; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
+                "El constructor básico de isquiosurales, cómodo y medible."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
               ],
-              "description": "Polea tumbado con una pierna: tensión continua en un isquio a la vez. Útil para igualar ambos lados.",
+              "description": "Con polea y a un lado, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -1537,10 +1537,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea tumbado con una pierna: tensión continua en un isquio a la vez.",
-                    "Útil para igualar ambos lados; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
+                    "El constructor básico de isquiosurales, cómodo y medible."
                   ],
-                  "description": "Polea tumbado con una pierna: tensión continua en un isquio a la vez. Útil para igualar ambos lados.",
+                  "description": "Con polea y a un lado, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
                   "technique": "Polea tumbado con una pierna: tensión continua en un isquio a la vez. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
                   "variantRationale": "Polea tumbado con una pierna: tensión continua en un isquio a la vez. Útil para igualar ambos lados."
                 },
@@ -1555,7 +1555,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Tumbado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "lying_leg_curl__unilateral__cable",
                   "definitionId": "lying_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -1640,7 +1640,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_curl_femoral_sentado_unilateral_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1651,16 +1651,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuerna entre los pies tumbado: sujeta el peso con los pies y flexiona.",
-                "Una forma alternativa de hacer curl de isquios en casa."
+                "Con mancuernas, cada lado ajusta su línea y el trabajo de los isquiosurales se equilibra solo. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+                "El constructor básico de isquiosurales, cómodo y medible."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
               ],
-              "description": "Mancuerna entre los pies tumbado: sujeta el peso con los pies y flexiona. Una forma alternativa de hacer curl de isquios en casa.",
+              "description": "Con mancuernas y a dos lados, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Con mancuernas, cada lado ajusta su línea y el trabajo de los isquiosurales se equilibra solo. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -1781,10 +1781,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuerna entre los pies tumbado: sujeta el peso con los pies y flexiona.",
-                    "Una forma alternativa de hacer curl de isquios en casa."
+                    "Con mancuernas, cada lado ajusta su línea y el trabajo de los isquiosurales se equilibra solo. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+                    "El constructor básico de isquiosurales, cómodo y medible."
                   ],
-                  "description": "Mancuerna entre los pies tumbado: sujeta el peso con los pies y flexiona. Una forma alternativa de hacer curl de isquios en casa.",
+                  "description": "Con mancuernas y a dos lados, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Con mancuernas, cada lado ajusta su línea y el trabajo de los isquiosurales se equilibra solo. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
                   "technique": "Mancuerna entre los pies tumbado: sujeta el peso con los pies y flexiona. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
                   "variantRationale": "Mancuerna entre los pies tumbado: sujeta el peso con los pies y flexiona. Una forma alternativa de hacer curl de isquios en casa."
                 },
@@ -1799,7 +1799,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Tumbado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "lying_leg_curl__bilateral__dumbbells",
                   "definitionId": "lying_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -1883,7 +1883,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_curl_femoral_sentado_unilateral_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1894,16 +1894,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuerna con un pie: el isquio de una pierna hace la mayor parte de la carga.",
-                "Variante accesible y muy directa; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Los isquiosurales trabajan con mancuernas, que dejan que cada lado corrija su trayectoria. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
+                "El constructor básico de isquiosurales, cómodo y medible."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
               ],
-              "description": "Mancuerna con un pie: el isquio de una pierna hace la mayor parte de la carga. Variante accesible y muy directa.",
+              "description": "Con mancuernas y a un lado, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Los isquiosurales trabajan con mancuernas, que dejan que cada lado corrija su trayectoria. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -2024,10 +2024,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuerna con un pie: el isquio de una pierna hace la mayor parte de la carga.",
-                    "Variante accesible y muy directa; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Los isquiosurales trabajan con mancuernas, que dejan que cada lado corrija su trayectoria. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
+                    "El constructor básico de isquiosurales, cómodo y medible."
                   ],
-                  "description": "Mancuerna con un pie: el isquio de una pierna hace la mayor parte de la carga. Variante accesible y muy directa.",
+                  "description": "Con mancuernas y a un lado, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Los isquiosurales trabajan con mancuernas, que dejan que cada lado corrija su trayectoria. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
                   "technique": "Mancuerna con un pie: el isquio de una pierna hace la mayor parte de la carga. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
                   "variantRationale": "Mancuerna con un pie: el isquio de una pierna hace la mayor parte de la carga. Variante accesible y muy directa."
                 },
@@ -2042,7 +2042,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Tumbado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "lying_leg_curl__unilateral__dumbbells",
                   "definitionId": "lying_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -2122,11 +2122,11 @@
           }
         ],
         "defaultConfigurationId": "lying_leg_curl__bilateral__machine",
-        "description": "Boca abajo en la máquina, flexionas las piernas llevando los talones al glúteo. El aislamiento tradicional de la parte trasera de la pierna.",
+        "description": "El Curl de Isquiosurales Tumbado es el aislamiento clásico de la parte trasera del muslo: boca abajo en la máquina, los talones suben hacia el glúteo contra la almohadilla. Se ejecuta con la cadera pegada al banco, flexionando las rodillas hasta el tope y bajando sin que la pelvis despegue. Con polea o una mancuerna entre los pies el mismo gesto se monta sin máquina. El constructor básico de isquiosurales, cómodo y medible.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -2154,7 +2154,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_curl_femoral_sentado_unilateral_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2165,16 +2165,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina sentado con ambas piernas: flexionas contra la almohadilla con la espalda cómoda.",
-                "El curl de isquios más estable; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo de los isquiosurales admite más carga total.",
+                "La postura cómoda para la espalda y dura para la parte trasera."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
               ],
-              "description": "Máquina sentado con ambas piernas: flexionas contra la almohadilla con la espalda cómoda. El curl de isquios más estable.",
+              "description": "Con máquina y a dos lados, sentado, los talones bajan por debajo del asiento contra la almohadilla. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo de los isquiosurales admite más carga total.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -2289,10 +2289,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina sentado con ambas piernas: flexionas contra la almohadilla con la espalda cómoda.",
-                    "El curl de isquios más estable; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo de los isquiosurales admite más carga total.",
+                    "La postura cómoda para la espalda y dura para la parte trasera."
                   ],
-                  "description": "Máquina sentado con ambas piernas: flexionas contra la almohadilla con la espalda cómoda. El curl de isquios más estable.",
+                  "description": "Con máquina y a dos lados, sentado, los talones bajan por debajo del asiento contra la almohadilla. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo de los isquiosurales admite más carga total.",
                   "technique": "Máquina sentado con ambas piernas: flexionas contra la almohadilla con la espalda cómoda. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
                   "variantRationale": "Máquina sentado con ambas piernas: flexionas contra la almohadilla con la espalda cómoda. El curl de isquios más estable."
                 },
@@ -2307,7 +2307,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Sentado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "seated_leg_curl__bilateral__machine",
                   "definitionId": "seated_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -2389,7 +2389,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_curl_femoral_sentado_unilateral_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2400,16 +2400,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina sentado con una pierna: cada isquio trabaja por separado.",
-                "Útil para corregir desequilibrios sentado."
+                "En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+                "La postura cómoda para la espalda y dura para la parte trasera."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
               ],
-              "description": "Máquina sentado con una pierna: cada isquio trabaja por separado. Útil para corregir desequilibrios sentado.",
+              "description": "Con máquina y a un lado, sentado, los talones bajan por debajo del asiento contra la almohadilla. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -2524,10 +2524,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina sentado con una pierna: cada isquio trabaja por separado.",
-                    "Útil para corregir desequilibrios sentado."
+                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+                    "La postura cómoda para la espalda y dura para la parte trasera."
                   ],
-                  "description": "Máquina sentado con una pierna: cada isquio trabaja por separado. Útil para corregir desequilibrios sentado.",
+                  "description": "Con máquina y a un lado, sentado, los talones bajan por debajo del asiento contra la almohadilla. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
                   "technique": "Máquina sentado con una pierna: cada isquio trabaja por separado. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
                   "variantRationale": "Máquina sentado con una pierna: cada isquio trabaja por separado. Útil para corregir desequilibrios sentado."
                 },
@@ -2542,7 +2542,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Sentado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "seated_leg_curl__unilateral__machine",
                   "definitionId": "seated_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -2624,7 +2624,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_curl_femoral_sentado_unilateral_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2635,16 +2635,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea sentado con ambas piernas: la tensión constante acompaña la flexión.",
-                "Variante precisa para los isquios sentado."
+                "Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+                "La postura cómoda para la espalda y dura para la parte trasera."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
               ],
-              "description": "Polea sentado con ambas piernas: la tensión constante acompaña la flexión. Variante precisa para los isquios sentado.",
+              "description": "Con polea y a dos lados, sentado, los talones bajan por debajo del asiento contra la almohadilla. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -2759,10 +2759,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea sentado con ambas piernas: la tensión constante acompaña la flexión.",
-                    "Variante precisa para los isquios sentado."
+                    "Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+                    "La postura cómoda para la espalda y dura para la parte trasera."
                   ],
-                  "description": "Polea sentado con ambas piernas: la tensión constante acompaña la flexión. Variante precisa para los isquios sentado.",
+                  "description": "Con polea y a dos lados, sentado, los talones bajan por debajo del asiento contra la almohadilla. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
                   "technique": "Polea sentado con ambas piernas: la tensión constante acompaña la flexión. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
                   "variantRationale": "Polea sentado con ambas piernas: la tensión constante acompaña la flexión. Variante precisa para los isquios sentado."
                 },
@@ -2777,7 +2777,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Sentado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "seated_leg_curl__bilateral__cable",
                   "definitionId": "seated_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -2859,7 +2859,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_curl_femoral_sentado_unilateral_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2870,16 +2870,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea sentado con una pierna: tensión continua en un isquio a la vez.",
-                "Útil para centrarse en cada lado; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Con la polea, la tensión sobre los isquiosurales se mantiene viva de principio a fin. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+                "La postura cómoda para la espalda y dura para la parte trasera."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
               ],
-              "description": "Polea sentado con una pierna: tensión continua en un isquio a la vez. Útil para centrarse en cada lado.",
+              "description": "Con polea y a un lado, sentado, los talones bajan por debajo del asiento contra la almohadilla. Con la polea, la tensión sobre los isquiosurales se mantiene viva de principio a fin. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -2994,10 +2994,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea sentado con una pierna: tensión continua en un isquio a la vez.",
-                    "Útil para centrarse en cada lado; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Con la polea, la tensión sobre los isquiosurales se mantiene viva de principio a fin. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+                    "La postura cómoda para la espalda y dura para la parte trasera."
                   ],
-                  "description": "Polea sentado con una pierna: tensión continua en un isquio a la vez. Útil para centrarse en cada lado.",
+                  "description": "Con polea y a un lado, sentado, los talones bajan por debajo del asiento contra la almohadilla. Con la polea, la tensión sobre los isquiosurales se mantiene viva de principio a fin. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
                   "technique": "Polea sentado con una pierna: tensión continua en un isquio a la vez. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
                   "variantRationale": "Polea sentado con una pierna: tensión continua en un isquio a la vez. Útil para centrarse en cada lado."
                 },
@@ -3012,7 +3012,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Sentado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "seated_leg_curl__unilateral__cable",
                   "definitionId": "seated_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -3090,11 +3090,11 @@
           }
         ],
         "defaultConfigurationId": "seated_leg_curl__bilateral__machine",
-        "description": "En la máquina sentada, flexionas las piernas contra la resistencia. Trabaja los isquios en una postura cómoda y estable para la espalda.",
+        "description": "El Curl de Isquiosurales Sentado trabaja el isquio desde una cadera flexionada, una posición que alarga el músculo antes de empezar y cambia el estímulo respecto al tumbado. Se ejecuta en la máquina sentada, llevando los talones por debajo del asiento contra la almohadilla y regresando sin rebote. Con polea se monta una versión casera igual de válida. La postura cómoda para la espalda y dura para la parte trasera.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -3122,7 +3122,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_curl_femoral_sentado_unilateral_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -3133,16 +3133,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina de pie con ambas piernas: flexionas contra la resistencia estando de pie.",
-                "Trabajo limpio y cómodo de los isquios; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo de los isquiosurales admite más carga total.",
+                "El detector y corrector de desequilibrios en los isquiosurales."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
               ],
-              "description": "Máquina de pie con ambas piernas: flexionas contra la resistencia estando de pie. Trabajo limpio y cómodo de los isquios.",
+              "description": "Con máquina y a dos lados, de pie, una pierna flexiona llevando el talón hacia atrás contra la resistencia. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo de los isquiosurales admite más carga total.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -3263,10 +3263,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina de pie con ambas piernas: flexionas contra la resistencia estando de pie.",
-                    "Trabajo limpio y cómodo de los isquios; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo de los isquiosurales admite más carga total.",
+                    "El detector y corrector de desequilibrios en los isquiosurales."
                   ],
-                  "description": "Máquina de pie con ambas piernas: flexionas contra la resistencia estando de pie. Trabajo limpio y cómodo de los isquios.",
+                  "description": "Con máquina y a dos lados, de pie, una pierna flexiona llevando el talón hacia atrás contra la resistencia. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo de los isquiosurales admite más carga total.",
                   "technique": "Máquina de pie con ambas piernas: flexionas contra la resistencia estando de pie. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
                   "variantRationale": "Máquina de pie con ambas piernas: flexionas contra la resistencia estando de pie. Trabajo limpio y cómodo de los isquios."
                 },
@@ -3281,7 +3281,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales de Pie",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "standing_leg_curl__bilateral__machine",
                   "definitionId": "standing_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -3365,7 +3365,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_curl_femoral_sentado_unilateral_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -3376,16 +3376,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina de pie con una pierna: un aislamiento mayor de un isquio.",
-                "La variante utilizada para igualar ambos lados."
+                "Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+                "El detector y corrector de desequilibrios en los isquiosurales."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
               ],
-              "description": "Máquina de pie con una pierna: un aislamiento mayor de un isquio. La variante utilizada para igualar ambos lados.",
+              "description": "Con máquina y a un lado, de pie, una pierna flexiona llevando el talón hacia atrás contra la resistencia. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -3506,10 +3506,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina de pie con una pierna: un aislamiento mayor de un isquio.",
-                    "La variante utilizada para igualar ambos lados."
+                    "Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+                    "El detector y corrector de desequilibrios en los isquiosurales."
                   ],
-                  "description": "Máquina de pie con una pierna: un aislamiento mayor de un isquio. La variante utilizada para igualar ambos lados.",
+                  "description": "Con máquina y a un lado, de pie, una pierna flexiona llevando el talón hacia atrás contra la resistencia. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
                   "technique": "Máquina de pie con una pierna: un aislamiento mayor de un isquio. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
                   "variantRationale": "Máquina de pie con una pierna: un aislamiento mayor de un isquio. La variante utilizada para igualar ambos lados."
                 },
@@ -3524,7 +3524,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales de Pie",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "standing_leg_curl__unilateral__machine",
                   "definitionId": "standing_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -3608,7 +3608,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_curl_femoral_sentado_unilateral_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -3619,16 +3619,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea de pie con ambas piernas: los tobillos enganchados flexionan contra la tensión.",
-                "Variante constante y exigente; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+                "El detector y corrector de desequilibrios en los isquiosurales."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
               ],
-              "description": "Polea de pie con ambas piernas: los tobillos enganchados flexionan contra la tensión. Variante constante y exigente.",
+              "description": "Con polea y a dos lados, de pie, una pierna flexiona llevando el talón hacia atrás contra la resistencia. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -3749,10 +3749,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea de pie con ambas piernas: los tobillos enganchados flexionan contra la tensión.",
-                    "Variante constante y exigente; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+                    "El detector y corrector de desequilibrios en los isquiosurales."
                   ],
-                  "description": "Polea de pie con ambas piernas: los tobillos enganchados flexionan contra la tensión. Variante constante y exigente.",
+                  "description": "Con polea y a dos lados, de pie, una pierna flexiona llevando el talón hacia atrás contra la resistencia. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
                   "technique": "Polea de pie con ambas piernas: los tobillos enganchados flexionan contra la tensión. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
                   "variantRationale": "Polea de pie con ambas piernas: los tobillos enganchados flexionan contra la tensión. Variante constante y exigente."
                 },
@@ -3767,7 +3767,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales de Pie",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "standing_leg_curl__bilateral__cable",
                   "definitionId": "standing_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -3851,7 +3851,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_curl_femoral_sentado_unilateral_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -3862,16 +3862,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea de pie con una pierna: tensión continua en un isquio a la vez.",
-                "Útil para un trabajo preciso de la parte trasera."
+                "Con la polea, la tensión sobre los isquiosurales se mantiene viva de principio a fin. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+                "El detector y corrector de desequilibrios en los isquiosurales."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
               ],
-              "description": "Polea de pie con una pierna: tensión continua en un isquio a la vez. Útil para un trabajo preciso de la parte trasera.",
+              "description": "Con polea y a un lado, de pie, una pierna flexiona llevando el talón hacia atrás contra la resistencia. Con la polea, la tensión sobre los isquiosurales se mantiene viva de principio a fin. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -3992,10 +3992,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea de pie con una pierna: tensión continua en un isquio a la vez.",
-                    "Útil para un trabajo preciso de la parte trasera."
+                    "Con la polea, la tensión sobre los isquiosurales se mantiene viva de principio a fin. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+                    "El detector y corrector de desequilibrios en los isquiosurales."
                   ],
-                  "description": "Polea de pie con una pierna: tensión continua en un isquio a la vez. Útil para un trabajo preciso de la parte trasera.",
+                  "description": "Con polea y a un lado, de pie, una pierna flexiona llevando el talón hacia atrás contra la resistencia. Con la polea, la tensión sobre los isquiosurales se mantiene viva de principio a fin. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
                   "technique": "Polea de pie con una pierna: tensión continua en un isquio a la vez. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
                   "variantRationale": "Polea de pie con una pierna: tensión continua en un isquio a la vez. Útil para un trabajo preciso de la parte trasera."
                 },
@@ -4010,7 +4010,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales de Pie",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "standing_leg_curl__unilateral__cable",
                   "definitionId": "standing_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -4090,11 +4090,11 @@
           }
         ],
         "defaultConfigurationId": "standing_leg_curl__bilateral__machine",
-        "description": "De pie en la máquina, flexionas una pierna contra la resistencia. El aislamiento unilateral útil para igualar ambos isquios.",
+        "description": "El Curl de Isquiosurales de Pie aísla una pierna cada vez: de pie en la máquina, la rodilla flexiona llevando el talón hacia atrás contra la resistencia. Se ejecuta con el muslo apoyado y el movimiento limpio, sin balancear la cadera. Trabajar a una pierna deja al descubierto diferencias entre lados que las máquinas bilaterales esconden. El detector y corrector de desequilibrios en los isquiosurales.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -4118,7 +4118,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

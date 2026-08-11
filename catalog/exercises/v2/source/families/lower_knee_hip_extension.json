@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Glute-Ham Raise",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_glute_ham_raise",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Espinillas apoyadas y cuerpo bajando extendido: isquios y glúteo frenan y suben el peso.",
-                "El ejercicio de los personas con experiencia, exigente y exigente."
+                "Los isquiosurales trabajan en el GHD, que fija los pies y concentra todo el esfuerzo.",
+                "El rito de paso de los que entrenan la parte trasera en serio."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
               ],
-              "description": "Espinillas apoyadas y cuerpo bajando extendido: isquios y glúteo frenan y suben el peso. El ejercicio de los personas con experiencia, exigente y exigente.",
+              "description": "Con GHD, con los pies anclados en el banco GHD, el cuerpo desciende en bloque y regresa con la cadena posterior. Los isquiosurales trabajan en el GHD, que fija los pies y concentra todo el esfuerzo.",
               "efc": 2.8,
               "equipmentId": "ghd",
               "executionCues": [
@@ -210,10 +210,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Espinillas apoyadas y cuerpo bajando extendido: isquios y glúteo frenan y suben el peso.",
-                    "El ejercicio de los personas con experiencia, exigente y exigente."
+                    "Los isquiosurales trabajan en el GHD, que fija los pies y concentra todo el esfuerzo.",
+                    "El rito de paso de los que entrenan la parte trasera en serio."
                   ],
-                  "description": "Espinillas apoyadas y cuerpo bajando extendido: isquios y glúteo frenan y suben el peso. El ejercicio de los personas con experiencia, exigente y exigente.",
+                  "description": "Con GHD, con los pies anclados en el banco GHD, el cuerpo desciende en bloque y regresa con la cadena posterior. Los isquiosurales trabajan en el GHD, que fija los pies y concentra todo el esfuerzo.",
                   "technique": "Espinillas apoyadas y cuerpo bajando extendido: isquios y glúteo frenan y suben el peso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Espinillas apoyadas y cuerpo bajando extendido: isquios y glúteo frenan y suben el peso. El ejercicio de los personas con experiencia, exigente y exigente."
                 },
@@ -228,7 +228,7 @@
                 },
                 "identity": {
                   "canonicalName": "Glute Ham Raise",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "glute_ham_raise__default",
                   "definitionId": "glute_ham_raise",
                   "familyId": "lower_knee_hip_extension",
@@ -306,11 +306,11 @@
           }
         ],
         "defaultConfigurationId": "glute_ham_raise__default",
-        "description": "La espinilla apoyada en la máquina, bajas el cuerpo extendido y subes con isquios y glúteos. El ejercicio de los personas con experiencia, exigente durante todo el recorrido.",
+        "description": "El Glute Ham Raise es la reverencia a la cadena posterior: con los pies anclados en el banco GHD, el cuerpo desciende en bloque y regresa usando isquiosurales y glúteos como bisagra. Se ejecuta bajando el torso con la espalda neutra hasta casi tocar el suelo y subiendo sin empujar con las manos si se puede. Pocos ejercicios exponen tan rápido la debilidad de los isquiosurales. El rito de paso de los que entrenan la parte trasera en serio.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -330,7 +330,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

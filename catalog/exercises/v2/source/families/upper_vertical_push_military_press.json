@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Press Militar",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_militar_de_pie",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás.",
-                "La carga bilateral ofrece una referencia clara para progresar en el empuje vertical."
+                "La barra es la referencia para cargar el deltoide con peso de verdad.",
+                "La medida clásica de la fuerza de hombros, dura y honesta."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás. La carga bilateral ofrece una referencia clara para progresar en el empuje vertical.",
+              "description": "Con barra, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. La barra es la referencia para cargar el deltoide con peso de verdad.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -213,10 +213,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás.",
-                    "La carga bilateral ofrece una referencia clara para progresar en el empuje vertical."
+                    "La barra es la referencia para cargar el deltoide con peso de verdad.",
+                    "La medida clásica de la fuerza de hombros, dura y honesta."
                   ],
-                  "description": "Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás. La carga bilateral ofrece una referencia clara para progresar en el empuje vertical.",
+                  "description": "Con barra, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. La barra es la referencia para cargar el deltoide con peso de verdad.",
                   "technique": "Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
                   "variantRationale": "Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás. La carga bilateral ofrece una referencia clara para progresar en el empuje vertical."
                 },
@@ -231,7 +231,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Militar",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "military_press__barbell",
                   "definitionId": "military_press",
                   "familyId": "upper_vertical_push_military_press",
@@ -314,7 +314,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_militar_de_pie",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -325,16 +325,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro.",
-                "La variante descubre diferencias que la barra puede ocultar."
+                "El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                "La medida clásica de la fuerza de hombros, dura y honesta."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro. La variante descubre diferencias que la barra puede ocultar.",
+              "description": "Con mancuernas, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -515,10 +515,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro.",
-                    "La variante descubre diferencias que la barra puede ocultar."
+                    "El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                    "La medida clásica de la fuerza de hombros, dura y honesta."
                   ],
-                  "description": "Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro. La variante descubre diferencias que la barra puede ocultar.",
+                  "description": "Con mancuernas, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
                   "technique": "Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
                   "variantRationale": "Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro. La variante descubre diferencias que la barra puede ocultar."
                 },
@@ -533,7 +533,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Militar",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "military_press__dumbbells",
                   "definitionId": "military_press",
                   "familyId": "upper_vertical_push_military_press",
@@ -616,7 +616,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_militar_de_pie",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -627,16 +627,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio.",
-                "Estable para cargar peso de pie; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El deltoide trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+                "La medida clásica de la fuerza de hombros, dura y honesta."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio. Estable para cargar peso de pie.",
+              "description": "Con máquina Smith, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. El deltoide trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
               "efc": 2.5,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -817,10 +817,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio.",
-                    "Estable para cargar peso de pie; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El deltoide trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+                    "La medida clásica de la fuerza de hombros, dura y honesta."
                   ],
-                  "description": "Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio. Estable para cargar peso de pie.",
+                  "description": "Con máquina Smith, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. El deltoide trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
                   "technique": "Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
                   "variantRationale": "Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio. Estable para cargar peso de pie."
                 },
@@ -835,7 +835,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Militar",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "military_press__smith_machine",
                   "definitionId": "military_press",
                   "familyId": "upper_vertical_push_military_press",
@@ -918,7 +918,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_militar_de_pie",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -929,16 +929,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa.",
-                "Es una opción práctica para acumular volumen sin gastar energía en estabilizar la estación."
+                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del deltoide.",
+                "La medida clásica de la fuerza de hombros, dura y honesta."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa. Es una opción práctica para acumular volumen sin gastar energía en estabilizar la estación.",
+              "description": "Con máquina, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. En la máquina, la trayectoria guiada concentra todo el esfuerzo del deltoide.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -1119,10 +1119,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa.",
-                    "Es una opción práctica para acumular volumen sin gastar energía en estabilizar la estación."
+                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del deltoide.",
+                    "La medida clásica de la fuerza de hombros, dura y honesta."
                   ],
-                  "description": "Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa. Es una opción práctica para acumular volumen sin gastar energía en estabilizar la estación.",
+                  "description": "Con máquina, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. En la máquina, la trayectoria guiada concentra todo el esfuerzo del deltoide.",
                   "technique": "Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
                   "variantRationale": "Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa. Es una opción práctica para acumular volumen sin gastar energía en estabilizar la estación."
                 },
@@ -1137,7 +1137,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Militar",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "military_press__machine",
                   "definitionId": "military_press",
                   "familyId": "upper_vertical_push_military_press",
@@ -1220,7 +1220,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_militar_de_pie",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1231,16 +1231,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea desde los hombros: la tensión constante acompaña todo el empuje.",
-                "Variante precisa que mantiene el hombro cargado."
+                "El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                "La medida clásica de la fuerza de hombros, dura y honesta."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Polea desde los hombros: la tensión constante acompaña todo el empuje. Variante precisa que mantiene el hombro cargado.",
+              "description": "Con polea, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -1421,10 +1421,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea desde los hombros: la tensión constante acompaña todo el empuje.",
-                    "Variante precisa que mantiene el hombro cargado."
+                    "El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                    "La medida clásica de la fuerza de hombros, dura y honesta."
                   ],
-                  "description": "Polea desde los hombros: la tensión constante acompaña todo el empuje. Variante precisa que mantiene el hombro cargado.",
+                  "description": "Con polea, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
                   "technique": "Polea desde los hombros: la tensión constante acompaña todo el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
                   "variantRationale": "Polea desde los hombros: la tensión constante acompaña todo el empuje. Variante precisa que mantiene el hombro cargado."
                 },
@@ -1439,7 +1439,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Militar",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "military_press__cable",
                   "definitionId": "military_press",
                   "familyId": "upper_vertical_push_military_press",
@@ -1522,7 +1522,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_militar_de_pie",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1533,16 +1533,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja.",
-                "Variante exigente para hombros y estabilidad."
+                "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
+                "La medida clásica de la fuerza de hombros, dura y honesta."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja. Variante exigente para hombros y estabilidad.",
+              "description": "Con kettlebell, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -1723,10 +1723,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja.",
-                    "Variante exigente para hombros y estabilidad."
+                    "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
+                    "La medida clásica de la fuerza de hombros, dura y honesta."
                   ],
-                  "description": "Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja. Variante exigente para hombros y estabilidad.",
+                  "description": "Con kettlebell, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
                   "technique": "Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
                   "variantRationale": "Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja. Variante exigente para hombros y estabilidad."
                 },
@@ -1741,7 +1741,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Militar",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "military_press__kettlebell",
                   "definitionId": "military_press",
                   "familyId": "upper_vertical_push_military_press",
@@ -1820,11 +1820,11 @@
           }
         ],
         "defaultConfigurationId": "military_press__barbell",
-        "description": "De pie, empujas la barra desde los hombros hasta arriba de la cabeza. El ejercicio de referencia para hombros fuertes y espalda alta sólida.",
+        "description": "El Press Militar es el empuje vertical de referencia: de pie, la barra sube desde los hombros hasta el bloqueo completo con el deltoide empujando y el core impidiendo que la espalda se arquee. Se practica con los pies clavados, apretando glúteos y abdomen mientras la barra pasa cerca de la cara. Con mancuernas cada brazo responde por sí solo. La medida clásica de la fuerza de hombros, dura y honesta.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1847,7 +1847,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

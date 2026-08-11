@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren superior · forearm · pinch grip",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_pinza_de_discos",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Dos discos lisos entre los dedos y el pulgar: aguanta el mayor tiempo posible.",
-                "La fuerza de agarre más pura que existe."
+                "Con el disco, el lastre es simple y directo sobre el antebrazo.",
+                "El agarre de pinza que separa las manos normales de las manos de acero."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Arquear la espalda, girar con la carga o perder la tensión al final."
               ],
-              "description": "Dos discos lisos entre los dedos y el pulgar: aguanta el mayor tiempo posible. La fuerza de agarre más pura que existe.",
+              "description": "Con disco, el disco se sostiene en vertical apretado entre los dedos y el pulgar el mayor tiempo posible. Con el disco, el lastre es simple y directo sobre el antebrazo.",
               "efc": 2.0,
               "equipmentId": "plate",
               "executionCues": [
@@ -175,10 +175,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Dos discos lisos entre los dedos y el pulgar: aguanta el mayor tiempo posible.",
-                    "La fuerza de agarre más pura que existe."
+                    "Con el disco, el lastre es simple y directo sobre el antebrazo.",
+                    "El agarre de pinza que separa las manos normales de las manos de acero."
                   ],
-                  "description": "Dos discos lisos entre los dedos y el pulgar: aguanta el mayor tiempo posible. La fuerza de agarre más pura que existe.",
+                  "description": "Con disco, el disco se sostiene en vertical apretado entre los dedos y el pulgar el mayor tiempo posible. Con el disco, el lastre es simple y directo sobre el antebrazo.",
                   "technique": "Dos discos lisos entre los dedos y el pulgar: aguanta el mayor tiempo posible. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Dos discos lisos entre los dedos y el pulgar: aguanta el mayor tiempo posible. La fuerza de agarre más pura que existe."
                 },
@@ -193,7 +193,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pinza de Discos",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "forearms_pinza_de_discos__default",
                   "definitionId": "forearms_pinza_de_discos",
                   "familyId": "upper_pinch_grip",
@@ -264,11 +264,11 @@
           }
         ],
         "defaultConfigurationId": "forearms_pinza_de_discos__default",
-        "description": "Agarras dos discos lisos con los dedos y los sostienes el mayor tiempo posible. El ejercicio de fuerza de agarre más directo para.",
+        "description": "La Pinza de Discos sostiene uno o dos discos lisos solo con los dedos y el pulgar: el antebrazo entero trabaja para que nada se caiga. Se ejecuta aguantando la pinza el mayor tiempo posible, de pie, con el brazo colgando. La fricción decide la dificultad, no el peso marcado. El agarre de pinza que separa las manos normales de las manos de acero.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -287,7 +287,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

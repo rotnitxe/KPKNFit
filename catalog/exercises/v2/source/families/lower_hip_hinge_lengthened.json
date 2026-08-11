@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Peso Muerto Piernas Rígidas",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_piernas_rigidas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.5,
               "benefits": [
-                "Barra con ambas piernas casi rectas: el estiramiento de los isquios marca el recorrido.",
-                "El peso muerto de piernas rígidas tradicional."
+                "Los isquiosurales trabajan con la barra, que permite cargar pesado y medir la progresión con claridad. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+                "El estirón cargado definitivo para la parte trasera del muslo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Barra con ambas piernas casi rectas: el estiramiento de los isquios marca el recorrido. El peso muerto de piernas rígidas tradicional.",
+              "description": "Con barra y a dos lados, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Los isquiosurales trabajan con la barra, que permite cargar pesado y medir la progresión con claridad. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -219,10 +219,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra con ambas piernas casi rectas: el estiramiento de los isquios marca el recorrido.",
-                    "El peso muerto de piernas rígidas tradicional."
+                    "Los isquiosurales trabajan con la barra, que permite cargar pesado y medir la progresión con claridad. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+                    "El estirón cargado definitivo para la parte trasera del muslo."
                   ],
-                  "description": "Barra con ambas piernas casi rectas: el estiramiento de los isquios marca el recorrido. El peso muerto de piernas rígidas tradicional.",
+                  "description": "Con barra y a dos lados, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Los isquiosurales trabajan con la barra, que permite cargar pesado y medir la progresión con claridad. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
                   "technique": "Barra con ambas piernas casi rectas: el estiramiento de los isquios marca el recorrido. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda.",
                   "variantRationale": "Barra con ambas piernas casi rectas: el estiramiento de los isquios marca el recorrido. El peso muerto de piernas rígidas tradicional."
                 },
@@ -237,7 +237,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "stiff_leg_deadlift__bilateral__barbell",
                   "definitionId": "stiff_leg_deadlift",
                   "familyId": "lower_hip_hinge_lengthened",
@@ -322,7 +322,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_piernas_rigidas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -333,16 +333,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.5,
               "benefits": [
-                "Barra en una pierna casi recta: el isquio estirado a fondo y el equilibrio en cada repetición.",
-                "Avanzado y muy revelador; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Con la barra, la carga sube al máximo y la progresión de los isquiosurales se mide sin trampa. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
+                "El estirón cargado definitivo para la parte trasera del muslo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Barra en una pierna casi recta: el isquio estirado a fondo y el equilibrio en cada repetición. Avanzado y muy revelador.",
+              "description": "Con barra y a un lado, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Con la barra, la carga sube al máximo y la progresión de los isquiosurales se mide sin trampa. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -529,10 +529,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra en una pierna casi recta: el isquio estirado a fondo y el equilibrio en cada repetición.",
-                    "Avanzado y muy revelador; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Con la barra, la carga sube al máximo y la progresión de los isquiosurales se mide sin trampa. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
+                    "El estirón cargado definitivo para la parte trasera del muslo."
                   ],
-                  "description": "Barra en una pierna casi recta: el isquio estirado a fondo y el equilibrio en cada repetición. Avanzado y muy revelador.",
+                  "description": "Con barra y a un lado, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Con la barra, la carga sube al máximo y la progresión de los isquiosurales se mide sin trampa. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
                   "technique": "Barra en una pierna casi recta: el isquio estirado a fondo y el equilibrio en cada repetición. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda.",
                   "variantRationale": "Barra en una pierna casi recta: el isquio estirado a fondo y el equilibrio en cada repetición. Avanzado y muy revelador."
                 },
@@ -547,7 +547,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "stiff_leg_deadlift__unilateral__barbell",
                   "definitionId": "stiff_leg_deadlift",
                   "familyId": "lower_hip_hinge_lengthened",
@@ -632,7 +632,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_piernas_rigidas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -643,16 +643,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.5,
               "benefits": [
-                "Smith con ambas piernas: el guiado te deja bajar hasta el estiramiento máximo con estabilidad.",
-                "Útil para series profundas; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A dos lados, el trabajo de los isquiosurales admite más carga total.",
+                "El estirón cargado definitivo para la parte trasera del muslo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Smith con ambas piernas: el guiado te deja bajar hasta el estiramiento máximo con estabilidad. Útil para series profundas.",
+              "description": "Con máquina Smith y a dos lados, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A dos lados, el trabajo de los isquiosurales admite más carga total.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -839,10 +839,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith con ambas piernas: el guiado te deja bajar hasta el estiramiento máximo con estabilidad.",
-                    "Útil para series profundas; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A dos lados, el trabajo de los isquiosurales admite más carga total.",
+                    "El estirón cargado definitivo para la parte trasera del muslo."
                   ],
-                  "description": "Smith con ambas piernas: el guiado te deja bajar hasta el estiramiento máximo con estabilidad. Útil para series profundas.",
+                  "description": "Con máquina Smith y a dos lados, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A dos lados, el trabajo de los isquiosurales admite más carga total.",
                   "technique": "Smith con ambas piernas: el guiado te deja bajar hasta el estiramiento máximo con estabilidad. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda.",
                   "variantRationale": "Smith con ambas piernas: el guiado te deja bajar hasta el estiramiento máximo con estabilidad. Útil para series profundas."
                 },
@@ -857,7 +857,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "stiff_leg_deadlift__bilateral__smith_machine",
                   "definitionId": "stiff_leg_deadlift",
                   "familyId": "lower_hip_hinge_lengthened",
@@ -942,7 +942,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_piernas_rigidas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -953,16 +953,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.5,
               "benefits": [
-                "Smith en una pierna: estabilidad del guiado y estiramiento unilateral del isquio.",
-                "Útil para corregir desequilibrios; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
+                "El estirón cargado definitivo para la parte trasera del muslo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Smith en una pierna: estabilidad del guiado y estiramiento unilateral del isquio. Útil para corregir desequilibrios.",
+              "description": "Con máquina Smith y a un lado, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -1149,10 +1149,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith en una pierna: estabilidad del guiado y estiramiento unilateral del isquio.",
-                    "Útil para corregir desequilibrios; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
+                    "El estirón cargado definitivo para la parte trasera del muslo."
                   ],
-                  "description": "Smith en una pierna: estabilidad del guiado y estiramiento unilateral del isquio. Útil para corregir desequilibrios.",
+                  "description": "Con máquina Smith y a un lado, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
                   "technique": "Smith en una pierna: estabilidad del guiado y estiramiento unilateral del isquio. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda.",
                   "variantRationale": "Smith en una pierna: estabilidad del guiado y estiramiento unilateral del isquio. Útil para corregir desequilibrios."
                 },
@@ -1167,7 +1167,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "stiff_leg_deadlift__unilateral__smith_machine",
                   "definitionId": "stiff_leg_deadlift",
                   "familyId": "lower_hip_hinge_lengthened",
@@ -1252,7 +1252,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_piernas_rigidas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1263,16 +1263,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.5,
               "benefits": [
-                "Mancuernas con ambas piernas: la carga a los costados con recorrido libre.",
-                "La versión accesible del peso muerto de piernas rígidas."
+                "Los isquiosurales trabajan con mancuernas, que dejan que cada lado corrija su trayectoria. A dos lados, el trabajo de los isquiosurales admite más carga total.",
+                "El estirón cargado definitivo para la parte trasera del muslo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Mancuernas con ambas piernas: la carga a los costados con recorrido libre. La versión accesible del peso muerto de piernas rígidas.",
+              "description": "Con mancuernas y a dos lados, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Los isquiosurales trabajan con mancuernas, que dejan que cada lado corrija su trayectoria. A dos lados, el trabajo de los isquiosurales admite más carga total.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -1459,10 +1459,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas con ambas piernas: la carga a los costados con recorrido libre.",
-                    "La versión accesible del peso muerto de piernas rígidas."
+                    "Los isquiosurales trabajan con mancuernas, que dejan que cada lado corrija su trayectoria. A dos lados, el trabajo de los isquiosurales admite más carga total.",
+                    "El estirón cargado definitivo para la parte trasera del muslo."
                   ],
-                  "description": "Mancuernas con ambas piernas: la carga a los costados con recorrido libre. La versión accesible del peso muerto de piernas rígidas.",
+                  "description": "Con mancuernas y a dos lados, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Los isquiosurales trabajan con mancuernas, que dejan que cada lado corrija su trayectoria. A dos lados, el trabajo de los isquiosurales admite más carga total.",
                   "technique": "Mancuernas con ambas piernas: la carga a los costados con recorrido libre. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda.",
                   "variantRationale": "Mancuernas con ambas piernas: la carga a los costados con recorrido libre. La versión accesible del peso muerto de piernas rígidas."
                 },
@@ -1477,7 +1477,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "stiff_leg_deadlift__bilateral__dumbbells",
                   "definitionId": "stiff_leg_deadlift",
                   "familyId": "lower_hip_hinge_lengthened",
@@ -1562,7 +1562,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_piernas_rigidas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1573,16 +1573,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.5,
               "benefits": [
-                "Una mancuerna desciende junto a la pierna de apoyo mientras la pierna libre se aleja.",
-                "La versión unilateral hace más evidente el estiramiento de cada isquio y exige sostener la pelvis sin girarla."
+                "Con mancuernas, cada lado ajusta su línea y el trabajo de los isquiosurales se equilibra solo. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+                "El estirón cargado definitivo para la parte trasera del muslo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Una mancuerna desciende junto a la pierna de apoyo mientras la pierna libre se aleja. La versión unilateral hace más evidente el estiramiento de cada isquio y exige sostener la pelvis sin girarla.",
+              "description": "Con mancuernas y a un lado, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Con mancuernas, cada lado ajusta su línea y el trabajo de los isquiosurales se equilibra solo. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -1769,10 +1769,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Una mancuerna desciende junto a la pierna de apoyo mientras la pierna libre se aleja.",
-                    "La versión unilateral hace más evidente el estiramiento de cada isquio y exige sostener la pelvis sin girarla."
+                    "Con mancuernas, cada lado ajusta su línea y el trabajo de los isquiosurales se equilibra solo. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+                    "El estirón cargado definitivo para la parte trasera del muslo."
                   ],
-                  "description": "Una mancuerna desciende junto a la pierna de apoyo mientras la pierna libre se aleja. La versión unilateral hace más evidente el estiramiento de cada isquio y exige sostener la pelvis sin girarla.",
+                  "description": "Con mancuernas y a un lado, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Con mancuernas, cada lado ajusta su línea y el trabajo de los isquiosurales se equilibra solo. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
                   "technique": "Una mancuerna desciende junto a la pierna de apoyo mientras la pierna libre se aleja. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda.",
                   "variantRationale": "Una mancuerna desciende junto a la pierna de apoyo mientras la pierna libre se aleja. La versión unilateral hace más evidente el estiramiento de cada isquio y exige sostener la pelvis sin girarla."
                 },
@@ -1787,7 +1787,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "stiff_leg_deadlift__unilateral__dumbbells",
                   "definitionId": "stiff_leg_deadlift",
                   "familyId": "lower_hip_hinge_lengthened",
@@ -1872,7 +1872,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_piernas_rigidas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1883,16 +1883,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.5,
               "benefits": [
-                "Barra hexagonal con ambas piernas: carga estable y estiramiento profundo.",
-                "Cómoda, estable y útil para acumular trabajo para los isquios."
+                "Los isquiosurales trabajan con la barra hexagonal, que centra la carga y alivia la espalda. A dos lados, el trabajo de los isquiosurales admite más carga total.",
+                "El estirón cargado definitivo para la parte trasera del muslo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Barra hexagonal con ambas piernas: carga estable y estiramiento profundo. Cómoda, estable y útil para acumular trabajo para los isquios.",
+              "description": "Con barra hexagonal y a dos lados, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Los isquiosurales trabajan con la barra hexagonal, que centra la carga y alivia la espalda. A dos lados, el trabajo de los isquiosurales admite más carga total.",
               "efc": 2.8,
               "equipmentId": "hex_bar",
               "executionCues": [
@@ -2079,10 +2079,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra hexagonal con ambas piernas: carga estable y estiramiento profundo.",
-                    "Cómoda, estable y útil para acumular trabajo para los isquios."
+                    "Los isquiosurales trabajan con la barra hexagonal, que centra la carga y alivia la espalda. A dos lados, el trabajo de los isquiosurales admite más carga total.",
+                    "El estirón cargado definitivo para la parte trasera del muslo."
                   ],
-                  "description": "Barra hexagonal con ambas piernas: carga estable y estiramiento profundo. Cómoda, estable y útil para acumular trabajo para los isquios.",
+                  "description": "Con barra hexagonal y a dos lados, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Los isquiosurales trabajan con la barra hexagonal, que centra la carga y alivia la espalda. A dos lados, el trabajo de los isquiosurales admite más carga total.",
                   "technique": "Barra hexagonal con ambas piernas: carga estable y estiramiento profundo. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda.",
                   "variantRationale": "Barra hexagonal con ambas piernas: carga estable y estiramiento profundo. Cómoda, estable y útil para acumular trabajo para los isquios."
                 },
@@ -2097,7 +2097,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "stiff_leg_deadlift__bilateral__hex_bar",
                   "definitionId": "stiff_leg_deadlift",
                   "familyId": "lower_hip_hinge_lengthened",
@@ -2182,7 +2182,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_piernas_rigidas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2193,16 +2193,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.5,
               "benefits": [
-                "Barra hexagonal en una pierna: la carga estable más el reto del equilibrio.",
-                "Variante exigente para la parte trasera de la pierna."
+                "Con la barra hexagonal, la carga queda centrada y la espalda sufre menos en el trabajo de los isquiosurales. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+                "El estirón cargado definitivo para la parte trasera del muslo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Barra hexagonal en una pierna: la carga estable más el reto del equilibrio. Variante exigente para la parte trasera de la pierna.",
+              "description": "Con barra hexagonal y a un lado, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Con la barra hexagonal, la carga queda centrada y la espalda sufre menos en el trabajo de los isquiosurales. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "hex_bar",
               "executionCues": [
@@ -2389,10 +2389,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra hexagonal en una pierna: la carga estable más el reto del equilibrio.",
-                    "Variante exigente para la parte trasera de la pierna."
+                    "Con la barra hexagonal, la carga queda centrada y la espalda sufre menos en el trabajo de los isquiosurales. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+                    "El estirón cargado definitivo para la parte trasera del muslo."
                   ],
-                  "description": "Barra hexagonal en una pierna: la carga estable más el reto del equilibrio. Variante exigente para la parte trasera de la pierna.",
+                  "description": "Con barra hexagonal y a un lado, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Con la barra hexagonal, la carga queda centrada y la espalda sufre menos en el trabajo de los isquiosurales. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
                   "technique": "Barra hexagonal en una pierna: la carga estable más el reto del equilibrio. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda.",
                   "variantRationale": "Barra hexagonal en una pierna: la carga estable más el reto del equilibrio. Variante exigente para la parte trasera de la pierna."
                 },
@@ -2407,7 +2407,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "stiff_leg_deadlift__unilateral__hex_bar",
                   "definitionId": "stiff_leg_deadlift",
                   "familyId": "lower_hip_hinge_lengthened",
@@ -2488,11 +2488,11 @@
           }
         ],
         "defaultConfigurationId": "stiff_leg_deadlift__bilateral__barbell",
-        "description": "Piernas casi rectas y la barra bajando hasta el estiramiento máximo de los isquios. El ejercicio más profundo para la parte trasera de la pierna.",
+        "description": "El Peso Muerto Piernas Rígidas lleva la bisagra a su rango máximo: con las piernas casi extendidas desde el suelo, los isquiosurales se estiran al límite en cada repetición. La barra sale del piso sin flexionar apenas las rodillas y sube con la espalda firme hasta la vertical. Es hermano del rumano, pero aquí la carga parte del piso y el estiramiento es aún más profundo. El estirón cargado definitivo para la parte trasera del muslo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -2515,7 +2515,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

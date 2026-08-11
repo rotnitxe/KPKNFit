@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren inferior · hamstrings · romanian deadlift",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_rumano_deficit",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "benefits": [
-                "Desde la plataforma, la barra baja por los muslos con más recorrido.",
-                "El rumano con estiramiento extra para los isquios."
+                "Con la barra, la carga sube al máximo y la progresión de los isquiosurales se mide sin trampa.",
+                "El siguiente nivel del RDL para quien ya agota su rango en el suelo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Desde la plataforma, la barra baja por los muslos con más recorrido. El rumano con estiramiento extra para los isquios.",
+              "description": "Con barra, desde la plataforma, la carga baja por los muslos con un recorrido extra. Con la barra, la carga sube al máximo y la progresión de los isquiosurales se mide sin trampa.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -209,10 +209,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Desde la plataforma, la barra baja por los muslos con más recorrido.",
-                    "El rumano con estiramiento extra para los isquios."
+                    "Con la barra, la carga sube al máximo y la progresión de los isquiosurales se mide sin trampa.",
+                    "El siguiente nivel del RDL para quien ya agota su rango en el suelo."
                   ],
-                  "description": "Desde la plataforma, la barra baja por los muslos con más recorrido. El rumano con estiramiento extra para los isquios.",
+                  "description": "Con barra, desde la plataforma, la carga baja por los muslos con un recorrido extra. Con la barra, la carga sube al máximo y la progresión de los isquiosurales se mide sin trampa.",
                   "technique": "Desde la plataforma, la barra baja por los muslos con más recorrido. La cadera viaja atrás con las rodillas poco flexionadas y la carga roza las piernas; la subida termina al recuperar la línea del tronco.",
                   "variantRationale": "Desde la plataforma, la barra baja por los muslos con más recorrido. El rumano con estiramiento extra para los isquios."
                 },
@@ -227,7 +227,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano en Déficit",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hams_peso_muerto_rumano_deficit__default",
                   "definitionId": "hams_peso_muerto_rumano_deficit",
                   "familyId": "lower_romanian_deadlift",
@@ -301,11 +301,11 @@
           }
         ],
         "defaultConfigurationId": "hams_peso_muerto_rumano_deficit__default",
-        "description": "Subido a una plataforma, la barra baja por los muslos con más recorrido. El rumano tradicional con un estiramiento extra de isquios.",
+        "description": "El Peso Muerto Rumano en Déficit añade altura bajo los pies y deja que la barra baje más allá de las puntas. Los isquiosurales alcanzan un estiramiento que el rumano estándar no puede dar, con los erectores custodiando la espalda. Se ejecuta bajando la carga por los muslos hasta el nuevo tope y regresando con la cadera. El siguiente nivel del RDL para quien ya agota su rango en el suelo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -324,7 +324,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Sentadilla Sissy",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_sissy",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "benefits": [
-                "Barra en el pecho o la espalda con rodillas al frente: el cuádriceps concentrado con carga.",
-                "La versión pesada del sissy, exigente de verdad."
+                "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+                "El aislador de cuádriceps más intenso que se puede hacer sin peso."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
               ],
-              "description": "Barra en el pecho o la espalda con rodillas al frente: el cuádriceps concentrado con carga. La versión pesada del sissy, exigente de verdad.",
+              "description": "Con barra, las rodillas viajan al frente y el torso se inclina atrás con el cuádriceps aislado al máximo. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -200,10 +200,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra en el pecho o la espalda con rodillas al frente: el cuádriceps concentrado con carga.",
-                    "La versión pesada del sissy, exigente de verdad."
+                    "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+                    "El aislador de cuádriceps más intenso que se puede hacer sin peso."
                   ],
-                  "description": "Barra en el pecho o la espalda con rodillas al frente: el cuádriceps concentrado con carga. La versión pesada del sissy, exigente de verdad.",
+                  "description": "Con barra, las rodillas viajan al frente y el torso se inclina atrás con el cuádriceps aislado al máximo. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
                   "technique": "Barra en el pecho o la espalda con rodillas al frente: el cuádriceps concentrado con carga. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Barra en el pecho o la espalda con rodillas al frente: el cuádriceps concentrado con carga. La versión pesada del sissy, exigente de verdad."
                 },
@@ -218,7 +218,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Sissy",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "sissy_squat__barbell",
                   "definitionId": "sissy_squat",
                   "familyId": "lower_sissy_squat",
@@ -302,7 +302,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_sissy",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -313,16 +313,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "benefits": [
-                "Máquina sissy: los tobillos sujetos y el guiado te dejan bajar profundo.",
-                "La forma más cómoda de cargar el cuádriceps."
+                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps.",
+                "El aislador de cuádriceps más intenso que se puede hacer sin peso."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
               ],
-              "description": "Máquina sissy: los tobillos sujetos y el guiado te dejan bajar profundo. La forma más cómoda de cargar el cuádriceps.",
+              "description": "Con máquina, las rodillas viajan al frente y el torso se inclina atrás con el cuádriceps aislado al máximo. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -490,10 +490,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina sissy: los tobillos sujetos y el guiado te dejan bajar profundo.",
-                    "La forma más cómoda de cargar el cuádriceps."
+                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps.",
+                    "El aislador de cuádriceps más intenso que se puede hacer sin peso."
                   ],
-                  "description": "Máquina sissy: los tobillos sujetos y el guiado te dejan bajar profundo. La forma más cómoda de cargar el cuádriceps.",
+                  "description": "Con máquina, las rodillas viajan al frente y el torso se inclina atrás con el cuádriceps aislado al máximo. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps.",
                   "technique": "Máquina sissy: los tobillos sujetos y el guiado te dejan bajar profundo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Máquina sissy: los tobillos sujetos y el guiado te dejan bajar profundo. La forma más cómoda de cargar el cuádriceps."
                 },
@@ -508,7 +508,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Sissy",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "sissy_squat__machine",
                   "definitionId": "sissy_squat",
                   "familyId": "lower_sissy_squat",
@@ -592,7 +592,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_sissy",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -603,16 +603,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "benefits": [
-                "Smith sissy: el guiado de la barra acompaña la inclinación del torso.",
-                "Estable para progresar en el movimiento."
+                "En la Smith, la guía fija permite concentrar todo el esfuerzo del cuádriceps.",
+                "El aislador de cuádriceps más intenso que se puede hacer sin peso."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
               ],
-              "description": "Smith sissy: el guiado de la barra acompaña la inclinación del torso. Estable para progresar en el movimiento.",
+              "description": "Con máquina Smith, las rodillas viajan al frente y el torso se inclina atrás con el cuádriceps aislado al máximo. En la Smith, la guía fija permite concentrar todo el esfuerzo del cuádriceps.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -780,10 +780,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith sissy: el guiado de la barra acompaña la inclinación del torso.",
-                    "Estable para progresar en el movimiento."
+                    "En la Smith, la guía fija permite concentrar todo el esfuerzo del cuádriceps.",
+                    "El aislador de cuádriceps más intenso que se puede hacer sin peso."
                   ],
-                  "description": "Smith sissy: el guiado de la barra acompaña la inclinación del torso. Estable para progresar en el movimiento.",
+                  "description": "Con máquina Smith, las rodillas viajan al frente y el torso se inclina atrás con el cuádriceps aislado al máximo. En la Smith, la guía fija permite concentrar todo el esfuerzo del cuádriceps.",
                   "technique": "Smith sissy: el guiado de la barra acompaña la inclinación del torso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Smith sissy: el guiado de la barra acompaña la inclinación del torso. Estable para progresar en el movimiento."
                 },
@@ -798,7 +798,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Sissy",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "sissy_squat__smith_machine",
                   "definitionId": "sissy_squat",
                   "familyId": "lower_sissy_squat",
@@ -882,7 +882,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_sissy",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -893,16 +893,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "benefits": [
-                "Mancuerna en el pecho: el sissy con carga ligera y mucho control.",
-                "Útil para aprender el movimiento acumulando fatiga en cuádriceps."
+                "Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
+                "El aislador de cuádriceps más intenso que se puede hacer sin peso."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
               ],
-              "description": "Mancuerna en el pecho: el sissy con carga ligera y mucho control. Útil para aprender el movimiento acumulando fatiga en cuádriceps.",
+              "description": "Con mancuernas, las rodillas viajan al frente y el torso se inclina atrás con el cuádriceps aislado al máximo. Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -1070,10 +1070,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuerna en el pecho: el sissy con carga ligera y mucho control.",
-                    "Útil para aprender el movimiento acumulando fatiga en cuádriceps."
+                    "Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
+                    "El aislador de cuádriceps más intenso que se puede hacer sin peso."
                   ],
-                  "description": "Mancuerna en el pecho: el sissy con carga ligera y mucho control. Útil para aprender el movimiento acumulando fatiga en cuádriceps.",
+                  "description": "Con mancuernas, las rodillas viajan al frente y el torso se inclina atrás con el cuádriceps aislado al máximo. Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
                   "technique": "Mancuerna en el pecho: el sissy con carga ligera y mucho control. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Mancuerna en el pecho: el sissy con carga ligera y mucho control. Útil para aprender el movimiento acumulando fatiga en cuádriceps."
                 },
@@ -1088,7 +1088,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Sissy",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "sissy_squat__dumbbells",
                   "definitionId": "sissy_squat",
                   "familyId": "lower_sissy_squat",
@@ -1172,7 +1172,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_sissy",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1183,16 +1183,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "benefits": [
-                "Disco en el pecho: carga ligera para dominar la inclinación del sissy.",
-                "Útil para empezar con el cuádriceps bajo una tensión intensa."
+                "El cuádriceps trabaja con el disco, que añade lastre directo y simple.",
+                "El aislador de cuádriceps más intenso que se puede hacer sin peso."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
               ],
-              "description": "Disco en el pecho: carga ligera para dominar la inclinación del sissy. Útil para empezar con el cuádriceps bajo una tensión intensa.",
+              "description": "Con disco, las rodillas viajan al frente y el torso se inclina atrás con el cuádriceps aislado al máximo. El cuádriceps trabaja con el disco, que añade lastre directo y simple.",
               "efc": 2.8,
               "equipmentId": "plate",
               "executionCues": [
@@ -1360,10 +1360,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Disco en el pecho: carga ligera para dominar la inclinación del sissy.",
-                    "Útil para empezar con el cuádriceps bajo una tensión intensa."
+                    "El cuádriceps trabaja con el disco, que añade lastre directo y simple.",
+                    "El aislador de cuádriceps más intenso que se puede hacer sin peso."
                   ],
-                  "description": "Disco en el pecho: carga ligera para dominar la inclinación del sissy. Útil para empezar con el cuádriceps bajo una tensión intensa.",
+                  "description": "Con disco, las rodillas viajan al frente y el torso se inclina atrás con el cuádriceps aislado al máximo. El cuádriceps trabaja con el disco, que añade lastre directo y simple.",
                   "technique": "Disco en el pecho: carga ligera para dominar la inclinación del sissy. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Disco en el pecho: carga ligera para dominar la inclinación del sissy. Útil para empezar con el cuádriceps bajo una tensión intensa."
                 },
@@ -1378,7 +1378,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Sissy",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "sissy_squat__plate",
                   "definitionId": "sissy_squat",
                   "familyId": "lower_sissy_squat",
@@ -1458,11 +1458,11 @@
           }
         ],
         "defaultConfigurationId": "sissy_squat__machine",
-        "description": "Rodillas al frente y torso hacia atrás, bajando en línea como si te inclinaras. El ejercicio que concentra el cuádriceps con tu propio peso: pocas cosas acumulan fatiga local tanto.",
+        "description": "La Sentadilla Sissy congela la cadera y deja las rodillas viajando al frente: el cuádriceps se estira y se carga como en ningún otro ejercicio, con el torso inclinándose hacia atrás. Se ejecuta en la máquina sissy o sujeto de un soporte, bajando el cuerpo en línea recta y subiendo con el muslo frontal ardiendo. Los isquiosurales apenas hablan aquí; todo es cuádriceps. El aislador de cuádriceps más intenso que se puede hacer sin peso.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1484,7 +1484,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

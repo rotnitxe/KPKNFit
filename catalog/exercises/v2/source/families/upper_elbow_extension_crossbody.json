@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Extensión de tríceps cruzada",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#triceps_crossbody_polea",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea alta cruzando el cuerpo con ambas manos: tiras en diagonal hacia el lado contrario.",
-                "El tríceps trabaja con un ángulo distinto."
+                "El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del tríceps se reparte.",
+                "Un matiz de polea que el tríceps nota desde la primera serie."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
               ],
-              "description": "Polea alta cruzando el cuerpo con ambas manos: tiras en diagonal hacia el lado contrario. El tríceps trabaja con un ángulo distinto.",
+              "description": "Con a dos lados, con la polea alta al lado contrario, la mano viaja en diagonal hasta la extensión completa. El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del tríceps se reparte.",
               "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
@@ -185,10 +185,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea alta cruzando el cuerpo con ambas manos: tiras en diagonal hacia el lado contrario.",
-                    "El tríceps trabaja con un ángulo distinto."
+                    "El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del tríceps se reparte.",
+                    "Un matiz de polea que el tríceps nota desde la primera serie."
                   ],
-                  "description": "Polea alta cruzando el cuerpo con ambas manos: tiras en diagonal hacia el lado contrario. El tríceps trabaja con un ángulo distinto.",
+                  "description": "Con a dos lados, con la polea alta al lado contrario, la mano viaja en diagonal hasta la extensión completa. El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del tríceps se reparte.",
                   "technique": "Polea alta cruzando el cuerpo con ambas manos: tiras en diagonal hacia el lado contrario. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
                   "variantRationale": "Polea alta cruzando el cuerpo con ambas manos: tiras en diagonal hacia el lado contrario. El tríceps trabaja con un ángulo distinto."
                 },
@@ -203,7 +203,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps Cruzada en Polea Alta",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "crossbody_triceps__cable__bilateral",
                   "definitionId": "crossbody_triceps_extension",
                   "familyId": "upper_elbow_extension_crossbody",
@@ -282,7 +282,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#triceps_crossbody_polea",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -293,16 +293,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea alta con una mano cruzando el cuerpo: un aislamiento mayor con tensión constante.",
-                "Útil para centrarse en un brazo; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo del tríceps se aísla y las asimetrías quedan al descubierto.",
+                "Un matiz de polea que el tríceps nota desde la primera serie."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
               ],
-              "description": "Polea alta con una mano cruzando el cuerpo: un aislamiento mayor con tensión constante. Útil para centrarse en un brazo.",
+              "description": "Con a un lado, con la polea alta al lado contrario, la mano viaja en diagonal hasta la extensión completa. El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo del tríceps se aísla y las asimetrías quedan al descubierto.",
               "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
@@ -455,10 +455,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea alta con una mano cruzando el cuerpo: un aislamiento mayor con tensión constante.",
-                    "Útil para centrarse en un brazo; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo del tríceps se aísla y las asimetrías quedan al descubierto.",
+                    "Un matiz de polea que el tríceps nota desde la primera serie."
                   ],
-                  "description": "Polea alta con una mano cruzando el cuerpo: un aislamiento mayor con tensión constante. Útil para centrarse en un brazo.",
+                  "description": "Con a un lado, con la polea alta al lado contrario, la mano viaja en diagonal hasta la extensión completa. El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo del tríceps se aísla y las asimetrías quedan al descubierto.",
                   "technique": "Polea alta con una mano cruzando el cuerpo: un aislamiento mayor con tensión constante. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
                   "variantRationale": "Polea alta con una mano cruzando el cuerpo: un aislamiento mayor con tensión constante. Útil para centrarse en un brazo."
                 },
@@ -473,7 +473,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps Cruzada en Polea Alta",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "crossbody_triceps__cable__unilateral",
                   "definitionId": "crossbody_triceps_extension",
                   "familyId": "upper_elbow_extension_crossbody",
@@ -548,11 +548,11 @@
           }
         ],
         "defaultConfigurationId": "crossbody_triceps__cable__bilateral",
-        "description": "Tiras del cable cruzando el cuerpo en diagonal. El tríceps trabaja con un ángulo que cambia la línea de resistencia y aumenta la fatiga local.",
+        "description": "La Extensión de Tríceps Cruzada en Polea Alta cruza el brazo por delante del cuerpo: con la polea alta al lado contrario, la mano viaja en diagonal hasta la extensión completa. Se practica un brazo cada vez, con el codo pegado a la cabeza y la trayectoria cruzada. La cabeza larga se estira desde un ángulo poco común. Un matiz de polea que el tríceps nota desde la primera serie.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -575,7 +575,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren inferior · quadriceps · unilateral knee dominant",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_bulgara_somersault",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "benefits": [
-                "Pie trasero en el banco y barra cruzando los brazos: la búlgara con un extra de equilibrio.",
-                "Avanzada y exigente; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+                "Una variante ingeniosa para quien la búlgara clásica le incomoda en las manos."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Pie trasero en el banco y barra cruzando los brazos: la búlgara con un extra de equilibrio. Avanzada y exigente.",
+              "description": "Con barra, con el pie trasero elevado y los brazos cruzados al frente, la bajada es vertical sobre una pierna. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -205,10 +205,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Pie trasero en el banco y barra cruzando los brazos: la búlgara con un extra de equilibrio.",
-                    "Avanzada y exigente; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+                    "Una variante ingeniosa para quien la búlgara clásica le incomoda en las manos."
                   ],
-                  "description": "Pie trasero en el banco y barra cruzando los brazos: la búlgara con un extra de equilibrio. Avanzada y exigente.",
+                  "description": "Con barra, con el pie trasero elevado y los brazos cruzados al frente, la bajada es vertical sobre una pierna. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
                   "technique": "Pie trasero en el banco y barra cruzando los brazos: la búlgara con un extra de equilibrio. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Pie trasero en el banco y barra cruzando los brazos: la búlgara con un extra de equilibrio. Avanzada y exigente."
                 },
@@ -223,7 +223,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara Somersault",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "quads_sentadilla_bulgara_somersault__default",
                   "definitionId": "quads_sentadilla_bulgara_somersault",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -298,11 +298,11 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_bulgara_somersault__default",
-        "description": "El pie trasero en el banco y la barra cruzando los brazos. Variante rara de la búlgara que exige mucho equilibrio.",
+        "description": "La Sentadilla Búlgara Somersault junta el pie trasero elevado con los brazos cruzados sujetando la barra al frente: cuádriceps y glúteos trabajan a una pierna con una estabilidad distinta a la búlgara normal. Se practica con la carga descansando sobre el antebrazo cruzado, descendiendo vertical y volviendo sin ladear el torso. La posición libera los hombros de sujetar nada. Una variante ingeniosa para quien la búlgara clásica le incomoda en las manos.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -325,7 +325,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_pistola",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -336,16 +336,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "En una sola pierna bajas hasta el suelo con la otra extendida: equilibrio, movilidad y fuerza.",
-                "El ejercicio que lo demuestra todo; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Sin más carga que el propio cuerpo, la exigencia del cuádriceps es la justa.",
+                "La cima de la calistenia de piernas, al alcance de muy pocos."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "En una sola pierna bajas hasta el suelo con la otra extendida: equilibrio, movilidad y fuerza. El ejercicio que lo demuestra todo.",
+              "description": "Con peso corporal, a una sola pierna, el cuerpo desciende hasta el fondo con la otra extendida al frente. Sin más carga que el propio cuerpo, la exigencia del cuádriceps es la justa.",
               "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -523,10 +523,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "En una sola pierna bajas hasta el suelo con la otra extendida: equilibrio, movilidad y fuerza.",
-                    "El ejercicio que lo demuestra todo; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Sin más carga que el propio cuerpo, la exigencia del cuádriceps es la justa.",
+                    "La cima de la calistenia de piernas, al alcance de muy pocos."
                   ],
-                  "description": "En una sola pierna bajas hasta el suelo con la otra extendida: equilibrio, movilidad y fuerza. El ejercicio que lo demuestra todo.",
+                  "description": "Con peso corporal, a una sola pierna, el cuerpo desciende hasta el fondo con la otra extendida al frente. Sin más carga que el propio cuerpo, la exigencia del cuádriceps es la justa.",
                   "technique": "En una sola pierna bajas hasta el suelo con la otra extendida: equilibrio, movilidad y fuerza. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "En una sola pierna bajas hasta el suelo con la otra extendida: equilibrio, movilidad y fuerza. El ejercicio que lo demuestra todo."
                 },
@@ -541,7 +541,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Pistola",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "quads_sentadilla_pistola__default",
                   "definitionId": "quads_sentadilla_pistola",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -617,11 +617,11 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_pistola__default",
-        "description": "En una sola pierna, bajas hasta el suelo con la otra extendida. Equilibrio, movilidad y fuerza: el ejercicio que lo demuestra todo.",
+        "description": "La Sentadilla Pistola es la sentadilla a una pierna llevada al extremo: bajar hasta el fondo con la otra pierna extendida al frente, sin nada que sostenga el equilibrio. Se ejecuta con el peso corporal, descendiendo despacio hasta que el glúteo roza el talón y subiendo sin que la rodilla colapse. Fuerza, movilidad y control en una sola prueba. La cima de la calistenia de piernas, al alcance de muy pocos.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -644,7 +644,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_pistola_asistida_trx",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -655,16 +655,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Sujetándote del TRX, bajas a una pierna con apoyo: la vía estable para conquistar la pistola.",
-                "Sujetándote del TRX, bajas a una pierna con apoyo: la vía estable para conquistar la pistola."
+                "El cuádriceps trabaja con el TRX, que convierte tu cuerpo en la carga.",
+                "El puente honesto entre la zancada y la pistola libre."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Sujetándote del TRX, bajas a una pierna con apoyo: la vía estable para conquistar la pistola.",
+              "description": "Con TRX, a una pierna con las asas como apoyo, el cuerpo baja hasta el fondo con ayuda del agarre. El cuádriceps trabaja con el TRX, que convierte tu cuerpo en la carga.",
               "efc": 2.8,
               "equipmentId": "trx",
               "executionCues": [
@@ -837,10 +837,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Sujetándote del TRX, bajas a una pierna con apoyo: la vía estable para conquistar la pistola.",
-                    "Sujetándote del TRX, bajas a una pierna con apoyo: la vía estable para conquistar la pistola."
+                    "El cuádriceps trabaja con el TRX, que convierte tu cuerpo en la carga.",
+                    "El puente honesto entre la zancada y la pistola libre."
                   ],
-                  "description": "Sujetándote del TRX, bajas a una pierna con apoyo: la vía estable para conquistar la pistola.",
+                  "description": "Con TRX, a una pierna con las asas como apoyo, el cuerpo baja hasta el fondo con ayuda del agarre. El cuádriceps trabaja con el TRX, que convierte tu cuerpo en la carga.",
                   "technique": "Sujetándote del TRX, bajas a una pierna con apoyo: la vía estable para conquistar la pistola. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Sujetándote del TRX, bajas a una pierna con apoyo: la vía estable para conquistar la pistola. Sujetándote del TRX, bajas a una pierna con apoyo: la vía estable para conquistar la pistola."
                 },
@@ -855,7 +855,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Pistola Asistida en TRX",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "quads_sentadilla_pistola_asistida_trx__default",
                   "definitionId": "quads_sentadilla_pistola_asistida_trx",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -929,11 +929,11 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_pistola_asistida_trx__default",
-        "description": "Sujetándote de las cuerdas, bajas a una pierna con apoyo. La vía para conquistar la pistola sin miedo.",
+        "description": "La Sentadilla Pistola Asistida en TRX pone una red bajo la hazaña: las asas sostienen parte del equilibrio mientras una pierna hace todo el recorrido. Se ejecuta agarrando las cintas con los brazos extendidos, bajando a una pierna y usándolas solo lo justo para subir. El cuádriceps aprende el rango completo sin el miedo al suelo. El puente honesto entre la zancada y la pistola libre.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -955,7 +955,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_step_up_cajon_frontal",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -966,16 +966,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "benefits": [
-                "Subida al cajón con el peso al frente: el cuádriceps hace el trabajo y el glúteo acompaña.",
-                "Subida al cajón con el peso al frente: el cuádriceps hace el trabajo y el glúteo acompaña."
+                "El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+                "Una forma exigente de mezclar fuerza unilateral y trabajo de torso."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Subida al cajón con el peso al frente: el cuádriceps hace el trabajo y el glúteo acompaña.",
+              "description": "Con barra, con la carga al frente, la subida al cajón se vuelve vertical y estricta. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -1148,10 +1148,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Subida al cajón con el peso al frente: el cuádriceps hace el trabajo y el glúteo acompaña.",
-                    "Subida al cajón con el peso al frente: el cuádriceps hace el trabajo y el glúteo acompaña."
+                    "El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+                    "Una forma exigente de mezclar fuerza unilateral y trabajo de torso."
                   ],
-                  "description": "Subida al cajón con el peso al frente: el cuádriceps hace el trabajo y el glúteo acompaña.",
+                  "description": "Con barra, con la carga al frente, la subida al cajón se vuelve vertical y estricta. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
                   "technique": "Subida al cajón con el peso al frente: el cuádriceps hace el trabajo y el glúteo acompaña. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Subida al cajón con el peso al frente: el cuádriceps hace el trabajo y el glúteo acompaña. Subida al cajón con el peso al frente: el cuádriceps hace el trabajo y el glúteo acompaña."
                 },
@@ -1166,7 +1166,7 @@
                 },
                 "identity": {
                   "canonicalName": "Step-Up a Cajón Frontal",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "quads_step_up_cajon_frontal__default",
                   "definitionId": "quads_step_up_cajon_frontal",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -1239,11 +1239,11 @@
           }
         ],
         "defaultConfigurationId": "quads_step_up_cajon_frontal__default",
-        "description": "Step-up frontal a cajón: subes con una pierna llevando el peso al frente. Cuádriceps a fondo y glúteo trabajando en la subida.",
+        "description": "El Step-Up a Cajón Frontal traslada la barra a los hombros delanteros y la subida al cajón se vuelve vertical y estricta: el cuádriceps empuja con el torso incapaz de inclinarse hacia delante. Se trabaja con el pecho alto y los codos elevados, pisando firme y extendiendo la cadera arriba sin perder la postura frontal. El core sostiene la carga como en una sentadilla frontal. Una forma exigente de mezclar fuerza unilateral y trabajo de torso.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1266,7 +1266,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_step_up_cajon_zercher",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1277,16 +1277,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "benefits": [
-                "Carga en los codos y subida al cajón: el core aguanta mientras la pierna sube con todo.",
-                "Carga en los codos y subida al cajón: el core aguanta mientras la pierna sube con todo."
+                "La barra es la referencia para cargar el cuádriceps con peso de verdad.",
+                "La versión del step-up para quien quiere pierna y abdomen en el mismo paquete."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Carga en los codos y subida al cajón: el core aguanta mientras la pierna sube con todo.",
+              "description": "Con barra, con la carga abrazada al torso, una pierna eleva el cuerpo al cajón. La barra es la referencia para cargar el cuádriceps con peso de verdad.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -1459,10 +1459,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Carga en los codos y subida al cajón: el core aguanta mientras la pierna sube con todo.",
-                    "Carga en los codos y subida al cajón: el core aguanta mientras la pierna sube con todo."
+                    "La barra es la referencia para cargar el cuádriceps con peso de verdad.",
+                    "La versión del step-up para quien quiere pierna y abdomen en el mismo paquete."
                   ],
-                  "description": "Carga en los codos y subida al cajón: el core aguanta mientras la pierna sube con todo.",
+                  "description": "Con barra, con la carga abrazada al torso, una pierna eleva el cuerpo al cajón. La barra es la referencia para cargar el cuádriceps con peso de verdad.",
                   "technique": "Carga en los codos y subida al cajón: el core aguanta mientras la pierna sube con todo. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Carga en los codos y subida al cajón: el core aguanta mientras la pierna sube con todo. Carga en los codos y subida al cajón: el core aguanta mientras la pierna sube con todo."
                 },
@@ -1477,7 +1477,7 @@
                 },
                 "identity": {
                   "canonicalName": "Step-Up a Cajón Zercher",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "quads_step_up_cajon_zercher__default",
                   "definitionId": "quads_step_up_cajon_zercher",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -1550,11 +1550,11 @@
           }
         ],
         "defaultConfigurationId": "quads_step_up_cajon_zercher__default",
-        "description": "Step-up Zercher a cajón: la carga en los codos y el paso arriba. El core aguanta mientras la pierna sube con todo.",
+        "description": "El Step-Up a Cajón Zercher lleva la barra contra el torso sostenida por los brazos doblados mientras una pierna eleva el cuerpo al cajón: el cuádriceps sube y el abdomen se tensa para no soltar nada. Se practica pisando entero, con la carga abrazada, y bajando con una pausa que quita cualquier rebote. La posición de los brazos añade trabajo de torso a cada repetición. La versión del step-up para quien quiere pierna y abdomen en el mismo paquete.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1577,7 +1577,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_zancada_caminando_frontal_barra_recta",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1588,16 +1588,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "benefits": [
-                "Pasos al frente con la barra en el pecho: piernas y torso trabajando en movimiento.",
-                "Pasos al frente con la barra en el pecho: piernas y torso trabajando en movimiento."
+                "El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+                "Caminar con peso nunca fue tan productivo para el muslo frontal."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Pasos al frente con la barra en el pecho: piernas y torso trabajando en movimiento.",
+              "description": "Con barra, con la carga al frente, cada apoyo es una zancada que avanza por la sala. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -1770,10 +1770,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Pasos al frente con la barra en el pecho: piernas y torso trabajando en movimiento.",
-                    "Pasos al frente con la barra en el pecho: piernas y torso trabajando en movimiento."
+                    "El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+                    "Caminar con peso nunca fue tan productivo para el muslo frontal."
                   ],
-                  "description": "Pasos al frente con la barra en el pecho: piernas y torso trabajando en movimiento.",
+                  "description": "Con barra, con la carga al frente, cada apoyo es una zancada que avanza por la sala. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
                   "technique": "Pasos al frente con la barra en el pecho: piernas y torso trabajando en movimiento. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Pasos al frente con la barra en el pecho: piernas y torso trabajando en movimiento. Pasos al frente con la barra en el pecho: piernas y torso trabajando en movimiento."
                 },
@@ -1788,7 +1788,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Caminando Frontal con Barra Recta",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "quads_zancada_caminando_frontal_barra_recta__default",
                   "definitionId": "quads_zancada_caminando_frontal_barra_recta",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -1860,11 +1860,11 @@
           }
         ],
         "defaultConfigurationId": "quads_zancada_caminando_frontal_barra_recta__default",
-        "description": "Zancada caminando con barra recta al frente: pasos adelante con la barra en el pecho. Piernas y torso trabajando en movimiento.",
+        "description": "La Zancada Caminando Frontal con Barra Recta lleva la carga al frente mientras las piernas encadenan pasos: el cuádriceps trabaja con la columna vertical y la barra sostenida sobre los hombros. Se avanza con pasos largos y los codos en alto, sin dejar caer el estante en ningún apoyo. La combinación castiga piernas y postura a la vez. Caminar con peso nunca fue tan productivo para el muslo frontal.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1886,7 +1886,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_zancada_caminando_zercher_barra_recta",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1897,16 +1897,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "benefits": [
-                "Pasos al frente con la barra en los codos: la versión más exigente de la zancada caminando.",
-                "Pasos al frente con la barra en los codos: la versión más exigente de la zancada caminando."
+                "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+                "Una prueba integral que deja huella en todo el cuerpo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Pasos al frente con la barra en los codos: la versión más exigente de la zancada caminando.",
+              "description": "Con barra, con la carga sobre los antebrazos flexionados, las piernas avanzan paso a paso. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -2079,10 +2079,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Pasos al frente con la barra en los codos: la versión más exigente de la zancada caminando.",
-                    "Pasos al frente con la barra en los codos: la versión más exigente de la zancada caminando."
+                    "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+                    "Una prueba integral que deja huella en todo el cuerpo."
                   ],
-                  "description": "Pasos al frente con la barra en los codos: la versión más exigente de la zancada caminando.",
+                  "description": "Con barra, con la carga sobre los antebrazos flexionados, las piernas avanzan paso a paso. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
                   "technique": "Pasos al frente con la barra en los codos: la versión más exigente de la zancada caminando. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Pasos al frente con la barra en los codos: la versión más exigente de la zancada caminando. Pasos al frente con la barra en los codos: la versión más exigente de la zancada caminando."
                 },
@@ -2097,7 +2097,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Caminando Zercher con Barra Recta",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "quads_zancada_caminando_zercher_barra_recta__default",
                   "definitionId": "quads_zancada_caminando_zercher_barra_recta",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -2169,11 +2169,11 @@
           }
         ],
         "defaultConfigurationId": "quads_zancada_caminando_zercher_barra_recta__default",
-        "description": "Zancada caminando Zercher: pasos al frente con la barra en los codos. La versión más exigente de la zancada caminando.",
+        "description": "La Zancada Caminando Zercher con Barra Recta carga el peso sobre los antebrazos flexionados mientras las piernas avanzan paso a paso: el cuádriceps empuja y el tronco se defiende de la carga abrazada. Se avanza con zancadas completas, sin prisa y con los codos pegados al cuerpo. La incomodidad de la sujeción se suma a la de las piernas. Una prueba integral que deja huella en todo el cuerpo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -2195,7 +2195,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_zancada_frontal_zercher",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2206,16 +2206,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "benefits": [
-                "Paso al frente con la carga en los codos: equilibrio, piernas y core en un mismo movimiento.",
-                "Paso al frente con la carga en los codos: equilibrio, piernas y core en un mismo movimiento."
+                "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+                "Una zancada con carácter para quien domina la versión con pesos a los lados."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Paso al frente con la carga en los codos: equilibrio, piernas y core en un mismo movimiento.",
+              "description": "Con barra, el paso al frente con la carga en el doblez de los brazos frena y empuja con la pierna delantera. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -2388,10 +2388,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Paso al frente con la carga en los codos: equilibrio, piernas y core en un mismo movimiento.",
-                    "Paso al frente con la carga en los codos: equilibrio, piernas y core en un mismo movimiento."
+                    "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+                    "Una zancada con carácter para quien domina la versión con pesos a los lados."
                   ],
-                  "description": "Paso al frente con la carga en los codos: equilibrio, piernas y core en un mismo movimiento.",
+                  "description": "Con barra, el paso al frente con la carga en el doblez de los brazos frena y empuja con la pierna delantera. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
                   "technique": "Paso al frente con la carga en los codos: equilibrio, piernas y core en un mismo movimiento. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Paso al frente con la carga en los codos: equilibrio, piernas y core en un mismo movimiento. Paso al frente con la carga en los codos: equilibrio, piernas y core en un mismo movimiento."
                 },
@@ -2406,7 +2406,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Frontal Zercher",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "quads_zancada_frontal_zercher__default",
                   "definitionId": "quads_zancada_frontal_zercher",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -2479,11 +2479,11 @@
           }
         ],
         "defaultConfigurationId": "quads_zancada_frontal_zercher__default",
-        "description": "El paso al frente con la carga en los codos. Equilibrio, piernas y core en un mismo movimiento.",
+        "description": "La Zancada Frontal Zercher da el paso al frente con la carga sostenida contra el pecho por los brazos doblados: la pierna delantera frena y empuja mientras el abdomen impide que el peso desarme la postura. Se practica bajando la rodilla trasera con la espalda alta y regresando con firmeza. Este agarre hace que cargas moderadas se sientan enormes. Una zancada con carácter para quien domina la versión con pesos a los lados.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -2506,7 +2506,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_zancada_inversa_frontal",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2517,16 +2517,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "benefits": [
-                "Paso atrás con la barra al frente del pecho: estable, tolerante con la rodilla y con una demanda amplia.",
-                "Paso atrás con la barra al frente del pecho: estable, tolerante con la rodilla y con una demanda amplia."
+                "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+                "Una combinación elegante de pierna unilateral y trabajo del tronco."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Paso atrás con la barra al frente del pecho: estable, tolerante con la rodilla y con una demanda amplia.",
+              "description": "Con barra, el paso atrás con la carga en el estante delantero trabaja con el torso erguido. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -2699,10 +2699,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Paso atrás con la barra al frente del pecho: estable, tolerante con la rodilla y con una demanda amplia.",
-                    "Paso atrás con la barra al frente del pecho: estable, tolerante con la rodilla y con una demanda amplia."
+                    "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+                    "Una combinación elegante de pierna unilateral y trabajo del tronco."
                   ],
-                  "description": "Paso atrás con la barra al frente del pecho: estable, tolerante con la rodilla y con una demanda amplia.",
+                  "description": "Con barra, el paso atrás con la carga en el estante delantero trabaja con el torso erguido. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
                   "technique": "Paso atrás con la barra al frente del pecho: estable, tolerante con la rodilla y con una demanda amplia. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Paso atrás con la barra al frente del pecho: estable, tolerante con la rodilla y con una demanda amplia. Paso atrás con la barra al frente del pecho: estable, tolerante con la rodilla y con una demanda amplia."
                 },
@@ -2717,7 +2717,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Inversa Frontal",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "quads_zancada_inversa_frontal__default",
                   "definitionId": "quads_zancada_inversa_frontal",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -2790,11 +2790,11 @@
           }
         ],
         "defaultConfigurationId": "quads_zancada_inversa_frontal__default",
-        "description": "El paso atrás con la barra al frente del pecho. Estable, tolerante con la rodilla y con una demanda amplia para las piernas.",
+        "description": "La Zancada Inversa Frontal retrocede con la carga apoyada en el estante delantero: la pierna fija trabaja con el torso firme y el abdomen sosteniendo todo en cada repetición. Se practica dando el paso atrás con los codos elevados, bajando despacio y regresando al centro sin perder la altura del pecho. La posición frontal suma exigencia arriba a la zancada más amable con la rodilla. Una combinación elegante de pierna unilateral y trabajo del tronco.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -2817,7 +2817,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_zancada_inversa_maquina_hack",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2828,16 +2828,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Paso atrás con el guiado de la hack: la estabilidad de la máquina con el trabajo de la zancada.",
-                "Paso atrás con el guiado de la hack: la estabilidad de la máquina con el trabajo de la zancada."
+                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps.",
+                "La opción guiada para exprimir el cuádriceps pierna a pierna."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Paso atrás con el guiado de la hack: la estabilidad de la máquina con el trabajo de la zancada.",
+              "description": "Con máquina, el paso atrás dentro del raíl deja al cuádriceps de la pierna delantera solo ante la carga. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -3010,10 +3010,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Paso atrás con el guiado de la hack: la estabilidad de la máquina con el trabajo de la zancada.",
-                    "Paso atrás con el guiado de la hack: la estabilidad de la máquina con el trabajo de la zancada."
+                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps.",
+                    "La opción guiada para exprimir el cuádriceps pierna a pierna."
                   ],
-                  "description": "Paso atrás con el guiado de la hack: la estabilidad de la máquina con el trabajo de la zancada.",
+                  "description": "Con máquina, el paso atrás dentro del raíl deja al cuádriceps de la pierna delantera solo ante la carga. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps.",
                   "technique": "Paso atrás con el guiado de la hack: la estabilidad de la máquina con el trabajo de la zancada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Paso atrás con el guiado de la hack: la estabilidad de la máquina con el trabajo de la zancada. Paso atrás con el guiado de la hack: la estabilidad de la máquina con el trabajo de la zancada."
                 },
@@ -3028,7 +3028,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Inversa en Máquina Hack",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "quads_zancada_inversa_maquina_hack__default",
                   "definitionId": "quads_zancada_inversa_maquina_hack",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -3100,11 +3100,11 @@
           }
         ],
         "defaultConfigurationId": "quads_zancada_inversa_maquina_hack__default",
-        "description": "El paso atrás con el guiado de la hack. La estabilidad de la máquina con el trabajo de la zancada.",
+        "description": "La Zancada Inversa en Máquina Hack mete el paso atrás dentro del raíl: la espalda apoyada y la trayectoria fija dejan al cuádriceps de la pierna delantera trabajar sin preocuparse del equilibrio. Se ejecuta retrocediendo con el pie libre, bajando hasta el fondo del raíl y subiendo con la pierna que queda en la plataforma. La máquina convierte una zancada inestable en un gesto concentrado. La opción guiada para exprimir el cuádriceps pierna a pierna.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -3126,7 +3126,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_zancada_inversa_maquina_v_squat",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -3137,16 +3137,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Paso atrás con la plataforma V-Squat guiada: unilateral, profunda y con la espalda protegida.",
-                "Paso atrás con la plataforma V-Squat guiada: unilateral, profunda y con la espalda protegida."
+                "El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+                "La zancada unilateral más cómoda para la espalda y más dura para el cuádriceps."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Paso atrás con la plataforma V-Squat guiada: unilateral, profunda y con la espalda protegida.",
+              "description": "Con máquina, el paso atrás con la plataforma inclinada y guiada elimina el balanceo de la ecuación. El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -3319,10 +3319,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Paso atrás con la plataforma V-Squat guiada: unilateral, profunda y con la espalda protegida.",
-                    "Paso atrás con la plataforma V-Squat guiada: unilateral, profunda y con la espalda protegida."
+                    "El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+                    "La zancada unilateral más cómoda para la espalda y más dura para el cuádriceps."
                   ],
-                  "description": "Paso atrás con la plataforma V-Squat guiada: unilateral, profunda y con la espalda protegida.",
+                  "description": "Con máquina, el paso atrás con la plataforma inclinada y guiada elimina el balanceo de la ecuación. El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones.",
                   "technique": "Paso atrás con la plataforma V-Squat guiada: unilateral, profunda y con la espalda protegida. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Paso atrás con la plataforma V-Squat guiada: unilateral, profunda y con la espalda protegida. Paso atrás con la plataforma V-Squat guiada: unilateral, profunda y con la espalda protegida."
                 },
@@ -3337,7 +3337,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Inversa en Máquina V-Squat",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "quads_zancada_inversa_maquina_v_squat__default",
                   "definitionId": "quads_zancada_inversa_maquina_v_squat",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -3409,11 +3409,11 @@
           }
         ],
         "defaultConfigurationId": "quads_zancada_inversa_maquina_v_squat__default",
-        "description": "Paso atrás con la plataforma guiada. Unilateral, profundo y con la espalda protegida.",
+        "description": "La Zancada Inversa en Máquina V-Squat usa el ángulo reclinado del aparato para el paso atrás: la pierna de apoyo trabaja con la carga guiada y la espalda descansando en el respaldo. Se ejecuta bajando la rodilla que retrocede hacia el suelo y empujando con la pierna fija en la plataforma. El respaldo permite hundirse en el rango sin miedo al balanceo. La zancada unilateral más cómoda para la espalda y más dura para el cuádriceps.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -3435,7 +3435,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_zancada_inversa_zercher",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -3446,16 +3446,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "benefits": [
-                "Paso atrás con la barra en los codos: la combinación exigente que trabaja piernas y torso.",
-                "Paso atrás con la barra en los codos: la combinación exigente que trabaja piernas y torso."
+                "La barra es la referencia para cargar el cuádriceps con peso de verdad.",
+                "Una especialidad completa para pierna y tronco al mismo tiempo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Paso atrás con la barra en los codos: la combinación exigente que trabaja piernas y torso.",
+              "description": "Con barra, el retroceso con la carga abrazada al tronco suma tensión de torso a cada repetición. La barra es la referencia para cargar el cuádriceps con peso de verdad.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -3628,10 +3628,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Paso atrás con la barra en los codos: la combinación exigente que trabaja piernas y torso.",
-                    "Paso atrás con la barra en los codos: la combinación exigente que trabaja piernas y torso."
+                    "La barra es la referencia para cargar el cuádriceps con peso de verdad.",
+                    "Una especialidad completa para pierna y tronco al mismo tiempo."
                   ],
-                  "description": "Paso atrás con la barra en los codos: la combinación exigente que trabaja piernas y torso.",
+                  "description": "Con barra, el retroceso con la carga abrazada al tronco suma tensión de torso a cada repetición. La barra es la referencia para cargar el cuádriceps con peso de verdad.",
                   "technique": "Paso atrás con la barra en los codos: la combinación exigente que trabaja piernas y torso. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Paso atrás con la barra en los codos: la combinación exigente que trabaja piernas y torso. Paso atrás con la barra en los codos: la combinación exigente que trabaja piernas y torso."
                 },
@@ -3646,7 +3646,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Inversa Zercher",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "quads_zancada_inversa_zercher__default",
                   "definitionId": "quads_zancada_inversa_zercher",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -3719,11 +3719,11 @@
           }
         ],
         "defaultConfigurationId": "quads_zancada_inversa_zercher__default",
-        "description": "El paso atrás con la barra en los codos. La combinación exigente que trabaja piernas y torso.",
+        "description": "La Zancada Inversa Zercher retrocede con la carga abrazada al tronco: la pierna fija empuja y el abdomen trabaja doble para que nada se desarme. La mecánica pide sujetar la barra con los brazos cruzados sobre ella, dar el paso atrás y bajar hasta rozar el suelo con la rodilla. Esta sujeción añade trabajo abdominal a la zancada más protectora de rodilla. Una especialidad completa para pierna y tronco al mismo tiempo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -3742,7 +3742,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

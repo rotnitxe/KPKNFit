@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Zancada Inversa",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_zancada_inversa",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Barra y paso atrás: la pierna adelantada recibe la mayor parte de la carga mientras el retroceso deja espacio para bajar con control.",
-                "La barra permite una progresión bilateral estable."
+                "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+                "La zancada amable con las articulaciones que no perdona el músculo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Barra y paso atrás: la pierna adelantada recibe la mayor parte de la carga mientras el retroceso deja espacio para bajar con control. La barra permite una progresión bilateral estable.",
+              "description": "Con barra, el paso hacia atrás baja la rodilla posterior hasta cerca del suelo con el torso erguido. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -219,10 +219,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra y paso atrás: la pierna adelantada recibe la mayor parte de la carga mientras el retroceso deja espacio para bajar con control.",
-                    "La barra permite una progresión bilateral estable."
+                    "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+                    "La zancada amable con las articulaciones que no perdona el músculo."
                   ],
-                  "description": "Barra y paso atrás: la pierna adelantada recibe la mayor parte de la carga mientras el retroceso deja espacio para bajar con control. La barra permite una progresión bilateral estable.",
+                  "description": "Con barra, el paso hacia atrás baja la rodilla posterior hasta cerca del suelo con el torso erguido. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
                   "technique": "Barra y paso atrás: la pierna adelantada recibe la mayor parte de la carga mientras el retroceso deja espacio para bajar con control. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Barra y paso atrás: la pierna adelantada recibe la mayor parte de la carga mientras el retroceso deja espacio para bajar con control. La barra permite una progresión bilateral estable."
                 },
@@ -237,7 +237,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Inversa",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "reverse_lunge__barbell",
                   "definitionId": "reverse_lunge",
                   "familyId": "lower_reverse_lunge",
@@ -319,7 +319,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_zancada_inversa",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -330,16 +330,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Smith y paso atrás: el guiado sostiene la barra mientras bajas.",
-                "Estable y cómoda para series pesadas; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+                "La zancada amable con las articulaciones que no perdona el músculo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Smith y paso atrás: el guiado sostiene la barra mientras bajas. Estable y cómoda para series pesadas.",
+              "description": "Con máquina Smith, el paso hacia atrás baja la rodilla posterior hasta cerca del suelo con el torso erguido. El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -526,10 +526,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith y paso atrás: el guiado sostiene la barra mientras bajas.",
-                    "Estable y cómoda para series pesadas; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+                    "La zancada amable con las articulaciones que no perdona el músculo."
                   ],
-                  "description": "Smith y paso atrás: el guiado sostiene la barra mientras bajas. Estable y cómoda para series pesadas.",
+                  "description": "Con máquina Smith, el paso hacia atrás baja la rodilla posterior hasta cerca del suelo con el torso erguido. El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
                   "technique": "Smith y paso atrás: el guiado sostiene la barra mientras bajas. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Smith y paso atrás: el guiado sostiene la barra mientras bajas. Estable y cómoda para series pesadas."
                 },
@@ -544,7 +544,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Inversa",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "reverse_lunge__smith_machine",
                   "definitionId": "reverse_lunge",
                   "familyId": "lower_reverse_lunge",
@@ -626,7 +626,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_zancada_inversa",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -637,16 +637,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuernas y paso atrás: cada mano lleva una carga independiente y la pierna adelantada organiza la subida.",
-                "La opción combina libertad de movimiento con una demanda de equilibrio fácil de ajustar."
+                "Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
+                "La zancada amable con las articulaciones que no perdona el músculo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Mancuernas y paso atrás: cada mano lleva una carga independiente y la pierna adelantada organiza la subida. La opción combina libertad de movimiento con una demanda de equilibrio fácil de ajustar.",
+              "description": "Con mancuernas, el paso hacia atrás baja la rodilla posterior hasta cerca del suelo con el torso erguido. Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -833,10 +833,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas y paso atrás: cada mano lleva una carga independiente y la pierna adelantada organiza la subida.",
-                    "La opción combina libertad de movimiento con una demanda de equilibrio fácil de ajustar."
+                    "Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
+                    "La zancada amable con las articulaciones que no perdona el músculo."
                   ],
-                  "description": "Mancuernas y paso atrás: cada mano lleva una carga independiente y la pierna adelantada organiza la subida. La opción combina libertad de movimiento con una demanda de equilibrio fácil de ajustar.",
+                  "description": "Con mancuernas, el paso hacia atrás baja la rodilla posterior hasta cerca del suelo con el torso erguido. Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
                   "technique": "Mancuernas y paso atrás: cada mano lleva una carga independiente y la pierna adelantada organiza la subida. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Mancuernas y paso atrás: cada mano lleva una carga independiente y la pierna adelantada organiza la subida. La opción combina libertad de movimiento con una demanda de equilibrio fácil de ajustar."
                 },
@@ -851,7 +851,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Inversa",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "reverse_lunge__dumbbells",
                   "definitionId": "reverse_lunge",
                   "familyId": "lower_reverse_lunge",
@@ -933,7 +933,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_zancada_inversa",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -944,16 +944,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Kettlebells y paso atrás: la carga al costado suma agarre y estabilidad.",
-                "Variante amplia y alternativa; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El cuádriceps trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+                "La zancada amable con las articulaciones que no perdona el músculo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Kettlebells y paso atrás: la carga al costado suma agarre y estabilidad. Variante amplia y alternativa.",
+              "description": "Con kettlebell, el paso hacia atrás baja la rodilla posterior hasta cerca del suelo con el torso erguido. El cuádriceps trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
               "efc": 2.8,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -1140,10 +1140,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Kettlebells y paso atrás: la carga al costado suma agarre y estabilidad.",
-                    "Variante amplia y alternativa; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El cuádriceps trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+                    "La zancada amable con las articulaciones que no perdona el músculo."
                   ],
-                  "description": "Kettlebells y paso atrás: la carga al costado suma agarre y estabilidad. Variante amplia y alternativa.",
+                  "description": "Con kettlebell, el paso hacia atrás baja la rodilla posterior hasta cerca del suelo con el torso erguido. El cuádriceps trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
                   "technique": "Kettlebells y paso atrás: la carga al costado suma agarre y estabilidad. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Kettlebells y paso atrás: la carga al costado suma agarre y estabilidad. Variante amplia y alternativa."
                 },
@@ -1158,7 +1158,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Inversa",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "reverse_lunge__kettlebell",
                   "definitionId": "reverse_lunge",
                   "familyId": "lower_reverse_lunge",
@@ -1240,7 +1240,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_zancada_inversa",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1251,16 +1251,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea y paso atrás: el cable mantiene una línea de resistencia continua mientras la pierna delantera frena y vuelve a empujar.",
-                "La tensión acompaña la zancada sin depender de una carga que descanse sobre la espalda."
+                "Con la polea, la tensión sobre el cuádriceps se mantiene viva de principio a fin.",
+                "La zancada amable con las articulaciones que no perdona el músculo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Polea y paso atrás: el cable mantiene una línea de resistencia continua mientras la pierna delantera frena y vuelve a empujar. La tensión acompaña la zancada sin depender de una carga que descanse sobre la espalda.",
+              "description": "Con polea, el paso hacia atrás baja la rodilla posterior hasta cerca del suelo con el torso erguido. Con la polea, la tensión sobre el cuádriceps se mantiene viva de principio a fin.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -1447,10 +1447,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea y paso atrás: el cable mantiene una línea de resistencia continua mientras la pierna delantera frena y vuelve a empujar.",
-                    "La tensión acompaña la zancada sin depender de una carga que descanse sobre la espalda."
+                    "Con la polea, la tensión sobre el cuádriceps se mantiene viva de principio a fin.",
+                    "La zancada amable con las articulaciones que no perdona el músculo."
                   ],
-                  "description": "Polea y paso atrás: el cable mantiene una línea de resistencia continua mientras la pierna delantera frena y vuelve a empujar. La tensión acompaña la zancada sin depender de una carga que descanse sobre la espalda.",
+                  "description": "Con polea, el paso hacia atrás baja la rodilla posterior hasta cerca del suelo con el torso erguido. Con la polea, la tensión sobre el cuádriceps se mantiene viva de principio a fin.",
                   "technique": "Polea y paso atrás: el cable mantiene una línea de resistencia continua mientras la pierna delantera frena y vuelve a empujar. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Polea y paso atrás: el cable mantiene una línea de resistencia continua mientras la pierna delantera frena y vuelve a empujar. La tensión acompaña la zancada sin depender de una carga que descanse sobre la espalda."
                 },
@@ -1465,7 +1465,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Inversa",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "reverse_lunge__cable",
                   "definitionId": "reverse_lunge",
                   "familyId": "lower_reverse_lunge",
@@ -1543,11 +1543,11 @@
           }
         ],
         "defaultConfigurationId": "reverse_lunge__dumbbells",
-        "description": "El paso va hacia atrás, más tolerante para la rodilla y muy estable. La variante habitual de muchos para cargar peso con control.",
+        "description": "La Zancada Inversa da el paso hacia atrás y la rodilla delantera lo agradece: la pierna que se queda frena menos en valgo y el glúteo de ese lado carga más. Se ejecuta retrocediendo con control, bajando la rodilla que viaja hasta cerca del suelo y regresando empujando con la pierna fija. Con mancuernas es el punto de partida ideal para las zancadas. La zancada amable con las articulaciones que no perdona el músculo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1569,7 +1569,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

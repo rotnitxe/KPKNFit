@@ -110,18 +110,31 @@ sliders/balón, Curl Nórdico, zerchers, planchas, Dragon Flag, Frog Pumps.
   la columna neutra durante toda la bisagra; por eso suma 0.4 y no una serie
   completa."
 
-## R8 — Descripciones
+## R8 — Descripciones (estructura v7.2, aprobada por el dueño del producto)
 
 - Experto, breve, conciso, amigable; ni técnico en exceso ni coloquial.
-- Padre: 2-4 frases (qué es, qué entrena, cuándo elegirlo).
-- Cada configuración tiene un microbrief propio: no se construye cambiando
-  solamente el nombre del implemento.
+- **Definición — estructura de 3 bloques**:
+  1. **Introducción**: nombre del ejercicio (+ alias en inglés si es el nombre
+     conocido) + tipo de movimiento + qué trabaja + marco editorial (rango,
+     tensión, qué lo hace especial). NUNCA abrir con la mecánica.
+  2. **Ejecución editorial**: cómo se hace, contado de forma cercana y
+     sensorial; el implemento principal aparece aquí de forma natural.
+  3. **Alternativas (opcional, máx. 1-2)**: solo si aportan algo distintivo a
+     ESE ejercicio, introducidas con una frase puente y con su efecto real
+     (Smith = estabilidad/fallo seguro; mancuernas = trabajo unilateral, etc.).
+     No se enumeran todos los implementos disponibles: la lista completa se
+     siente robótica.
+  4. **Veredicto**: valoración dedicada y específica del ejercicio.
+- Cada configuración tiene una línea de matiz propia: esencia del movimiento
+  del ejercicio + el efecto real de sus chips (implemento/agarre/lateralidad).
 - La primera frase de cada descripción debe distinguir el ejercicio o la
   configuración; el gate bloquea aperturas repetidas.
 - Todas distintas entre sí y sincronizadas con `editorial_briefs.json`.
 - ≥40 chars.
-- Sin verbos instruccionales: ejecuta, mantén, configuras, adopta, controla,
-  asegura, evita, sigue, selecciona (las pautas van en setupCues/executionCues).
+- Sin verbos instruccionales en imperativo: mantén, configura, adopta,
+  controla, asegura, evita, sigue, selecciona. Formas descriptivas/reflexivas
+  como "se ejecuta" o "se practica" son válidas (las pautas directas van en
+  setupCues/executionCues).
 - Sin plantillas ("X trabaja principalmente Y mediante un patrón de Z").
 - Sin sufijos técnicos ("La variante se define por: ...").
 - Sin dobles nombres.
@@ -158,9 +171,10 @@ sliders/balón, Curl Nórdico, zerchers, planchas, Dragon Flag, Frog Pumps.
 
 ## R11 — Lectura y presentación para la persona que entrena
 
-- El nombre canónico aparece una sola vez en la tarjeta: en el título. Ninguna
-  descripción de definición o configuración lo repite, aunque coincida con el
-  nombre de un implemento o de un músculo.
+- **v7.2**: la descripción de DEFINICIÓN abre con el nombre del ejercicio a
+  propósito (introducción editorial, con alias en inglés cuando es el nombre
+  conocido). Las descripciones de CONFIGURACIÓN siguen sin repetir el nombre
+  canónico: son líneas de matiz de variante bajo la descripción principal.
 - La primera capa usa frases claras, directas y específicas para el ejercicio;
   la anatomía profunda puede conservar precisión, pero no debe depender de
   palabras como torque, vector, palanca o centro de masa para explicar el
@@ -215,12 +229,13 @@ v3. Son vinculantes para la siguiente pasada editorial.
    Peso Muerto Rumano Sumo usa las del Rumano. No se inventan implementos por
    variante ni se quitan opciones que el patrón base ya ofrece.
 10. **L10 — Descripciones para el usuario, no para biomecánicos**: texto
-    cercano, con carácter y que invite a probar el ejercicio. Prohibido el
-    argot técnico (bisagra, patrón, cadena cinética, ROM, excéntrica), las
-    plantillas ("X trabaja principalmente Y mediante un patrón de Z") y los
-    verbos instruccionales (ejecuta, mantén, configura, adopta, controla,
-    asegura, evita, sigue, selecciona). Cada configuración menciona el matiz
-    real de sus chips.
+    cercano, con carácter y que invite a probar el ejercicio. **v7.2**: los
+    términos técnicos precisos del entrenamiento (bisagra, palanca, rango de
+    movimiento) sí son válidos cuando son la palabra editorial correcta;
+    sigue prohibido el argot hueco, las plantillas ("X trabaja principalmente
+    Y mediante un patrón de Z") y los verbos instruccionales en imperativo
+    (mantén, configura, adopta, controla, asegura, evita, sigue, selecciona).
+    Cada configuración menciona el matiz real de sus chips.
 11. **L11 — El involucramiento cambia de verdad con los chips**: si el agarre,
     la altura o la postura alteran el estímulo, las listas musculares, las
     notas y la descripción deben reflejarlo por configuración. Ejemplos reales

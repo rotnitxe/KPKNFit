@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Zancada Frontal",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_zancada_frontal",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Barra en la espalda y paso al frente: la zancada tradicional con carga.",
-                "Piernas y glúteos trabajando con estabilidad."
+                "El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+                "El básico unilateral que no puede faltar en ninguna pierna completa."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Barra en la espalda y paso al frente: la zancada tradicional con carga. Piernas y glúteos trabajando con estabilidad.",
+              "description": "Con barra, el paso largo al frente frena con la pierna delantera y regresa con fuerza. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -219,10 +219,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra en la espalda y paso al frente: la zancada tradicional con carga.",
-                    "Piernas y glúteos trabajando con estabilidad."
+                    "El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+                    "El básico unilateral que no puede faltar en ninguna pierna completa."
                   ],
-                  "description": "Barra en la espalda y paso al frente: la zancada tradicional con carga. Piernas y glúteos trabajando con estabilidad.",
+                  "description": "Con barra, el paso largo al frente frena con la pierna delantera y regresa con fuerza. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
                   "technique": "Barra en la espalda y paso al frente: la zancada tradicional con carga. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Barra en la espalda y paso al frente: la zancada tradicional con carga. Piernas y glúteos trabajando con estabilidad."
                 },
@@ -237,7 +237,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Frontal",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "forward_lunge__barbell",
                   "definitionId": "forward_lunge",
                   "familyId": "lower_forward_lunge",
@@ -319,7 +319,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_zancada_frontal",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -330,16 +330,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Smith y paso al frente: el guiado da estabilidad y puedes concentrarte en la bajada.",
-                "Útil para aprender la zancada con peso; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+                "El básico unilateral que no puede faltar en ninguna pierna completa."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Smith y paso al frente: el guiado da estabilidad y puedes concentrarte en la bajada. Útil para aprender la zancada con peso.",
+              "description": "Con máquina Smith, el paso largo al frente frena con la pierna delantera y regresa con fuerza. El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -526,10 +526,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith y paso al frente: el guiado da estabilidad y puedes concentrarte en la bajada.",
-                    "Útil para aprender la zancada con peso; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+                    "El básico unilateral que no puede faltar en ninguna pierna completa."
                   ],
-                  "description": "Smith y paso al frente: el guiado da estabilidad y puedes concentrarte en la bajada. Útil para aprender la zancada con peso.",
+                  "description": "Con máquina Smith, el paso largo al frente frena con la pierna delantera y regresa con fuerza. El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
                   "technique": "Smith y paso al frente: el guiado da estabilidad y puedes concentrarte en la bajada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Smith y paso al frente: el guiado da estabilidad y puedes concentrarte en la bajada. Útil para aprender la zancada con peso."
                 },
@@ -544,7 +544,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Frontal",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "forward_lunge__smith_machine",
                   "definitionId": "forward_lunge",
                   "familyId": "lower_forward_lunge",
@@ -626,7 +626,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_zancada_frontal",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -637,16 +637,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuernas a los costados y paso al frente: la versión más equilibrada y cómoda.",
-                "Permite acumular series de zancadas; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
+                "El básico unilateral que no puede faltar en ninguna pierna completa."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Mancuernas a los costados y paso al frente: la versión más equilibrada y cómoda. Permite acumular series de zancadas.",
+              "description": "Con mancuernas, el paso largo al frente frena con la pierna delantera y regresa con fuerza. Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -833,10 +833,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas a los costados y paso al frente: la versión más equilibrada y cómoda.",
-                    "Permite acumular series de zancadas; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
+                    "El básico unilateral que no puede faltar en ninguna pierna completa."
                   ],
-                  "description": "Mancuernas a los costados y paso al frente: la versión más equilibrada y cómoda. Permite acumular series de zancadas.",
+                  "description": "Con mancuernas, el paso largo al frente frena con la pierna delantera y regresa con fuerza. Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
                   "technique": "Mancuernas a los costados y paso al frente: la versión más equilibrada y cómoda. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Mancuernas a los costados y paso al frente: la versión más equilibrada y cómoda. Permite acumular series de zancadas."
                 },
@@ -851,7 +851,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Frontal",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "forward_lunge__dumbbells",
                   "definitionId": "forward_lunge",
                   "familyId": "lower_forward_lunge",
@@ -933,7 +933,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_zancada_frontal",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -944,16 +944,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Kettlebells y paso al frente: el agarre suma trabajo al ejercicio.",
-                "Variante completa para piernas y antebrazos."
+                "El cuádriceps trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+                "El básico unilateral que no puede faltar en ninguna pierna completa."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Kettlebells y paso al frente: el agarre suma trabajo al ejercicio. Variante completa para piernas y antebrazos.",
+              "description": "Con kettlebell, el paso largo al frente frena con la pierna delantera y regresa con fuerza. El cuádriceps trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
               "efc": 2.8,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -1140,10 +1140,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Kettlebells y paso al frente: el agarre suma trabajo al ejercicio.",
-                    "Variante completa para piernas y antebrazos."
+                    "El cuádriceps trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+                    "El básico unilateral que no puede faltar en ninguna pierna completa."
                   ],
-                  "description": "Kettlebells y paso al frente: el agarre suma trabajo al ejercicio. Variante completa para piernas y antebrazos.",
+                  "description": "Con kettlebell, el paso largo al frente frena con la pierna delantera y regresa con fuerza. El cuádriceps trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
                   "technique": "Kettlebells y paso al frente: el agarre suma trabajo al ejercicio. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Kettlebells y paso al frente: el agarre suma trabajo al ejercicio. Variante completa para piernas y antebrazos."
                 },
@@ -1158,7 +1158,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Frontal",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "forward_lunge__kettlebell",
                   "definitionId": "forward_lunge",
                   "familyId": "lower_forward_lunge",
@@ -1240,7 +1240,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_zancada_frontal",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1251,16 +1251,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea y paso al frente: la tensión constante añade exigencia a la zancada.",
-                "Un cambio de estímulo que se perciben en cada repetición."
+                "El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                "El básico unilateral que no puede faltar en ninguna pierna completa."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Polea y paso al frente: la tensión constante añade exigencia a la zancada. Un cambio de estímulo que se perciben en cada repetición.",
+              "description": "Con polea, el paso largo al frente frena con la pierna delantera y regresa con fuerza. El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -1447,10 +1447,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea y paso al frente: la tensión constante añade exigencia a la zancada.",
-                    "Un cambio de estímulo que se perciben en cada repetición."
+                    "El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                    "El básico unilateral que no puede faltar en ninguna pierna completa."
                   ],
-                  "description": "Polea y paso al frente: la tensión constante añade exigencia a la zancada. Un cambio de estímulo que se perciben en cada repetición.",
+                  "description": "Con polea, el paso largo al frente frena con la pierna delantera y regresa con fuerza. El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
                   "technique": "Polea y paso al frente: la tensión constante añade exigencia a la zancada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Polea y paso al frente: la tensión constante añade exigencia a la zancada. Un cambio de estímulo que se perciben en cada repetición."
                 },
@@ -1465,7 +1465,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Frontal",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "forward_lunge__cable",
                   "definitionId": "forward_lunge",
                   "familyId": "lower_forward_lunge",
@@ -1543,11 +1543,11 @@
           }
         ],
         "defaultConfigurationId": "forward_lunge__dumbbells",
-        "description": "Das un paso al frente y bajas con ambas rodillas. Piernas, glúteos y equilibrio trabajando en un movimiento simple y efectivo.",
+        "description": "La Zancada Frontal es el paso largo al frente que lo trabaja todo: cuádriceps y glúteo mayor frenan la bajada y empujan el regreso mientras el equilibrio se pone a prueba. Se ejecuta dando un paso decidido, bajando la rodilla trasera hacia el suelo y volviendo con fuerza a la posición inicial. Con mancuernas a los lados la carga queda cómoda; con barra a la espalda sube la exigencia. El básico unilateral que no puede faltar en ninguna pierna completa.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1569,7 +1569,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

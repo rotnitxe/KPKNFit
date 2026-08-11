@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren inferior · gluteus maximus · hip abduction stability",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_monster_walk_banda",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas.",
-                "El calentamiento que acumula fatiga local en los glúteos."
+                "El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido.",
+                "El activador favorito antes de sentadillas y pesos muertos."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
               ],
-              "description": "Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas. El calentamiento que acumula fatiga local en los glúteos.",
+              "description": "Con banda elástica, con la banda tensa en las piernas, cada paso lateral obliga al glúteo a empujar sin pausa. El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido.",
               "efc": 2.8,
               "equipmentId": "band",
               "executionCues": [
@@ -180,10 +180,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas.",
-                    "El calentamiento que acumula fatiga local en los glúteos."
+                    "El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido.",
+                    "El activador favorito antes de sentadillas y pesos muertos."
                   ],
-                  "description": "Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas. El calentamiento que acumula fatiga local en los glúteos.",
+                  "description": "Con banda elástica, con la banda tensa en las piernas, cada paso lateral obliga al glúteo a empujar sin pausa. El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido.",
                   "technique": "Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas. El calentamiento que acumula fatiga local en los glúteos."
                 },
@@ -198,7 +198,7 @@
                 },
                 "identity": {
                   "canonicalName": "Caminata del Monstruo (Monster Walk) con Banda",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "glutes_monster_walk_banda__default",
                   "definitionId": "glutes_monster_walk_banda",
                   "familyId": "lower_hip_abduction_stability",
@@ -268,11 +268,11 @@
           }
         ],
         "defaultConfigurationId": "glutes_monster_walk_banda__default",
-        "description": "Caminata del monstruo con banda: con la banda alrededor de las rodillas o tobillos, caminas de lado sin dejar que la banda te cierre. El calentamiento muy utilizado para despertar el glúteo.",
+        "description": "La Caminata del Monstruo con Banda convierte caminar de lado en un ejercicio: con la banda tensa en las rodillas o los tobillos, cada paso lateral obliga al glúteo a empujar sin pausa. Se ejecuta con la espalda alta y pasos cortos, sin dejar que la banda cierre las piernas. Los glúteos arden en diez pasos. El activador favorito antes de sentadillas y pesos muertos.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -290,7 +290,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren inferior · gluteus maximus · hip extension external rotation",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_frog_pumps",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Plantas de los pies juntas y rodillas abiertas: bombeas la cadera hacia arriba y el glúteo acumula fatiga local.",
-                "Un movimiento pequeño con una sensación enorme."
+                "Sin más carga que el propio cuerpo, la exigencia del glúteo mayor es la justa.",
+                "El finalizador que deja el glúteo congestionado en dos minutos."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
               ],
-              "description": "Plantas de los pies juntas y rodillas abiertas: bombeas la cadera hacia arriba y el glúteo acumula fatiga local. Un movimiento pequeño con una sensación enorme.",
+              "description": "Con peso corporal, con las plantas juntas y las rodillas abiertas, la cadera sube y baja en un recorrido corto y quemante. Sin más carga que el propio cuerpo, la exigencia del glúteo mayor es la justa.",
               "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -198,10 +198,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Plantas de los pies juntas y rodillas abiertas: bombeas la cadera hacia arriba y el glúteo acumula fatiga local.",
-                    "Un movimiento pequeño con una sensación enorme."
+                    "Sin más carga que el propio cuerpo, la exigencia del glúteo mayor es la justa.",
+                    "El finalizador que deja el glúteo congestionado en dos minutos."
                   ],
-                  "description": "Plantas de los pies juntas y rodillas abiertas: bombeas la cadera hacia arriba y el glúteo acumula fatiga local. Un movimiento pequeño con una sensación enorme.",
+                  "description": "Con peso corporal, con las plantas juntas y las rodillas abiertas, la cadera sube y baja en un recorrido corto y quemante. Sin más carga que el propio cuerpo, la exigencia del glúteo mayor es la justa.",
                   "technique": "Plantas de los pies juntas y rodillas abiertas: bombeas la cadera hacia arriba y el glúteo acumula fatiga local. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Plantas de los pies juntas y rodillas abiertas: bombeas la cadera hacia arriba y el glúteo acumula fatiga local. Un movimiento pequeño con una sensación enorme."
                 },
@@ -216,7 +216,7 @@
                 },
                 "identity": {
                   "canonicalName": "Frog Pumps",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "glutes_frog_pumps__default",
                   "definitionId": "glutes_frog_pumps",
                   "familyId": "lower_hip_extension_external_rotation",
@@ -286,11 +286,11 @@
           }
         ],
         "defaultConfigurationId": "glutes_frog_pumps__default",
-        "description": "Boca arriba con las plantas de los pies juntas y las rodillas abiertas, elevando la cadera hacia arriba. Un ejercicio pequeño que aumenta la tensión del glúteo con una demanda marcada.",
+        "description": "Los Frog Pumps juntan las plantas de los pies y abren las rodillas para bombear la cadera en un recorrido corto y quemante. Se ejecutan tumbado, subiendo y bajando la pelvis con ritmo constante mientras el glúteo mayor arde desde la décima repetición. Solo con el peso corporal y sin moverse del sitio. El finalizador que deja el glúteo congestionado en dos minutos.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -308,7 +308,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

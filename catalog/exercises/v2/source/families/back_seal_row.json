@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Remo Seal",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_seal_barra_recta",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Barra bajo el banco alto: el pecho queda completamente apoyado y ambos brazos tiran con una referencia común.",
-                "La carga bilateral simplifica la progresión, mientras la altura del banco impide usar la cadera para iniciar el remo."
+                "La barra es la referencia para cargar el dorsal ancho con peso de verdad.",
+                "Aislamiento de espalda en estado puro, sin lugar donde esconderse."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Barra bajo el banco alto: el pecho queda completamente apoyado y ambos brazos tiran con una referencia común. La carga bilateral simplifica la progresión, mientras la altura del banco impide usar la cadera para iniciar el remo.",
+              "description": "Con barra, tumbado en el banco alto, los brazos cuelgan libres y la espalda produce todo el movimiento sin ayuda de la cadera. La barra es la referencia para cargar el dorsal ancho con peso de verdad.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -227,10 +227,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra bajo el banco alto: el pecho queda completamente apoyado y ambos brazos tiran con una referencia común.",
-                    "La carga bilateral simplifica la progresión, mientras la altura del banco impide usar la cadera para iniciar el remo."
+                    "La barra es la referencia para cargar el dorsal ancho con peso de verdad.",
+                    "Aislamiento de espalda en estado puro, sin lugar donde esconderse."
                   ],
-                  "description": "Barra bajo el banco alto: el pecho queda completamente apoyado y ambos brazos tiran con una referencia común. La carga bilateral simplifica la progresión, mientras la altura del banco impide usar la cadera para iniciar el remo.",
+                  "description": "Con barra, tumbado en el banco alto, los brazos cuelgan libres y la espalda produce todo el movimiento sin ayuda de la cadera. La barra es la referencia para cargar el dorsal ancho con peso de verdad.",
                   "technique": "Barra bajo el banco alto: el pecho queda completamente apoyado y ambos brazos tiran con una referencia común. El pecho queda completamente apoyado y los brazos cuelgan libres; la espalda inicia el tirón sin ayuda de la cadera.",
                   "variantRationale": "Barra bajo el banco alto: el pecho queda completamente apoyado y ambos brazos tiran con una referencia común. La carga bilateral simplifica la progresión, mientras la altura del banco impide usar la cadera para iniciar el remo."
                 },
@@ -245,7 +245,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Seal",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "seal_row__barbell",
                   "definitionId": "seal_row",
                   "familyId": "back_seal_row",
@@ -330,7 +330,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_seal_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -341,16 +341,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuernas bajo el banco alto: cada brazo sale desde una posición suspendida y vuelve a extenderse sin que el tronco se mueva.",
-                "La trayectoria independiente permite ajustar el codo a cada hombro y revela diferencias que una barra puede ocultar."
+                "Con mancuernas, cada lado ajusta su línea y el trabajo del dorsal ancho se equilibra solo.",
+                "Aislamiento de espalda en estado puro, sin lugar donde esconderse."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Mancuernas bajo el banco alto: cada brazo sale desde una posición suspendida y vuelve a extenderse sin que el tronco se mueva. La trayectoria independiente permite ajustar el codo a cada hombro y revela diferencias que una barra puede ocultar.",
+              "description": "Con mancuernas, tumbado en el banco alto, los brazos cuelgan libres y la espalda produce todo el movimiento sin ayuda de la cadera. Con mancuernas, cada lado ajusta su línea y el trabajo del dorsal ancho se equilibra solo.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -545,10 +545,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas bajo el banco alto: cada brazo sale desde una posición suspendida y vuelve a extenderse sin que el tronco se mueva.",
-                    "La trayectoria independiente permite ajustar el codo a cada hombro y revela diferencias que una barra puede ocultar."
+                    "Con mancuernas, cada lado ajusta su línea y el trabajo del dorsal ancho se equilibra solo.",
+                    "Aislamiento de espalda en estado puro, sin lugar donde esconderse."
                   ],
-                  "description": "Mancuernas bajo el banco alto: cada brazo sale desde una posición suspendida y vuelve a extenderse sin que el tronco se mueva. La trayectoria independiente permite ajustar el codo a cada hombro y revela diferencias que una barra puede ocultar.",
+                  "description": "Con mancuernas, tumbado en el banco alto, los brazos cuelgan libres y la espalda produce todo el movimiento sin ayuda de la cadera. Con mancuernas, cada lado ajusta su línea y el trabajo del dorsal ancho se equilibra solo.",
                   "technique": "Mancuernas bajo el banco alto: cada brazo sale desde una posición suspendida y vuelve a extenderse sin que el tronco se mueva. El pecho queda completamente apoyado y los brazos cuelgan libres; la espalda inicia el tirón sin ayuda de la cadera.",
                   "variantRationale": "Mancuernas bajo el banco alto: cada brazo sale desde una posición suspendida y vuelve a extenderse sin que el tronco se mueva. La trayectoria independiente permite ajustar el codo a cada hombro y revela diferencias que una barra puede ocultar."
                 },
@@ -563,7 +563,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Seal",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "seal_row__dumbbells",
                   "definitionId": "seal_row",
                   "familyId": "back_seal_row",
@@ -644,11 +644,11 @@
           }
         ],
         "defaultConfigurationId": "seal_row__barbell",
-        "description": "El pecho descansa sobre un banco alto y los brazos quedan suspendidos hacia el suelo antes de cada tirón. Al desaparecer la ayuda de la cadera, la espalda debe producir y frenar el movimiento con una ejecución especialmente limpia.",
+        "description": "El Remo Seal lleva el apoyo pectoral a su extremo: tumbado en un banco alto con los brazos colgando hacia el suelo, no existe cadera ni impulso que ayude. Se ejecuta tirando de la barra hacia el borde del banco hasta tocarlo y frenando la bajada completa, con el dorsal ancho haciendo el cien por cien del trabajo. Con mancuernas el agarre puede girar a neutro, un alivio bienvenido para hombros sensibles. Aislamiento de espalda en estado puro, sin lugar donde esconderse.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -670,7 +670,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

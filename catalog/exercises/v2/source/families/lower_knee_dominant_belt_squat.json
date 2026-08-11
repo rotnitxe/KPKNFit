@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Sentadilla Belt Squat",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_belt_squat_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina Belt Squat con ambas piernas: la carga cuelga de la cintura y la espalda descansa.",
-                "Sentadillas profundas sin peso sobre los hombros."
+                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. A dos lados, el trabajo del cuádriceps admite más carga total.",
+                "La máquina soñada por quien entrena pierna con la espalda sensible."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
               ],
-              "description": "Máquina Belt Squat con ambas piernas: la carga cuelga de la cintura y la espalda descansa. Sentadillas profundas sin peso sobre los hombros.",
+              "description": "Con a dos lados, la carga cuelga de la cintura y las piernas empujan sin peso sobre la espalda. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. A dos lados, el trabajo del cuádriceps admite más carga total.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -206,10 +206,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina Belt Squat con ambas piernas: la carga cuelga de la cintura y la espalda descansa.",
-                    "Sentadillas profundas sin peso sobre los hombros."
+                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. A dos lados, el trabajo del cuádriceps admite más carga total.",
+                    "La máquina soñada por quien entrena pierna con la espalda sensible."
                   ],
-                  "description": "Máquina Belt Squat con ambas piernas: la carga cuelga de la cintura y la espalda descansa. Sentadillas profundas sin peso sobre los hombros.",
+                  "description": "Con a dos lados, la carga cuelga de la cintura y las piernas empujan sin peso sobre la espalda. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. A dos lados, el trabajo del cuádriceps admite más carga total.",
                   "technique": "Máquina Belt Squat con ambas piernas: la carga cuelga de la cintura y la espalda descansa. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve.",
                   "variantRationale": "Máquina Belt Squat con ambas piernas: la carga cuelga de la cintura y la espalda descansa. Sentadillas profundas sin peso sobre los hombros."
                 },
@@ -224,7 +224,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla \"Belt Squat\"",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "belt_squat__bilateral",
                   "definitionId": "belt_squat",
                   "familyId": "lower_knee_dominant_belt_squat",
@@ -303,7 +303,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_belt_squat_unilateral_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -314,16 +314,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Belt Squat con una pierna: la carga cuelga de la cintura y un lado hace la mayor parte de la carga.",
-                "Útil para corregir desequilibrios de pierna con estabilidad."
+                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. A un lado, el trabajo del cuádriceps se hace en solitario y las diferencias salen a la vista.",
+                "La máquina soñada por quien entrena pierna con la espalda sensible."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Belt Squat con una pierna: la carga cuelga de la cintura y un lado hace la mayor parte de la carga. Útil para corregir desequilibrios de pierna con estabilidad.",
+              "description": "Con a un lado, la carga cuelga de la cintura y las piernas empujan sin peso sobre la espalda. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. A un lado, el trabajo del cuádriceps se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -498,10 +498,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Belt Squat con una pierna: la carga cuelga de la cintura y un lado hace la mayor parte de la carga.",
-                    "Útil para corregir desequilibrios de pierna con estabilidad."
+                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. A un lado, el trabajo del cuádriceps se hace en solitario y las diferencias salen a la vista.",
+                    "La máquina soñada por quien entrena pierna con la espalda sensible."
                   ],
-                  "description": "Belt Squat con una pierna: la carga cuelga de la cintura y un lado hace la mayor parte de la carga. Útil para corregir desequilibrios de pierna con estabilidad.",
+                  "description": "Con a un lado, la carga cuelga de la cintura y las piernas empujan sin peso sobre la espalda. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. A un lado, el trabajo del cuádriceps se hace en solitario y las diferencias salen a la vista.",
                   "technique": "Belt Squat con una pierna: la carga cuelga de la cintura y un lado hace la mayor parte de la carga. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Belt Squat con una pierna: la carga cuelga de la cintura y un lado hace la mayor parte de la carga. Útil para corregir desequilibrios de pierna con estabilidad."
                 },
@@ -516,7 +516,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla \"Belt Squat\"",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "belt_squat__unilateral",
                   "definitionId": "belt_squat",
                   "familyId": "lower_knee_dominant_belt_squat",
@@ -591,11 +591,11 @@
           }
         ],
         "defaultConfigurationId": "belt_squat__bilateral",
-        "description": "Sentadilla en máquina Belt Squat: la carga cuelga de la cintura con un cinturón, sin peso en la espalda. La espalda se libera por completo y las piernas hacen la mayor parte de la carga.",
+        "description": "La Sentadilla \"Belt Squat\" cuelga la carga de un cinturón a la cintura y libera por completo la espalda y los hombros: las piernas empujan sin que nada pese sobre la columna. Se ejecuta subiendo a la plataforma de la máquina y bajando profundo con las manos libres o agarradas al soporte. Cuádriceps y glúteos trabajan sin peaje lumbar. La máquina soñada por quien entrena pierna con la espalda sensible.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -616,7 +616,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

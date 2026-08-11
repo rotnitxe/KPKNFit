@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Hip Thrust",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_hip_thrust",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "benefits": [
-                "Barra sobre la cadera con ambas piernas: la espalda alta se apoya en el banco y el glúteo empuja la pelvis hasta alinearla.",
-                "La carga bilateral ofrece la progresión más directa para acumular fuerza en la extensión de cadera."
+                "El glúteo mayor trabaja con la barra, que permite cargar pesado y medir la progresión con claridad. A dos lados, el trabajo del glúteo mayor admite más carga total.",
+                "El constructor de glúteos número uno del mundo moderno."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
               ],
-              "description": "Barra sobre la cadera con ambas piernas: la espalda alta se apoya en el banco y el glúteo empuja la pelvis hasta alinearla. La carga bilateral ofrece la progresión más directa para acumular fuerza en la extensión de cadera.",
+              "description": "Con barra y a dos lados, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. El glúteo mayor trabaja con la barra, que permite cargar pesado y medir la progresión con claridad. A dos lados, el trabajo del glúteo mayor admite más carga total.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -218,10 +218,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra sobre la cadera con ambas piernas: la espalda alta se apoya en el banco y el glúteo empuja la pelvis hasta alinearla.",
-                    "La carga bilateral ofrece la progresión más directa para acumular fuerza en la extensión de cadera."
+                    "El glúteo mayor trabaja con la barra, que permite cargar pesado y medir la progresión con claridad. A dos lados, el trabajo del glúteo mayor admite más carga total.",
+                    "El constructor de glúteos número uno del mundo moderno."
                   ],
-                  "description": "Barra sobre la cadera con ambas piernas: la espalda alta se apoya en el banco y el glúteo empuja la pelvis hasta alinearla. La carga bilateral ofrece la progresión más directa para acumular fuerza en la extensión de cadera.",
+                  "description": "Con barra y a dos lados, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. El glúteo mayor trabaja con la barra, que permite cargar pesado y medir la progresión con claridad. A dos lados, el trabajo del glúteo mayor admite más carga total.",
                   "technique": "Barra sobre la cadera con ambas piernas: la espalda alta se apoya en el banco y el glúteo empuja la pelvis hasta alinearla. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies.",
                   "variantRationale": "Barra sobre la cadera con ambas piernas: la espalda alta se apoya en el banco y el glúteo empuja la pelvis hasta alinearla. La carga bilateral ofrece la progresión más directa para acumular fuerza en la extensión de cadera."
                 },
@@ -236,7 +236,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hip Thrust",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hip_thrust__bilateral__barbell",
                   "definitionId": "hip_thrust",
                   "familyId": "lower_hip_extension_hip_thrust",
@@ -319,7 +319,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_hip_thrust",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -330,16 +330,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "benefits": [
-                "Barra con una pierna: el glúteo de un lado trabaja sin ayuda del otro lado y el equilibrio se suma.",
-                "La versión avanzada para quien ya domina el tradicional."
+                "Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
+                "El constructor de glúteos número uno del mundo moderno."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
               ],
-              "description": "Barra con una pierna: el glúteo de un lado trabaja sin ayuda del otro lado y el equilibrio se suma. La versión avanzada para quien ya domina el tradicional.",
+              "description": "Con barra y a un lado, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -525,10 +525,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra con una pierna: el glúteo de un lado trabaja sin ayuda del otro lado y el equilibrio se suma.",
-                    "La versión avanzada para quien ya domina el tradicional."
+                    "Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
+                    "El constructor de glúteos número uno del mundo moderno."
                   ],
-                  "description": "Barra con una pierna: el glúteo de un lado trabaja sin ayuda del otro lado y el equilibrio se suma. La versión avanzada para quien ya domina el tradicional.",
+                  "description": "Con barra y a un lado, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
                   "technique": "Barra con una pierna: el glúteo de un lado trabaja sin ayuda del otro lado y el equilibrio se suma. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies.",
                   "variantRationale": "Barra con una pierna: el glúteo de un lado trabaja sin ayuda del otro lado y el equilibrio se suma. La versión avanzada para quien ya domina el tradicional."
                 },
@@ -543,7 +543,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hip Thrust",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hip_thrust__unilateral__barbell",
                   "definitionId": "hip_thrust",
                   "familyId": "lower_hip_extension_hip_thrust",
@@ -626,7 +626,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_hip_thrust",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -637,16 +637,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "benefits": [
-                "Smith con ambas piernas: la barra guiada te deja cargar el glúteo sin pensar en el equilibrio.",
-                "Útil para series pesadas; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. A dos lados, el trabajo del glúteo mayor admite más carga total.",
+                "El constructor de glúteos número uno del mundo moderno."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
               ],
-              "description": "Smith con ambas piernas: la barra guiada te deja cargar el glúteo sin pensar en el equilibrio. Útil para series pesadas.",
+              "description": "Con máquina Smith y a dos lados, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. A dos lados, el trabajo del glúteo mayor admite más carga total.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -832,10 +832,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith con ambas piernas: la barra guiada te deja cargar el glúteo sin pensar en el equilibrio.",
-                    "Útil para series pesadas; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. A dos lados, el trabajo del glúteo mayor admite más carga total.",
+                    "El constructor de glúteos número uno del mundo moderno."
                   ],
-                  "description": "Smith con ambas piernas: la barra guiada te deja cargar el glúteo sin pensar en el equilibrio. Útil para series pesadas.",
+                  "description": "Con máquina Smith y a dos lados, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. A dos lados, el trabajo del glúteo mayor admite más carga total.",
                   "technique": "Smith con ambas piernas: la barra guiada te deja cargar el glúteo sin pensar en el equilibrio. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies.",
                   "variantRationale": "Smith con ambas piernas: la barra guiada te deja cargar el glúteo sin pensar en el equilibrio. Útil para series pesadas."
                 },
@@ -850,7 +850,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hip Thrust",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hip_thrust__bilateral__smith_machine",
                   "definitionId": "hip_thrust",
                   "familyId": "lower_hip_extension_hip_thrust",
@@ -933,7 +933,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_hip_thrust",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -944,16 +944,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "benefits": [
-                "Smith con una pierna: guiado estable y trabajo unilateral del glúteo.",
-                "Útil para corregir desequilibrios con carga."
+                "En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
+                "El constructor de glúteos número uno del mundo moderno."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
               ],
-              "description": "Smith con una pierna: guiado estable y trabajo unilateral del glúteo. Útil para corregir desequilibrios con carga.",
+              "description": "Con máquina Smith y a un lado, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -1139,10 +1139,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith con una pierna: guiado estable y trabajo unilateral del glúteo.",
-                    "Útil para corregir desequilibrios con carga."
+                    "En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
+                    "El constructor de glúteos número uno del mundo moderno."
                   ],
-                  "description": "Smith con una pierna: guiado estable y trabajo unilateral del glúteo. Útil para corregir desequilibrios con carga.",
+                  "description": "Con máquina Smith y a un lado, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
                   "technique": "Smith con una pierna: guiado estable y trabajo unilateral del glúteo. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies.",
                   "variantRationale": "Smith con una pierna: guiado estable y trabajo unilateral del glúteo. Útil para corregir desequilibrios con carga."
                 },
@@ -1157,7 +1157,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hip Thrust",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hip_thrust__unilateral__smith_machine",
                   "definitionId": "hip_thrust",
                   "familyId": "lower_hip_extension_hip_thrust",
@@ -1241,7 +1241,7 @@
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_hip_thrust",
                 "editorial:configuration:glutes_hip_thrust__machine__bilateral",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1252,16 +1252,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina de este empuje de cadera con ambas piernas: la almohadilla y el guiado hacen el resto.",
-                "La opción más cómoda para cargar el glúteo con estabilidad."
+                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del glúteo mayor. A dos lados, el trabajo del glúteo mayor admite más carga total.",
+                "El constructor de glúteos número uno del mundo moderno."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
               ],
-              "description": "Máquina de este empuje de cadera con ambas piernas: la almohadilla y el guiado hacen el resto. La opción más cómoda para cargar el glúteo con estabilidad.",
+              "description": "Con máquina y a dos lados, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. En la máquina, la trayectoria guiada concentra todo el esfuerzo del glúteo mayor. A dos lados, el trabajo del glúteo mayor admite más carga total.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -1447,10 +1447,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina de este empuje de cadera con ambas piernas: la almohadilla y el guiado hacen el resto.",
-                    "La opción más cómoda para cargar el glúteo con estabilidad."
+                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del glúteo mayor. A dos lados, el trabajo del glúteo mayor admite más carga total.",
+                    "El constructor de glúteos número uno del mundo moderno."
                   ],
-                  "description": "Máquina de este empuje de cadera con ambas piernas: la almohadilla y el guiado hacen el resto. La opción más cómoda para cargar el glúteo con estabilidad.",
+                  "description": "Con máquina y a dos lados, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. En la máquina, la trayectoria guiada concentra todo el esfuerzo del glúteo mayor. A dos lados, el trabajo del glúteo mayor admite más carga total.",
                   "technique": "Máquina de este empuje de cadera con ambas piernas: la almohadilla y el guiado hacen el resto. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies.",
                   "variantRationale": "Máquina de este empuje de cadera con ambas piernas: la almohadilla y el guiado hacen el resto. La opción más cómoda para cargar el glúteo con estabilidad."
                 },
@@ -1465,7 +1465,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hip Thrust",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hip_thrust__bilateral__machine",
                   "definitionId": "hip_thrust",
                   "familyId": "lower_hip_extension_hip_thrust",
@@ -1549,7 +1549,7 @@
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_hip_thrust",
                 "editorial:configuration:glutes_hip_thrust__machine__bilateral",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1560,16 +1560,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina con una pierna: cada glúteo trabaja por separado con el guiado de la máquina.",
-                "Útil para igualar ambos lados; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del glúteo mayor. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
+                "El constructor de glúteos número uno del mundo moderno."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
               ],
-              "description": "Máquina con una pierna: cada glúteo trabaja por separado con el guiado de la máquina. Útil para igualar ambos lados.",
+              "description": "Con máquina y a un lado, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. En la máquina, la trayectoria guiada concentra todo el esfuerzo del glúteo mayor. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -1755,10 +1755,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina con una pierna: cada glúteo trabaja por separado con el guiado de la máquina.",
-                    "Útil para igualar ambos lados; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del glúteo mayor. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
+                    "El constructor de glúteos número uno del mundo moderno."
                   ],
-                  "description": "Máquina con una pierna: cada glúteo trabaja por separado con el guiado de la máquina. Útil para igualar ambos lados.",
+                  "description": "Con máquina y a un lado, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. En la máquina, la trayectoria guiada concentra todo el esfuerzo del glúteo mayor. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
                   "technique": "Máquina con una pierna: cada glúteo trabaja por separado con el guiado de la máquina. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies.",
                   "variantRationale": "Máquina con una pierna: cada glúteo trabaja por separado con el guiado de la máquina. Útil para igualar ambos lados."
                 },
@@ -1773,7 +1773,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hip Thrust",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hip_thrust__unilateral__machine",
                   "definitionId": "hip_thrust",
                   "familyId": "lower_hip_extension_hip_thrust",
@@ -1856,7 +1856,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_hip_thrust",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1867,16 +1867,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "benefits": [
-                "Banda sobre la cadera con ambas piernas: la resistencia crece al empujar arriba.",
-                "Fácil de montar en cualquier sitio y muy exigente al final de la serie."
+                "El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
+                "El constructor de glúteos número uno del mundo moderno."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
               ],
-              "description": "Banda sobre la cadera con ambas piernas: la resistencia crece al empujar arriba. Fácil de montar en cualquier sitio y muy exigente al final de la serie.",
+              "description": "Con banda elástica y a dos lados, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
               "efc": 2.8,
               "equipmentId": "band",
               "executionCues": [
@@ -2062,10 +2062,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Banda sobre la cadera con ambas piernas: la resistencia crece al empujar arriba.",
-                    "Fácil de montar en cualquier sitio y muy exigente al final de la serie."
+                    "El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
+                    "El constructor de glúteos número uno del mundo moderno."
                   ],
-                  "description": "Banda sobre la cadera con ambas piernas: la resistencia crece al empujar arriba. Fácil de montar en cualquier sitio y muy exigente al final de la serie.",
+                  "description": "Con banda elástica y a dos lados, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
                   "technique": "Banda sobre la cadera con ambas piernas: la resistencia crece al empujar arriba. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies.",
                   "variantRationale": "Banda sobre la cadera con ambas piernas: la resistencia crece al empujar arriba. Fácil de montar en cualquier sitio y muy exigente al final de la serie."
                 },
@@ -2080,7 +2080,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hip Thrust",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hip_thrust__bilateral__band",
                   "definitionId": "hip_thrust",
                   "familyId": "lower_hip_extension_hip_thrust",
@@ -2163,7 +2163,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_hip_thrust",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2174,16 +2174,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "benefits": [
-                "Banda con una pierna: el glúteo trabaja sin ayuda del otro lado contra la resistencia elástica.",
-                "Variante sencilla y útil para acumular trabajo para rematar."
+                "El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
+                "El constructor de glúteos número uno del mundo moderno."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
               ],
-              "description": "Banda con una pierna: el glúteo trabaja sin ayuda del otro lado contra la resistencia elástica. Variante sencilla y útil para acumular trabajo para rematar.",
+              "description": "Con banda elástica y a un lado, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "band",
               "executionCues": [
@@ -2369,10 +2369,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Banda con una pierna: el glúteo trabaja sin ayuda del otro lado contra la resistencia elástica.",
-                    "Variante sencilla y útil para acumular trabajo para rematar."
+                    "El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
+                    "El constructor de glúteos número uno del mundo moderno."
                   ],
-                  "description": "Banda con una pierna: el glúteo trabaja sin ayuda del otro lado contra la resistencia elástica. Variante sencilla y útil para acumular trabajo para rematar.",
+                  "description": "Con banda elástica y a un lado, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
                   "technique": "Banda con una pierna: el glúteo trabaja sin ayuda del otro lado contra la resistencia elástica. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies.",
                   "variantRationale": "Banda con una pierna: el glúteo trabaja sin ayuda del otro lado contra la resistencia elástica. Variante sencilla y útil para acumular trabajo para rematar."
                 },
@@ -2387,7 +2387,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hip Thrust",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hip_thrust__unilateral__band",
                   "definitionId": "hip_thrust",
                   "familyId": "lower_hip_extension_hip_thrust",
@@ -2466,11 +2466,11 @@
           }
         ],
         "defaultConfigurationId": "hip_thrust__bilateral__barbell",
-        "description": "Este empuje de cadera: la espalda apoyada en el banco y la barra en la cadera, empujando el peso hacia arriba. La referencia directa para construir glúteos con carga, Una variante utilizada.",
+        "description": "El Hip Thrust es el empuje de cadera con la espalda alta apoyada en un banco: el glúteo mayor extiende la cadera contra la barra con el mayor rango de contracción posible. Se ejecuta con los omóplatos en el borde y los pies firmes, subiendo la cadera hasta la línea completa y bajando sin tocar el suelo. Isquiosurales y cuádriceps asisten, pero el glúteo manda. En la Smith la carga se acomoda fácil y a una pierna iguala ambos lados. El constructor de glúteos número uno del mundo moderno.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -2492,7 +2492,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

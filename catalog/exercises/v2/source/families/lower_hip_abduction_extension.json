@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren inferior · gluteus maximus · hip abduction extension",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_patada_gluteo_lateral",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea lateral: abres la pierna hacia el lado con tensión constante en el glúteo medio.",
-                "La versión controlada de la patada lateral."
+                "Con la polea, la tensión sobre el glúteo medio se mantiene viva de principio a fin.",
+                "La herramienta precisa para el lateral del glúteo y una pelvis que no baila."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
               ],
-              "description": "Polea lateral: abres la pierna hacia el lado con tensión constante en el glúteo medio. La versión controlada de la patada lateral.",
+              "description": "Con polea, la pierna se aleja hacia el costado con la cadera nivelada y el torso sin balanceo. Con la polea, la tensión sobre el glúteo medio se mantiene viva de principio a fin.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -182,10 +182,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea lateral: abres la pierna hacia el lado con tensión constante en el glúteo medio.",
-                    "La versión controlada de la patada lateral."
+                    "Con la polea, la tensión sobre el glúteo medio se mantiene viva de principio a fin.",
+                    "La herramienta precisa para el lateral del glúteo y una pelvis que no baila."
                   ],
-                  "description": "Polea lateral: abres la pierna hacia el lado con tensión constante en el glúteo medio. La versión controlada de la patada lateral.",
+                  "description": "Con polea, la pierna se aleja hacia el costado con la cadera nivelada y el torso sin balanceo. Con la polea, la tensión sobre el glúteo medio se mantiene viva de principio a fin.",
                   "technique": "Polea lateral: abres la pierna hacia el lado con tensión constante en el glúteo medio. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Polea lateral: abres la pierna hacia el lado con tensión constante en el glúteo medio. La versión controlada de la patada lateral."
                 },
@@ -200,7 +200,7 @@
                 },
                 "identity": {
                   "canonicalName": "Patada de Glúteo Lateral",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "glutes_patada_gluteo_lateral__cable",
                   "definitionId": "glutes_patada_gluteo_lateral",
                   "familyId": "lower_hip_abduction_extension",
@@ -281,7 +281,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_patada_gluteo_lateral",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -292,16 +292,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuerna en la cadera o el tobillo: apertura lateral con carga libre.",
-                "Fácil de hacer en cualquier gimnasio y muy directa al glúteo."
+                "El glúteo medio trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                "La herramienta precisa para el lateral del glúteo y una pelvis que no baila."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
               ],
-              "description": "Mancuerna en la cadera o el tobillo: apertura lateral con carga libre. Fácil de hacer en cualquier gimnasio y muy directa al glúteo.",
+              "description": "Con mancuernas, la pierna se aleja hacia el costado con la cadera nivelada y el torso sin balanceo. El glúteo medio trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -451,10 +451,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuerna en la cadera o el tobillo: apertura lateral con carga libre.",
-                    "Fácil de hacer en cualquier gimnasio y muy directa al glúteo."
+                    "El glúteo medio trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                    "La herramienta precisa para el lateral del glúteo y una pelvis que no baila."
                   ],
-                  "description": "Mancuerna en la cadera o el tobillo: apertura lateral con carga libre. Fácil de hacer en cualquier gimnasio y muy directa al glúteo.",
+                  "description": "Con mancuernas, la pierna se aleja hacia el costado con la cadera nivelada y el torso sin balanceo. El glúteo medio trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
                   "technique": "Mancuerna en la cadera o el tobillo: apertura lateral con carga libre. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Mancuerna en la cadera o el tobillo: apertura lateral con carga libre. Fácil de hacer en cualquier gimnasio y muy directa al glúteo."
                 },
@@ -469,7 +469,7 @@
                 },
                 "identity": {
                   "canonicalName": "Patada de Glúteo Lateral",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "glutes_patada_gluteo_lateral__dumbbells",
                   "definitionId": "glutes_patada_gluteo_lateral",
                   "familyId": "lower_hip_abduction_extension",
@@ -550,7 +550,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_patada_gluteo_lateral",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -561,16 +561,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Banda alrededor de los tobillos: abres la pierna contra la resistencia elástica.",
-                "El tradicional de las rutinas de glúteo en casa."
+                "El glúteo medio trabaja con la banda, cuya resistencia crece con el recorrido.",
+                "La herramienta precisa para el lateral del glúteo y una pelvis que no baila."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
               ],
-              "description": "Banda alrededor de los tobillos: abres la pierna contra la resistencia elástica. El tradicional de las rutinas de glúteo en casa.",
+              "description": "Con banda elástica, la pierna se aleja hacia el costado con la cadera nivelada y el torso sin balanceo. El glúteo medio trabaja con la banda, cuya resistencia crece con el recorrido.",
               "efc": 2.8,
               "equipmentId": "band",
               "executionCues": [
@@ -720,10 +720,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Banda alrededor de los tobillos: abres la pierna contra la resistencia elástica.",
-                    "El tradicional de las rutinas de glúteo en casa."
+                    "El glúteo medio trabaja con la banda, cuya resistencia crece con el recorrido.",
+                    "La herramienta precisa para el lateral del glúteo y una pelvis que no baila."
                   ],
-                  "description": "Banda alrededor de los tobillos: abres la pierna contra la resistencia elástica. El tradicional de las rutinas de glúteo en casa.",
+                  "description": "Con banda elástica, la pierna se aleja hacia el costado con la cadera nivelada y el torso sin balanceo. El glúteo medio trabaja con la banda, cuya resistencia crece con el recorrido.",
                   "technique": "Banda alrededor de los tobillos: abres la pierna contra la resistencia elástica. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Banda alrededor de los tobillos: abres la pierna contra la resistencia elástica. El tradicional de las rutinas de glúteo en casa."
                 },
@@ -738,7 +738,7 @@
                 },
                 "identity": {
                   "canonicalName": "Patada de Glúteo Lateral",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "glutes_patada_gluteo_lateral__band",
                   "definitionId": "glutes_patada_gluteo_lateral",
                   "familyId": "lower_hip_abduction_extension",
@@ -815,11 +815,11 @@
           }
         ],
         "defaultConfigurationId": "glutes_patada_gluteo_lateral__cable",
-        "description": "Llevas la pierna hacia el lado contra resistencia, enfocando el glúteo medio y el lateral de la cadera. Útil para redondear el glúteo completo.",
+        "description": "La Patada de Glúteo Lateral abre la pierna hacia el costado con la cadera quieta: el glúteo medio hace todo el trabajo mientras el torso no se vende al balanceo. Se ejecuta con polea baja enganchada al tobillo, de pie, separando la pierna con pausa y volviendo sin cruzar el centro. Con banda o una mancuerna suave se puede montar en cualquier rincón. La herramienta precisa para el lateral del glúteo y una pelvis que no baila.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -842,7 +842,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Peso Muerto",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_convencional",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "benefits": [
-                "Barra con ambas piernas: el peso muerto más directo para, desde el suelo con las dos manos.",
-                "El movimiento que más fuerza construye; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "La barra es la referencia para cargar el glúteo mayor con peso de verdad. A dos lados, el trabajo del glúteo mayor admite más carga total.",
+                "El rey absoluto de la fuerza total, sin discusión posible."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Barra con ambas piernas: el peso muerto más directo para, desde el suelo con las dos manos. El movimiento que más fuerza construye.",
+              "description": "Con barra y a dos lados, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. La barra es la referencia para cargar el glúteo mayor con peso de verdad. A dos lados, el trabajo del glúteo mayor admite más carga total.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -224,10 +224,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra con ambas piernas: el peso muerto más directo para, desde el suelo con las dos manos.",
-                    "El movimiento que más fuerza construye; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "La barra es la referencia para cargar el glúteo mayor con peso de verdad. A dos lados, el trabajo del glúteo mayor admite más carga total.",
+                    "El rey absoluto de la fuerza total, sin discusión posible."
                   ],
-                  "description": "Barra con ambas piernas: el peso muerto más directo para, desde el suelo con las dos manos. El movimiento que más fuerza construye.",
+                  "description": "Con barra y a dos lados, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. La barra es la referencia para cargar el glúteo mayor con peso de verdad. A dos lados, el trabajo del glúteo mayor admite más carga total.",
                   "technique": "Barra con ambas piernas: el peso muerto más directo para, desde el suelo con las dos manos. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado.",
                   "variantRationale": "Barra con ambas piernas: el peso muerto más directo para, desde el suelo con las dos manos. El movimiento que más fuerza construye."
                 },
@@ -242,7 +242,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Convencional",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "conventional_deadlift__bilateral__barbell",
                   "definitionId": "conventional_deadlift",
                   "familyId": "hinge_deadlift",
@@ -327,7 +327,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_convencional",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -338,16 +338,16 @@
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "benefits": [
-                "Barra en apoyo de una sola pierna: el equilibrio se convierte en protagonista y la cadera trabaja a fondo.",
-                "Útil para corregir desequilibrios; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
+                "El rey absoluto de la fuerza total, sin discusión posible."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Barra en apoyo de una sola pierna: el equilibrio se convierte en protagonista y la cadera trabaja a fondo. Útil para corregir desequilibrios.",
+              "description": "Con barra y a un lado, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -544,10 +544,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra en apoyo de una sola pierna: el equilibrio se convierte en protagonista y la cadera trabaja a fondo.",
-                    "Útil para corregir desequilibrios; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
+                    "El rey absoluto de la fuerza total, sin discusión posible."
                   ],
-                  "description": "Barra en apoyo de una sola pierna: el equilibrio se convierte en protagonista y la cadera trabaja a fondo. Útil para corregir desequilibrios.",
+                  "description": "Con barra y a un lado, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
                   "technique": "Barra en apoyo de una sola pierna: el equilibrio se convierte en protagonista y la cadera trabaja a fondo. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado.",
                   "variantRationale": "Barra en apoyo de una sola pierna: el equilibrio se convierte en protagonista y la cadera trabaja a fondo. Útil para corregir desequilibrios."
                 },
@@ -562,7 +562,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Convencional",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "conventional_deadlift__unilateral__barbell",
                   "definitionId": "conventional_deadlift",
                   "familyId": "hinge_deadlift",
@@ -648,7 +648,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_convencional",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -659,16 +659,16 @@
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "benefits": [
-                "Smith con ambas piernas: la barra sube guiada y puedes concentrarte en empujar sin pensar en el equilibrio.",
-                "Estable para series pesadas; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
+                "El rey absoluto de la fuerza total, sin discusión posible."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Smith con ambas piernas: la barra sube guiada y puedes concentrarte en empujar sin pensar en el equilibrio. Estable para series pesadas.",
+              "description": "Con máquina Smith y a dos lados, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -855,10 +855,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith con ambas piernas: la barra sube guiada y puedes concentrarte en empujar sin pensar en el equilibrio.",
-                    "Estable para series pesadas; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
+                    "El rey absoluto de la fuerza total, sin discusión posible."
                   ],
-                  "description": "Smith con ambas piernas: la barra sube guiada y puedes concentrarte en empujar sin pensar en el equilibrio. Estable para series pesadas.",
+                  "description": "Con máquina Smith y a dos lados, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
                   "technique": "Smith con ambas piernas: la barra sube guiada y puedes concentrarte en empujar sin pensar en el equilibrio. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado.",
                   "variantRationale": "Smith con ambas piernas: la barra sube guiada y puedes concentrarte en empujar sin pensar en el equilibrio. Estable para series pesadas."
                 },
@@ -873,7 +873,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Convencional",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "conventional_deadlift__bilateral__smith_machine",
                   "definitionId": "conventional_deadlift",
                   "familyId": "hinge_deadlift",
@@ -957,7 +957,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_convencional",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -968,16 +968,16 @@
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "benefits": [
-                "Smith en una pierna: el guiado te permite trabajar un lado a la vez con estabilidad.",
-                "Útil para igualar piernas y cadera; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
+                "El rey absoluto de la fuerza total, sin discusión posible."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Smith en una pierna: el guiado te permite trabajar un lado a la vez con estabilidad. Útil para igualar piernas y cadera.",
+              "description": "Con máquina Smith y a un lado, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -1169,10 +1169,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith en una pierna: el guiado te permite trabajar un lado a la vez con estabilidad.",
-                    "Útil para igualar piernas y cadera; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
+                    "El rey absoluto de la fuerza total, sin discusión posible."
                   ],
-                  "description": "Smith en una pierna: el guiado te permite trabajar un lado a la vez con estabilidad. Útil para igualar piernas y cadera.",
+                  "description": "Con máquina Smith y a un lado, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
                   "technique": "Smith en una pierna: el guiado te permite trabajar un lado a la vez con estabilidad. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado.",
                   "variantRationale": "Smith en una pierna: el guiado te permite trabajar un lado a la vez con estabilidad. Útil para igualar piernas y cadera."
                 },
@@ -1187,7 +1187,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Convencional",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "conventional_deadlift__unilateral__smith_machine",
                   "definitionId": "conventional_deadlift",
                   "familyId": "hinge_deadlift",
@@ -1272,7 +1272,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_convencional",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1283,16 +1283,16 @@
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "benefits": [
-                "Mancuernas con ambas piernas: las pesas viajan por fuera de las rodillas y el recorrido es más libre.",
-                "La versión tolerante del peso muerto; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A dos lados, el trabajo del glúteo mayor admite más carga total.",
+                "El rey absoluto de la fuerza total, sin discusión posible."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Mancuernas con ambas piernas: las pesas viajan por fuera de las rodillas y el recorrido es más libre. La versión tolerante del peso muerto.",
+              "description": "Con mancuernas y a dos lados, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A dos lados, el trabajo del glúteo mayor admite más carga total.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -1484,10 +1484,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas con ambas piernas: las pesas viajan por fuera de las rodillas y el recorrido es más libre.",
-                    "La versión tolerante del peso muerto; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A dos lados, el trabajo del glúteo mayor admite más carga total.",
+                    "El rey absoluto de la fuerza total, sin discusión posible."
                   ],
-                  "description": "Mancuernas con ambas piernas: las pesas viajan por fuera de las rodillas y el recorrido es más libre. La versión tolerante del peso muerto.",
+                  "description": "Con mancuernas y a dos lados, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A dos lados, el trabajo del glúteo mayor admite más carga total.",
                   "technique": "Mancuernas con ambas piernas: las pesas viajan por fuera de las rodillas y el recorrido es más libre. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado.",
                   "variantRationale": "Mancuernas con ambas piernas: las pesas viajan por fuera de las rodillas y el recorrido es más libre. La versión tolerante del peso muerto."
                 },
@@ -1502,7 +1502,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Convencional",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "conventional_deadlift__bilateral__dumbbells",
                   "definitionId": "conventional_deadlift",
                   "familyId": "hinge_deadlift",
@@ -1587,7 +1587,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_convencional",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1598,16 +1598,16 @@
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "benefits": [
-                "Mancuerna en una pierna: equilibrio, isquios y glúteo trabajando juntos.",
-                "El ejercicio de corrección de desequilibrios por excelencia."
+                "El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
+                "El rey absoluto de la fuerza total, sin discusión posible."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Mancuerna en una pierna: equilibrio, isquios y glúteo trabajando juntos. El ejercicio de corrección de desequilibrios por excelencia.",
+              "description": "Con mancuernas y a un lado, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -1804,10 +1804,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuerna en una pierna: equilibrio, isquios y glúteo trabajando juntos.",
-                    "El ejercicio de corrección de desequilibrios por excelencia."
+                    "El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
+                    "El rey absoluto de la fuerza total, sin discusión posible."
                   ],
-                  "description": "Mancuerna en una pierna: equilibrio, isquios y glúteo trabajando juntos. El ejercicio de corrección de desequilibrios por excelencia.",
+                  "description": "Con mancuernas y a un lado, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
                   "technique": "Mancuerna en una pierna: equilibrio, isquios y glúteo trabajando juntos. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado.",
                   "variantRationale": "Mancuerna en una pierna: equilibrio, isquios y glúteo trabajando juntos. El ejercicio de corrección de desequilibrios por excelencia."
                 },
@@ -1822,7 +1822,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Convencional",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "conventional_deadlift__unilateral__dumbbells",
                   "definitionId": "conventional_deadlift",
                   "familyId": "hinge_deadlift",
@@ -1908,7 +1908,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1919,16 +1919,16 @@
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "benefits": [
-                "Barra hexagonal con ambas piernas: el cuerpo queda dentro de la carga y el recorrido es más vertical.",
-                "Cómoda, estable y útil para acumular trabajo."
+                "El glúteo mayor trabaja con la barra hexagonal, que centra la carga y alivia la espalda. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
+                "El rey absoluto de la fuerza total, sin discusión posible."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Barra hexagonal con ambas piernas: el cuerpo queda dentro de la carga y el recorrido es más vertical. Cómoda, estable y útil para acumular trabajo.",
+              "description": "Con barra hexagonal y a dos lados, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. El glúteo mayor trabaja con la barra hexagonal, que centra la carga y alivia la espalda. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
               "efc": 2.8,
               "equipmentId": "hex_bar",
               "executionCues": [
@@ -2120,10 +2120,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra hexagonal con ambas piernas: el cuerpo queda dentro de la carga y el recorrido es más vertical.",
-                    "Cómoda, estable y útil para acumular trabajo."
+                    "El glúteo mayor trabaja con la barra hexagonal, que centra la carga y alivia la espalda. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
+                    "El rey absoluto de la fuerza total, sin discusión posible."
                   ],
-                  "description": "Barra hexagonal con ambas piernas: el cuerpo queda dentro de la carga y el recorrido es más vertical. Cómoda, estable y útil para acumular trabajo.",
+                  "description": "Con barra hexagonal y a dos lados, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. El glúteo mayor trabaja con la barra hexagonal, que centra la carga y alivia la espalda. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
                   "technique": "Barra hexagonal con ambas piernas: el cuerpo queda dentro de la carga y el recorrido es más vertical. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado.",
                   "variantRationale": "Barra hexagonal con ambas piernas: el cuerpo queda dentro de la carga y el recorrido es más vertical. Cómoda, estable y útil para acumular trabajo."
                 },
@@ -2138,7 +2138,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Convencional",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "conventional_deadlift__bilateral__hex_bar",
                   "definitionId": "conventional_deadlift",
                   "familyId": "hinge_deadlift",
@@ -2223,7 +2223,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2234,16 +2234,16 @@
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "benefits": [
-                "Barra hexagonal en una pierna: la carga estable y el trabajo de equilibrio de la cadera.",
-                "Variante exigente que se perciben en el glúteo."
+                "El glúteo mayor trabaja con la barra hexagonal, que centra la carga y alivia la espalda. Un lado cada vez: el esfuerzo del glúteo mayor se aísla y las asimetrías quedan al descubierto.",
+                "El rey absoluto de la fuerza total, sin discusión posible."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Barra hexagonal en una pierna: la carga estable y el trabajo de equilibrio de la cadera. Variante exigente que se perciben en el glúteo.",
+              "description": "Con barra hexagonal y a un lado, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. El glúteo mayor trabaja con la barra hexagonal, que centra la carga y alivia la espalda. Un lado cada vez: el esfuerzo del glúteo mayor se aísla y las asimetrías quedan al descubierto.",
               "efc": 2.8,
               "equipmentId": "hex_bar",
               "executionCues": [
@@ -2440,10 +2440,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra hexagonal en una pierna: la carga estable y el trabajo de equilibrio de la cadera.",
-                    "Variante exigente que se perciben en el glúteo."
+                    "El glúteo mayor trabaja con la barra hexagonal, que centra la carga y alivia la espalda. Un lado cada vez: el esfuerzo del glúteo mayor se aísla y las asimetrías quedan al descubierto.",
+                    "El rey absoluto de la fuerza total, sin discusión posible."
                   ],
-                  "description": "Barra hexagonal en una pierna: la carga estable y el trabajo de equilibrio de la cadera. Variante exigente que se perciben en el glúteo.",
+                  "description": "Con barra hexagonal y a un lado, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. El glúteo mayor trabaja con la barra hexagonal, que centra la carga y alivia la espalda. Un lado cada vez: el esfuerzo del glúteo mayor se aísla y las asimetrías quedan al descubierto.",
                   "technique": "Barra hexagonal en una pierna: la carga estable y el trabajo de equilibrio de la cadera. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado.",
                   "variantRationale": "Barra hexagonal en una pierna: la carga estable y el trabajo de equilibrio de la cadera. Variante exigente que se perciben en el glúteo."
                 },
@@ -2458,7 +2458,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Convencional",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "conventional_deadlift__unilateral__hex_bar",
                   "definitionId": "conventional_deadlift",
                   "familyId": "hinge_deadlift",
@@ -2540,11 +2540,11 @@
           }
         ],
         "defaultConfigurationId": "conventional_deadlift__bilateral__barbell",
-        "description": "Desde el suelo, con la barra pegada al cuerpo, levantas el peso empujando con las piernas y abriendo la cadera. El ejercicio que construye fuerza global en todo el cuerpo.",
+        "description": "El Peso Muerto Convencional es el levantamiento que mide la fuerza entera de una persona: glúteos e isquiosurales abren la cadera y los cuádriceps empujan el suelo mientras la espalda transmite todo a la barra. Se ejecuta con los pies al ancho de la cadera y la barra pegada a las espinillas, extendiendo cadera y rodillas a la vez hasta quedar erguido. Con la barra hexagonal la carga queda centrada y la espalda trabaja más cómoda; con mancuernas se aprende el gesto con cargas amables. El rey absoluto de la fuerza total, sin discusión posible.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -2572,7 +2572,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_convencional",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2583,16 +2583,16 @@
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "benefits": [
-                "Barra en postura sumo: pies amplios, manos dentro y el recorrido más corto hacia arriba.",
-                "La elección de muchos para cargar pesado con comodidad."
+                "Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa.",
+                "La vía ancha para levantar mucho con menos peaje lumbar."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Barra en postura sumo: pies amplios, manos dentro y el recorrido más corto hacia arriba. La elección de muchos para cargar pesado con comodidad.",
+              "description": "Con barra, con los pies muy abiertos y los brazos por dentro, el recorrido se acorta y la cadera empuja al frente. Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -2784,10 +2784,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra en postura sumo: pies amplios, manos dentro y el recorrido más corto hacia arriba.",
-                    "La elección de muchos para cargar pesado con comodidad."
+                    "Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa.",
+                    "La vía ancha para levantar mucho con menos peaje lumbar."
                   ],
-                  "description": "Barra en postura sumo: pies amplios, manos dentro y el recorrido más corto hacia arriba. La elección de muchos para cargar pesado con comodidad.",
+                  "description": "Con barra, con los pies muy abiertos y los brazos por dentro, el recorrido se acorta y la cadera empuja al frente. Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa.",
                   "technique": "Barra en postura sumo: pies amplios, manos dentro y el recorrido más corto hacia arriba. La base amplia deja los brazos dentro de las piernas; la cadera se acerca a la carga antes de iniciar una subida vertical.",
                   "variantRationale": "Barra en postura sumo: pies amplios, manos dentro y el recorrido más corto hacia arriba. La elección de muchos para cargar pesado con comodidad."
                 },
@@ -2802,7 +2802,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Sumo",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "sumo_deadlift__barbell",
                   "definitionId": "sumo_deadlift",
                   "familyId": "hinge_deadlift",
@@ -2884,7 +2884,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_convencional",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2895,16 +2895,16 @@
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "benefits": [
-                "Mancuernas a los costados con una base amplia: la carga deja espacio entre las piernas y la cadera puede acercarse al suelo.",
-                "Los glúteos y aductores comparten el despegue con una sensación más libre que la barra."
+                "Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
+                "La vía ancha para levantar mucho con menos peaje lumbar."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Mancuernas a los costados con una base amplia: la carga deja espacio entre las piernas y la cadera puede acercarse al suelo. Los glúteos y aductores comparten el despegue con una sensación más libre que la barra.",
+              "description": "Con mancuernas, con los pies muy abiertos y los brazos por dentro, el recorrido se acorta y la cadera empuja al frente. Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -3096,10 +3096,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas a los costados con una base amplia: la carga deja espacio entre las piernas y la cadera puede acercarse al suelo.",
-                    "Los glúteos y aductores comparten el despegue con una sensación más libre que la barra."
+                    "Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
+                    "La vía ancha para levantar mucho con menos peaje lumbar."
                   ],
-                  "description": "Mancuernas a los costados con una base amplia: la carga deja espacio entre las piernas y la cadera puede acercarse al suelo. Los glúteos y aductores comparten el despegue con una sensación más libre que la barra.",
+                  "description": "Con mancuernas, con los pies muy abiertos y los brazos por dentro, el recorrido se acorta y la cadera empuja al frente. Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
                   "technique": "Mancuernas a los costados con una base amplia: la carga deja espacio entre las piernas y la cadera puede acercarse al suelo. La base amplia deja los brazos dentro de las piernas; la cadera se acerca a la carga antes de iniciar una subida vertical.",
                   "variantRationale": "Mancuernas a los costados con una base amplia: la carga deja espacio entre las piernas y la cadera puede acercarse al suelo. Los glúteos y aductores comparten el despegue con una sensación más libre que la barra."
                 },
@@ -3114,7 +3114,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Sumo",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "sumo_deadlift__dumbbells",
                   "definitionId": "sumo_deadlift",
                   "familyId": "hinge_deadlift",
@@ -3192,11 +3192,11 @@
           }
         ],
         "defaultConfigurationId": "sumo_deadlift__barbell",
-        "description": "Pies amplios y brazos dentro de las piernas, el recorrido se acorta y los glúteos y aductores toman protagonismo. La variante preferida por muchos por su comodidad con cargas altas.",
+        "description": "El Peso Muerto Sumo abre los pies y mete los brazos por dentro: el recorrido se acorta y aductores y cuádriceps toman parte del botín que en el convencional se llevan los isquiosurales. Se ejecuta con las puntas hacia afuera y la espalda alta, empujando el suelo con las piernas mientras la barra sube rozando el cuerpo. Muchos levantadores descubren aquí que su estructura pide esta postura. La vía ancha para levantar mucho con menos peaje lumbar.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -3218,7 +3218,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

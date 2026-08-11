@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Abducciones de Pierna",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_abduccion_cadera_sentado_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina sentado con ambas piernas: abres y cierras contra las almohadillas con el glúteo medio concentrado.",
-                "El tradicional de las máquinas de cadera."
+                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del glúteo medio. A dos lados, el trabajo del glúteo medio admite más carga total. Sentado, el tronco queda fijo y el aislamiento del glúteo medio mejora.",
+                "El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
               ],
-              "description": "Máquina sentado con ambas piernas: abres y cierras contra las almohadillas con el glúteo medio concentrado. El tradicional de las máquinas de cadera.",
+              "description": "Con máquina, a dos lados y sentado, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. En la máquina, la trayectoria guiada concentra todo el esfuerzo del glúteo medio. A dos lados, el trabajo del glúteo medio admite más carga total. Sentado, el tronco queda fijo y el aislamiento del glúteo medio mejora.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -190,10 +190,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina sentado con ambas piernas: abres y cierras contra las almohadillas con el glúteo medio concentrado.",
-                    "El tradicional de las máquinas de cadera."
+                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del glúteo medio. A dos lados, el trabajo del glúteo medio admite más carga total. Sentado, el tronco queda fijo y el aislamiento del glúteo medio mejora.",
+                    "El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
                   ],
-                  "description": "Máquina sentado con ambas piernas: abres y cierras contra las almohadillas con el glúteo medio concentrado. El tradicional de las máquinas de cadera.",
+                  "description": "Con máquina, a dos lados y sentado, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. En la máquina, la trayectoria guiada concentra todo el esfuerzo del glúteo medio. A dos lados, el trabajo del glúteo medio admite más carga total. Sentado, el tronco queda fijo y el aislamiento del glúteo medio mejora.",
                   "technique": "Máquina sentado con ambas piernas: abres y cierras contra las almohadillas con el glúteo medio concentrado. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera.",
                   "variantRationale": "Máquina sentado con ambas piernas: abres y cierras contra las almohadillas con el glúteo medio concentrado. El tradicional de las máquinas de cadera."
                 },
@@ -208,7 +208,7 @@
                 },
                 "identity": {
                   "canonicalName": "Abducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hip_abduction__seated__machine__bilateral",
                   "definitionId": "hip_abduction",
                   "familyId": "hip_abduction",
@@ -293,7 +293,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_abduccion_cadera_sentado_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -304,16 +304,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina sentado de un lado a la vez: concentra cada glúteo medio y corrige desequilibrios entre caderas.",
-                "Muy útil para quien entrena asimétrico; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El glúteo medio trabaja en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo del glúteo medio se aísla y las asimetrías quedan al descubierto. Sentado, el tronco queda fijo y el aislamiento del glúteo medio mejora.",
+                "El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
               ],
-              "description": "Máquina sentado de un lado a la vez: concentra cada glúteo medio y corrige desequilibrios entre caderas. Muy útil para quien entrena asimétrico.",
+              "description": "Con máquina, a un lado y sentado, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. El glúteo medio trabaja en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo del glúteo medio se aísla y las asimetrías quedan al descubierto. Sentado, el tronco queda fijo y el aislamiento del glúteo medio mejora.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -471,10 +471,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina sentado de un lado a la vez: concentra cada glúteo medio y corrige desequilibrios entre caderas.",
-                    "Muy útil para quien entrena asimétrico; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El glúteo medio trabaja en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo del glúteo medio se aísla y las asimetrías quedan al descubierto. Sentado, el tronco queda fijo y el aislamiento del glúteo medio mejora.",
+                    "El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
                   ],
-                  "description": "Máquina sentado de un lado a la vez: concentra cada glúteo medio y corrige desequilibrios entre caderas. Muy útil para quien entrena asimétrico.",
+                  "description": "Con máquina, a un lado y sentado, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. El glúteo medio trabaja en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo del glúteo medio se aísla y las asimetrías quedan al descubierto. Sentado, el tronco queda fijo y el aislamiento del glúteo medio mejora.",
                   "technique": "Máquina sentado de un lado a la vez: concentra cada glúteo medio y corrige desequilibrios entre caderas. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera.",
                   "variantRationale": "Máquina sentado de un lado a la vez: concentra cada glúteo medio y corrige desequilibrios entre caderas. Muy útil para quien entrena asimétrico."
                 },
@@ -489,7 +489,7 @@
                 },
                 "identity": {
                   "canonicalName": "Abducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hip_abduction__seated__machine__unilateral",
                   "definitionId": "hip_abduction",
                   "familyId": "hip_abduction",
@@ -574,7 +574,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_abduccion_cadera",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -585,16 +585,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea de pie con ambas piernas: la tensión constante acompaña la apertura y el glúteo medio trabaja todo el recorrido.",
-                "Variante precisa y efectiva; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El glúteo medio trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del glúteo medio se reparte. De pie, el equilibrio y la zona media participan más en el trabajo del glúteo medio.",
+                "El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
               ],
-              "description": "Polea de pie con ambas piernas: la tensión constante acompaña la apertura y el glúteo medio trabaja todo el recorrido. Variante precisa y efectiva.",
+              "description": "Con polea, a dos lados y de pie, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. El glúteo medio trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del glúteo medio se reparte. De pie, el equilibrio y la zona media participan más en el trabajo del glúteo medio.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -752,10 +752,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea de pie con ambas piernas: la tensión constante acompaña la apertura y el glúteo medio trabaja todo el recorrido.",
-                    "Variante precisa y efectiva; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El glúteo medio trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del glúteo medio se reparte. De pie, el equilibrio y la zona media participan más en el trabajo del glúteo medio.",
+                    "El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
                   ],
-                  "description": "Polea de pie con ambas piernas: la tensión constante acompaña la apertura y el glúteo medio trabaja todo el recorrido. Variante precisa y efectiva.",
+                  "description": "Con polea, a dos lados y de pie, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. El glúteo medio trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del glúteo medio se reparte. De pie, el equilibrio y la zona media participan más en el trabajo del glúteo medio.",
                   "technique": "Polea de pie con ambas piernas: la tensión constante acompaña la apertura y el glúteo medio trabaja todo el recorrido. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera.",
                   "variantRationale": "Polea de pie con ambas piernas: la tensión constante acompaña la apertura y el glúteo medio trabaja todo el recorrido. Variante precisa y efectiva."
                 },
@@ -770,7 +770,7 @@
                 },
                 "identity": {
                   "canonicalName": "Abducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hip_abduction__standing__cable__bilateral",
                   "definitionId": "hip_abduction",
                   "familyId": "hip_abduction",
@@ -855,7 +855,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_abduccion_cadera",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -866,16 +866,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea de pie con una pierna: el glúteo medio trabaja concentrado con tensión continua.",
-                "Útil para igualar ambos lados de la cadera."
+                "Con la polea, la tensión sobre el glúteo medio se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del glúteo medio se aísla y las asimetrías quedan al descubierto. De pie, el equilibrio y la zona media participan más en el trabajo del glúteo medio.",
+                "El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
               ],
-              "description": "Polea de pie con una pierna: el glúteo medio trabaja concentrado con tensión continua. Útil para igualar ambos lados de la cadera.",
+              "description": "Con polea, a un lado y de pie, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. Con la polea, la tensión sobre el glúteo medio se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del glúteo medio se aísla y las asimetrías quedan al descubierto. De pie, el equilibrio y la zona media participan más en el trabajo del glúteo medio.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -1033,10 +1033,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea de pie con una pierna: el glúteo medio trabaja concentrado con tensión continua.",
-                    "Útil para igualar ambos lados de la cadera."
+                    "Con la polea, la tensión sobre el glúteo medio se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del glúteo medio se aísla y las asimetrías quedan al descubierto. De pie, el equilibrio y la zona media participan más en el trabajo del glúteo medio.",
+                    "El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
                   ],
-                  "description": "Polea de pie con una pierna: el glúteo medio trabaja concentrado con tensión continua. Útil para igualar ambos lados de la cadera.",
+                  "description": "Con polea, a un lado y de pie, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. Con la polea, la tensión sobre el glúteo medio se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del glúteo medio se aísla y las asimetrías quedan al descubierto. De pie, el equilibrio y la zona media participan más en el trabajo del glúteo medio.",
                   "technique": "Polea de pie con una pierna: el glúteo medio trabaja concentrado con tensión continua. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera.",
                   "variantRationale": "Polea de pie con una pierna: el glúteo medio trabaja concentrado con tensión continua. Útil para igualar ambos lados de la cadera."
                 },
@@ -1051,7 +1051,7 @@
                 },
                 "identity": {
                   "canonicalName": "Abducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hip_abduction__standing__cable__unilateral",
                   "definitionId": "hip_abduction",
                   "familyId": "hip_abduction",
@@ -1136,7 +1136,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_abduccion_cadera",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1147,16 +1147,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Banda de pie con ambas piernas: la resistencia elástica aumenta en el punto más amplio.",
-                "Sencilla de montar y útil para acumular trabajo para calentar o rematar."
+                "Con la banda, la resistencia crece a medida que avanza el trabajo del glúteo medio. A dos lados, el trabajo del glúteo medio admite más carga total. De pie, el equilibrio y la zona media participan más en el trabajo del glúteo medio.",
+                "El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
               ],
-              "description": "Banda de pie con ambas piernas: la resistencia elástica aumenta en el punto más amplio. Sencilla de montar y útil para acumular trabajo para calentar o rematar.",
+              "description": "Con banda elástica, a dos lados y de pie, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. Con la banda, la resistencia crece a medida que avanza el trabajo del glúteo medio. A dos lados, el trabajo del glúteo medio admite más carga total. De pie, el equilibrio y la zona media participan más en el trabajo del glúteo medio.",
               "efc": 2.8,
               "equipmentId": "band",
               "executionCues": [
@@ -1314,10 +1314,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Banda de pie con ambas piernas: la resistencia elástica aumenta en el punto más amplio.",
-                    "Sencilla de montar y útil para acumular trabajo para calentar o rematar."
+                    "Con la banda, la resistencia crece a medida que avanza el trabajo del glúteo medio. A dos lados, el trabajo del glúteo medio admite más carga total. De pie, el equilibrio y la zona media participan más en el trabajo del glúteo medio.",
+                    "El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
                   ],
-                  "description": "Banda de pie con ambas piernas: la resistencia elástica aumenta en el punto más amplio. Sencilla de montar y útil para acumular trabajo para calentar o rematar.",
+                  "description": "Con banda elástica, a dos lados y de pie, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. Con la banda, la resistencia crece a medida que avanza el trabajo del glúteo medio. A dos lados, el trabajo del glúteo medio admite más carga total. De pie, el equilibrio y la zona media participan más en el trabajo del glúteo medio.",
                   "technique": "Banda de pie con ambas piernas: la resistencia elástica aumenta en el punto más amplio. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera.",
                   "variantRationale": "Banda de pie con ambas piernas: la resistencia elástica aumenta en el punto más amplio. Sencilla de montar y útil para acumular trabajo para calentar o rematar."
                 },
@@ -1332,7 +1332,7 @@
                 },
                 "identity": {
                   "canonicalName": "Abducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hip_abduction__standing__band__bilateral",
                   "definitionId": "hip_abduction",
                   "familyId": "hip_abduction",
@@ -1417,7 +1417,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_abduccion_cadera",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1428,16 +1428,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Banda en una pierna: aperturas contra la resistencia elástica lado a lado.",
-                "Útil para activar el glúteo medio antes de entrenar."
+                "El glúteo medio trabaja con la banda, cuya resistencia crece con el recorrido. Un lado cada vez: el esfuerzo del glúteo medio se aísla y las asimetrías quedan al descubierto. En la posición de pie, el equilibrio y la zona media se suman al trabajo del glúteo medio.",
+                "El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
               ],
-              "description": "Banda en una pierna: aperturas contra la resistencia elástica lado a lado. Útil para activar el glúteo medio antes de entrenar.",
+              "description": "Con banda elástica, a un lado y de pie, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. El glúteo medio trabaja con la banda, cuya resistencia crece con el recorrido. Un lado cada vez: el esfuerzo del glúteo medio se aísla y las asimetrías quedan al descubierto. En la posición de pie, el equilibrio y la zona media se suman al trabajo del glúteo medio.",
               "efc": 2.8,
               "equipmentId": "band",
               "executionCues": [
@@ -1595,10 +1595,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Banda en una pierna: aperturas contra la resistencia elástica lado a lado.",
-                    "Útil para activar el glúteo medio antes de entrenar."
+                    "El glúteo medio trabaja con la banda, cuya resistencia crece con el recorrido. Un lado cada vez: el esfuerzo del glúteo medio se aísla y las asimetrías quedan al descubierto. En la posición de pie, el equilibrio y la zona media se suman al trabajo del glúteo medio.",
+                    "El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
                   ],
-                  "description": "Banda en una pierna: aperturas contra la resistencia elástica lado a lado. Útil para activar el glúteo medio antes de entrenar.",
+                  "description": "Con banda elástica, a un lado y de pie, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. El glúteo medio trabaja con la banda, cuya resistencia crece con el recorrido. Un lado cada vez: el esfuerzo del glúteo medio se aísla y las asimetrías quedan al descubierto. En la posición de pie, el equilibrio y la zona media se suman al trabajo del glúteo medio.",
                   "technique": "Banda en una pierna: aperturas contra la resistencia elástica lado a lado. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera.",
                   "variantRationale": "Banda en una pierna: aperturas contra la resistencia elástica lado a lado. Útil para activar el glúteo medio antes de entrenar."
                 },
@@ -1613,7 +1613,7 @@
                 },
                 "identity": {
                   "canonicalName": "Abducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hip_abduction__standing__band__unilateral",
                   "definitionId": "hip_abduction",
                   "familyId": "hip_abduction",
@@ -1694,11 +1694,11 @@
           }
         ],
         "defaultConfigurationId": "hip_abduction__seated__machine__bilateral",
-        "description": "Separas la pierna hacia el lado contra resistencia y el glúteo medio hace el trabajo. El ejercicio que da forma a la cadera, protege las rodillas y mejora tu estabilidad.",
+        "description": "Las Abducciones de Pierna trabajan el costado de la cadera que nadie ve pero todos necesitan: el glúteo medio separa la pierna del centro contra resistencia y estabiliza la pelvis en cada paso que das. Se hacen en la máquina de abducción, sentado, abriendo las piernas con pausa y regresando sin que las almohadillas golpeen. Con banda o polea la misma idea cabe en casa o de pie. El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1723,7 +1723,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

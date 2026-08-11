@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Elevación de talones",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#calves_talones_de_pie",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "benefits": [
-                "Máquina de pantorrillas con ambas piernas: subes y bajas con la espalda apoyada.",
-                "La forma más utilizada de trabajar las pantorrillas."
+                "En la máquina, la trayectoria guiada concentra todo el esfuerzo de los gemelos. Con ambos lados a la vez, el trabajo de los gemelos se reparte.",
+                "El camino más corto a unas pantorrillas que se noten."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
               ],
-              "description": "Máquina de pantorrillas con ambas piernas: subes y bajas con la espalda apoyada. La forma más utilizada de trabajar las pantorrillas.",
+              "description": "Con máquina y a dos lados, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los gemelos. Con ambos lados a la vez, el trabajo de los gemelos se reparte.",
               "efc": 2.0,
               "equipmentId": "machine",
               "executionCues": [
@@ -183,10 +183,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina de pantorrillas con ambas piernas: subes y bajas con la espalda apoyada.",
-                    "La forma más utilizada de trabajar las pantorrillas."
+                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo de los gemelos. Con ambos lados a la vez, el trabajo de los gemelos se reparte.",
+                    "El camino más corto a unas pantorrillas que se noten."
                   ],
-                  "description": "Máquina de pantorrillas con ambas piernas: subes y bajas con la espalda apoyada. La forma más utilizada de trabajar las pantorrillas.",
+                  "description": "Con máquina y a dos lados, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los gemelos. Con ambos lados a la vez, el trabajo de los gemelos se reparte.",
                   "technique": "Máquina de pantorrillas con ambas piernas: subes y bajas con la espalda apoyada. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote.",
                   "variantRationale": "Máquina de pantorrillas con ambas piernas: subes y bajas con la espalda apoyada. La forma más utilizada de trabajar las pantorrillas."
                 },
@@ -201,7 +201,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "calf_raise__bilateral__machine",
                   "definitionId": "calf_raise",
                   "familyId": "lower_plantar_flexion",
@@ -284,7 +284,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#calves_talones_de_pie",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -295,16 +295,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "benefits": [
-                "Máquina con una pierna: cada pantorrilla eleva el cuerpo por separado y la plataforma elimina parte del problema de equilibrio.",
-                "Es una forma precisa de comparar fuerza y amplitud entre lados."
+                "Los gemelos trabajan en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo de los gemelos se aísla y las asimetrías quedan al descubierto.",
+                "El camino más corto a unas pantorrillas que se noten."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
               ],
-              "description": "Máquina con una pierna: cada pantorrilla eleva el cuerpo por separado y la plataforma elimina parte del problema de equilibrio. Es una forma precisa de comparar fuerza y amplitud entre lados.",
+              "description": "Con máquina y a un lado, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. Los gemelos trabajan en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo de los gemelos se aísla y las asimetrías quedan al descubierto.",
               "efc": 2.0,
               "equipmentId": "machine",
               "executionCues": [
@@ -455,10 +455,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina con una pierna: cada pantorrilla eleva el cuerpo por separado y la plataforma elimina parte del problema de equilibrio.",
-                    "Es una forma precisa de comparar fuerza y amplitud entre lados."
+                    "Los gemelos trabajan en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo de los gemelos se aísla y las asimetrías quedan al descubierto.",
+                    "El camino más corto a unas pantorrillas que se noten."
                   ],
-                  "description": "Máquina con una pierna: cada pantorrilla eleva el cuerpo por separado y la plataforma elimina parte del problema de equilibrio. Es una forma precisa de comparar fuerza y amplitud entre lados.",
+                  "description": "Con máquina y a un lado, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. Los gemelos trabajan en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo de los gemelos se aísla y las asimetrías quedan al descubierto.",
                   "technique": "Máquina con una pierna: cada pantorrilla eleva el cuerpo por separado y la plataforma elimina parte del problema de equilibrio. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote.",
                   "variantRationale": "Máquina con una pierna: cada pantorrilla eleva el cuerpo por separado y la plataforma elimina parte del problema de equilibrio. Es una forma precisa de comparar fuerza y amplitud entre lados."
                 },
@@ -473,7 +473,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "calf_raise__unilateral__machine",
                   "definitionId": "calf_raise",
                   "familyId": "lower_plantar_flexion",
@@ -556,7 +556,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#calves_talones_de_pie",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -567,16 +567,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "benefits": [
-                "Barra en la espalda con ambas piernas: subes a la punta de los pies con la carga.",
-                "El tradicional de pantorrillas del gimnasio."
+                "La barra es la referencia para cargar los gemelos con peso de verdad. Con ambos lados a la vez, el trabajo de los gemelos se reparte.",
+                "El camino más corto a unas pantorrillas que se noten."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
               ],
-              "description": "Barra en la espalda con ambas piernas: subes a la punta de los pies con la carga. El tradicional de pantorrillas del gimnasio.",
+              "description": "Con barra y a dos lados, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. La barra es la referencia para cargar los gemelos con peso de verdad. Con ambos lados a la vez, el trabajo de los gemelos se reparte.",
               "efc": 2.0,
               "equipmentId": "barbell",
               "executionCues": [
@@ -727,10 +727,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra en la espalda con ambas piernas: subes a la punta de los pies con la carga.",
-                    "El tradicional de pantorrillas del gimnasio."
+                    "La barra es la referencia para cargar los gemelos con peso de verdad. Con ambos lados a la vez, el trabajo de los gemelos se reparte.",
+                    "El camino más corto a unas pantorrillas que se noten."
                   ],
-                  "description": "Barra en la espalda con ambas piernas: subes a la punta de los pies con la carga. El tradicional de pantorrillas del gimnasio.",
+                  "description": "Con barra y a dos lados, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. La barra es la referencia para cargar los gemelos con peso de verdad. Con ambos lados a la vez, el trabajo de los gemelos se reparte.",
                   "technique": "Barra en la espalda con ambas piernas: subes a la punta de los pies con la carga. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote.",
                   "variantRationale": "Barra en la espalda con ambas piernas: subes a la punta de los pies con la carga. El tradicional de pantorrillas del gimnasio."
                 },
@@ -745,7 +745,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "calf_raise__bilateral__barbell",
                   "definitionId": "calf_raise",
                   "familyId": "lower_plantar_flexion",
@@ -828,7 +828,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#calves_talones_de_pie",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -839,16 +839,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "benefits": [
-                "Barra en una pierna: la pantorrilla de un lado hace la mayor parte de la carga.",
-                "Avanzado y útil para acumular trabajo para igualar gemelos."
+                "La barra es la referencia para cargar los gemelos con peso de verdad. Un lado cada vez: el esfuerzo de los gemelos se aísla y las asimetrías quedan al descubierto.",
+                "El camino más corto a unas pantorrillas que se noten."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
               ],
-              "description": "Barra en una pierna: la pantorrilla de un lado hace la mayor parte de la carga. Avanzado y útil para acumular trabajo para igualar gemelos.",
+              "description": "Con barra y a un lado, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. La barra es la referencia para cargar los gemelos con peso de verdad. Un lado cada vez: el esfuerzo de los gemelos se aísla y las asimetrías quedan al descubierto.",
               "efc": 2.0,
               "equipmentId": "barbell",
               "executionCues": [
@@ -999,10 +999,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra en una pierna: la pantorrilla de un lado hace la mayor parte de la carga.",
-                    "Avanzado y útil para acumular trabajo para igualar gemelos."
+                    "La barra es la referencia para cargar los gemelos con peso de verdad. Un lado cada vez: el esfuerzo de los gemelos se aísla y las asimetrías quedan al descubierto.",
+                    "El camino más corto a unas pantorrillas que se noten."
                   ],
-                  "description": "Barra en una pierna: la pantorrilla de un lado hace la mayor parte de la carga. Avanzado y útil para acumular trabajo para igualar gemelos.",
+                  "description": "Con barra y a un lado, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. La barra es la referencia para cargar los gemelos con peso de verdad. Un lado cada vez: el esfuerzo de los gemelos se aísla y las asimetrías quedan al descubierto.",
                   "technique": "Barra en una pierna: la pantorrilla de un lado hace la mayor parte de la carga. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote.",
                   "variantRationale": "Barra en una pierna: la pantorrilla de un lado hace la mayor parte de la carga. Avanzado y útil para acumular trabajo para igualar gemelos."
                 },
@@ -1017,7 +1017,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "calf_raise__unilateral__barbell",
                   "definitionId": "calf_raise",
                   "familyId": "lower_plantar_flexion",
@@ -1100,7 +1100,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#calves_talones_de_pie",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1111,16 +1111,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "benefits": [
-                "Smith con ambas piernas: la barra guiada sobre los hombros y subes a la punta de los pies.",
-                "Cómoda y estable para cargar peso; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Los gemelos trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A dos lados, el trabajo de los gemelos admite más carga total.",
+                "El camino más corto a unas pantorrillas que se noten."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
               ],
-              "description": "Smith con ambas piernas: la barra guiada sobre los hombros y subes a la punta de los pies. Cómoda y estable para cargar peso.",
+              "description": "Con máquina Smith y a dos lados, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. Los gemelos trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A dos lados, el trabajo de los gemelos admite más carga total.",
               "efc": 2.0,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -1271,10 +1271,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith con ambas piernas: la barra guiada sobre los hombros y subes a la punta de los pies.",
-                    "Cómoda y estable para cargar peso; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Los gemelos trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A dos lados, el trabajo de los gemelos admite más carga total.",
+                    "El camino más corto a unas pantorrillas que se noten."
                   ],
-                  "description": "Smith con ambas piernas: la barra guiada sobre los hombros y subes a la punta de los pies. Cómoda y estable para cargar peso.",
+                  "description": "Con máquina Smith y a dos lados, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. Los gemelos trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A dos lados, el trabajo de los gemelos admite más carga total.",
                   "technique": "Smith con ambas piernas: la barra guiada sobre los hombros y subes a la punta de los pies. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote.",
                   "variantRationale": "Smith con ambas piernas: la barra guiada sobre los hombros y subes a la punta de los pies. Cómoda y estable para cargar peso."
                 },
@@ -1289,7 +1289,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "calf_raise__bilateral__smith_machine",
                   "definitionId": "calf_raise",
                   "familyId": "lower_plantar_flexion",
@@ -1372,7 +1372,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#calves_talones_de_pie",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1383,16 +1383,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "benefits": [
-                "Smith con una pierna: un gemelo trabaja sin ayuda del otro lado con la barra estable.",
-                "Útil para pantorrillas parejas; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Los gemelos trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A un lado, el trabajo de los gemelos se hace en solitario y las diferencias salen a la vista.",
+                "El camino más corto a unas pantorrillas que se noten."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
               ],
-              "description": "Smith con una pierna: un gemelo trabaja sin ayuda del otro lado con la barra estable. Útil para pantorrillas parejas.",
+              "description": "Con máquina Smith y a un lado, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. Los gemelos trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A un lado, el trabajo de los gemelos se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.0,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -1543,10 +1543,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith con una pierna: un gemelo trabaja sin ayuda del otro lado con la barra estable.",
-                    "Útil para pantorrillas parejas; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Los gemelos trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A un lado, el trabajo de los gemelos se hace en solitario y las diferencias salen a la vista.",
+                    "El camino más corto a unas pantorrillas que se noten."
                   ],
-                  "description": "Smith con una pierna: un gemelo trabaja sin ayuda del otro lado con la barra estable. Útil para pantorrillas parejas.",
+                  "description": "Con máquina Smith y a un lado, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. Los gemelos trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A un lado, el trabajo de los gemelos se hace en solitario y las diferencias salen a la vista.",
                   "technique": "Smith con una pierna: un gemelo trabaja sin ayuda del otro lado con la barra estable. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote.",
                   "variantRationale": "Smith con una pierna: un gemelo trabaja sin ayuda del otro lado con la barra estable. Útil para pantorrillas parejas."
                 },
@@ -1561,7 +1561,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "calf_raise__unilateral__smith_machine",
                   "definitionId": "calf_raise",
                   "familyId": "lower_plantar_flexion",
@@ -1644,7 +1644,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#calves_talones_de_pie",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1655,16 +1655,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "benefits": [
-                "Polea con ambas piernas: la tensión constante sube los talones con la pantorrilla cargada.",
-                "Variante precisa y suave con la espalda."
+                "Los gemelos trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los gemelos se reparte.",
+                "El camino más corto a unas pantorrillas que se noten."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
               ],
-              "description": "Polea con ambas piernas: la tensión constante sube los talones con la pantorrilla cargada. Variante precisa y suave con la espalda.",
+              "description": "Con polea y a dos lados, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. Los gemelos trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los gemelos se reparte.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
@@ -1815,10 +1815,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea con ambas piernas: la tensión constante sube los talones con la pantorrilla cargada.",
-                    "Variante precisa y suave con la espalda."
+                    "Los gemelos trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los gemelos se reparte.",
+                    "El camino más corto a unas pantorrillas que se noten."
                   ],
-                  "description": "Polea con ambas piernas: la tensión constante sube los talones con la pantorrilla cargada. Variante precisa y suave con la espalda.",
+                  "description": "Con polea y a dos lados, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. Los gemelos trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los gemelos se reparte.",
                   "technique": "Polea con ambas piernas: la tensión constante sube los talones con la pantorrilla cargada. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote.",
                   "variantRationale": "Polea con ambas piernas: la tensión constante sube los talones con la pantorrilla cargada. Variante precisa y suave con la espalda."
                 },
@@ -1833,7 +1833,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "calf_raise__bilateral__cable",
                   "definitionId": "calf_raise",
                   "familyId": "lower_plantar_flexion",
@@ -1916,7 +1916,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#calves_talones_de_pie",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1927,16 +1927,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "benefits": [
-                "Polea con una pierna: tensión continua en una pantorrilla a la vez.",
-                "Útil para un trabajo preciso y equilibrado."
+                "Los gemelos trabajan con la polea, que mantiene la tensión constante en todo el arco. A un lado, el trabajo de los gemelos se hace en solitario y las diferencias salen a la vista.",
+                "El camino más corto a unas pantorrillas que se noten."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
               ],
-              "description": "Polea con una pierna: tensión continua en una pantorrilla a la vez. Útil para un trabajo preciso y equilibrado.",
+              "description": "Con polea y a un lado, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. Los gemelos trabajan con la polea, que mantiene la tensión constante en todo el arco. A un lado, el trabajo de los gemelos se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
@@ -2087,10 +2087,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea con una pierna: tensión continua en una pantorrilla a la vez.",
-                    "Útil para un trabajo preciso y equilibrado."
+                    "Los gemelos trabajan con la polea, que mantiene la tensión constante en todo el arco. A un lado, el trabajo de los gemelos se hace en solitario y las diferencias salen a la vista.",
+                    "El camino más corto a unas pantorrillas que se noten."
                   ],
-                  "description": "Polea con una pierna: tensión continua en una pantorrilla a la vez. Útil para un trabajo preciso y equilibrado.",
+                  "description": "Con polea y a un lado, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. Los gemelos trabajan con la polea, que mantiene la tensión constante en todo el arco. A un lado, el trabajo de los gemelos se hace en solitario y las diferencias salen a la vista.",
                   "technique": "Polea con una pierna: tensión continua en una pantorrilla a la vez. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote.",
                   "variantRationale": "Polea con una pierna: tensión continua en una pantorrilla a la vez. Útil para un trabajo preciso y equilibrado."
                 },
@@ -2105,7 +2105,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "calf_raise__unilateral__cable",
                   "definitionId": "calf_raise",
                   "familyId": "lower_plantar_flexion",
@@ -2184,11 +2184,11 @@
           }
         ],
         "defaultConfigurationId": "calf_raise__bilateral__machine",
-        "description": "Subes a la punta de los pies y bajas con control, con la pantorrilla haciendo la mayor parte de la carga. El ejercicio pequeño que construye pantorrillas grandes.",
+        "description": "La Elevación de Talones es el trabajo directo de los gemelos: subir sobre las puntas de los pies contra carga y bajar hasta el estiramiento completo. Se ejecuta en la máquina de gemelos, con la barra sobre los hombros o en la Smith, con una pausa arriba y otra abajo en cada repetición. A una pierna revela quién tiene un lado más débil. El camino más corto a unas pantorrillas que se noten.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -2212,7 +2212,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

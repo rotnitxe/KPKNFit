@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren inferior · gluteus maximus · unilateral hip dominant",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_step_up_gluteo",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Subes a un cajón empujando con una pierna, con el glúteo protagonizando.",
-                "Unilateral, exigente y útil para corregir desequilibrios."
+                "El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                "El ajuste fino para que el glúteo se lleve el trabajo que le corresponde."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
               ],
-              "description": "Subes a un cajón empujando con una pierna, con el glúteo protagonizando. Unilateral, exigente y útil para corregir desequilibrios.",
+              "description": "Con mancuernas, con el torso inclinado hacia delante, la subida al cajón se convierte en un empuje de cadera. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -204,10 +204,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Subes a un cajón empujando con una pierna, con el glúteo protagonizando.",
-                    "Unilateral, exigente y útil para corregir desequilibrios."
+                    "El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                    "El ajuste fino para que el glúteo se lleve el trabajo que le corresponde."
                   ],
-                  "description": "Subes a un cajón empujando con una pierna, con el glúteo protagonizando. Unilateral, exigente y útil para corregir desequilibrios.",
+                  "description": "Con mancuernas, con el torso inclinado hacia delante, la subida al cajón se convierte en un empuje de cadera. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
                   "technique": "Subes a un cajón empujando con una pierna, con el glúteo protagonizando. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Subes a un cajón empujando con una pierna, con el glúteo protagonizando. Unilateral, exigente y útil para corregir desequilibrios."
                 },
@@ -222,7 +222,7 @@
                 },
                 "identity": {
                   "canonicalName": "Step-Up de Glúteo",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "glutes_step_up_gluteo__default",
                   "definitionId": "glutes_step_up_gluteo",
                   "familyId": "lower_unilateral_hip_dominant",
@@ -295,11 +295,11 @@
           }
         ],
         "defaultConfigurationId": "glutes_step_up_gluteo__default",
-        "description": "Subes a un cajón empujando con una sola pierna, con el glúteo haciendo el trabajo. Un ejercicio unilateral que corrige desequilibrios y aumenta la tensión del glúteo.",
+        "description": "El Step-Up de Glúteo inclina el torso hacia delante sobre el cajón y convierte la subida en un asunto de cadera: el glúteo mayor empuja la extensión con el cuádriceps en segundo plano. Se ejecuta con una mancuerna ligera, subiendo con la pierna de arriba y bajando sin impulso del pie libre. La inclinación frontal es lo que cambia el protagonista respecto al step-up normal. El ajuste fino para que el glúteo se lleve el trabajo que le corresponde.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -322,7 +322,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_zancada_cruzada",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -333,16 +333,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "El paso cruza por detrás de la otra pierna y bajas en diagonal.",
-                "Glúteo y cadera trabajan con un ángulo que la zancada normal no toca."
+                "Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
+                "La zancada olvidada que redondea lo que las demás dejan."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
               ],
-              "description": "El paso cruza por detrás de la otra pierna y bajas en diagonal. Glúteo y cadera trabajan con un ángulo que la zancada normal no toca.",
+              "description": "Con mancuernas, la pierna cruza por detrás en diagonal y la delantera aguanta todo el peso. Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -514,10 +514,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "El paso cruza por detrás de la otra pierna y bajas en diagonal.",
-                    "Glúteo y cadera trabajan con un ángulo que la zancada normal no toca."
+                    "Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
+                    "La zancada olvidada que redondea lo que las demás dejan."
                   ],
-                  "description": "El paso cruza por detrás de la otra pierna y bajas en diagonal. Glúteo y cadera trabajan con un ángulo que la zancada normal no toca.",
+                  "description": "Con mancuernas, la pierna cruza por detrás en diagonal y la delantera aguanta todo el peso. Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
                   "technique": "El paso cruza por detrás de la otra pierna y bajas en diagonal. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "El paso cruza por detrás de la otra pierna y bajas en diagonal. Glúteo y cadera trabajan con un ángulo que la zancada normal no toca."
                 },
@@ -532,7 +532,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Cruzada",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "glutes_zancada_cruzada__default",
                   "definitionId": "glutes_zancada_cruzada",
                   "familyId": "lower_unilateral_hip_dominant",
@@ -605,11 +605,11 @@
           }
         ],
         "defaultConfigurationId": "glutes_zancada_cruzada__default",
-        "description": "Das un paso atrás y cruzado por detrás de la otra pierna, bajando en diagonal. Trabaja glúteo y caderas con un ángulo distinto a la zancada normal.",
+        "description": "La Zancada Cruzada lleva la pierna hacia atrás en diagonal, cruzando por detrás de la de apoyo: el glúteo de la pierna fija trabaja en un ángulo que las zancadas normales no visitan. Se ejecuta con mancuernas suaves, bajando con la cadera cuadrada y regresando sin que la rodilla de apoyo baile. El patrón curtsy despierta el lateral del glúteo y la cara externa del muslo. La zancada olvidada que redondea lo que las demás dejan.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -628,7 +628,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

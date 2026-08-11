@@ -1,8 +1,39 @@
 # Estado de ejecución — catálogo de ejercicios
 
-Fecha de corte: 2026-08-08 (curaduría editorial v6)
-Revisión: `v2-approved-2026-08-08-c`
-Hash canónico compartido: `dbd6f7a475907398aa7bfb0bacaa9d8619bff9d641aa7a160dc2deea9ff3bf16`
+Fecha de corte: 2026-08-10 (curaduría editorial v7.2 — copy humano editorial)
+Revisión: `v2-approved-2026-08-10-c`
+Hash canónico compartido: `20ecd23cb4766c341236e09d336bf1c3d3db3041ec6d8b3dd568de124acc0aa5`
+
+## Curaduría v7.2 (2026-08-10): estructura editorial humana aprobada
+
+- Las 196 descripciones de definición se reescribieron a mano con la estructura
+  aprobada por el dueño del producto: (1) introducción con el nombre del
+  ejercicio, tipo de movimiento, músculos y marco editorial; (2) ejecución
+  contada en tono editorial con el implemento principal integrado; (3)
+  mención opcional de 1-2 alternativas con su efecto real y transición
+  natural (sin listas robóticas de implementos); (4) veredicto dedicado.
+- La descripción de definición abre con el nombre del ejercicio (R11 v7.2);
+  las configuraciones siguen sin repetirlo y pasan a ser líneas de matiz:
+  esencia del movimiento (escrita por ejercicio) + efecto real de los chips.
+- Se relajaron dos gates: nombre canónico permitido en definiciones y formas
+  reflexivas/descriptivas como "se ejecuta" permitidas (imperativos fuera).
+- Verificación anti-reciclaje: 0 frases de 6+ palabras compartidas entre
+  definiciones; 0 implementos mencionados que el ejercicio no tenga; 0
+  imperativos; aperturas únicas en definiciones y configuraciones.
+
+## Curaduría v7 (2026-08-10): copy humano editorial — descripciones reescritas
+
+- `editorial_briefs.json` reescrito con calidad humana: 196 descripciones de
+  definición con estructura de 3 frases (qué es, qué trabaja + implementos
+  disponibles, veredicto dedicado) y 518 líneas de matiz por configuración
+  (variante corta y dedicada por implemento/agarre). Se elimina el relleno
+  "una diferencia concreta para repartir el esfuerzo durante la serie", los
+  benefits duplicados y los veredictos reciclados.
+- Cada descripción menciona al ejercicio sin repetir el nombre canónico, respeta
+  los implementos reales de cada definición (82 con múltiples implementos) y
+  aporta un veredicto tipo "gran constructor de..." dedicado y no genérico.
+- El gate comprueba cobertura exacta, igualdad con el perfil, ausencia de
+  boilerplate y unicidad de la primera frase (196 + 518 aperturas únicas).
 
 ## Curaduría v6 (2026-08-08): briefs dedicados por ejercicio y configuración
 

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren superior · deltoid · diagonal push",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_landmine_unilateral",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Barra anclada al suelo y empuje en diagonal con un brazo.",
-                "El hombro trabaja con el torso estable y sin forzar."
+                "Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
+                "La puerta de entrada al empuje unilateral con barra."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Barra anclada al suelo y empuje en diagonal con un brazo. El hombro trabaja con el torso estable y sin forzar.",
+              "description": "Con barra, con un extremo de la barra anclado, un solo brazo empuja en diagonal hacia arriba y al frente. Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -205,10 +205,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra anclada al suelo y empuje en diagonal con un brazo.",
-                    "El hombro trabaja con el torso estable y sin forzar."
+                    "Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
+                    "La puerta de entrada al empuje unilateral con barra."
                   ],
-                  "description": "Barra anclada al suelo y empuje en diagonal con un brazo. El hombro trabaja con el torso estable y sin forzar.",
+                  "description": "Con barra, con un extremo de la barra anclado, un solo brazo empuja en diagonal hacia arriba y al frente. Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
                   "technique": "Barra anclada al suelo y empuje en diagonal con un brazo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Barra anclada al suelo y empuje en diagonal con un brazo. El hombro trabaja con el torso estable y sin forzar."
                 },
@@ -223,7 +223,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Landmine Unilateral",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "deltoides_press_landmine_unilateral__default",
                   "definitionId": "deltoides_press_landmine_unilateral",
                   "familyId": "upper_diagonal_push",
@@ -295,11 +295,11 @@
           }
         ],
         "defaultConfigurationId": "deltoides_press_landmine_unilateral__default",
-        "description": "Una punta de la barra anclada al suelo y empujas con un brazo en diagonal. Fuerza de hombro con el torso estable.",
+        "description": "El Press Landmine Unilateral ancla un extremo de la barra y empuja el otro con un solo brazo en diagonal: el deltoide trabaja en un arco que mezcla vertical y horizontal, amable con la articulación. Se ejecuta de pie o de rodillas, empujando el extremo libre hacia arriba y al frente con el torso firme. La trayectoria diagonal es más cómoda para hombros sensibles que el press vertical. La puerta de entrada al empuje unilateral con barra.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -317,7 +317,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

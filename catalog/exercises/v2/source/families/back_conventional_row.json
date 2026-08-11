@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Remo Convencional",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_barra",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Barra frente a los muslos, tronco inclinado y codos hacia la cintura: la carga permite progresar con una referencia estable para toda la espalda.",
-                "La barra bilateral facilita comparar cargas, pero exige sostener la inclinación desde la cadera sin convertir el tirón en balanceo."
+                "Con la barra, la carga sube al máximo y la progresión del dorsal ancho se mide sin trampa.",
+                "Un constructor de espalda completa que exige respeto por la postura."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Barra frente a los muslos, tronco inclinado y codos hacia la cintura: la carga permite progresar con una referencia estable para toda la espalda. La barra bilateral facilita comparar cargas, pero exige sostener la inclinación desde la cadera sin convertir el tirón en balanceo.",
+              "description": "Con barra, el torso inclinado se mantiene firme mientras la carga sube hacia el abdomen y los codos cierran el tirón. Con la barra, la carga sube al máximo y la progresión del dorsal ancho se mide sin trampa.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -239,10 +239,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra frente a los muslos, tronco inclinado y codos hacia la cintura: la carga permite progresar con una referencia estable para toda la espalda.",
-                    "La barra bilateral facilita comparar cargas, pero exige sostener la inclinación desde la cadera sin convertir el tirón en balanceo."
+                    "Con la barra, la carga sube al máximo y la progresión del dorsal ancho se mide sin trampa.",
+                    "Un constructor de espalda completa que exige respeto por la postura."
                   ],
-                  "description": "Barra frente a los muslos, tronco inclinado y codos hacia la cintura: la carga permite progresar con una referencia estable para toda la espalda. La barra bilateral facilita comparar cargas, pero exige sostener la inclinación desde la cadera sin convertir el tirón en balanceo.",
+                  "description": "Con barra, el torso inclinado se mantiene firme mientras la carga sube hacia el abdomen y los codos cierran el tirón. Con la barra, la carga sube al máximo y la progresión del dorsal ancho se mide sin trampa.",
                   "technique": "Barra frente a los muslos, tronco inclinado y codos hacia la cintura: la carga permite progresar con una referencia estable para toda la espalda. La cadera fija la inclinación del torso y los codos llevan la carga hacia la cintura sin convertir el remo en un balanceo.",
                   "variantRationale": "Barra frente a los muslos, tronco inclinado y codos hacia la cintura: la carga permite progresar con una referencia estable para toda la espalda. La barra bilateral facilita comparar cargas, pero exige sostener la inclinación desde la cadera sin convertir el tirón en balanceo."
                 },
@@ -257,7 +257,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Convencional",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "conventional_row__barbell",
                   "definitionId": "conventional_row",
                   "familyId": "back_conventional_row",
@@ -346,7 +346,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_barra",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -357,16 +357,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuernas suspendidas bajo los hombros: cada brazo puede elegir una línea ligeramente distinta mientras el tronco permanece inclinado.",
-                "La independencia de las cargas ayuda a detectar asimetrías y añade una demanda de estabilización en cada mano."
+                "Con mancuernas, cada lado ajusta su línea y el trabajo del dorsal ancho se equilibra solo.",
+                "Un constructor de espalda completa que exige respeto por la postura."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Mancuernas suspendidas bajo los hombros: cada brazo puede elegir una línea ligeramente distinta mientras el tronco permanece inclinado. La independencia de las cargas ayuda a detectar asimetrías y añade una demanda de estabilización en cada mano.",
+              "description": "Con mancuernas, el torso inclinado se mantiene firme mientras la carga sube hacia el abdomen y los codos cierran el tirón. Con mancuernas, cada lado ajusta su línea y el trabajo del dorsal ancho se equilibra solo.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -573,10 +573,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas suspendidas bajo los hombros: cada brazo puede elegir una línea ligeramente distinta mientras el tronco permanece inclinado.",
-                    "La independencia de las cargas ayuda a detectar asimetrías y añade una demanda de estabilización en cada mano."
+                    "Con mancuernas, cada lado ajusta su línea y el trabajo del dorsal ancho se equilibra solo.",
+                    "Un constructor de espalda completa que exige respeto por la postura."
                   ],
-                  "description": "Mancuernas suspendidas bajo los hombros: cada brazo puede elegir una línea ligeramente distinta mientras el tronco permanece inclinado. La independencia de las cargas ayuda a detectar asimetrías y añade una demanda de estabilización en cada mano.",
+                  "description": "Con mancuernas, el torso inclinado se mantiene firme mientras la carga sube hacia el abdomen y los codos cierran el tirón. Con mancuernas, cada lado ajusta su línea y el trabajo del dorsal ancho se equilibra solo.",
                   "technique": "Mancuernas suspendidas bajo los hombros: cada brazo puede elegir una línea ligeramente distinta mientras el tronco permanece inclinado. La cadera fija la inclinación del torso y los codos llevan la carga hacia la cintura sin convertir el remo en un balanceo.",
                   "variantRationale": "Mancuernas suspendidas bajo los hombros: cada brazo puede elegir una línea ligeramente distinta mientras el tronco permanece inclinado. La independencia de las cargas ayuda a detectar asimetrías y añade una demanda de estabilización en cada mano."
                 },
@@ -591,7 +591,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Convencional",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "conventional_row__dumbbells",
                   "definitionId": "conventional_row",
                   "familyId": "back_conventional_row",
@@ -680,7 +680,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_barra",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -691,16 +691,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina de remo con el pecho libre: el recorrido guiado reduce la necesidad de equilibrar la carga y deja más energía para la tracción.",
-                "El torso permanece inclinado y los codos marcan el camino hacia la cintura sin que la estación decida por completo la posición del tronco."
+                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho.",
+                "Un constructor de espalda completa que exige respeto por la postura."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Máquina de remo con el pecho libre: el recorrido guiado reduce la necesidad de equilibrar la carga y deja más energía para la tracción. El torso permanece inclinado y los codos marcan el camino hacia la cintura sin que la estación decida por completo la posición del tronco.",
+              "description": "Con máquina, el torso inclinado se mantiene firme mientras la carga sube hacia el abdomen y los codos cierran el tirón. En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -907,10 +907,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina de remo con el pecho libre: el recorrido guiado reduce la necesidad de equilibrar la carga y deja más energía para la tracción.",
-                    "El torso permanece inclinado y los codos marcan el camino hacia la cintura sin que la estación decida por completo la posición del tronco."
+                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho.",
+                    "Un constructor de espalda completa que exige respeto por la postura."
                   ],
-                  "description": "Máquina de remo con el pecho libre: el recorrido guiado reduce la necesidad de equilibrar la carga y deja más energía para la tracción. El torso permanece inclinado y los codos marcan el camino hacia la cintura sin que la estación decida por completo la posición del tronco.",
+                  "description": "Con máquina, el torso inclinado se mantiene firme mientras la carga sube hacia el abdomen y los codos cierran el tirón. En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho.",
                   "technique": "Máquina de remo con el pecho libre: el recorrido guiado reduce la necesidad de equilibrar la carga y deja más energía para la tracción. La cadera fija la inclinación del torso y los codos llevan la carga hacia la cintura sin convertir el remo en un balanceo.",
                   "variantRationale": "Máquina de remo con el pecho libre: el recorrido guiado reduce la necesidad de equilibrar la carga y deja más energía para la tracción. El torso permanece inclinado y los codos marcan el camino hacia la cintura sin que la estación decida por completo la posición del tronco."
                 },
@@ -925,7 +925,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Convencional",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "conventional_row__machine",
                   "definitionId": "conventional_row",
                   "familyId": "back_conventional_row",
@@ -1014,7 +1014,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_barra",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1025,16 +1025,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Smith con la barra en una trayectoria fija: el guiado reduce el componente de equilibrio mientras el tronco sostiene la posición inclinada.",
-                "Permite concentrar la progresión en la extensión del hombro y en la aproximación de los codos a la cintura."
+                "El dorsal ancho trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+                "Un constructor de espalda completa que exige respeto por la postura."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Smith con la barra en una trayectoria fija: el guiado reduce el componente de equilibrio mientras el tronco sostiene la posición inclinada. Permite concentrar la progresión en la extensión del hombro y en la aproximación de los codos a la cintura.",
+              "description": "Con máquina Smith, el torso inclinado se mantiene firme mientras la carga sube hacia el abdomen y los codos cierran el tirón. El dorsal ancho trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
               "efc": 2.5,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -1241,10 +1241,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith con la barra en una trayectoria fija: el guiado reduce el componente de equilibrio mientras el tronco sostiene la posición inclinada.",
-                    "Permite concentrar la progresión en la extensión del hombro y en la aproximación de los codos a la cintura."
+                    "El dorsal ancho trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+                    "Un constructor de espalda completa que exige respeto por la postura."
                   ],
-                  "description": "Smith con la barra en una trayectoria fija: el guiado reduce el componente de equilibrio mientras el tronco sostiene la posición inclinada. Permite concentrar la progresión en la extensión del hombro y en la aproximación de los codos a la cintura.",
+                  "description": "Con máquina Smith, el torso inclinado se mantiene firme mientras la carga sube hacia el abdomen y los codos cierran el tirón. El dorsal ancho trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
                   "technique": "Smith con la barra en una trayectoria fija: el guiado reduce el componente de equilibrio mientras el tronco sostiene la posición inclinada. La cadera fija la inclinación del torso y los codos llevan la carga hacia la cintura sin convertir el remo en un balanceo.",
                   "variantRationale": "Smith con la barra en una trayectoria fija: el guiado reduce el componente de equilibrio mientras el tronco sostiene la posición inclinada. Permite concentrar la progresión en la extensión del hombro y en la aproximación de los codos a la cintura."
                 },
@@ -1259,7 +1259,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Convencional",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "conventional_row__smith_machine",
                   "definitionId": "conventional_row",
                   "familyId": "back_conventional_row",
@@ -1348,7 +1348,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_barra",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1359,16 +1359,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Kettlebells colgando entre las piernas: el centro de masa bajo el agarre añade trabajo de muñeca y exige que el torso no se desorganice.",
-                "La carga dividida ofrece una trayectoria flexible, aunque el agarre puede limitar la serie antes que la espalda."
+                "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del dorsal ancho.",
+                "Un constructor de espalda completa que exige respeto por la postura."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Kettlebells colgando entre las piernas: el centro de masa bajo el agarre añade trabajo de muñeca y exige que el torso no se desorganice. La carga dividida ofrece una trayectoria flexible, aunque el agarre puede limitar la serie antes que la espalda.",
+              "description": "Con kettlebell, el torso inclinado se mantiene firme mientras la carga sube hacia el abdomen y los codos cierran el tirón. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del dorsal ancho.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -1575,10 +1575,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Kettlebells colgando entre las piernas: el centro de masa bajo el agarre añade trabajo de muñeca y exige que el torso no se desorganice.",
-                    "La carga dividida ofrece una trayectoria flexible, aunque el agarre puede limitar la serie antes que la espalda."
+                    "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del dorsal ancho.",
+                    "Un constructor de espalda completa que exige respeto por la postura."
                   ],
-                  "description": "Kettlebells colgando entre las piernas: el centro de masa bajo el agarre añade trabajo de muñeca y exige que el torso no se desorganice. La carga dividida ofrece una trayectoria flexible, aunque el agarre puede limitar la serie antes que la espalda.",
+                  "description": "Con kettlebell, el torso inclinado se mantiene firme mientras la carga sube hacia el abdomen y los codos cierran el tirón. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del dorsal ancho.",
                   "technique": "Kettlebells colgando entre las piernas: el centro de masa bajo el agarre añade trabajo de muñeca y exige que el torso no se desorganice. La cadera fija la inclinación del torso y los codos llevan la carga hacia la cintura sin convertir el remo en un balanceo.",
                   "variantRationale": "Kettlebells colgando entre las piernas: el centro de masa bajo el agarre añade trabajo de muñeca y exige que el torso no se desorganice. La carga dividida ofrece una trayectoria flexible, aunque el agarre puede limitar la serie antes que la espalda."
                 },
@@ -1593,7 +1593,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Convencional",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "conventional_row__kettlebell",
                   "definitionId": "conventional_row",
                   "familyId": "back_conventional_row",
@@ -1682,7 +1682,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_polea",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1693,16 +1693,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea baja frente al cuerpo: el cable mantiene tensión mientras el torso conserva una inclinación fija.",
-                "La resistencia continua favorece repeticiones controladas y permite ajustar el esfuerzo sin perder la trayectoria hacia la cintura."
+                "Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin.",
+                "Un constructor de espalda completa que exige respeto por la postura."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Polea baja frente al cuerpo: el cable mantiene tensión mientras el torso conserva una inclinación fija. La resistencia continua favorece repeticiones controladas y permite ajustar el esfuerzo sin perder la trayectoria hacia la cintura.",
+              "description": "Con polea, el torso inclinado se mantiene firme mientras la carga sube hacia el abdomen y los codos cierran el tirón. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -1909,10 +1909,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea baja frente al cuerpo: el cable mantiene tensión mientras el torso conserva una inclinación fija.",
-                    "La resistencia continua favorece repeticiones controladas y permite ajustar el esfuerzo sin perder la trayectoria hacia la cintura."
+                    "Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin.",
+                    "Un constructor de espalda completa que exige respeto por la postura."
                   ],
-                  "description": "Polea baja frente al cuerpo: el cable mantiene tensión mientras el torso conserva una inclinación fija. La resistencia continua favorece repeticiones controladas y permite ajustar el esfuerzo sin perder la trayectoria hacia la cintura.",
+                  "description": "Con polea, el torso inclinado se mantiene firme mientras la carga sube hacia el abdomen y los codos cierran el tirón. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin.",
                   "technique": "Polea baja frente al cuerpo: el cable mantiene tensión mientras el torso conserva una inclinación fija. La cadera fija la inclinación del torso y los codos llevan la carga hacia la cintura sin convertir el remo en un balanceo.",
                   "variantRationale": "Polea baja frente al cuerpo: el cable mantiene tensión mientras el torso conserva una inclinación fija. La resistencia continua favorece repeticiones controladas y permite ajustar el esfuerzo sin perder la trayectoria hacia la cintura."
                 },
@@ -1927,7 +1927,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Convencional",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "conventional_row__cable",
                   "definitionId": "conventional_row",
                   "familyId": "back_conventional_row",
@@ -2012,11 +2012,11 @@
           }
         ],
         "defaultConfigurationId": "conventional_row__barbell",
-        "description": "El torso se inclina desde la cadera mientras la carga viaja hacia la cintura y los codos retroceden. La posición exige sostener el tronco, pero ofrece una base sólida para desarrollar fuerza y grosor en toda la espalda.",
+        "description": "El Remo Convencional es el tirón horizontal con más historia del gimnasio: dorsal ancho y trapecio moviendo la barra mientras la cadera sostiene la postura inclinada. Se ejecuta con el torso casi paralelo al suelo y la espalda neutra, llevando la barra hacia el abdomen con los codos pegados y bajándola sin que el tronco baile. Para corregir un lado rezagado, el remo con mancuerna a una mano es casi otro ejercicio y un corrector magnífico. Un constructor de espalda completa que exige respeto por la postura.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -2042,7 +2042,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

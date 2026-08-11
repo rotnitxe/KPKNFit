@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Remo Pendlay",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_pendlay_barra_recta",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Barra apoyada en el suelo y torso casi paralelo: cada repetición comienza desde cero y termina con la carga otra vez separada del cuerpo.",
-                "El reinicio elimina el rebote y permite valorar la fuerza de la espalda alta con una posición inicial repetible."
+                "El dorsal ancho trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+                "El remo de los que entrenan fuerza explosiva, sin concesiones."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Barra apoyada en el suelo y torso casi paralelo: cada repetición comienza desde cero y termina con la carga otra vez separada del cuerpo. El reinicio elimina el rebote y permite valorar la fuerza de la espalda alta con una posición inicial repetible.",
+              "description": "Con barra, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. El dorsal ancho trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -239,10 +239,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra apoyada en el suelo y torso casi paralelo: cada repetición comienza desde cero y termina con la carga otra vez separada del cuerpo.",
-                    "El reinicio elimina el rebote y permite valorar la fuerza de la espalda alta con una posición inicial repetible."
+                    "El dorsal ancho trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+                    "El remo de los que entrenan fuerza explosiva, sin concesiones."
                   ],
-                  "description": "Barra apoyada en el suelo y torso casi paralelo: cada repetición comienza desde cero y termina con la carga otra vez separada del cuerpo. El reinicio elimina el rebote y permite valorar la fuerza de la espalda alta con una posición inicial repetible.",
+                  "description": "Con barra, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. El dorsal ancho trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
                   "technique": "Barra apoyada en el suelo y torso casi paralelo: cada repetición comienza desde cero y termina con la carga otra vez separada del cuerpo. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones.",
                   "variantRationale": "Barra apoyada en el suelo y torso casi paralelo: cada repetición comienza desde cero y termina con la carga otra vez separada del cuerpo. El reinicio elimina el rebote y permite valorar la fuerza de la espalda alta con una posición inicial repetible."
                 },
@@ -257,7 +257,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Pendlay",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "pendlay_row__barbell",
                   "definitionId": "pendlay_row",
                   "familyId": "back_pendlay_row",
@@ -344,7 +344,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_mancuerna",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -355,16 +355,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Dos mancuernas parten del suelo y suben hacia el torso con la espalda paralela a la plataforma.",
-                "Cada lado debe producir su propio tirón y volver a apoyar la carga, lo que reduce la ayuda del lado dominante entre repeticiones."
+                "El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                "El remo de los que entrenan fuerza explosiva, sin concesiones."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Dos mancuernas parten del suelo y suben hacia el torso con la espalda paralela a la plataforma. Cada lado debe producir su propio tirón y volver a apoyar la carga, lo que reduce la ayuda del lado dominante entre repeticiones.",
+              "description": "Con mancuernas, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -571,10 +571,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Dos mancuernas parten del suelo y suben hacia el torso con la espalda paralela a la plataforma.",
-                    "Cada lado debe producir su propio tirón y volver a apoyar la carga, lo que reduce la ayuda del lado dominante entre repeticiones."
+                    "El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                    "El remo de los que entrenan fuerza explosiva, sin concesiones."
                   ],
-                  "description": "Dos mancuernas parten del suelo y suben hacia el torso con la espalda paralela a la plataforma. Cada lado debe producir su propio tirón y volver a apoyar la carga, lo que reduce la ayuda del lado dominante entre repeticiones.",
+                  "description": "Con mancuernas, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
                   "technique": "Dos mancuernas parten del suelo y suben hacia el torso con la espalda paralela a la plataforma. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones.",
                   "variantRationale": "Dos mancuernas parten del suelo y suben hacia el torso con la espalda paralela a la plataforma. Cada lado debe producir su propio tirón y volver a apoyar la carga, lo que reduce la ayuda del lado dominante entre repeticiones."
                 },
@@ -589,7 +589,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Pendlay",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "pendlay_row__dumbbells",
                   "definitionId": "pendlay_row",
                   "familyId": "back_pendlay_row",
@@ -674,7 +674,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_pendlay_barra_recta",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -685,16 +685,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina con el tronco casi horizontal y las asas detenidas al inicio: el apoyo del aparato limita la deriva de la trayectoria.",
-                "La estación permite practicar el arranque desde una referencia estable y concentrar la fuerza en la espalda alta."
+                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho.",
+                "El remo de los que entrenan fuerza explosiva, sin concesiones."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Máquina con el tronco casi horizontal y las asas detenidas al inicio: el apoyo del aparato limita la deriva de la trayectoria. La estación permite practicar el arranque desde una referencia estable y concentrar la fuerza en la espalda alta.",
+              "description": "Con máquina, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -901,10 +901,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina con el tronco casi horizontal y las asas detenidas al inicio: el apoyo del aparato limita la deriva de la trayectoria.",
-                    "La estación permite practicar el arranque desde una referencia estable y concentrar la fuerza en la espalda alta."
+                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho.",
+                    "El remo de los que entrenan fuerza explosiva, sin concesiones."
                   ],
-                  "description": "Máquina con el tronco casi horizontal y las asas detenidas al inicio: el apoyo del aparato limita la deriva de la trayectoria. La estación permite practicar el arranque desde una referencia estable y concentrar la fuerza en la espalda alta.",
+                  "description": "Con máquina, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho.",
                   "technique": "Máquina con el tronco casi horizontal y las asas detenidas al inicio: el apoyo del aparato limita la deriva de la trayectoria. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones.",
                   "variantRationale": "Máquina con el tronco casi horizontal y las asas detenidas al inicio: el apoyo del aparato limita la deriva de la trayectoria. La estación permite practicar el arranque desde una referencia estable y concentrar la fuerza en la espalda alta."
                 },
@@ -919,7 +919,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Pendlay",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "pendlay_row__machine",
                   "definitionId": "pendlay_row",
                   "familyId": "back_pendlay_row",
@@ -1006,7 +1006,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_pendlay_barra_recta",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1017,16 +1017,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Smith desde la posición baja: la barra se detiene entre repeticiones y vuelve a subir por una línea guiada.",
-                "El recorrido fijo simplifica el equilibrio, pero mantiene la exigencia de colocar el torso y producir cada tirón sin rebote."
+                "El dorsal ancho trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+                "El remo de los que entrenan fuerza explosiva, sin concesiones."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Smith desde la posición baja: la barra se detiene entre repeticiones y vuelve a subir por una línea guiada. El recorrido fijo simplifica el equilibrio, pero mantiene la exigencia de colocar el torso y producir cada tirón sin rebote.",
+              "description": "Con máquina Smith, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. El dorsal ancho trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
               "efc": 2.5,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -1233,10 +1233,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith desde la posición baja: la barra se detiene entre repeticiones y vuelve a subir por una línea guiada.",
-                    "El recorrido fijo simplifica el equilibrio, pero mantiene la exigencia de colocar el torso y producir cada tirón sin rebote."
+                    "El dorsal ancho trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+                    "El remo de los que entrenan fuerza explosiva, sin concesiones."
                   ],
-                  "description": "Smith desde la posición baja: la barra se detiene entre repeticiones y vuelve a subir por una línea guiada. El recorrido fijo simplifica el equilibrio, pero mantiene la exigencia de colocar el torso y producir cada tirón sin rebote.",
+                  "description": "Con máquina Smith, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. El dorsal ancho trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
                   "technique": "Smith desde la posición baja: la barra se detiene entre repeticiones y vuelve a subir por una línea guiada. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones.",
                   "variantRationale": "Smith desde la posición baja: la barra se detiene entre repeticiones y vuelve a subir por una línea guiada. El recorrido fijo simplifica el equilibrio, pero mantiene la exigencia de colocar el torso y producir cada tirón sin rebote."
                 },
@@ -1251,7 +1251,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Pendlay",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "pendlay_row__smith_machine",
                   "definitionId": "pendlay_row",
                   "familyId": "back_pendlay_row",
@@ -1338,7 +1338,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_pendlay_barra_recta",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1349,16 +1349,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Kettlebells apoyadas delante de los pies: el agarre queda bajo y obliga a organizar muñecas, escápulas y tronco antes de despegar.",
-                "La carga independiente conserva el reinicio, pero añade una estabilización más cambiante que la barra."
+                "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del dorsal ancho.",
+                "El remo de los que entrenan fuerza explosiva, sin concesiones."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Kettlebells apoyadas delante de los pies: el agarre queda bajo y obliga a organizar muñecas, escápulas y tronco antes de despegar. La carga independiente conserva el reinicio, pero añade una estabilización más cambiante que la barra.",
+              "description": "Con kettlebell, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del dorsal ancho.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -1565,10 +1565,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Kettlebells apoyadas delante de los pies: el agarre queda bajo y obliga a organizar muñecas, escápulas y tronco antes de despegar.",
-                    "La carga independiente conserva el reinicio, pero añade una estabilización más cambiante que la barra."
+                    "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del dorsal ancho.",
+                    "El remo de los que entrenan fuerza explosiva, sin concesiones."
                   ],
-                  "description": "Kettlebells apoyadas delante de los pies: el agarre queda bajo y obliga a organizar muñecas, escápulas y tronco antes de despegar. La carga independiente conserva el reinicio, pero añade una estabilización más cambiante que la barra.",
+                  "description": "Con kettlebell, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del dorsal ancho.",
                   "technique": "Kettlebells apoyadas delante de los pies: el agarre queda bajo y obliga a organizar muñecas, escápulas y tronco antes de despegar. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones.",
                   "variantRationale": "Kettlebells apoyadas delante de los pies: el agarre queda bajo y obliga a organizar muñecas, escápulas y tronco antes de despegar. La carga independiente conserva el reinicio, pero añade una estabilización más cambiante que la barra."
                 },
@@ -1583,7 +1583,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Pendlay",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "pendlay_row__kettlebell",
                   "definitionId": "pendlay_row",
                   "familyId": "back_pendlay_row",
@@ -1670,7 +1670,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_polea",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1681,16 +1681,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea baja con el torso horizontal: la empuñadura parte de una posición detenida antes de cada tirón y el cable conserva tensión al volver.",
-                "La variante combina el reinicio propio del Pendlay con una resistencia continua que hace visible cualquier pérdida de postura."
+                "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                "El remo de los que entrenan fuerza explosiva, sin concesiones."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Polea baja con el torso horizontal: la empuñadura parte de una posición detenida antes de cada tirón y el cable conserva tensión al volver. La variante combina el reinicio propio del Pendlay con una resistencia continua que hace visible cualquier pérdida de postura.",
+              "description": "Con polea, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -1897,10 +1897,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea baja con el torso horizontal: la empuñadura parte de una posición detenida antes de cada tirón y el cable conserva tensión al volver.",
-                    "La variante combina el reinicio propio del Pendlay con una resistencia continua que hace visible cualquier pérdida de postura."
+                    "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                    "El remo de los que entrenan fuerza explosiva, sin concesiones."
                   ],
-                  "description": "Polea baja con el torso horizontal: la empuñadura parte de una posición detenida antes de cada tirón y el cable conserva tensión al volver. La variante combina el reinicio propio del Pendlay con una resistencia continua que hace visible cualquier pérdida de postura.",
+                  "description": "Con polea, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco.",
                   "technique": "Polea baja con el torso horizontal: la empuñadura parte de una posición detenida antes de cada tirón y el cable conserva tensión al volver. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones.",
                   "variantRationale": "Polea baja con el torso horizontal: la empuñadura parte de una posición detenida antes de cada tirón y el cable conserva tensión al volver. La variante combina el reinicio propio del Pendlay con una resistencia continua que hace visible cualquier pérdida de postura."
                 },
@@ -1915,7 +1915,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Pendlay",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "pendlay_row__cable",
                   "definitionId": "pendlay_row",
                   "familyId": "back_pendlay_row",
@@ -1996,11 +1996,11 @@
           }
         ],
         "defaultConfigurationId": "pendlay_row__barbell",
-        "description": "Cada repetición nace con la carga apoyada en el suelo, el torso casi horizontal y el tirón decidido. El reinicio entre repeticiones limita el impulso y convierte el ejercicio en una prueba clara de fuerza de la espalda alta.",
+        "description": "El Remo Pendlay convierte cada repetición en una prueba independiente: la barra descansa en el suelo entre tirones y no hay rebote ni inercia que valga. La ejecución pide el torso casi horizontal: explotar desde parado hasta el abdomen y depositar la carga en el suelo antes de la siguiente. Dorsal y trapecio producen fuerza pura de arranque en cada intento. El remo de los que entrenan fuerza explosiva, sin concesiones.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -2022,7 +2022,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren inferior · neck · neck flexion",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#neck_flexion_cuello_arnes_polea",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Arnés o polea: llevas la cabeza hacia delante contra la tensión.",
-                "El trabajo frontal del cuello con resistencia constante."
+                "El cuello trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                "El equilibrio cervical que completa la salud de la zona."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Usar velocidad, llevar la cabeza al extremo del recorrido o encoger los hombros."
               ],
-              "description": "Arnés o polea: llevas la cabeza hacia delante contra la tensión. El trabajo frontal del cuello con resistencia constante.",
+              "description": "Con polea, la barbilla baja hacia el pecho contra la carga sujeta en la frente. El cuello trabaja con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
@@ -159,10 +159,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Arnés o polea: llevas la cabeza hacia delante contra la tensión.",
-                    "El trabajo frontal del cuello con resistencia constante."
+                    "El cuello trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                    "El equilibrio cervical que completa la salud de la zona."
                   ],
-                  "description": "Arnés o polea: llevas la cabeza hacia delante contra la tensión. El trabajo frontal del cuello con resistencia constante.",
+                  "description": "Con polea, la barbilla baja hacia el pecho contra la carga sujeta en la frente. El cuello trabaja con la polea, que mantiene la tensión constante en todo el arco.",
                   "technique": "Arnés o polea: llevas la cabeza hacia delante contra la tensión. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Arnés o polea: llevas la cabeza hacia delante contra la tensión. El trabajo frontal del cuello con resistencia constante."
                 },
@@ -177,7 +177,7 @@
                 },
                 "identity": {
                   "canonicalName": "Flexiones de Cuello",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "neck_flexion_cuello__cable",
                   "definitionId": "neck_flexion_cuello",
                   "familyId": "lower_neck_flexion",
@@ -257,7 +257,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#neck_flexion_cuello_arnes_polea",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -268,16 +268,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Disco en la frente: flexionas la cabeza contra el peso.",
-                "La versión tradicional para la parte frontal del cuello."
+                "El cuello trabaja con el disco, que añade lastre directo y simple.",
+                "El equilibrio cervical que completa la salud de la zona."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Usar velocidad, llevar la cabeza al extremo del recorrido o encoger los hombros."
               ],
-              "description": "Disco en la frente: flexionas la cabeza contra el peso. La versión tradicional para la parte frontal del cuello.",
+              "description": "Con disco, la barbilla baja hacia el pecho contra la carga sujeta en la frente. El cuello trabaja con el disco, que añade lastre directo y simple.",
               "efc": 2.0,
               "equipmentId": "plate",
               "executionCues": [
@@ -404,10 +404,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Disco en la frente: flexionas la cabeza contra el peso.",
-                    "La versión tradicional para la parte frontal del cuello."
+                    "El cuello trabaja con el disco, que añade lastre directo y simple.",
+                    "El equilibrio cervical que completa la salud de la zona."
                   ],
-                  "description": "Disco en la frente: flexionas la cabeza contra el peso. La versión tradicional para la parte frontal del cuello.",
+                  "description": "Con disco, la barbilla baja hacia el pecho contra la carga sujeta en la frente. El cuello trabaja con el disco, que añade lastre directo y simple.",
                   "technique": "Disco en la frente: flexionas la cabeza contra el peso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Disco en la frente: flexionas la cabeza contra el peso. La versión tradicional para la parte frontal del cuello."
                 },
@@ -422,7 +422,7 @@
                 },
                 "identity": {
                   "canonicalName": "Flexiones de Cuello",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "neck_flexion_cuello__plate",
                   "definitionId": "neck_flexion_cuello",
                   "familyId": "lower_neck_flexion",
@@ -498,11 +498,11 @@
           }
         ],
         "defaultConfigurationId": "neck_flexion_cuello__cable",
-        "description": "Llevas la cabeza hacia delante contra resistencia. El trabajo de la zona frontal del cuello, complemento útil de las extensiones.",
+        "description": "Las Flexiones de Cuello cargan la parte frontal de la nuca, el lado contrario de las extensiones: la barbilla baja hacia el pecho contra la polea baja o un disco apoyado en la frente. Se ejecutan tumbado o de pie, con el rango corto y la técnica suave, sin forzar ninguna posición. La musculatura anterior del cuello también merece su día. El equilibrio cervical que completa la salud de la zona.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -525,7 +525,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

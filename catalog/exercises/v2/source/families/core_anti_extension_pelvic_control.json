@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Core · abdominals · anti extension pelvic control",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#core_dragon_flag_banco_plano",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro.",
-                "La dificultad está en impedir que la pelvis se descuelgue durante el descenso."
+                "El abdomen trabaja con el peso corporal como única carga.",
+                "El nivel al que aspiran los que dominan los crunches y buscan algo serio."
               ],
               "bodyRegion": "CORE",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Arquear la espalda, girar con la carga o perder la tensión al final."
               ],
-              "description": "Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro. La dificultad está en impedir que la pelvis se descuelgue durante el descenso.",
+              "description": "Con peso corporal, el cuerpo entero sube rígido como una tabla y desciende frenado por el abdomen. El abdomen trabaja con el peso corporal como única carga.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -181,10 +181,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro.",
-                    "La dificultad está en impedir que la pelvis se descuelgue durante el descenso."
+                    "El abdomen trabaja con el peso corporal como única carga.",
+                    "El nivel al que aspiran los que dominan los crunches y buscan algo serio."
                   ],
-                  "description": "Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro. La dificultad está en impedir que la pelvis se descuelgue durante el descenso.",
+                  "description": "Con peso corporal, el cuerpo entero sube rígido como una tabla y desciende frenado por el abdomen. El abdomen trabaja con el peso corporal como única carga.",
                   "technique": "Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro. La dificultad está en impedir que la pelvis se descuelgue durante el descenso."
                 },
@@ -199,7 +199,7 @@
                 },
                 "identity": {
                   "canonicalName": "Dragon Flag",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "core_dragon_flag_banco_plano__default",
                   "definitionId": "core_dragon_flag_banco_plano",
                   "familyId": "core_anti_extension_pelvic_control",
@@ -272,11 +272,11 @@
           }
         ],
         "defaultConfigurationId": "core_dragon_flag_banco_plano__default",
-        "description": "El ejercicio con una exigencia alta de control del tronco: boca arriba en el banco, subes el cuerpo entero hasta casi la vertical y desciendes con todo controlado. Fuerza de core extrema y mucha demanda.",
+        "description": "El Dragon Flag es el ejercicio de abdomen que Bruce Lee puso de moda: el cuerpo entero sube rígido como una tabla y el abdomen frena la caída con una exigencia brutal. Se ejecuta boca arriba sujetando el banco por detrás de la cabeza, elevando el tronco y las piernas como una sola pieza hasta casi la vertical y descendiendo a cámara lenta. Trabaja el abdomen con el core entero asistiendo en cada grado del descenso. El nivel al que aspiran los que dominan los crunches y buscan algo serio.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -295,7 +295,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

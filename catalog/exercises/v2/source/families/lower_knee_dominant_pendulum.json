@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Sentadilla péndulo",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_pendulo_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina pendular con ambas piernas: el balanceo guiado lleva el cuádriceps a fondo.",
-                "Exigente, profunda y exigente; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Con ambos lados a la vez, el trabajo del cuádriceps se reparte.",
+                "Una de las máquinas más intensas que existen para el muslo frontal."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
               ],
-              "description": "Máquina pendular con ambas piernas: el balanceo guiado lleva el cuádriceps a fondo. Exigente, profunda y exigente.",
+              "description": "Con a dos lados, la plataforma oscila como un péndulo y el cuerpo desciende siguiendo su arco guiado. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Con ambos lados a la vez, el trabajo del cuádriceps se reparte.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -206,10 +206,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina pendular con ambas piernas: el balanceo guiado lleva el cuádriceps a fondo.",
-                    "Exigente, profunda y exigente; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Con ambos lados a la vez, el trabajo del cuádriceps se reparte.",
+                    "Una de las máquinas más intensas que existen para el muslo frontal."
                   ],
-                  "description": "Máquina pendular con ambas piernas: el balanceo guiado lleva el cuádriceps a fondo. Exigente, profunda y exigente.",
+                  "description": "Con a dos lados, la plataforma oscila como un péndulo y el cuerpo desciende siguiendo su arco guiado. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Con ambos lados a la vez, el trabajo del cuádriceps se reparte.",
                   "technique": "Máquina pendular con ambas piernas: el balanceo guiado lleva el cuádriceps a fondo. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve.",
                   "variantRationale": "Máquina pendular con ambas piernas: el balanceo guiado lleva el cuádriceps a fondo. Exigente, profunda y exigente."
                 },
@@ -224,7 +224,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla en Máquina Pendular",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "pendulum_squat__bilateral",
                   "definitionId": "pendulum_squat",
                   "familyId": "lower_knee_dominant_pendulum",
@@ -304,7 +304,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_sentadilla_pendulo_unilateral_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -315,16 +315,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Pendular con una pierna: un lado a la vez con el guiado de la máquina.",
-                "La forma exigente de igualar ambas piernas."
+                "El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo del cuádriceps se hace en solitario y las diferencias salen a la vista.",
+                "Una de las máquinas más intensas que existen para el muslo frontal."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
               ],
-              "description": "Pendular con una pierna: un lado a la vez con el guiado de la máquina. La forma exigente de igualar ambas piernas.",
+              "description": "Con a un lado, la plataforma oscila como un péndulo y el cuerpo desciende siguiendo su arco guiado. El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo del cuádriceps se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -499,10 +499,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Pendular con una pierna: un lado a la vez con el guiado de la máquina.",
-                    "La forma exigente de igualar ambas piernas."
+                    "El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo del cuádriceps se hace en solitario y las diferencias salen a la vista.",
+                    "Una de las máquinas más intensas que existen para el muslo frontal."
                   ],
-                  "description": "Pendular con una pierna: un lado a la vez con el guiado de la máquina. La forma exigente de igualar ambas piernas.",
+                  "description": "Con a un lado, la plataforma oscila como un péndulo y el cuerpo desciende siguiendo su arco guiado. El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo del cuádriceps se hace en solitario y las diferencias salen a la vista.",
                   "technique": "Pendular con una pierna: un lado a la vez con el guiado de la máquina. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
                   "variantRationale": "Pendular con una pierna: un lado a la vez con el guiado de la máquina. La forma exigente de igualar ambas piernas."
                 },
@@ -517,7 +517,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla en Máquina Pendular",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "pendulum_squat__unilateral",
                   "definitionId": "pendulum_squat",
                   "familyId": "lower_knee_dominant_pendulum",
@@ -593,11 +593,11 @@
           }
         ],
         "defaultConfigurationId": "pendulum_squat__bilateral",
-        "description": "La plataforma se balancea y el cuerpo baja casi en caída libre guiada. Una de las máquinas de cuádriceps más exigentes que existen.",
+        "description": "La Sentadilla en Máquina Pendular hace oscilar la plataforma como un péndulo y el cuerpo desciende siguiendo ese arco guiado. Se ejecuta bajando casi en caída controlada y empujando de vuelta con los cuádriceps al límite en el punto bajo. El balanceo del aparato multiplica la tensión en la parte profunda del recorrido. Una de las máquinas más intensas que existen para el muslo frontal.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -619,7 +619,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

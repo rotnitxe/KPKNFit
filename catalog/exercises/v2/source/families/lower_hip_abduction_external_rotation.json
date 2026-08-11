@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren inferior · gluteus maximus · hip abduction external rotation",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_clamshells_banda",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Acostado de lado con la banda en las rodillas: abres la rodilla superior contra la resistencia.",
-                "El activador útil del glúteo medio antes de entrenar."
+                "Con la banda, la resistencia crece a medida que avanza el trabajo del glúteo mayor.",
+                "El calentamiento que prepara la cadera antes de cargar en serio."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
               ],
-              "description": "Acostado de lado con la banda en las rodillas: abres la rodilla superior contra la resistencia. El activador útil del glúteo medio antes de entrenar.",
+              "description": "Con banda elástica, tumbado de lado con las rodillas dobladas, la rodilla superior se abre como una concha. Con la banda, la resistencia crece a medida que avanza el trabajo del glúteo mayor.",
               "efc": 2.8,
               "equipmentId": "band",
               "executionCues": [
@@ -180,10 +180,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Acostado de lado con la banda en las rodillas: abres la rodilla superior contra la resistencia.",
-                    "El activador útil del glúteo medio antes de entrenar."
+                    "Con la banda, la resistencia crece a medida que avanza el trabajo del glúteo mayor.",
+                    "El calentamiento que prepara la cadera antes de cargar en serio."
                   ],
-                  "description": "Acostado de lado con la banda en las rodillas: abres la rodilla superior contra la resistencia. El activador útil del glúteo medio antes de entrenar.",
+                  "description": "Con banda elástica, tumbado de lado con las rodillas dobladas, la rodilla superior se abre como una concha. Con la banda, la resistencia crece a medida que avanza el trabajo del glúteo mayor.",
                   "technique": "Acostado de lado con la banda en las rodillas: abres la rodilla superior contra la resistencia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Acostado de lado con la banda en las rodillas: abres la rodilla superior contra la resistencia. El activador útil del glúteo medio antes de entrenar."
                 },
@@ -198,7 +198,7 @@
                 },
                 "identity": {
                   "canonicalName": "Clamshells (Almejas) con Banda Elástica",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "glutes_clamshells_banda__default",
                   "definitionId": "glutes_clamshells_banda",
                   "familyId": "lower_hip_abduction_external_rotation",
@@ -268,11 +268,11 @@
           }
         ],
         "defaultConfigurationId": "glutes_clamshells_banda__default",
-        "description": "Almejas con banda: acostado de lado, abres la rodilla superior contra la resistencia de la banda. Pequeño en tamaño, enorme para activar el glúteo medio antes de entrenar.",
+        "description": "Los Clamshells con Banda, o almejas, son el despertador del glúteo medio: tumbado de lado con las rodillas dobladas, la rodilla superior se abre contra la banda como una concha. Se ejecutan sin prisa, con los pies juntos y la cadera apilada, sintiendo el costado del glúteo en cada apertura. Parecen poco y activan muchísimo. El calentamiento que prepara la cadera antes de cargar en serio.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -290,7 +290,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

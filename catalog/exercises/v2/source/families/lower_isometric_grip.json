@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren inferior · forearm · isometric grip",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_suspension_isometrica_barra_fija",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Cuélgate de la barra y aguanta el mayor tiempo posible.",
-                "Sin florituras: agarre, antebrazos y resistencia pura."
+                "Sin más carga que el propio cuerpo, la exigencia del antebrazo es la justa.",
+                "La base de todo agarre fuerte y una descompresión de columna de regalo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Arquear la espalda, girar con la carga o perder la tensión al final."
               ],
-              "description": "Cuélgate de la barra y aguanta el mayor tiempo posible. Sin florituras: agarre, antebrazos y resistencia pura.",
+              "description": "Con peso corporal, colgado con los brazos extendidos, cada segundo suma trabajo de agarre. Sin más carga que el propio cuerpo, la exigencia del antebrazo es la justa.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -181,10 +181,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Cuélgate de la barra y aguanta el mayor tiempo posible.",
-                    "Sin florituras: agarre, antebrazos y resistencia pura."
+                    "Sin más carga que el propio cuerpo, la exigencia del antebrazo es la justa.",
+                    "La base de todo agarre fuerte y una descompresión de columna de regalo."
                   ],
-                  "description": "Cuélgate de la barra y aguanta el mayor tiempo posible. Sin florituras: agarre, antebrazos y resistencia pura.",
+                  "description": "Con peso corporal, colgado con los brazos extendidos, cada segundo suma trabajo de agarre. Sin más carga que el propio cuerpo, la exigencia del antebrazo es la justa.",
                   "technique": "Cuélgate de la barra y aguanta el mayor tiempo posible. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Cuélgate de la barra y aguanta el mayor tiempo posible. Sin florituras: agarre, antebrazos y resistencia pura."
                 },
@@ -199,7 +199,7 @@
                 },
                 "identity": {
                   "canonicalName": "Suspensión Isométrica en Barra Fija (Dead Hang)",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "forearms_suspension_isometrica_barra_fija__default",
                   "definitionId": "forearms_suspension_isometrica_barra_fija",
                   "familyId": "lower_isometric_grip",
@@ -271,11 +271,11 @@
           }
         ],
         "defaultConfigurationId": "forearms_suspension_isometrica_barra_fija__default",
-        "description": "Suspensión isométrica en barra fija: te cuelgas de la barra el mayor tiempo posible. El ejercicio más simple y más directo para el agarre.",
+        "description": "La Suspensión Isométrica en Barra Fija, el dead hang, es el ejercicio de agarre más simple que existe: colgarse y aguantar. Se practica con los brazos rectos y los hombros lejos de las orejas, resistiendo el reloj con el peso corporal. El antebrazo se funde mientras el dorsal estira. La base de todo agarre fuerte y una descompresión de columna de regalo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -297,7 +297,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_paseo_del_granjero",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -308,16 +308,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "benefits": [
-                "Mancuernas pesadas en cada mano y a caminar: aguanta el paseo sin soltar.",
-                "El caminata con carga tradicional con mancuernas."
+                "El antebrazo trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                "La prueba de agarre más honesta y más simple del mundo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Arquear la espalda, girar con la carga o perder la tensión al final."
               ],
-              "description": "Mancuernas pesadas en cada mano y a caminar: aguanta el paseo sin soltar. El caminata con carga tradicional con mancuernas.",
+              "description": "Con mancuernas, se camina en línea recta con una carga pesada en cada mano hasta que el agarre diga basta. El antebrazo trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -474,10 +474,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas pesadas en cada mano y a caminar: aguanta el paseo sin soltar.",
-                    "El caminata con carga tradicional con mancuernas."
+                    "El antebrazo trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                    "La prueba de agarre más honesta y más simple del mundo."
                   ],
-                  "description": "Mancuernas pesadas en cada mano y a caminar: aguanta el paseo sin soltar. El caminata con carga tradicional con mancuernas.",
+                  "description": "Con mancuernas, se camina en línea recta con una carga pesada en cada mano hasta que el agarre diga basta. El antebrazo trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
                   "technique": "Mancuernas pesadas en cada mano y a caminar: aguanta el paseo sin soltar. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Mancuernas pesadas en cada mano y a caminar: aguanta el paseo sin soltar. El caminata con carga tradicional con mancuernas."
                 },
@@ -492,7 +492,7 @@
                 },
                 "identity": {
                   "canonicalName": "Paseo del Granjero",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "forearms_paseo_del_granjero__dumbbells",
                   "definitionId": "forearms_paseo_del_granjero",
                   "familyId": "lower_isometric_grip",
@@ -577,7 +577,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_paseo_del_granjero",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -588,16 +588,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "benefits": [
-                "Kettlebells en cada mano y a caminar: el agarre sufre un poco más.",
-                "Variante exigente del caminata con carga."
+                "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del antebrazo.",
+                "La prueba de agarre más honesta y más simple del mundo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Arquear la espalda, girar con la carga o perder la tensión al final."
               ],
-              "description": "Kettlebells en cada mano y a caminar: el agarre sufre un poco más. Variante exigente del caminata con carga.",
+              "description": "Con kettlebell, se camina en línea recta con una carga pesada en cada mano hasta que el agarre diga basta. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del antebrazo.",
               "efc": 2.0,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -754,10 +754,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Kettlebells en cada mano y a caminar: el agarre sufre un poco más.",
-                    "Variante exigente del caminata con carga."
+                    "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del antebrazo.",
+                    "La prueba de agarre más honesta y más simple del mundo."
                   ],
-                  "description": "Kettlebells en cada mano y a caminar: el agarre sufre un poco más. Variante exigente del caminata con carga.",
+                  "description": "Con kettlebell, se camina en línea recta con una carga pesada en cada mano hasta que el agarre diga basta. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del antebrazo.",
                   "technique": "Kettlebells en cada mano y a caminar: el agarre sufre un poco más. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Kettlebells en cada mano y a caminar: el agarre sufre un poco más. Variante exigente del caminata con carga."
                 },
@@ -772,7 +772,7 @@
                 },
                 "identity": {
                   "canonicalName": "Paseo del Granjero",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "forearms_paseo_del_granjero__kettlebell",
                   "definitionId": "forearms_paseo_del_granjero",
                   "familyId": "lower_isometric_grip",
@@ -857,7 +857,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_paseo_del_granjero",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -868,16 +868,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "benefits": [
-                "Discos en cada mano y a caminar: los discos lisos ponen el agarre a prueba.",
-                "El paseo que más trabaja los dedos; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Con el disco, el lastre es simple y directo sobre el antebrazo.",
+                "La prueba de agarre más honesta y más simple del mundo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Arquear la espalda, girar con la carga o perder la tensión al final."
               ],
-              "description": "Discos en cada mano y a caminar: los discos lisos ponen el agarre a prueba. El paseo que más trabaja los dedos.",
+              "description": "Con disco, se camina en línea recta con una carga pesada en cada mano hasta que el agarre diga basta. Con el disco, el lastre es simple y directo sobre el antebrazo.",
               "efc": 2.0,
               "equipmentId": "plate",
               "executionCues": [
@@ -1034,10 +1034,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Discos en cada mano y a caminar: los discos lisos ponen el agarre a prueba.",
-                    "El paseo que más trabaja los dedos; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Con el disco, el lastre es simple y directo sobre el antebrazo.",
+                    "La prueba de agarre más honesta y más simple del mundo."
                   ],
-                  "description": "Discos en cada mano y a caminar: los discos lisos ponen el agarre a prueba. El paseo que más trabaja los dedos.",
+                  "description": "Con disco, se camina en línea recta con una carga pesada en cada mano hasta que el agarre diga basta. Con el disco, el lastre es simple y directo sobre el antebrazo.",
                   "technique": "Discos en cada mano y a caminar: los discos lisos ponen el agarre a prueba. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Discos en cada mano y a caminar: los discos lisos ponen el agarre a prueba. El paseo que más trabaja los dedos."
                 },
@@ -1052,7 +1052,7 @@
                 },
                 "identity": {
                   "canonicalName": "Paseo del Granjero",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "forearms_paseo_del_granjero__plate",
                   "definitionId": "forearms_paseo_del_granjero",
                   "familyId": "lower_isometric_grip",
@@ -1137,7 +1137,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#forearms_paseo_del_granjero",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1148,16 +1148,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "benefits": [
-                "Barra hexagonal cargada y a caminar: la barra en el centro reparte el peso.",
-                "El paseo más cómodo para cargas muy pesadas."
+                "El antebrazo trabaja con la barra hexagonal, que centra la carga y alivia la espalda.",
+                "La prueba de agarre más honesta y más simple del mundo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Arquear la espalda, girar con la carga o perder la tensión al final."
               ],
-              "description": "Barra hexagonal cargada y a caminar: la barra en el centro reparte el peso. El paseo más cómodo para cargas muy pesadas.",
+              "description": "Con barra hexagonal, se camina en línea recta con una carga pesada en cada mano hasta que el agarre diga basta. El antebrazo trabaja con la barra hexagonal, que centra la carga y alivia la espalda.",
               "efc": 2.0,
               "equipmentId": "hex_bar",
               "executionCues": [
@@ -1314,10 +1314,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra hexagonal cargada y a caminar: la barra en el centro reparte el peso.",
-                    "El paseo más cómodo para cargas muy pesadas."
+                    "El antebrazo trabaja con la barra hexagonal, que centra la carga y alivia la espalda.",
+                    "La prueba de agarre más honesta y más simple del mundo."
                   ],
-                  "description": "Barra hexagonal cargada y a caminar: la barra en el centro reparte el peso. El paseo más cómodo para cargas muy pesadas.",
+                  "description": "Con barra hexagonal, se camina en línea recta con una carga pesada en cada mano hasta que el agarre diga basta. El antebrazo trabaja con la barra hexagonal, que centra la carga y alivia la espalda.",
                   "technique": "Barra hexagonal cargada y a caminar: la barra en el centro reparte el peso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Barra hexagonal cargada y a caminar: la barra en el centro reparte el peso. El paseo más cómodo para cargas muy pesadas."
                 },
@@ -1332,7 +1332,7 @@
                 },
                 "identity": {
                   "canonicalName": "Paseo del Granjero",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "forearms_paseo_del_granjero__hex_bar",
                   "definitionId": "forearms_paseo_del_granjero",
                   "familyId": "lower_isometric_grip",
@@ -1413,11 +1413,11 @@
           }
         ],
         "defaultConfigurationId": "forearms_paseo_del_granjero__dumbbells",
-        "description": "Caminata con carga: caminas con un peso pesado en cada mano el mayor tiempo posible. Agarre, hombros, core y resistencia mental en un solo paseo.",
+        "description": "El Paseo del Granjero es caminar con peso pesado en cada mano hasta que el agarre diga basta: el antebrazo y el trapecio trabajan mientras el core mantiene el tronco digno. Se ejecuta con mancuernas o kettlebells pesadas, pasos cortos y la espalda alta durante todo el recorrido. La barra hexagonal o los discos sirven si es lo que hay. La prueba de agarre más honesta y más simple del mundo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1439,7 +1439,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

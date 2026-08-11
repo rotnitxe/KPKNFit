@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren inferior · hamstrings · hip hinge deficit",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_convencional_deficit",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "benefits": [
-                "Desde la plataforma, la barra parte más abajo y el recorrido crece.",
-                "Isquios y glúteos con un estiramiento extra desde el primer tirón."
+                "Los isquiosurales trabajan con la barra, que permite cargar pesado y medir la progresión con claridad.",
+                "El déficit que convierte un buen arranque en uno imparable."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Desde la plataforma, la barra parte más abajo y el recorrido crece. Isquios y glúteos con un estiramiento extra desde el primer tirón.",
+              "description": "Con barra, desde la plataforma, la carga parte de más abajo y el recorrido crece en cada repetición. Los isquiosurales trabajan con la barra, que permite cargar pesado y medir la progresión con claridad.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -209,10 +209,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Desde la plataforma, la barra parte más abajo y el recorrido crece.",
-                    "Isquios y glúteos con un estiramiento extra desde el primer tirón."
+                    "Los isquiosurales trabajan con la barra, que permite cargar pesado y medir la progresión con claridad.",
+                    "El déficit que convierte un buen arranque en uno imparable."
                   ],
-                  "description": "Desde la plataforma, la barra parte más abajo y el recorrido crece. Isquios y glúteos con un estiramiento extra desde el primer tirón.",
+                  "description": "Con barra, desde la plataforma, la carga parte de más abajo y el recorrido crece en cada repetición. Los isquiosurales trabajan con la barra, que permite cargar pesado y medir la progresión con claridad.",
                   "technique": "Desde la plataforma, la barra parte más abajo y el recorrido crece. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Desde la plataforma, la barra parte más abajo y el recorrido crece. Isquios y glúteos con un estiramiento extra desde el primer tirón."
                 },
@@ -227,7 +227,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Convencional en Déficit",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hams_peso_muerto_convencional_deficit__default",
                   "definitionId": "hams_peso_muerto_convencional_deficit",
                   "familyId": "lower_hip_hinge_deficit",
@@ -301,11 +301,11 @@
           }
         ],
         "defaultConfigurationId": "hams_peso_muerto_convencional_deficit__default",
-        "description": "Subido a una plataforma, el recorrido es más largo desde el suelo. Isquios y glúteos trabajan con un estiramiento extra.",
+        "description": "El Peso Muerto Convencional en Déficit sube al atleta a una plataforma y alarga el arranque: la barra parte de más abajo y los isquiosurales se estiran unos centímetros extra en cada repetición. La técnica es la del convencional de siempre, solo que el suelo queda más lejos. Esos centímetros adicionales se traducen en fuerza de arranque que el peso muerto normal nota enseguida. El déficit que convierte un buen arranque en uno imparable.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -328,7 +328,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_piernas_rigidas_deficit",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -339,16 +339,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "benefits": [
-                "Plataforma más piernas casi rectas: el estiramiento de los isquios llega al límite.",
-                "El peso muerto más profundo que existe; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "La barra es la referencia para cargar los isquiosurales con peso de verdad.",
+                "Solo para quien ya tiene movilidad y control de sobra."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Plataforma más piernas casi rectas: el estiramiento de los isquios llega al límite. El peso muerto más profundo que existe.",
+              "description": "Con barra, desde la plataforma y con las piernas casi extendidas, el estiramiento llega al límite. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -525,10 +525,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Plataforma más piernas casi rectas: el estiramiento de los isquios llega al límite.",
-                    "El peso muerto más profundo que existe; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "La barra es la referencia para cargar los isquiosurales con peso de verdad.",
+                    "Solo para quien ya tiene movilidad y control de sobra."
                   ],
-                  "description": "Plataforma más piernas casi rectas: el estiramiento de los isquios llega al límite. El peso muerto más profundo que existe.",
+                  "description": "Con barra, desde la plataforma y con las piernas casi extendidas, el estiramiento llega al límite. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
                   "technique": "Plataforma más piernas casi rectas: el estiramiento de los isquios llega al límite. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Plataforma más piernas casi rectas: el estiramiento de los isquios llega al límite. El peso muerto más profundo que existe."
                 },
@@ -543,7 +543,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas en Déficit",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hams_peso_muerto_piernas_rigidas_deficit__default",
                   "definitionId": "hams_peso_muerto_piernas_rigidas_deficit",
                   "familyId": "lower_hip_hinge_deficit",
@@ -617,11 +617,11 @@
           }
         ],
         "defaultConfigurationId": "hams_peso_muerto_piernas_rigidas_deficit__default",
-        "description": "Desde la plataforma y con las piernas casi rectas, el estiramiento de los isquios llega al máximo. Muy exigente.",
+        "description": "El Peso Muerto Piernas Rígidas en Déficit junta las dos cosas que más estiran el isquio: piernas casi extendidas y una plataforma que aleja el suelo. El estiramiento bajo carga llega al máximo disponible y los erectores aguantan la columna en cada bajada. Se ejecuta bajando la barra más allá de los pies con la espalda intacta. Solo para quien ya tiene movilidad y control de sobra.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -644,7 +644,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_sumo_deficit",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -655,16 +655,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.7,
               "benefits": [
-                "Postura amplia desde la plataforma: más recorrido que el sumo normal y más trabajo para glúteos y aductores.",
-                "Postura amplia desde la plataforma: más recorrido que el sumo normal y más trabajo para glúteos y aductores."
+                "La barra es la referencia para cargar los isquiosurales con peso de verdad.",
+                "Una prueba avanzada para los que ya dominan el sumo convencional."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Postura amplia desde la plataforma: más recorrido que el sumo normal y más trabajo para glúteos y aductores.",
+              "description": "Con barra, con la postura amplia sobre la plataforma, el recorrido es más largo que el sumo normal. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -841,10 +841,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Postura amplia desde la plataforma: más recorrido que el sumo normal y más trabajo para glúteos y aductores.",
-                    "Postura amplia desde la plataforma: más recorrido que el sumo normal y más trabajo para glúteos y aductores."
+                    "La barra es la referencia para cargar los isquiosurales con peso de verdad.",
+                    "Una prueba avanzada para los que ya dominan el sumo convencional."
                   ],
-                  "description": "Postura amplia desde la plataforma: más recorrido que el sumo normal y más trabajo para glúteos y aductores.",
+                  "description": "Con barra, con la postura amplia sobre la plataforma, el recorrido es más largo que el sumo normal. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
                   "technique": "Postura amplia desde la plataforma: más recorrido que el sumo normal y más trabajo para glúteos y aductores. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Postura amplia desde la plataforma: más recorrido que el sumo normal y más trabajo para glúteos y aductores. Postura amplia desde la plataforma: más recorrido que el sumo normal y más trabajo para glúteos y aductores."
                 },
@@ -859,7 +859,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Sumo en Déficit",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hams_peso_muerto_sumo_deficit__default",
                   "definitionId": "hams_peso_muerto_sumo_deficit",
                   "familyId": "lower_hip_hinge_deficit",
@@ -933,11 +933,11 @@
           }
         ],
         "defaultConfigurationId": "hams_peso_muerto_sumo_deficit__default",
-        "description": "Postura amplia desde la plataforma, con más recorrido que el sumo normal. Glúteos y aductores con trabajo extra.",
+        "description": "El Peso Muerto Sumo en Déficit coloca al atleta sobre un escalón y conserva la postura abierta: aductores y glúteos trabajan en un recorrido más largo que el sumo normal. Se ejecuta presionando el suelo con las piernas separadas mientras la barra sube desde más abajo de lo habitual. La combinación pide técnica fina y caderas fuertes. Una prueba avanzada para los que ya dominan el sumo convencional.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -956,7 +956,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

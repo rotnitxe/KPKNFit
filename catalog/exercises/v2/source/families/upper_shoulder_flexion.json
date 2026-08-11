@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren superior · deltoid · shoulder flexion",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_elevaciones_frontales",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea al frente: subes los brazos contra la tensión constante.",
-                "El deltoides anterior cargado en todo el arco."
+                "Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
+                "El acabado frontal del hombro, útil con moderación porque ya trabaja mucho en los presses."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
               ],
-              "description": "Polea al frente: subes los brazos contra la tensión constante. El deltoides anterior cargado en todo el arco.",
+              "description": "Con polea, el brazo se eleva al frente hasta la altura del hombro sin balancear el torso. Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -207,10 +207,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea al frente: subes los brazos contra la tensión constante.",
-                    "El deltoides anterior cargado en todo el arco."
+                    "Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
+                    "El acabado frontal del hombro, útil con moderación porque ya trabaja mucho en los presses."
                   ],
-                  "description": "Polea al frente: subes los brazos contra la tensión constante. El deltoides anterior cargado en todo el arco.",
+                  "description": "Con polea, el brazo se eleva al frente hasta la altura del hombro sin balancear el torso. Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
                   "technique": "Polea al frente: subes los brazos contra la tensión constante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Polea al frente: subes los brazos contra la tensión constante. El deltoides anterior cargado en todo el arco."
                 },
@@ -225,7 +225,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Frontales",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "deltoides_elevaciones_frontales__cable",
                   "definitionId": "deltoides_elevaciones_frontales",
                   "familyId": "upper_shoulder_flexion",
@@ -309,7 +309,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_elevaciones_frontales",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -320,16 +320,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Barra al frente: subes la barra hasta la altura del hombro.",
-                "La elevación frontal tradicional, con ambas manos a la vez."
+                "Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
+                "El acabado frontal del hombro, útil con moderación porque ya trabaja mucho en los presses."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
               ],
-              "description": "Barra al frente: subes la barra hasta la altura del hombro. La elevación frontal tradicional, con ambas manos a la vez.",
+              "description": "Con barra, el brazo se eleva al frente hasta la altura del hombro sin balancear el torso. Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -504,10 +504,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra al frente: subes la barra hasta la altura del hombro.",
-                    "La elevación frontal tradicional, con ambas manos a la vez."
+                    "Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
+                    "El acabado frontal del hombro, útil con moderación porque ya trabaja mucho en los presses."
                   ],
-                  "description": "Barra al frente: subes la barra hasta la altura del hombro. La elevación frontal tradicional, con ambas manos a la vez.",
+                  "description": "Con barra, el brazo se eleva al frente hasta la altura del hombro sin balancear el torso. Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
                   "technique": "Barra al frente: subes la barra hasta la altura del hombro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Barra al frente: subes la barra hasta la altura del hombro. La elevación frontal tradicional, con ambas manos a la vez."
                 },
@@ -522,7 +522,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Frontales",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "deltoides_elevaciones_frontales__barbell",
                   "definitionId": "deltoides_elevaciones_frontales",
                   "familyId": "upper_shoulder_flexion",
@@ -606,7 +606,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_elevaciones_frontales",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -617,16 +617,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuernas al frente: subes cada brazo o ambos a la altura del hombro.",
-                "La versión más utilizada de la elevación frontal."
+                "El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                "El acabado frontal del hombro, útil con moderación porque ya trabaja mucho en los presses."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
               ],
-              "description": "Mancuernas al frente: subes cada brazo o ambos a la altura del hombro. La versión más utilizada de la elevación frontal.",
+              "description": "Con mancuernas, el brazo se eleva al frente hasta la altura del hombro sin balancear el torso. El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -801,10 +801,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas al frente: subes cada brazo o ambos a la altura del hombro.",
-                    "La versión más utilizada de la elevación frontal."
+                    "El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                    "El acabado frontal del hombro, útil con moderación porque ya trabaja mucho en los presses."
                   ],
-                  "description": "Mancuernas al frente: subes cada brazo o ambos a la altura del hombro. La versión más utilizada de la elevación frontal.",
+                  "description": "Con mancuernas, el brazo se eleva al frente hasta la altura del hombro sin balancear el torso. El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
                   "technique": "Mancuernas al frente: subes cada brazo o ambos a la altura del hombro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Mancuernas al frente: subes cada brazo o ambos a la altura del hombro. La versión más utilizada de la elevación frontal."
                 },
@@ -819,7 +819,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Frontales",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "deltoides_elevaciones_frontales__dumbbells",
                   "definitionId": "deltoides_elevaciones_frontales",
                   "familyId": "upper_shoulder_flexion",
@@ -903,7 +903,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_elevaciones_frontales",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -914,16 +914,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Kettlebell al frente: el agarre suma trabajo y el hombro empuja.",
-                "Variante alternativa de la elevación frontal."
+                "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
+                "El acabado frontal del hombro, útil con moderación porque ya trabaja mucho en los presses."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
               ],
-              "description": "Kettlebell al frente: el agarre suma trabajo y el hombro empuja. Variante alternativa de la elevación frontal.",
+              "description": "Con kettlebell, el brazo se eleva al frente hasta la altura del hombro sin balancear el torso. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -1098,10 +1098,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Kettlebell al frente: el agarre suma trabajo y el hombro empuja.",
-                    "Variante alternativa de la elevación frontal."
+                    "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
+                    "El acabado frontal del hombro, útil con moderación porque ya trabaja mucho en los presses."
                   ],
-                  "description": "Kettlebell al frente: el agarre suma trabajo y el hombro empuja. Variante alternativa de la elevación frontal.",
+                  "description": "Con kettlebell, el brazo se eleva al frente hasta la altura del hombro sin balancear el torso. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
                   "technique": "Kettlebell al frente: el agarre suma trabajo y el hombro empuja. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Kettlebell al frente: el agarre suma trabajo y el hombro empuja. Variante alternativa de la elevación frontal."
                 },
@@ -1116,7 +1116,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Frontales",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "deltoides_elevaciones_frontales__kettlebell",
                   "definitionId": "deltoides_elevaciones_frontales",
                   "familyId": "upper_shoulder_flexion",
@@ -1196,11 +1196,11 @@
           }
         ],
         "defaultConfigurationId": "deltoides_elevaciones_frontales__dumbbells",
-        "description": "Subes los brazos al frente hasta la altura del hombro. El trabajo directo del deltoides anterior, simple y efectivo.",
+        "description": "Las Elevaciones Frontales levantan el brazo al frente hasta la altura del hombro: el deltoide anterior trabaja en soledad contra la gravedad. Se ejecutan con mancuernas, barra o polea, subiendo sin balancear el torso y bajando con calma. El agarre prono, neutro o supino cambia el matiz del estímulo. El acabado frontal del hombro, útil con moderación porque ya trabaja mucho en los presses.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1223,7 +1223,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

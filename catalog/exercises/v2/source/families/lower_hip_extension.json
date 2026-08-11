@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren inferior · gluteus maximus · hip extension",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_hiperextension_45",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "benefits": [
-                "Mancuerna en el pecho en el banco a 45: subes con la cadera y el glúteo dirige el movimiento.",
-                "La variante accesible para localizar el glúteo."
+                "Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
+                "El clásico del banco romano pensado para el trasero."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
               ],
-              "description": "Mancuerna en el pecho en el banco a 45: subes con la cadera y el glúteo dirige el movimiento. La variante accesible para localizar el glúteo.",
+              "description": "Con mancuernas, en el banco inclinado, el torso baja y sube pivotando sobre la cadera con el glúteo dirigiendo. Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -212,10 +212,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuerna en el pecho en el banco a 45: subes con la cadera y el glúteo dirige el movimiento.",
-                    "La variante accesible para localizar el glúteo."
+                    "Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
+                    "El clásico del banco romano pensado para el trasero."
                   ],
-                  "description": "Mancuerna en el pecho en el banco a 45: subes con la cadera y el glúteo dirige el movimiento. La variante accesible para localizar el glúteo.",
+                  "description": "Con mancuernas, en el banco inclinado, el torso baja y sube pivotando sobre la cadera con el glúteo dirigiendo. Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
                   "technique": "Mancuerna en el pecho en el banco a 45: subes con la cadera y el glúteo dirige el movimiento. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar.",
                   "variantRationale": "Mancuerna en el pecho en el banco a 45: subes con la cadera y el glúteo dirige el movimiento. La variante accesible para localizar el glúteo."
                 },
@@ -230,7 +230,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hiperextensiones a 45° para Glúteos",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "glutes_hiperextension_45__dumbbells",
                   "definitionId": "glutes_hiperextension_45",
                   "familyId": "lower_hip_extension",
@@ -316,7 +316,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_hiperextension_45",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -327,16 +327,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "benefits": [
-                "Barra en la espalda en el banco a 45: el glúteo empuja el peso con la cadera.",
-                "La versión fuerte de la hiperextensión para glúteo."
+                "El glúteo mayor trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+                "El clásico del banco romano pensado para el trasero."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
               ],
-              "description": "Barra en la espalda en el banco a 45: el glúteo empuja el peso con la cadera. La versión fuerte de la hiperextensión para glúteo.",
+              "description": "Con barra, en el banco inclinado, el torso baja y sube pivotando sobre la cadera con el glúteo dirigiendo. El glúteo mayor trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -516,10 +516,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra en la espalda en el banco a 45: el glúteo empuja el peso con la cadera.",
-                    "La versión fuerte de la hiperextensión para glúteo."
+                    "El glúteo mayor trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+                    "El clásico del banco romano pensado para el trasero."
                   ],
-                  "description": "Barra en la espalda en el banco a 45: el glúteo empuja el peso con la cadera. La versión fuerte de la hiperextensión para glúteo.",
+                  "description": "Con barra, en el banco inclinado, el torso baja y sube pivotando sobre la cadera con el glúteo dirigiendo. El glúteo mayor trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
                   "technique": "Barra en la espalda en el banco a 45: el glúteo empuja el peso con la cadera. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar.",
                   "variantRationale": "Barra en la espalda en el banco a 45: el glúteo empuja el peso con la cadera. La versión fuerte de la hiperextensión para glúteo."
                 },
@@ -534,7 +534,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hiperextensiones a 45° para Glúteos",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "glutes_hiperextension_45__barbell",
                   "definitionId": "glutes_hiperextension_45",
                   "familyId": "lower_hip_extension",
@@ -620,7 +620,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_hiperextension_45",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -631,16 +631,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "benefits": [
-                "Disco en el pecho en el banco a 45: carga ligera y control total del recorrido.",
-                "Útil para aprender a usar el glúteo en el banco."
+                "Con el disco, el lastre es simple y directo sobre el glúteo mayor.",
+                "El clásico del banco romano pensado para el trasero."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
               ],
-              "description": "Disco en el pecho en el banco a 45: carga ligera y control total del recorrido. Útil para aprender a usar el glúteo en el banco.",
+              "description": "Con disco, en el banco inclinado, el torso baja y sube pivotando sobre la cadera con el glúteo dirigiendo. Con el disco, el lastre es simple y directo sobre el glúteo mayor.",
               "efc": 2.8,
               "equipmentId": "plate",
               "executionCues": [
@@ -820,10 +820,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Disco en el pecho en el banco a 45: carga ligera y control total del recorrido.",
-                    "Útil para aprender a usar el glúteo en el banco."
+                    "Con el disco, el lastre es simple y directo sobre el glúteo mayor.",
+                    "El clásico del banco romano pensado para el trasero."
                   ],
-                  "description": "Disco en el pecho en el banco a 45: carga ligera y control total del recorrido. Útil para aprender a usar el glúteo en el banco.",
+                  "description": "Con disco, en el banco inclinado, el torso baja y sube pivotando sobre la cadera con el glúteo dirigiendo. Con el disco, el lastre es simple y directo sobre el glúteo mayor.",
                   "technique": "Disco en el pecho en el banco a 45: carga ligera y control total del recorrido. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar.",
                   "variantRationale": "Disco en el pecho en el banco a 45: carga ligera y control total del recorrido. Útil para aprender a usar el glúteo en el banco."
                 },
@@ -838,7 +838,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hiperextensiones a 45° para Glúteos",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "glutes_hiperextension_45__plate",
                   "definitionId": "glutes_hiperextension_45",
                   "familyId": "lower_hip_extension",
@@ -924,7 +924,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_hiperextension_45",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -935,16 +935,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "benefits": [
-                "Smith en el banco a 45: la barra guiada acompaña el movimiento y puedes cargar con control.",
-                "Variante estable y productiva; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor.",
+                "El clásico del banco romano pensado para el trasero."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
               ],
-              "description": "Smith en el banco a 45: la barra guiada acompaña el movimiento y puedes cargar con control. Variante estable y productiva.",
+              "description": "Con máquina Smith, en el banco inclinado, el torso baja y sube pivotando sobre la cadera con el glúteo dirigiendo. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -1124,10 +1124,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith en el banco a 45: la barra guiada acompaña el movimiento y puedes cargar con control.",
-                    "Variante estable y productiva; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor.",
+                    "El clásico del banco romano pensado para el trasero."
                   ],
-                  "description": "Smith en el banco a 45: la barra guiada acompaña el movimiento y puedes cargar con control. Variante estable y productiva.",
+                  "description": "Con máquina Smith, en el banco inclinado, el torso baja y sube pivotando sobre la cadera con el glúteo dirigiendo. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor.",
                   "technique": "Smith en el banco a 45: la barra guiada acompaña el movimiento y puedes cargar con control. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar.",
                   "variantRationale": "Smith en el banco a 45: la barra guiada acompaña el movimiento y puedes cargar con control. Variante estable y productiva."
                 },
@@ -1142,7 +1142,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hiperextensiones a 45° para Glúteos",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "glutes_hiperextension_45__smith_machine",
                   "definitionId": "glutes_hiperextension_45",
                   "familyId": "lower_hip_extension",
@@ -1224,11 +1224,11 @@
           }
         ],
         "defaultConfigurationId": "glutes_hiperextension_45__plate",
-        "description": "Hiperextensiones a 45 grados para glúteos: en el banco inclinado, subes el cuerpo con la cadera y el glúteo dirige el movimiento. La variante del banco pensada para glúteo.",
+        "description": "Las Hiperextensiones a 45° para Glúteos usan el banco inclinado para aislar la cadera: el torso baja y sube pivotando sobre la cadera con el glúteo mayor empujando la subida. Se ejecutan con las caderas al borde del apoyo, bajando con la espalda redondeada hacia el suelo y extendiendo con intención de glúteo. Los isquiosurales acompañan y un disco o unas mancuernas añaden carga cuando el cuerpo ya no basta. El clásico del banco romano pensado para el trasero.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1255,7 +1255,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_patada_gluteo",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1266,16 +1266,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea en el tobillo: empujas el talón atrás y arriba contra la tensión constante.",
-                "El glúteo trabaja en todo el recorrido, sin descansos."
+                "Con la polea, la tensión sobre el glúteo mayor se mantiene viva de principio a fin.",
+                "El conector mente-glúteo por excelencia."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
               ],
-              "description": "Polea en el tobillo: empujas el talón atrás y arriba contra la tensión constante. El glúteo trabaja en todo el recorrido, sin descansos.",
+              "description": "Con polea, la pierna se extiende hacia atrás y arriba con el glúteo contrayéndose en lo alto del arco. Con la polea, la tensión sobre el glúteo mayor se mantiene viva de principio a fin.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -1443,10 +1443,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea en el tobillo: empujas el talón atrás y arriba contra la tensión constante.",
-                    "El glúteo trabaja en todo el recorrido, sin descansos."
+                    "Con la polea, la tensión sobre el glúteo mayor se mantiene viva de principio a fin.",
+                    "El conector mente-glúteo por excelencia."
                   ],
-                  "description": "Polea en el tobillo: empujas el talón atrás y arriba contra la tensión constante. El glúteo trabaja en todo el recorrido, sin descansos.",
+                  "description": "Con polea, la pierna se extiende hacia atrás y arriba con el glúteo contrayéndose en lo alto del arco. Con la polea, la tensión sobre el glúteo mayor se mantiene viva de principio a fin.",
                   "technique": "Polea en el tobillo: empujas el talón atrás y arriba contra la tensión constante. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar.",
                   "variantRationale": "Polea en el tobillo: empujas el talón atrás y arriba contra la tensión constante. El glúteo trabaja en todo el recorrido, sin descansos."
                 },
@@ -1461,7 +1461,7 @@
                 },
                 "identity": {
                   "canonicalName": "Patada de Glúteo",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "glutes_patada_gluteo__cable",
                   "definitionId": "glutes_patada_gluteo",
                   "familyId": "lower_hip_extension",
@@ -1542,7 +1542,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_patada_gluteo",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1553,16 +1553,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuerna detrás de la rodilla: la patada tradicional con carga libre.",
-                "Sencilla de montar y útil para acumular trabajo para localizar el glúteo."
+                "Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
+                "El conector mente-glúteo por excelencia."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
               ],
-              "description": "Mancuerna detrás de la rodilla: la patada tradicional con carga libre. Sencilla de montar y útil para acumular trabajo para localizar el glúteo.",
+              "description": "Con mancuernas, la pierna se extiende hacia atrás y arriba con el glúteo contrayéndose en lo alto del arco. Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -1730,10 +1730,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuerna detrás de la rodilla: la patada tradicional con carga libre.",
-                    "Sencilla de montar y útil para acumular trabajo para localizar el glúteo."
+                    "Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
+                    "El conector mente-glúteo por excelencia."
                   ],
-                  "description": "Mancuerna detrás de la rodilla: la patada tradicional con carga libre. Sencilla de montar y útil para acumular trabajo para localizar el glúteo.",
+                  "description": "Con mancuernas, la pierna se extiende hacia atrás y arriba con el glúteo contrayéndose en lo alto del arco. Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
                   "technique": "Mancuerna detrás de la rodilla: la patada tradicional con carga libre. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar.",
                   "variantRationale": "Mancuerna detrás de la rodilla: la patada tradicional con carga libre. Sencilla de montar y útil para acumular trabajo para localizar el glúteo."
                 },
@@ -1748,7 +1748,7 @@
                 },
                 "identity": {
                   "canonicalName": "Patada de Glúteo",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "glutes_patada_gluteo__dumbbells",
                   "definitionId": "glutes_patada_gluteo",
                   "familyId": "lower_hip_extension",
@@ -1829,7 +1829,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_patada_gluteo",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1840,16 +1840,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Banda en el tobillo: la resistencia elástica sube al estirar la pierna.",
-                "Útil para activar el glúteo en casa o como remate."
+                "El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido.",
+                "El conector mente-glúteo por excelencia."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
               ],
-              "description": "Banda en el tobillo: la resistencia elástica sube al estirar la pierna. Útil para activar el glúteo en casa o como remate.",
+              "description": "Con banda elástica, la pierna se extiende hacia atrás y arriba con el glúteo contrayéndose en lo alto del arco. El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido.",
               "efc": 2.8,
               "equipmentId": "band",
               "executionCues": [
@@ -2017,10 +2017,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Banda en el tobillo: la resistencia elástica sube al estirar la pierna.",
-                    "Útil para activar el glúteo en casa o como remate."
+                    "El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido.",
+                    "El conector mente-glúteo por excelencia."
                   ],
-                  "description": "Banda en el tobillo: la resistencia elástica sube al estirar la pierna. Útil para activar el glúteo en casa o como remate.",
+                  "description": "Con banda elástica, la pierna se extiende hacia atrás y arriba con el glúteo contrayéndose en lo alto del arco. El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido.",
                   "technique": "Banda en el tobillo: la resistencia elástica sube al estirar la pierna. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar.",
                   "variantRationale": "Banda en el tobillo: la resistencia elástica sube al estirar la pierna. Útil para activar el glúteo en casa o como remate."
                 },
@@ -2035,7 +2035,7 @@
                 },
                 "identity": {
                   "canonicalName": "Patada de Glúteo",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "glutes_patada_gluteo__band",
                   "definitionId": "glutes_patada_gluteo",
                   "familyId": "lower_hip_extension",
@@ -2112,11 +2112,11 @@
           }
         ],
         "defaultConfigurationId": "glutes_patada_gluteo__cable",
-        "description": "Empujas el talón hacia atrás y arriba contra resistencia, con el glúteo haciendo la mayor parte de la carga. El ejercicio muy utilizado para sentir y dar forma al glúteo.",
+        "description": "La Patada de Glúteo es la extensión de cadera más directa que existe: la pierna empuja hacia atrás y arriba y el glúteo mayor se contrae sin que nada compita con él. Se ejecuta con la polea baja en el tobillo, inclinado hacia delante, extendiendo la pierna hasta apretar el glúteo y regresando sin balancear el tronco. La banda o una mancuerna tras la rodilla montan el mismo trabajo sin polea. El conector mente-glúteo por excelencia.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -2143,7 +2143,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_puente_gluteos",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2154,16 +2154,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "benefits": [
-                "Barra en la cadera con ambas piernas: el puente tradicional con carga.",
-                "Glúteo trabajando a fondo desde el primer día."
+                "El glúteo mayor trabaja con la barra, que permite cargar pesado y medir la progresión con claridad. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
+                "El primer escalón del desarrollo glúteo y un bálsamo lumbar."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
               ],
-              "description": "Barra en la cadera con ambas piernas: el puente tradicional con carga. Glúteo trabajando a fondo desde el primer día.",
+              "description": "Con barra y a dos lados, boca arriba con los pies plantados, la cadera sube hasta alinear hombros y rodillas. El glúteo mayor trabaja con la barra, que permite cargar pesado y medir la progresión con claridad. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -2332,10 +2332,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra en la cadera con ambas piernas: el puente tradicional con carga.",
-                    "Glúteo trabajando a fondo desde el primer día."
+                    "El glúteo mayor trabaja con la barra, que permite cargar pesado y medir la progresión con claridad. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
+                    "El primer escalón del desarrollo glúteo y un bálsamo lumbar."
                   ],
-                  "description": "Barra en la cadera con ambas piernas: el puente tradicional con carga. Glúteo trabajando a fondo desde el primer día.",
+                  "description": "Con barra y a dos lados, boca arriba con los pies plantados, la cadera sube hasta alinear hombros y rodillas. El glúteo mayor trabaja con la barra, que permite cargar pesado y medir la progresión con claridad. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
                   "technique": "Barra en la cadera con ambas piernas: el puente tradicional con carga. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar.",
                   "variantRationale": "Barra en la cadera con ambas piernas: el puente tradicional con carga. Glúteo trabajando a fondo desde el primer día."
                 },
@@ -2350,7 +2350,7 @@
                 },
                 "identity": {
                   "canonicalName": "Puente de Glúteos",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "glutes_puente_gluteos__bilateral__barbell",
                   "definitionId": "glutes_puente_gluteos",
                   "familyId": "lower_hip_extension",
@@ -2432,7 +2432,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_puente_gluteos",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2443,16 +2443,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "benefits": [
-                "Barra en la cadera con una pierna: el glúteo de un lado hace la mayor parte de la carga y el equilibrio suma reto.",
-                "Avanzado y útil para acumular trabajo; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El glúteo mayor trabaja con la barra, que permite cargar pesado y medir la progresión con claridad. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
+                "El primer escalón del desarrollo glúteo y un bálsamo lumbar."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
               ],
-              "description": "Barra en la cadera con una pierna: el glúteo de un lado hace la mayor parte de la carga y el equilibrio suma reto. Avanzado y útil para acumular trabajo.",
+              "description": "Con barra y a un lado, boca arriba con los pies plantados, la cadera sube hasta alinear hombros y rodillas. El glúteo mayor trabaja con la barra, que permite cargar pesado y medir la progresión con claridad. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -2621,10 +2621,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra en la cadera con una pierna: el glúteo de un lado hace la mayor parte de la carga y el equilibrio suma reto.",
-                    "Avanzado y útil para acumular trabajo; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El glúteo mayor trabaja con la barra, que permite cargar pesado y medir la progresión con claridad. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
+                    "El primer escalón del desarrollo glúteo y un bálsamo lumbar."
                   ],
-                  "description": "Barra en la cadera con una pierna: el glúteo de un lado hace la mayor parte de la carga y el equilibrio suma reto. Avanzado y útil para acumular trabajo.",
+                  "description": "Con barra y a un lado, boca arriba con los pies plantados, la cadera sube hasta alinear hombros y rodillas. El glúteo mayor trabaja con la barra, que permite cargar pesado y medir la progresión con claridad. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
                   "technique": "Barra en la cadera con una pierna: el glúteo de un lado hace la mayor parte de la carga y el equilibrio suma reto. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar.",
                   "variantRationale": "Barra en la cadera con una pierna: el glúteo de un lado hace la mayor parte de la carga y el equilibrio suma reto. Avanzado y útil para acumular trabajo."
                 },
@@ -2639,7 +2639,7 @@
                 },
                 "identity": {
                   "canonicalName": "Puente de Glúteos",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "glutes_puente_gluteos__unilateral__barbell",
                   "definitionId": "glutes_puente_gluteos",
                   "familyId": "lower_hip_extension",
@@ -2721,7 +2721,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_puente_gluteos",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2732,16 +2732,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "benefits": [
-                "Mancuerna en la cadera con ambas piernas: carga cómoda y recorrido libre.",
-                "La puerta de entrada útil al puente con peso."
+                "El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A dos lados, el trabajo del glúteo mayor admite más carga total.",
+                "El primer escalón del desarrollo glúteo y un bálsamo lumbar."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
               ],
-              "description": "Mancuerna en la cadera con ambas piernas: carga cómoda y recorrido libre. La puerta de entrada útil al puente con peso.",
+              "description": "Con mancuernas y a dos lados, boca arriba con los pies plantados, la cadera sube hasta alinear hombros y rodillas. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A dos lados, el trabajo del glúteo mayor admite más carga total.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -2910,10 +2910,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuerna en la cadera con ambas piernas: carga cómoda y recorrido libre.",
-                    "La puerta de entrada útil al puente con peso."
+                    "El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A dos lados, el trabajo del glúteo mayor admite más carga total.",
+                    "El primer escalón del desarrollo glúteo y un bálsamo lumbar."
                   ],
-                  "description": "Mancuerna en la cadera con ambas piernas: carga cómoda y recorrido libre. La puerta de entrada útil al puente con peso.",
+                  "description": "Con mancuernas y a dos lados, boca arriba con los pies plantados, la cadera sube hasta alinear hombros y rodillas. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A dos lados, el trabajo del glúteo mayor admite más carga total.",
                   "technique": "Mancuerna en la cadera con ambas piernas: carga cómoda y recorrido libre. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar.",
                   "variantRationale": "Mancuerna en la cadera con ambas piernas: carga cómoda y recorrido libre. La puerta de entrada útil al puente con peso."
                 },
@@ -2928,7 +2928,7 @@
                 },
                 "identity": {
                   "canonicalName": "Puente de Glúteos",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "glutes_puente_gluteos__bilateral__dumbbells",
                   "definitionId": "glutes_puente_gluteos",
                   "familyId": "lower_hip_extension",
@@ -3010,7 +3010,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_puente_gluteos",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -3021,16 +3021,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "benefits": [
-                "Mancuerna con una pierna: el glúteo trabaja sin ayuda del otro lado y el equilibrio se entrena de regalo.",
-                "Útil para corregir desequilibrios; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
+                "El primer escalón del desarrollo glúteo y un bálsamo lumbar."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
               ],
-              "description": "Mancuerna con una pierna: el glúteo trabaja sin ayuda del otro lado y el equilibrio se entrena de regalo. Útil para corregir desequilibrios.",
+              "description": "Con mancuernas y a un lado, boca arriba con los pies plantados, la cadera sube hasta alinear hombros y rodillas. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -3199,10 +3199,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuerna con una pierna: el glúteo trabaja sin ayuda del otro lado y el equilibrio se entrena de regalo.",
-                    "Útil para corregir desequilibrios; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
+                    "El primer escalón del desarrollo glúteo y un bálsamo lumbar."
                   ],
-                  "description": "Mancuerna con una pierna: el glúteo trabaja sin ayuda del otro lado y el equilibrio se entrena de regalo. Útil para corregir desequilibrios.",
+                  "description": "Con mancuernas y a un lado, boca arriba con los pies plantados, la cadera sube hasta alinear hombros y rodillas. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
                   "technique": "Mancuerna con una pierna: el glúteo trabaja sin ayuda del otro lado y el equilibrio se entrena de regalo. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar.",
                   "variantRationale": "Mancuerna con una pierna: el glúteo trabaja sin ayuda del otro lado y el equilibrio se entrena de regalo. Útil para corregir desequilibrios."
                 },
@@ -3217,7 +3217,7 @@
                 },
                 "identity": {
                   "canonicalName": "Puente de Glúteos",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "glutes_puente_gluteos__unilateral__dumbbells",
                   "definitionId": "glutes_puente_gluteos",
                   "familyId": "lower_hip_extension",
@@ -3299,7 +3299,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_puente_gluteos",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -3310,16 +3310,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "benefits": [
-                "Smith en la cadera con ambas piernas: la barra guiada sube en línea recta y el glúteo se concentra en empujar.",
-                "Muy cómodo con peso; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El glúteo mayor trabaja en la Smith, con la trayectoria guiada y estabilidad extra. A dos lados, el trabajo del glúteo mayor admite más carga total.",
+                "El primer escalón del desarrollo glúteo y un bálsamo lumbar."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
               ],
-              "description": "Smith en la cadera con ambas piernas: la barra guiada sube en línea recta y el glúteo se concentra en empujar. Muy cómodo con peso.",
+              "description": "Con máquina Smith y a dos lados, boca arriba con los pies plantados, la cadera sube hasta alinear hombros y rodillas. El glúteo mayor trabaja en la Smith, con la trayectoria guiada y estabilidad extra. A dos lados, el trabajo del glúteo mayor admite más carga total.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -3488,10 +3488,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith en la cadera con ambas piernas: la barra guiada sube en línea recta y el glúteo se concentra en empujar.",
-                    "Muy cómodo con peso; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El glúteo mayor trabaja en la Smith, con la trayectoria guiada y estabilidad extra. A dos lados, el trabajo del glúteo mayor admite más carga total.",
+                    "El primer escalón del desarrollo glúteo y un bálsamo lumbar."
                   ],
-                  "description": "Smith en la cadera con ambas piernas: la barra guiada sube en línea recta y el glúteo se concentra en empujar. Muy cómodo con peso.",
+                  "description": "Con máquina Smith y a dos lados, boca arriba con los pies plantados, la cadera sube hasta alinear hombros y rodillas. El glúteo mayor trabaja en la Smith, con la trayectoria guiada y estabilidad extra. A dos lados, el trabajo del glúteo mayor admite más carga total.",
                   "technique": "Smith en la cadera con ambas piernas: la barra guiada sube en línea recta y el glúteo se concentra en empujar. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar.",
                   "variantRationale": "Smith en la cadera con ambas piernas: la barra guiada sube en línea recta y el glúteo se concentra en empujar. Muy cómodo con peso."
                 },
@@ -3506,7 +3506,7 @@
                 },
                 "identity": {
                   "canonicalName": "Puente de Glúteos",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "glutes_puente_gluteos__bilateral__smith_machine",
                   "definitionId": "glutes_puente_gluteos",
                   "familyId": "lower_hip_extension",
@@ -3588,7 +3588,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_puente_gluteos",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -3599,16 +3599,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "benefits": [
-                "Smith con una pierna: el guiado sostiene la barra y el lado trabajado hace el esfuerzo.",
-                "Variante precisa para igualar glúteos; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. Un lado cada vez: el esfuerzo del glúteo mayor se aísla y las asimetrías quedan al descubierto.",
+                "El primer escalón del desarrollo glúteo y un bálsamo lumbar."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
               ],
-              "description": "Smith con una pierna: el guiado sostiene la barra y el lado trabajado hace el esfuerzo. Variante precisa para igualar glúteos.",
+              "description": "Con máquina Smith y a un lado, boca arriba con los pies plantados, la cadera sube hasta alinear hombros y rodillas. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. Un lado cada vez: el esfuerzo del glúteo mayor se aísla y las asimetrías quedan al descubierto.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -3777,10 +3777,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith con una pierna: el guiado sostiene la barra y el lado trabajado hace el esfuerzo.",
-                    "Variante precisa para igualar glúteos; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. Un lado cada vez: el esfuerzo del glúteo mayor se aísla y las asimetrías quedan al descubierto.",
+                    "El primer escalón del desarrollo glúteo y un bálsamo lumbar."
                   ],
-                  "description": "Smith con una pierna: el guiado sostiene la barra y el lado trabajado hace el esfuerzo. Variante precisa para igualar glúteos.",
+                  "description": "Con máquina Smith y a un lado, boca arriba con los pies plantados, la cadera sube hasta alinear hombros y rodillas. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. Un lado cada vez: el esfuerzo del glúteo mayor se aísla y las asimetrías quedan al descubierto.",
                   "technique": "Smith con una pierna: el guiado sostiene la barra y el lado trabajado hace el esfuerzo. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar.",
                   "variantRationale": "Smith con una pierna: el guiado sostiene la barra y el lado trabajado hace el esfuerzo. Variante precisa para igualar glúteos."
                 },
@@ -3795,7 +3795,7 @@
                 },
                 "identity": {
                   "canonicalName": "Puente de Glúteos",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "glutes_puente_gluteos__unilateral__smith_machine",
                   "definitionId": "glutes_puente_gluteos",
                   "familyId": "lower_hip_extension",
@@ -3873,11 +3873,11 @@
           }
         ],
         "defaultConfigurationId": "glutes_puente_gluteos__bilateral__barbell",
-        "description": "Boca arriba con las rodillas dobladas, empujas la cadera hacia el techo. El ejercicio básico y exigente para localizar el glúteo trabajando desde el primer día.",
+        "description": "El Puente de Glúteos es la forma más accesible de extender la cadera: tumbado boca arriba, la cadera sube hasta alinear hombros y rodillas con el glúteo mayor apretando arriba. Se ejecuta con los pies plantados y la espalda baja en el suelo, subiendo en dos segundos y apretando un segundo arriba. Con barra sobre la cadera se convierte en un ejercicio de carga seria, y a una pierna detecta diferencias al instante. El primer escalón del desarrollo glúteo y un bálsamo lumbar.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -3905,7 +3905,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_reverse_hyper",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -3916,16 +3916,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina con la pelvis apoyada: las piernas se desplazan hacia atrás y la cadera produce la extensión mientras el tronco queda descargado.",
-                "La estación permite trabajar glúteos sin convertir el movimiento en una extensión lumbar."
+                "El glúteo mayor trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+                "El secreto de los powerlifters para una lumbar que dura décadas."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
               ],
-              "description": "Máquina con la pelvis apoyada: las piernas se desplazan hacia atrás y la cadera produce la extensión mientras el tronco queda descargado. La estación permite trabajar glúteos sin convertir el movimiento en una extensión lumbar.",
+              "description": "Con máquina, boca abajo sobre el aparato, las piernas se elevan hacia atrás balanceándose sin comprimir la columna. El glúteo mayor trabaja en la máquina, con el recorrido guiado y sin distracciones.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -4102,10 +4102,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina con la pelvis apoyada: las piernas se desplazan hacia atrás y la cadera produce la extensión mientras el tronco queda descargado.",
-                    "La estación permite trabajar glúteos sin convertir el movimiento en una extensión lumbar."
+                    "El glúteo mayor trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+                    "El secreto de los powerlifters para una lumbar que dura décadas."
                   ],
-                  "description": "Máquina con la pelvis apoyada: las piernas se desplazan hacia atrás y la cadera produce la extensión mientras el tronco queda descargado. La estación permite trabajar glúteos sin convertir el movimiento en una extensión lumbar.",
+                  "description": "Con máquina, boca abajo sobre el aparato, las piernas se elevan hacia atrás balanceándose sin comprimir la columna. El glúteo mayor trabaja en la máquina, con el recorrido guiado y sin distracciones.",
                   "technique": "Máquina con la pelvis apoyada: las piernas se desplazan hacia atrás y la cadera produce la extensión mientras el tronco queda descargado. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar.",
                   "variantRationale": "Máquina con la pelvis apoyada: las piernas se desplazan hacia atrás y la cadera produce la extensión mientras el tronco queda descargado. La estación permite trabajar glúteos sin convertir el movimiento en una extensión lumbar."
                 },
@@ -4120,7 +4120,7 @@
                 },
                 "identity": {
                   "canonicalName": "Reverse Hyper",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "reverse_hyper__machine",
                   "definitionId": "reverse_hyper",
                   "familyId": "lower_hip_extension",
@@ -4197,11 +4197,11 @@
           }
         ],
         "defaultConfigurationId": "reverse_hyper__machine",
-        "description": "Acostado boca abajo, subes las piernas hacia atrás balanceando la cadera. Descarga la espalda baja mientras trabaja el glúteo: el secreto de muchos atletas.",
+        "description": "El Reverse Hyper trabaja la cadena posterior colgando las piernas: boca abajo sobre la máquina, las piernas se elevan hacia atrás balanceándose mientras la columna queda descomprimida. Se ejecuta agarrando el borde y dejando que el péndulo cargue glúteos, isquiosurales y erectores sin presión sobre los discos. Louie Simmons lo popularizó rehabilitando espaldas rotas. El secreto de los powerlifters para una lumbar que dura décadas.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -4225,7 +4225,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#glutes_hiperextension_45",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -4236,16 +4236,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.4,
               "benefits": [
-                "Carga en los codos frente al pecho en el banco a 45: el peso queda cerca del cuerpo y el glúteo hace el trabajo.",
-                "Exigente y muy controlado; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "La barra es la referencia para cargar el glúteo mayor con peso de verdad.",
+                "Otra manera de cargar el banco romano, con el torso trabajando el doble."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
               ],
-              "description": "Carga en los codos frente al pecho en el banco a 45: el peso queda cerca del cuerpo y el glúteo hace el trabajo. Exigente y muy controlado.",
+              "description": "Con barra, con la carga sujeta contra el pecho, el torso baja y sube en el banco inclinado con la cadera al mando. La barra es la referencia para cargar el glúteo mayor con peso de verdad.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -4423,10 +4423,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Carga en los codos frente al pecho en el banco a 45: el peso queda cerca del cuerpo y el glúteo hace el trabajo.",
-                    "Exigente y muy controlado; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "La barra es la referencia para cargar el glúteo mayor con peso de verdad.",
+                    "Otra manera de cargar el banco romano, con el torso trabajando el doble."
                   ],
-                  "description": "Carga en los codos frente al pecho en el banco a 45: el peso queda cerca del cuerpo y el glúteo hace el trabajo. Exigente y muy controlado.",
+                  "description": "Con barra, con la carga sujeta contra el pecho, el torso baja y sube en el banco inclinado con la cadera al mando. La barra es la referencia para cargar el glúteo mayor con peso de verdad.",
                   "technique": "Carga en los codos frente al pecho en el banco a 45: el peso queda cerca del cuerpo y el glúteo hace el trabajo. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar.",
                   "variantRationale": "Carga en los codos frente al pecho en el banco a 45: el peso queda cerca del cuerpo y el glúteo hace el trabajo. Exigente y muy controlado."
                 },
@@ -4441,7 +4441,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hiperextensión a 45 Zercher para Glúteos",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "glutes_hiperextension_45_zercher__default",
                   "definitionId": "glutes_hiperextension_45_zercher",
                   "familyId": "lower_hip_extension",
@@ -4517,11 +4517,11 @@
           }
         ],
         "defaultConfigurationId": "glutes_hiperextension_45_zercher__default",
-        "description": "Con la carga sujetada en los codos frente al pecho, el glúteo trabaja contra un peso que queda muy cómodo y controlado.",
+        "description": "La Hiperextensión a 45 Zercher para Glúteos carga el banco inclinado de otra manera: la barra abrazada en los codos añade peso sin ocupar las manos ni tocar la espalda. Se ejecuta igual que la versión con lastre al pecho, bajando el torso y extendiendo con potencia de glúteo mayor e isquiosurales. La posición zercher exige core firme y brazos pacientes. Otra manera de cargar el banco romano, con el torso trabajando el doble.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -4541,7 +4541,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

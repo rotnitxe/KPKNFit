@@ -11,8 +11,8 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 FAMILIES = ROOT / "catalog" / "exercises" / "v2" / "source" / "families"
 BRIEFS = ROOT / "catalog" / "exercises" / "v2" / "curation" / "editorial_briefs.json"
-REVISION = "v2-approved-2026-08-08-c"
-EVIDENCE_REF = "editorial:catalog-v6-dedicated-copy-2026-08-08"
+REVISION = "v2-approved-2026-08-10-c"
+EVIDENCE_REF = "editorial:catalog-v7.2-human-editorial-2026-08-10"
 
 
 def canonical_json(value: Any) -> bytes:

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Extensión de cuádriceps",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_extension_cuadriceps",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina con ambas piernas: estiras las rodillas contra la resistencia.",
-                "El aislamiento tradicional del cuádriceps, simple y efectivo."
+                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Con ambos lados a la vez, el trabajo del cuádriceps se reparte.",
+                "El remate clásico para dejar el cuádriceps congestionado al final de la sesión."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
               ],
-              "description": "Máquina con ambas piernas: estiras las rodillas contra la resistencia. El aislamiento tradicional del cuádriceps, simple y efectivo.",
+              "description": "Con a dos lados, sentado, las espinillas levantan la almohadilla hasta la extensión completa de la rodilla. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Con ambos lados a la vez, el trabajo del cuádriceps se reparte.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -200,10 +200,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina con ambas piernas: estiras las rodillas contra la resistencia.",
-                    "El aislamiento tradicional del cuádriceps, simple y efectivo."
+                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Con ambos lados a la vez, el trabajo del cuádriceps se reparte.",
+                    "El remate clásico para dejar el cuádriceps congestionado al final de la sesión."
                   ],
-                  "description": "Máquina con ambas piernas: estiras las rodillas contra la resistencia. El aislamiento tradicional del cuádriceps, simple y efectivo.",
+                  "description": "Con a dos lados, sentado, las espinillas levantan la almohadilla hasta la extensión completa de la rodilla. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Con ambos lados a la vez, el trabajo del cuádriceps se reparte.",
                   "technique": "Máquina con ambas piernas: estiras las rodillas contra la resistencia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Máquina con ambas piernas: estiras las rodillas contra la resistencia. El aislamiento tradicional del cuádriceps, simple y efectivo."
                 },
@@ -218,7 +218,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Cuádriceps en Máquina",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "quads_extension_cuadriceps__machine__bilateral",
                   "definitionId": "quads_extension_cuadriceps",
                   "familyId": "lower_knee_extension",
@@ -296,7 +296,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_extension_cuadriceps",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -307,16 +307,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina con una pierna: cada cuádriceps trabaja sin ayuda del otro lado y corriges desequilibrios.",
-                "La versión precisa de la extensión; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Un lado cada vez: el esfuerzo del cuádriceps se aísla y las asimetrías quedan al descubierto.",
+                "El remate clásico para dejar el cuádriceps congestionado al final de la sesión."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
               ],
-              "description": "Máquina con una pierna: cada cuádriceps trabaja sin ayuda del otro lado y corriges desequilibrios. La versión precisa de la extensión.",
+              "description": "Con a un lado, sentado, las espinillas levantan la almohadilla hasta la extensión completa de la rodilla. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Un lado cada vez: el esfuerzo del cuádriceps se aísla y las asimetrías quedan al descubierto.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
@@ -484,10 +484,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina con una pierna: cada cuádriceps trabaja sin ayuda del otro lado y corriges desequilibrios.",
-                    "La versión precisa de la extensión; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Un lado cada vez: el esfuerzo del cuádriceps se aísla y las asimetrías quedan al descubierto.",
+                    "El remate clásico para dejar el cuádriceps congestionado al final de la sesión."
                   ],
-                  "description": "Máquina con una pierna: cada cuádriceps trabaja sin ayuda del otro lado y corriges desequilibrios. La versión precisa de la extensión.",
+                  "description": "Con a un lado, sentado, las espinillas levantan la almohadilla hasta la extensión completa de la rodilla. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Un lado cada vez: el esfuerzo del cuádriceps se aísla y las asimetrías quedan al descubierto.",
                   "technique": "Máquina con una pierna: cada cuádriceps trabaja sin ayuda del otro lado y corriges desequilibrios. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Máquina con una pierna: cada cuádriceps trabaja sin ayuda del otro lado y corriges desequilibrios. La versión precisa de la extensión."
                 },
@@ -502,7 +502,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Cuádriceps en Máquina",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "quads_extension_cuadriceps__machine__unilateral",
                   "definitionId": "quads_extension_cuadriceps",
                   "familyId": "lower_knee_extension",
@@ -576,11 +576,11 @@
           }
         ],
         "defaultConfigurationId": "quads_extension_cuadriceps__machine__bilateral",
-        "description": "Sentado, estiras las piernas contra la resistencia. El aislamiento tradicional del cuádriceps, útil para rematar las piernas.",
+        "description": "La Extensión de Cuádriceps en Máquina aísla el muslo frontal sin distracciones: sentado, las espinillas levantan la almohadilla hasta la extensión completa de la rodilla. Se ejecuta con la espalda contra el respaldo, subiendo con pausa arriba y bajando sin soltar la tensión. A una pierna iguala fuerzas entre lados. El remate clásico para dejar el cuádriceps congestionado al final de la sesión.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -606,7 +606,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_extension_cuadriceps",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -617,16 +617,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea con ambas piernas: el tobillo enganchado y la rodilla estirando contra la tensión.",
-                "Variante precisa y constante; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del cuádriceps se reparte.",
+                "Una alternativa fresca a la versión sentada para sentir el cuádriceps de otro modo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
               ],
-              "description": "Polea con ambas piernas: el tobillo enganchado y la rodilla estirando contra la tensión. Variante precisa y constante.",
+              "description": "Con a dos lados, de pie con el tobillo enganchado, la rodilla se extiende contra la tensión del cable. El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del cuádriceps se reparte.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -794,10 +794,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea con ambas piernas: el tobillo enganchado y la rodilla estirando contra la tensión.",
-                    "Variante precisa y constante; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del cuádriceps se reparte.",
+                    "Una alternativa fresca a la versión sentada para sentir el cuádriceps de otro modo."
                   ],
-                  "description": "Polea con ambas piernas: el tobillo enganchado y la rodilla estirando contra la tensión. Variante precisa y constante.",
+                  "description": "Con a dos lados, de pie con el tobillo enganchado, la rodilla se extiende contra la tensión del cable. El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del cuádriceps se reparte.",
                   "technique": "Polea con ambas piernas: el tobillo enganchado y la rodilla estirando contra la tensión. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Polea con ambas piernas: el tobillo enganchado y la rodilla estirando contra la tensión. Variante precisa y constante."
                 },
@@ -812,7 +812,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Cuádriceps de Pie en Polea",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "quads_extension_cuadriceps_pie_polea__bilateral",
                   "definitionId": "quads_extension_cuadriceps_pie_polea",
                   "familyId": "lower_knee_extension",
@@ -890,7 +890,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#quads_extension_cuadriceps",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -901,16 +901,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea con una pierna: extensión unilateral con tensión continua.",
-                "Útil para aislar un cuádriceps a la vez."
+                "Con la polea, la tensión sobre el cuádriceps se mantiene viva de principio a fin. A un lado, el trabajo del cuádriceps se hace en solitario y las diferencias salen a la vista.",
+                "Una alternativa fresca a la versión sentada para sentir el cuádriceps de otro modo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
               ],
-              "description": "Polea con una pierna: extensión unilateral con tensión continua. Útil para aislar un cuádriceps a la vez.",
+              "description": "Con a un lado, de pie con el tobillo enganchado, la rodilla se extiende contra la tensión del cable. Con la polea, la tensión sobre el cuádriceps se mantiene viva de principio a fin. A un lado, el trabajo del cuádriceps se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -1078,10 +1078,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea con una pierna: extensión unilateral con tensión continua.",
-                    "Útil para aislar un cuádriceps a la vez."
+                    "Con la polea, la tensión sobre el cuádriceps se mantiene viva de principio a fin. A un lado, el trabajo del cuádriceps se hace en solitario y las diferencias salen a la vista.",
+                    "Una alternativa fresca a la versión sentada para sentir el cuádriceps de otro modo."
                   ],
-                  "description": "Polea con una pierna: extensión unilateral con tensión continua. Útil para aislar un cuádriceps a la vez.",
+                  "description": "Con a un lado, de pie con el tobillo enganchado, la rodilla se extiende contra la tensión del cable. Con la polea, la tensión sobre el cuádriceps se mantiene viva de principio a fin. A un lado, el trabajo del cuádriceps se hace en solitario y las diferencias salen a la vista.",
                   "technique": "Polea con una pierna: extensión unilateral con tensión continua. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Polea con una pierna: extensión unilateral con tensión continua. Útil para aislar un cuádriceps a la vez."
                 },
@@ -1096,7 +1096,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Cuádriceps de Pie en Polea",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "quads_extension_cuadriceps_pie_polea__unilateral",
                   "definitionId": "quads_extension_cuadriceps_pie_polea",
                   "familyId": "lower_knee_extension",
@@ -1170,11 +1170,11 @@
           }
         ],
         "defaultConfigurationId": "quads_extension_cuadriceps_pie_polea__bilateral",
-        "description": "El tobillo enganchado, estiras la rodilla contra la tensión del cable. Variante precisa que cambia la línea de resistencia al cuádriceps.",
+        "description": "La Extensión de Cuádriceps de Pie en Polea lleva el aislamiento a una posición vertical: con el tobillo enganchado al cable, la rodilla se extiende hacia atrás contra la tensión constante. Se ejecuta de pie, sujeto al soporte, extendiendo una pierna cada vez con el muslo quieto. La polea mantiene la resistencia viva en todo el recorrido. Una alternativa fresca a la versión sentada para sentir el cuádriceps de otro modo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1196,7 +1196,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

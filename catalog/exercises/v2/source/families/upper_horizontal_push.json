@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Empuje horizontal",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_flexiones",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Flexiones con el cuerpo recto y las manos al ancho del pecho: el tradicional completo.",
-                "Pecho, tríceps y core trabajando con tu propio peso."
+                "El pectoral trabaja con el peso corporal como única carga. Con apoyo plano, el recorrido es el estándar.",
+                "La base de la fuerza de empuje, disponible en cualquier suelo del planeta."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 3.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Flexiones con el cuerpo recto y las manos al ancho del pecho: el tradicional completo. Pecho, tríceps y core trabajando con tu propio peso.",
+              "description": "Con apoyo plano, el cuerpo en tabla baja al suelo y sube con el empuje de los brazos. El pectoral trabaja con el peso corporal como única carga. Con apoyo plano, el recorrido es el estándar.",
               "efc": 3.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -223,10 +223,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Flexiones con el cuerpo recto y las manos al ancho del pecho: el tradicional completo.",
-                    "Pecho, tríceps y core trabajando con tu propio peso."
+                    "El pectoral trabaja con el peso corporal como única carga. Con apoyo plano, el recorrido es el estándar.",
+                    "La base de la fuerza de empuje, disponible en cualquier suelo del planeta."
                   ],
-                  "description": "Flexiones con el cuerpo recto y las manos al ancho del pecho: el tradicional completo. Pecho, tríceps y core trabajando con tu propio peso.",
+                  "description": "Con apoyo plano, el cuerpo en tabla baja al suelo y sube con el empuje de los brazos. El pectoral trabaja con el peso corporal como única carga. Con apoyo plano, el recorrido es el estándar.",
                   "technique": "Flexiones con el cuerpo recto y las manos al ancho del pecho: el tradicional completo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Flexiones con el cuerpo recto y las manos al ancho del pecho: el tradicional completo. Pecho, tríceps y core trabajando con tu propio peso."
                 },
@@ -241,7 +241,7 @@
                 },
                 "identity": {
                   "canonicalName": "Flexiones de Brazos",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "push_up__flat",
                   "definitionId": "push_up",
                   "familyId": "upper_horizontal_push",
@@ -327,7 +327,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_flexiones_pies_elevados",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -338,16 +338,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Flexiones con los pies elevados: el ángulo sube el foco a la parte alta del pecho.",
-                "La variante que intensifica el tradicional sin pesas."
+                "Sin más carga que el propio cuerpo, la exigencia del pectoral es la justa. Con los pies en alto, el estiramiento previo y la exigencia crecen.",
+                "La base de la fuerza de empuje, disponible en cualquier suelo del planeta."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.8,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Flexiones con los pies elevados: el ángulo sube el foco a la parte alta del pecho. La variante que intensifica el tradicional sin pesas.",
+              "description": "Con pies elevados, el cuerpo en tabla baja al suelo y sube con el empuje de los brazos. Sin más carga que el propio cuerpo, la exigencia del pectoral es la justa. Con los pies en alto, el estiramiento previo y la exigencia crecen.",
               "efc": 3.2,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -538,10 +538,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Flexiones con los pies elevados: el ángulo sube el foco a la parte alta del pecho.",
-                    "La variante que intensifica el tradicional sin pesas."
+                    "Sin más carga que el propio cuerpo, la exigencia del pectoral es la justa. Con los pies en alto, el estiramiento previo y la exigencia crecen.",
+                    "La base de la fuerza de empuje, disponible en cualquier suelo del planeta."
                   ],
-                  "description": "Flexiones con los pies elevados: el ángulo sube el foco a la parte alta del pecho. La variante que intensifica el tradicional sin pesas.",
+                  "description": "Con pies elevados, el cuerpo en tabla baja al suelo y sube con el empuje de los brazos. Sin más carga que el propio cuerpo, la exigencia del pectoral es la justa. Con los pies en alto, el estiramiento previo y la exigencia crecen.",
                   "technique": "Flexiones con los pies elevados: el ángulo sube el foco a la parte alta del pecho. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Flexiones con los pies elevados: el ángulo sube el foco a la parte alta del pecho. La variante que intensifica el tradicional sin pesas."
                 },
@@ -556,7 +556,7 @@
                 },
                 "identity": {
                   "canonicalName": "Flexiones de Brazos",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "push_up__feet_elevated",
                   "definitionId": "push_up",
                   "familyId": "upper_horizontal_push",
@@ -636,11 +636,11 @@
           }
         ],
         "defaultConfigurationId": "push_up__flat",
-        "description": "Bajas y subes el cuerpo con los brazos, manteniéndolo recto. El ejercicio de pecho más simple y completo, disponible en cualquier parte.",
+        "description": "Las Flexiones de Brazos son el empuje horizontal más universal que existe: el cuerpo en tabla baja al suelo y sube con pectoral, deltoide anterior y tríceps empujando juntos. Se ejecutan con las manos bajo los hombros, bajando el pecho hasta rozar el suelo y extendiendo sin que la cadera se hunda. Con los pies elevados la dificultad sube; con las manos elevadas baja. La base de la fuerza de empuje, disponible en cualquier suelo del planeta.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -667,7 +667,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_cruce_poleas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -678,16 +678,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea alta: el cruce desde arriba enfoca la parte baja del pecho.",
-                "La altura que dibuja el pectoral inferior."
+                "El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco. Con la polea alta, la línea de tracción cae desde arriba sobre el pectoral.",
+                "El finalizador que congestiona el pecho como ningún press puede."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Polea alta: el cruce desde arriba enfoca la parte baja del pecho. La altura que dibuja el pectoral inferior.",
+              "description": "Con polea alta, las manos viajan desde las poleas hasta juntarse frente al pecho en un abrazo amplio. El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco. Con la polea alta, la línea de tracción cae desde arriba sobre el pectoral.",
               "efc": 2.4,
               "equipmentId": "cable",
               "executionCues": [
@@ -868,10 +868,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea alta: el cruce desde arriba enfoca la parte baja del pecho.",
-                    "La altura que dibuja el pectoral inferior."
+                    "El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco. Con la polea alta, la línea de tracción cae desde arriba sobre el pectoral.",
+                    "El finalizador que congestiona el pecho como ningún press puede."
                   ],
-                  "description": "Polea alta: el cruce desde arriba enfoca la parte baja del pecho. La altura que dibuja el pectoral inferior.",
+                  "description": "Con polea alta, las manos viajan desde las poleas hasta juntarse frente al pecho en un abrazo amplio. El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco. Con la polea alta, la línea de tracción cae desde arriba sobre el pectoral.",
                   "technique": "Polea alta: el cruce desde arriba enfoca la parte baja del pecho. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Polea alta: el cruce desde arriba enfoca la parte baja del pecho. La altura que dibuja el pectoral inferior."
                 },
@@ -886,7 +886,7 @@
                 },
                 "identity": {
                   "canonicalName": "Cruce de Poleas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "tren_superior_cruce_poleas__high",
                   "definitionId": "tren_superior_cruce_poleas",
                   "familyId": "upper_horizontal_push",
@@ -969,7 +969,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_cruce_poleas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -980,16 +980,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea media: el cruce desde el centro reparte el trabajo por todo el pecho.",
-                "La altura equilibrada y más utilizada; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Con la polea, la tensión sobre el pectoral se mantiene viva de principio a fin. Desde polea media, la línea horizontal pide control y mantiene el foco del pectoral.",
+                "El finalizador que congestiona el pecho como ningún press puede."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Polea media: el cruce desde el centro reparte el trabajo por todo el pecho. La altura equilibrada y más utilizada.",
+              "description": "Con polea media, las manos viajan desde las poleas hasta juntarse frente al pecho en un abrazo amplio. Con la polea, la tensión sobre el pectoral se mantiene viva de principio a fin. Desde polea media, la línea horizontal pide control y mantiene el foco del pectoral.",
               "efc": 2.4,
               "equipmentId": "cable",
               "executionCues": [
@@ -1170,10 +1170,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea media: el cruce desde el centro reparte el trabajo por todo el pecho.",
-                    "La altura equilibrada y más utilizada; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Con la polea, la tensión sobre el pectoral se mantiene viva de principio a fin. Desde polea media, la línea horizontal pide control y mantiene el foco del pectoral.",
+                    "El finalizador que congestiona el pecho como ningún press puede."
                   ],
-                  "description": "Polea media: el cruce desde el centro reparte el trabajo por todo el pecho. La altura equilibrada y más utilizada.",
+                  "description": "Con polea media, las manos viajan desde las poleas hasta juntarse frente al pecho en un abrazo amplio. Con la polea, la tensión sobre el pectoral se mantiene viva de principio a fin. Desde polea media, la línea horizontal pide control y mantiene el foco del pectoral.",
                   "technique": "Polea media: el cruce desde el centro reparte el trabajo por todo el pecho. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Polea media: el cruce desde el centro reparte el trabajo por todo el pecho. La altura equilibrada y más utilizada."
                 },
@@ -1188,7 +1188,7 @@
                 },
                 "identity": {
                   "canonicalName": "Cruce de Poleas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "tren_superior_cruce_poleas__mid",
                   "definitionId": "tren_superior_cruce_poleas",
                   "familyId": "upper_horizontal_push",
@@ -1271,7 +1271,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_cruce_poleas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1282,16 +1282,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea baja: el cruce desde abajo enfoca la parte alta del pecho.",
-                "La altura que carga la zona superior; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco. Con la polea baja, la tracción nace desde abajo y el ángulo del pectoral cambia.",
+                "El finalizador que congestiona el pecho como ningún press puede."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Polea baja: el cruce desde abajo enfoca la parte alta del pecho. La altura que carga la zona superior.",
+              "description": "Con polea baja, las manos viajan desde las poleas hasta juntarse frente al pecho en un abrazo amplio. El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco. Con la polea baja, la tracción nace desde abajo y el ángulo del pectoral cambia.",
               "efc": 2.4,
               "equipmentId": "cable",
               "executionCues": [
@@ -1472,10 +1472,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea baja: el cruce desde abajo enfoca la parte alta del pecho.",
-                    "La altura que carga la zona superior; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco. Con la polea baja, la tracción nace desde abajo y el ángulo del pectoral cambia.",
+                    "El finalizador que congestiona el pecho como ningún press puede."
                   ],
-                  "description": "Polea baja: el cruce desde abajo enfoca la parte alta del pecho. La altura que carga la zona superior.",
+                  "description": "Con polea baja, las manos viajan desde las poleas hasta juntarse frente al pecho en un abrazo amplio. El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco. Con la polea baja, la tracción nace desde abajo y el ángulo del pectoral cambia.",
                   "technique": "Polea baja: el cruce desde abajo enfoca la parte alta del pecho. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Polea baja: el cruce desde abajo enfoca la parte alta del pecho. La altura que carga la zona superior."
                 },
@@ -1490,7 +1490,7 @@
                 },
                 "identity": {
                   "canonicalName": "Cruce de Poleas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "tren_superior_cruce_poleas__low",
                   "definitionId": "tren_superior_cruce_poleas",
                   "familyId": "upper_horizontal_push",
@@ -1569,11 +1569,11 @@
           }
         ],
         "defaultConfigurationId": "tren_superior_cruce_poleas__mid",
-        "description": "De pie entre dos poleas, llevas las manos de los lados al centro. El pectoral se concentra con tensión constante y la altura de la polea cambia el enfoque.",
+        "description": "El Cruce de Poleas abraza la tensión desde ambos lados: las manos viajan desde las poleas hasta juntarse frente al pecho con el pectoral apretando en el punto de unión. Se ejecuta en el centro de la torre, cruzando las manos con los codos suaves y regresando hasta sentir el estiramiento. La altura de las poleas decide qué porción del pecho manda. El finalizador que congestiona el pecho como ningún press puede.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1602,7 +1602,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_fondos",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1613,16 +1613,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Entre paralelas, bajas flexionando los codos hasta donde puedas y subes.",
-                "Pecho y tríceps con el peso corporal: intensos de verdad."
+                "El pectoral trabaja con el peso corporal como única carga.",
+                "El constructor del pecho bajo y la prueba de fuerza relativa del empuje."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 3.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Entre paralelas, bajas flexionando los codos hasta donde puedas y subes. Pecho y tríceps con el peso corporal: intensos de verdad.",
+              "description": "Con peso corporal, suspendido entre dos barras, el cuerpo baja hasta que los hombros alcanzan los codos y sube. El pectoral trabaja con el peso corporal como única carga.",
               "efc": 3.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -1811,10 +1811,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Entre paralelas, bajas flexionando los codos hasta donde puedas y subes.",
-                    "Pecho y tríceps con el peso corporal: intensos de verdad."
+                    "El pectoral trabaja con el peso corporal como única carga.",
+                    "El constructor del pecho bajo y la prueba de fuerza relativa del empuje."
                   ],
-                  "description": "Entre paralelas, bajas flexionando los codos hasta donde puedas y subes. Pecho y tríceps con el peso corporal: intensos de verdad.",
+                  "description": "Con peso corporal, suspendido entre dos barras, el cuerpo baja hasta que los hombros alcanzan los codos y sube. El pectoral trabaja con el peso corporal como única carga.",
                   "technique": "Entre paralelas, bajas flexionando los codos hasta donde puedas y subes. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Entre paralelas, bajas flexionando los codos hasta donde puedas y subes. Pecho y tríceps con el peso corporal: intensos de verdad."
                 },
@@ -1829,7 +1829,7 @@
                 },
                 "identity": {
                   "canonicalName": "Fondos en Paralelas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "tren_superior_fondos__default",
                   "definitionId": "tren_superior_fondos",
                   "familyId": "upper_horizontal_push",
@@ -1909,11 +1909,11 @@
           }
         ],
         "defaultConfigurationId": "tren_superior_fondos__default",
-        "description": "Te suspendes entre las barras y bajas flexionando los codos. Pecho y tríceps con el peso corporal, intensos y útiles para acumular trabajo.",
+        "description": "Los Fondos en Paralelas suspenden el cuerpo entre dos barras: el pectoral inferior, el deltoide anterior y el tríceps bajan y suben todo el peso corporal. Se ejecutan descendiendo hasta que los hombros alcanzan la altura de los codos y empujando sin balanceo. Inclinar el torso adelante carga más el pecho; erguirse carga más el tríceps. El constructor del pecho bajo y la prueba de fuerza relativa del empuje.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1938,7 +1938,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_press_banca_cadenas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1949,16 +1949,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Cadenas colgando de la barra: la resistencia crece al subir y se aligera al bajar.",
-                "La tensión útil para el press; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Con la barra, la carga sube al máximo y la progresión del pectoral se mide sin trampa.",
+                "La herramienta de los avanzados para romper estancamientos en el press."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 3.8,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Cadenas colgando de la barra: la resistencia crece al subir y se aligera al bajar. La tensión útil para el press.",
+              "description": "Con barra, las cadenas cuelgan de la barra y la resistencia crece al subir y se aligera al bajar. Con la barra, la carga sube al máximo y la progresión del pectoral se mide sin trampa.",
               "efc": 4.0,
               "equipmentId": "barbell",
               "executionCues": [
@@ -2141,10 +2141,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Cadenas colgando de la barra: la resistencia crece al subir y se aligera al bajar.",
-                    "La tensión útil para el press; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Con la barra, la carga sube al máximo y la progresión del pectoral se mide sin trampa.",
+                    "La herramienta de los avanzados para romper estancamientos en el press."
                   ],
-                  "description": "Cadenas colgando de la barra: la resistencia crece al subir y se aligera al bajar. La tensión útil para el press.",
+                  "description": "Con barra, las cadenas cuelgan de la barra y la resistencia crece al subir y se aligera al bajar. Con la barra, la carga sube al máximo y la progresión del pectoral se mide sin trampa.",
                   "technique": "Cadenas colgando de la barra: la resistencia crece al subir y se aligera al bajar. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Cadenas colgando de la barra: la resistencia crece al subir y se aligera al bajar. La tensión útil para el press."
                 },
@@ -2159,7 +2159,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca con Cadenas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "tren_superior_press_banca_cadenas__default",
                   "definitionId": "tren_superior_press_banca_cadenas",
                   "familyId": "upper_horizontal_push",
@@ -2234,11 +2234,11 @@
           }
         ],
         "defaultConfigurationId": "tren_superior_press_banca_cadenas__default",
-        "description": "Las cadenas cuelgan de la barra y la resistencia crece al subir. La tensión se ajusta al punto más fuerte del press.",
+        "description": "El Press de Banca con Cadenas cuelga eslabones de la barra: abajo la carga es menor, arriba las cadenas se levantan del suelo y el peso crece justo donde eres más fuerte. Se ejecuta como el press plano de siempre, solo que la resistencia aumenta durante el empuje. El pectoral y el tríceps trabajan el punto final más que en ninguna otra versión. La herramienta de los avanzados para romper estancamientos en el press.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -2260,7 +2260,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_press_banda_resistencia",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2271,16 +2271,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Bandas atadas a la barra: tensión extra arriba, justo donde empujas más.",
-                "El press con resistencia variable; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El pectoral trabaja con la banda, cuya resistencia crece con el recorrido.",
+                "El press de viaje y de calentamiento, siempre listo en la mochila."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 3.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Bandas atadas a la barra: tensión extra arriba, justo donde empujas más. El press con resistencia variable.",
+              "description": "Con banda elástica, la banda a la espalda aporta una tensión que crece hasta el final del empuje. El pectoral trabaja con la banda, cuya resistencia crece con el recorrido.",
               "efc": 3.2,
               "equipmentId": "band",
               "executionCues": [
@@ -2463,10 +2463,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Bandas atadas a la barra: tensión extra arriba, justo donde empujas más.",
-                    "El press con resistencia variable; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El pectoral trabaja con la banda, cuya resistencia crece con el recorrido.",
+                    "El press de viaje y de calentamiento, siempre listo en la mochila."
                   ],
-                  "description": "Bandas atadas a la barra: tensión extra arriba, justo donde empujas más. El press con resistencia variable.",
+                  "description": "Con banda elástica, la banda a la espalda aporta una tensión que crece hasta el final del empuje. El pectoral trabaja con la banda, cuya resistencia crece con el recorrido.",
                   "technique": "Bandas atadas a la barra: tensión extra arriba, justo donde empujas más. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Bandas atadas a la barra: tensión extra arriba, justo donde empujas más. El press con resistencia variable."
                 },
@@ -2481,7 +2481,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press con Banda de Resistencia",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "tren_superior_press_banda_resistencia__default",
                   "definitionId": "tren_superior_press_banda_resistencia",
                   "familyId": "upper_horizontal_push",
@@ -2556,11 +2556,11 @@
           }
         ],
         "defaultConfigurationId": "tren_superior_press_banda_resistencia__default",
-        "description": "La banda añade tensión variable al press. La resistencia crece arriba, justo donde el pecho está más fuerte.",
+        "description": "El Press con Banda de Resistencia monta el empuje horizontal sin banco ni pesas: la banda a la espalda y las manos empujando al frente con la tensión creciendo al extender. Se ejecuta tumbado o de pie, con la banda apretando más cuanto más lejos van las manos. El pectoral trabaja con resistencia progresiva y portátil. El press de viaje y de calentamiento, siempre listo en la mochila.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -2582,7 +2582,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_press_pecho_maquina_convergente",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2593,16 +2593,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina convergente: los brazos se juntan siguiendo el arco del pecho.",
-                "Cómoda, estable y efectiva; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El pectoral trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+                "La máquina que permite fallar a salvo y cargar el pecho sin miedo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.8,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Máquina convergente: los brazos se juntan siguiendo el arco del pecho. Cómoda, estable y efectiva.",
+              "description": "Con máquina, las palas convergen frente al pecho mientras el respaldo mantiene la espalda fija. El pectoral trabaja en la máquina, con el recorrido guiado y sin distracciones.",
               "efc": 3.2,
               "equipmentId": "machine",
               "executionCues": [
@@ -2785,10 +2785,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina convergente: los brazos se juntan siguiendo el arco del pecho.",
-                    "Cómoda, estable y efectiva; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El pectoral trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+                    "La máquina que permite fallar a salvo y cargar el pecho sin miedo."
                   ],
-                  "description": "Máquina convergente: los brazos se juntan siguiendo el arco del pecho. Cómoda, estable y efectiva.",
+                  "description": "Con máquina, las palas convergen frente al pecho mientras el respaldo mantiene la espalda fija. El pectoral trabaja en la máquina, con el recorrido guiado y sin distracciones.",
                   "technique": "Máquina convergente: los brazos se juntan siguiendo el arco del pecho. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Máquina convergente: los brazos se juntan siguiendo el arco del pecho. Cómoda, estable y efectiva."
                 },
@@ -2803,7 +2803,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Plano en Máquina Convergente",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "tren_superior_press_pecho_maquina_convergente__default",
                   "definitionId": "tren_superior_press_pecho_maquina_convergente",
                   "familyId": "upper_horizontal_push",
@@ -2879,11 +2879,11 @@
           }
         ],
         "defaultConfigurationId": "tren_superior_press_pecho_maquina_convergente__default",
-        "description": "Los brazos se juntan al empujar, siguiendo el arco natural del pecho. Cómoda, estable y efectiva.",
+        "description": "El Press Plano en Máquina Convergente junta las manos al empujar: las palas convergen frente al pecho y el pectoral se contrae en su recorrido natural, guiado por el raíl. Se ejecuta sentado con la espalda apoyada, empujando hasta juntar las empuñaduras y regresando sin golpe. Deltoide y tríceps escoltan el gesto. La máquina que permite fallar a salvo y cargar el pecho sin miedo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -2908,7 +2908,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_press_spoto_barra",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2919,16 +2919,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Pausa corta a unos centímetros del pecho en cada repetición: sin rebote y con el punto débil trabajado.",
-                "El press para romper estancamientos; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Con la barra, la carga sube al máximo y la progresión del pectoral se mide sin trampa.",
+                "La pausa que convierte un press normal en una forja de potencia."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 3.8,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Pausa corta a unos centímetros del pecho en cada repetición: sin rebote y con el punto débil trabajado. El press para romper estancamientos.",
+              "description": "Con barra, la barra se detiene un palmo antes del pecho y descansa un instante antes de empujar. Con la barra, la carga sube al máximo y la progresión del pectoral se mide sin trampa.",
               "efc": 4.0,
               "equipmentId": "barbell",
               "executionCues": [
@@ -3111,10 +3111,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Pausa corta a unos centímetros del pecho en cada repetición: sin rebote y con el punto débil trabajado.",
-                    "El press para romper estancamientos; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Con la barra, la carga sube al máximo y la progresión del pectoral se mide sin trampa.",
+                    "La pausa que convierte un press normal en una forja de potencia."
                   ],
-                  "description": "Pausa corta a unos centímetros del pecho en cada repetición: sin rebote y con el punto débil trabajado. El press para romper estancamientos.",
+                  "description": "Con barra, la barra se detiene un palmo antes del pecho y descansa un instante antes de empujar. Con la barra, la carga sube al máximo y la progresión del pectoral se mide sin trampa.",
                   "technique": "Pausa corta a unos centímetros del pecho en cada repetición: sin rebote y con el punto débil trabajado. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Pausa corta a unos centímetros del pecho en cada repetición: sin rebote y con el punto débil trabajado. El press para romper estancamientos."
                 },
@@ -3129,7 +3129,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Spoto con Barra",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "tren_superior_press_spoto_barra__default",
                   "definitionId": "tren_superior_press_spoto_barra",
                   "familyId": "upper_horizontal_push",
@@ -3204,11 +3204,11 @@
           }
         ],
         "defaultConfigurationId": "tren_superior_press_spoto_barra__default",
-        "description": "Press Spoto: como el press de banca, pero haciendo una pausa justo antes del pecho. Elimina el rebote y trabaja el punto débil del empuje.",
+        "description": "El Press Spoto con Barra detiene la barra un palmo antes del pecho: la pausa mata el rebote y el pectoral y el tríceps producen fuerza desde el punto más débil. Se ejecuta bajando hasta la altura marcada, aguantando un segundo quieto y empujando sin ayuda elástica. Inventado por Eric Spoto para construir el press más fuerte del mundo. La pausa que convierte un press normal en una forja de potencia.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -3230,7 +3230,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_press_unilateral_polea",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -3241,16 +3241,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Una mano contra la polea baja: el pecho trabaja lado a lado y corriges desequilibrios.",
-                "Press unilateral con tensión constante; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                "El empuje que entrena pecho y estabilidad en la misma repetición."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.5,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Una mano contra la polea baja: el pecho trabaja lado a lado y corriges desequilibrios. Press unilateral con tensión constante.",
+              "description": "Con polea, de pie junto a la polea, un solo brazo empuja al frente con el torso sin girar. El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -3433,10 +3433,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Una mano contra la polea baja: el pecho trabaja lado a lado y corriges desequilibrios.",
-                    "Press unilateral con tensión constante; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                    "El empuje que entrena pecho y estabilidad en la misma repetición."
                   ],
-                  "description": "Una mano contra la polea baja: el pecho trabaja lado a lado y corriges desequilibrios. Press unilateral con tensión constante.",
+                  "description": "Con polea, de pie junto a la polea, un solo brazo empuja al frente con el torso sin girar. El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco.",
                   "technique": "Una mano contra la polea baja: el pecho trabaja lado a lado y corriges desequilibrios. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Una mano contra la polea baja: el pecho trabaja lado a lado y corriges desequilibrios. Press unilateral con tensión constante."
                 },
@@ -3451,7 +3451,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Unilateral en Polea",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "tren_superior_press_unilateral_polea__default",
                   "definitionId": "tren_superior_press_unilateral_polea",
                   "familyId": "upper_horizontal_push",
@@ -3524,11 +3524,11 @@
           }
         ],
         "defaultConfigurationId": "tren_superior_press_unilateral_polea__default",
-        "description": "Empujas una sola mano contra la polea baja. Cada lado del pecho trabaja por separado y corriges desequilibrios.",
+        "description": "El Press Unilateral en Polea empuja una sola mano desde la polea: el pectoral trabaja con tensión constante mientras el abdomen se opone a que el torso gire. Se ejecuta de pie, empujando al frente y regresando sin que el hombro se adelante de más. Cada brazo responde por su cuenta y las diferencias saltan a la vista. El empuje que entrena pecho y estabilidad en la misma repetición.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -3550,7 +3550,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_squeeze_press_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -3561,16 +3561,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuernas apretadas entre sí mientras empujas: la contracción del pecho es máxima.",
-                "Un press con sensación única; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El pectoral trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                "El ejercicio de conexión con el pectoral por encima de todos."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.5,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Mancuernas apretadas entre sí mientras empujas: la contracción del pecho es máxima. Un press con sensación única.",
+              "description": "Con mancuernas, tumbado, las mancuernas se mantienen apretadas una contra otra durante todo el empuje. El pectoral trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 3.0,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -3753,10 +3753,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas apretadas entre sí mientras empujas: la contracción del pecho es máxima.",
-                    "Un press con sensación única; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El pectoral trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                    "El ejercicio de conexión con el pectoral por encima de todos."
                   ],
-                  "description": "Mancuernas apretadas entre sí mientras empujas: la contracción del pecho es máxima. Un press con sensación única.",
+                  "description": "Con mancuernas, tumbado, las mancuernas se mantienen apretadas una contra otra durante todo el empuje. El pectoral trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
                   "technique": "Mancuernas apretadas entre sí mientras empujas: la contracción del pecho es máxima. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Mancuernas apretadas entre sí mientras empujas: la contracción del pecho es máxima. Un press con sensación única."
                 },
@@ -3771,7 +3771,7 @@
                 },
                 "identity": {
                   "canonicalName": "Squeeze Press con Mancuernas",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "tren_superior_squeeze_press_mancuernas__default",
                   "definitionId": "tren_superior_squeeze_press_mancuernas",
                   "familyId": "upper_horizontal_push",
@@ -3844,11 +3844,11 @@
           }
         ],
         "defaultConfigurationId": "tren_superior_squeeze_press_mancuernas__default",
-        "description": "Squeeze press: presionas las mancuernas juntas mientras empujas. El pectoral se contrae al máximo en cada repetición.",
+        "description": "El Squeeze Press con Mancuernas aprieta las pesas una contra otra durante todo el empuje: el pectoral se encarga de sostener la presión además de empujar. Se ejecuta tumbado, subiendo las mancuernas pegadas y bajándolas sin que se separen ni un milímetro. La contracción interna del pecho se siente desde la primera repetición. El ejercicio de conexión con el pectoral por encima de todos.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -3870,7 +3870,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#tren_superior_press_pecho_maquina_convergente",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -3881,16 +3881,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina convergente inclinada: el ángulo sube el foco a la parte alta del pecho.",
-                "La versión precisa del press en máquina."
+                "El pectoral trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+                "El camino seguro para cargar el pecho alto con volumen serio."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.8,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
               ],
-              "description": "Máquina convergente inclinada: el ángulo sube el foco a la parte alta del pecho. La versión precisa del press en máquina.",
+              "description": "Con máquina, con el respaldo inclinado, las palas convergen hacia arriba hasta juntarse ligeramente. El pectoral trabaja en la máquina, con el recorrido guiado y sin distracciones.",
               "efc": 3.2,
               "equipmentId": "machine",
               "executionCues": [
@@ -4073,10 +4073,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina convergente inclinada: el ángulo sube el foco a la parte alta del pecho.",
-                    "La versión precisa del press en máquina."
+                    "El pectoral trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+                    "El camino seguro para cargar el pecho alto con volumen serio."
                   ],
-                  "description": "Máquina convergente inclinada: el ángulo sube el foco a la parte alta del pecho. La versión precisa del press en máquina.",
+                  "description": "Con máquina, con el respaldo inclinado, las palas convergen hacia arriba hasta juntarse ligeramente. El pectoral trabaja en la máquina, con el recorrido guiado y sin distracciones.",
                   "technique": "Máquina convergente inclinada: el ángulo sube el foco a la parte alta del pecho. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Máquina convergente inclinada: el ángulo sube el foco a la parte alta del pecho. La versión precisa del press en máquina."
                 },
@@ -4091,7 +4091,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Inclinado en Máquina Convergente",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "tren_superior_press_inclinado_maquina_convergente__default",
                   "definitionId": "tren_superior_press_inclinado_maquina_convergente",
                   "familyId": "upper_horizontal_push",
@@ -4166,11 +4166,11 @@
           }
         ],
         "defaultConfigurationId": "tren_superior_press_inclinado_maquina_convergente__default",
-        "description": "El ángulo sube el foco a la parte alta del pecho con el guiado de la máquina.",
+        "description": "El Press Inclinado en Máquina Convergente lleva la trayectoria guiada hacia la parte alta del pecho: las palas convergen arriba y el pectoral clavicular trabaja sin que el hombro se arriesgue. Se ejecuta con el respaldo inclinado, empujando hacia arriba y al centro hasta juntar las manos. Deltoide anterior y tríceps acompañan el recorrido. El camino seguro para cargar el pecho alto con volumen serio.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -4190,7 +4190,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Press Arnold",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_arnold_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuernas con el giro de Arnold: subes girando las palmas hasta arriba.",
-                "El press completo del hombro, directo del tradicional."
+                "Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
+                "La firma de Arnold: más recorrido, más estímulo, más hombro."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Mancuernas con el giro de Arnold: subes girando las palmas hasta arriba. El press completo del hombro, directo del tradicional.",
+              "description": "Con mancuernas, las mancuernas arrancan con las palmas al cuerpo y terminan el empuje con las palmas al frente tras la rotación. Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -207,10 +207,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas con el giro de Arnold: subes girando las palmas hasta arriba.",
-                    "El press completo del hombro, directo del tradicional."
+                    "Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
+                    "La firma de Arnold: más recorrido, más estímulo, más hombro."
                   ],
-                  "description": "Mancuernas con el giro de Arnold: subes girando las palmas hasta arriba. El press completo del hombro, directo del tradicional.",
+                  "description": "Con mancuernas, las mancuernas arrancan con las palmas al cuerpo y terminan el empuje con las palmas al frente tras la rotación. Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
                   "technique": "Mancuernas con el giro de Arnold: subes girando las palmas hasta arriba. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
                   "variantRationale": "Mancuernas con el giro de Arnold: subes girando las palmas hasta arriba. El press completo del hombro, directo del tradicional."
                 },
@@ -225,7 +225,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Arnold",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "arnold_press__dumbbells",
                   "definitionId": "arnold_press",
                   "familyId": "shoulder_arnold_press",
@@ -306,7 +306,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_arnold_kettlebell",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -317,16 +317,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Kettlebells con el giro de Arnold: el movimiento rotatorio con campanas exige más estabilidad.",
-                "Variante avanzada del press de Arnold; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
+                "La firma de Arnold: más recorrido, más estímulo, más hombro."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Kettlebells con el giro de Arnold: el movimiento rotatorio con campanas exige más estabilidad. Variante avanzada del press de Arnold.",
+              "description": "Con kettlebell, las mancuernas arrancan con las palmas al cuerpo y terminan el empuje con las palmas al frente tras la rotación. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -501,10 +501,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Kettlebells con el giro de Arnold: el movimiento rotatorio con campanas exige más estabilidad.",
-                    "Variante avanzada del press de Arnold; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
+                    "La firma de Arnold: más recorrido, más estímulo, más hombro."
                   ],
-                  "description": "Kettlebells con el giro de Arnold: el movimiento rotatorio con campanas exige más estabilidad. Variante avanzada del press de Arnold.",
+                  "description": "Con kettlebell, las mancuernas arrancan con las palmas al cuerpo y terminan el empuje con las palmas al frente tras la rotación. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
                   "technique": "Kettlebells con el giro de Arnold: el movimiento rotatorio con campanas exige más estabilidad. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
                   "variantRationale": "Kettlebells con el giro de Arnold: el movimiento rotatorio con campanas exige más estabilidad. Variante avanzada del press de Arnold."
                 },
@@ -519,7 +519,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Arnold",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "arnold_press__kettlebell",
                   "definitionId": "arnold_press",
                   "familyId": "shoulder_arnold_press",
@@ -600,7 +600,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_arnold_polea",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -611,16 +611,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea con el giro de Arnold: la tensión constante acompaña el giro y el empuje.",
-                "La versión controlada del press de Arnold."
+                "El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                "La firma de Arnold: más recorrido, más estímulo, más hombro."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Polea con el giro de Arnold: la tensión constante acompaña el giro y el empuje. La versión controlada del press de Arnold.",
+              "description": "Con polea, las mancuernas arrancan con las palmas al cuerpo y terminan el empuje con las palmas al frente tras la rotación. El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -795,10 +795,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea con el giro de Arnold: la tensión constante acompaña el giro y el empuje.",
-                    "La versión controlada del press de Arnold."
+                    "El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                    "La firma de Arnold: más recorrido, más estímulo, más hombro."
                   ],
-                  "description": "Polea con el giro de Arnold: la tensión constante acompaña el giro y el empuje. La versión controlada del press de Arnold.",
+                  "description": "Con polea, las mancuernas arrancan con las palmas al cuerpo y terminan el empuje con las palmas al frente tras la rotación. El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
                   "technique": "Polea con el giro de Arnold: la tensión constante acompaña el giro y el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
                   "variantRationale": "Polea con el giro de Arnold: la tensión constante acompaña el giro y el empuje. La versión controlada del press de Arnold."
                 },
@@ -813,7 +813,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Arnold",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "arnold_press__cable",
                   "definitionId": "arnold_press",
                   "familyId": "shoulder_arnold_press",
@@ -890,11 +890,11 @@
           }
         ],
         "defaultConfigurationId": "arnold_press__dumbbells",
-        "description": "Empiezas con las palmas hacia ti y vas girando mientras subes. El press que trabaja el hombro completo en un solo movimiento, directo de Arnold.",
+        "description": "El Press Arnold es el press de hombros con giro de muñeca: las mancuernas arrancan con las palmas al pecho y terminan el empuje con las palmas al frente tras una rotación completa. Se ejecuta sentado o de pie, girando mientras se sube y deshaciendo el giro al bajar. El deltoide recorre un arco mayor que el press normal y el tríceps cierra arriba. La firma de Arnold: más recorrido, más estímulo, más hombro.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -917,7 +917,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

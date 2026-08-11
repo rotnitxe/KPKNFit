@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Extensión de tríceps overhead",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#triceps_overhead",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Barra detrás de la cabeza: bajas y subes con los codos apuntando arriba.",
-                "El press francés overhead tradicional con barra."
+                "El tríceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+                "El constructor de la parte larga del tríceps, la que da tamaño real al brazo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
               ],
-              "description": "Barra detrás de la cabeza: bajas y subes con los codos apuntando arriba. El press francés overhead tradicional con barra.",
+              "description": "Con barra, la carga por encima de la cabeza baja por detrás del cuello y sube hasta la extensión completa. El tríceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
               "efc": 2.2,
               "equipmentId": "barbell",
               "executionCues": [
@@ -185,10 +185,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra detrás de la cabeza: bajas y subes con los codos apuntando arriba.",
-                    "El press francés overhead tradicional con barra."
+                    "El tríceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+                    "El constructor de la parte larga del tríceps, la que da tamaño real al brazo."
                   ],
-                  "description": "Barra detrás de la cabeza: bajas y subes con los codos apuntando arriba. El press francés overhead tradicional con barra.",
+                  "description": "Con barra, la carga por encima de la cabeza baja por detrás del cuello y sube hasta la extensión completa. El tríceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
                   "technique": "Barra detrás de la cabeza: bajas y subes con los codos apuntando arriba. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
                   "variantRationale": "Barra detrás de la cabeza: bajas y subes con los codos apuntando arriba. El press francés overhead tradicional con barra."
                 },
@@ -203,7 +203,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps Overhead",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "overhead_triceps__barbell",
                   "definitionId": "overhead_triceps_extension",
                   "familyId": "upper_elbow_extension_overhead",
@@ -281,7 +281,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#triceps_overhead_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -292,16 +292,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina overhead: el guiado acompaña el recorrido detrás de la cabeza.",
-                "La opción cómoda y estable del tríceps overhead."
+                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del tríceps.",
+                "El constructor de la parte larga del tríceps, la que da tamaño real al brazo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
               ],
-              "description": "Máquina overhead: el guiado acompaña el recorrido detrás de la cabeza. La opción cómoda y estable del tríceps overhead.",
+              "description": "Con máquina, la carga por encima de la cabeza baja por detrás del cuello y sube hasta la extensión completa. En la máquina, la trayectoria guiada concentra todo el esfuerzo del tríceps.",
               "efc": 2.2,
               "equipmentId": "machine",
               "executionCues": [
@@ -454,10 +454,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina overhead: el guiado acompaña el recorrido detrás de la cabeza.",
-                    "La opción cómoda y estable del tríceps overhead."
+                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del tríceps.",
+                    "El constructor de la parte larga del tríceps, la que da tamaño real al brazo."
                   ],
-                  "description": "Máquina overhead: el guiado acompaña el recorrido detrás de la cabeza. La opción cómoda y estable del tríceps overhead.",
+                  "description": "Con máquina, la carga por encima de la cabeza baja por detrás del cuello y sube hasta la extensión completa. En la máquina, la trayectoria guiada concentra todo el esfuerzo del tríceps.",
                   "technique": "Máquina overhead: el guiado acompaña el recorrido detrás de la cabeza. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
                   "variantRationale": "Máquina overhead: el guiado acompaña el recorrido detrás de la cabeza. La opción cómoda y estable del tríceps overhead."
                 },
@@ -472,7 +472,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps Overhead",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "overhead_triceps__machine",
                   "definitionId": "overhead_triceps_extension",
                   "familyId": "upper_elbow_extension_overhead",
@@ -551,7 +551,7 @@
               "evidenceRefs": [
                 "legacy:exercise_database.json#triceps_overhead",
                 "editorial:configuration:overhead_triceps__dumbbells",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -562,16 +562,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuerna o mancuernas detrás de la cabeza: el estiramiento del tríceps es enorme.",
-                "La versión habitual del overhead para la mayoría."
+                "El tríceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                "El constructor de la parte larga del tríceps, la que da tamaño real al brazo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
               ],
-              "description": "Mancuerna o mancuernas detrás de la cabeza: el estiramiento del tríceps es enorme. La versión habitual del overhead para la mayoría.",
+              "description": "Con mancuernas, la carga por encima de la cabeza baja por detrás del cuello y sube hasta la extensión completa. El tríceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 2.2,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -724,10 +724,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuerna o mancuernas detrás de la cabeza: el estiramiento del tríceps es enorme.",
-                    "La versión habitual del overhead para la mayoría."
+                    "El tríceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                    "El constructor de la parte larga del tríceps, la que da tamaño real al brazo."
                   ],
-                  "description": "Mancuerna o mancuernas detrás de la cabeza: el estiramiento del tríceps es enorme. La versión habitual del overhead para la mayoría.",
+                  "description": "Con mancuernas, la carga por encima de la cabeza baja por detrás del cuello y sube hasta la extensión completa. El tríceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
                   "technique": "Mancuerna o mancuernas detrás de la cabeza: el estiramiento del tríceps es enorme. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
                   "variantRationale": "Mancuerna o mancuernas detrás de la cabeza: el estiramiento del tríceps es enorme. La versión habitual del overhead para la mayoría."
                 },
@@ -742,7 +742,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps Overhead",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "overhead_triceps__dumbbells",
                   "definitionId": "overhead_triceps_extension",
                   "familyId": "upper_elbow_extension_overhead",
@@ -821,7 +821,7 @@
               "evidenceRefs": [
                 "legacy:exercise_database.json#triceps_overhead",
                 "editorial:configuration:overhead_triceps__cable",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -832,16 +832,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea overhead: la tensión constante estira y carga el tríceps en todo el recorrido.",
-                "La versión controlada del tríceps detrás de la cabeza."
+                "Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin.",
+                "El constructor de la parte larga del tríceps, la que da tamaño real al brazo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
               ],
-              "description": "Polea overhead: la tensión constante estira y carga el tríceps en todo el recorrido. La versión controlada del tríceps detrás de la cabeza.",
+              "description": "Con polea, la carga por encima de la cabeza baja por detrás del cuello y sube hasta la extensión completa. Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin.",
               "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
@@ -994,10 +994,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea overhead: la tensión constante estira y carga el tríceps en todo el recorrido.",
-                    "La versión controlada del tríceps detrás de la cabeza."
+                    "Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin.",
+                    "El constructor de la parte larga del tríceps, la que da tamaño real al brazo."
                   ],
-                  "description": "Polea overhead: la tensión constante estira y carga el tríceps en todo el recorrido. La versión controlada del tríceps detrás de la cabeza.",
+                  "description": "Con polea, la carga por encima de la cabeza baja por detrás del cuello y sube hasta la extensión completa. Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin.",
                   "technique": "Polea overhead: la tensión constante estira y carga el tríceps en todo el recorrido. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
                   "variantRationale": "Polea overhead: la tensión constante estira y carga el tríceps en todo el recorrido. La versión controlada del tríceps detrás de la cabeza."
                 },
@@ -1012,7 +1012,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps Overhead",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "overhead_triceps__cable",
                   "definitionId": "overhead_triceps_extension",
                   "familyId": "upper_elbow_extension_overhead",
@@ -1086,11 +1086,11 @@
           }
         ],
         "defaultConfigurationId": "overhead_triceps__barbell",
-        "description": "Con los brazos arriba, flexionas y estiras detrás de la cabeza. Estira el tríceps a fondo: el ejercicio de la parte larga del brazo.",
+        "description": "La Extensión de Tríceps Overhead sube la carga por encima de la cabeza y la baja por detrás de la nuca: la cabeza larga del tríceps trabaja desde su punto más estirado. Se ejecuta con barra, mancuerna o polea, con los codos mirando arriba y la extensión completa al final. De pie o sentado cambia la estabilidad, no el estímulo. El constructor de la parte larga del tríceps, la que da tamaño real al brazo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1112,7 +1112,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

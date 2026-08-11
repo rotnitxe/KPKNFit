@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Core · abdominals · hip flexion",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#core_elevacion_piernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Colgado de la barra, subes las piernas rectas o dobladas hasta la cintura.",
-                "El abdomen trabaja sin apoyos externos porque no puede hacer compensación con el impulso."
+                "Sin más carga que el propio cuerpo, la exigencia del abdomen es la justa.",
+                "El escalón que separa el abdomen de principiante del que impone respeto."
               ],
               "bodyRegion": "CORE",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Inclinar el tronco, redondear la espalda o levantar la pierna con impulso."
               ],
-              "description": "Colgado de la barra, subes las piernas rectas o dobladas hasta la cintura. El abdomen trabaja sin apoyos externos porque no puede hacer compensación con el impulso.",
+              "description": "Con peso corporal, colgado, las piernas suben hacia el pecho mientras el abdomen enrolla la pelvis sin balanceo. Sin más carga que el propio cuerpo, la exigencia del abdomen es la justa.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -186,10 +186,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Colgado de la barra, subes las piernas rectas o dobladas hasta la cintura.",
-                    "El abdomen trabaja sin apoyos externos porque no puede hacer compensación con el impulso."
+                    "Sin más carga que el propio cuerpo, la exigencia del abdomen es la justa.",
+                    "El escalón que separa el abdomen de principiante del que impone respeto."
                   ],
-                  "description": "Colgado de la barra, subes las piernas rectas o dobladas hasta la cintura. El abdomen trabaja sin apoyos externos porque no puede hacer compensación con el impulso.",
+                  "description": "Con peso corporal, colgado, las piernas suben hacia el pecho mientras el abdomen enrolla la pelvis sin balanceo. Sin más carga que el propio cuerpo, la exigencia del abdomen es la justa.",
                   "technique": "Colgado de la barra, subes las piernas rectas o dobladas hasta la cintura. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Colgado de la barra, subes las piernas rectas o dobladas hasta la cintura. El abdomen trabaja sin apoyos externos porque no puede hacer compensación con el impulso."
                 },
@@ -204,7 +204,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevación de Piernas Colgado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "core_elevacion_piernas__default",
                   "definitionId": "core_elevacion_piernas",
                   "familyId": "core_hip_flexion",
@@ -278,11 +278,11 @@
           }
         ],
         "defaultConfigurationId": "core_elevacion_piernas__default",
-        "description": "Subes las piernas mientras el abdomen trabaja para mantenerte quieto. La versión exigente del trabajo abdominal, con pocas oportunidades de compensación.",
+        "description": "La Elevación de Piernas Colgado es el trabajo abdominal visto desde abajo: las piernas suben hacia la barra fija mientras el abdomen enrolla la pelvis y los flexores de la cadera dan el impulso inicial. Se ejecuta colgado con los brazos extendidos, elevando las piernas sin balanceo y bajándolas con la misma calma. Todo con el peso corporal, sin más equipamiento que un punto donde colgarse. El escalón que separa el abdomen de principiante del que impone respeto.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -302,7 +302,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

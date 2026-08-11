@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Core · core · anti rotation trunk",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#core_press_pallof",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea a la altura del pecho y cuerpo firme: llevas la cuerda al frente resistiendo el giro.",
-                "El ejercicio que enseña a tu core a no girarse cuando no debe."
+                "Con la polea, la tensión sobre la zona media se mantiene viva de principio a fin.",
+                "El seguro anti-torsiones que sentadillas y pesos muertos agradecen cada semana."
               ],
               "bodyRegion": "CORE",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Arquear la espalda, girar con la carga o perder la tensión al final."
               ],
-              "description": "Polea a la altura del pecho y cuerpo firme: llevas la cuerda al frente resistiendo el giro. El ejercicio que enseña a tu core a no girarse cuando no debe.",
+              "description": "Con polea, la cuerda se aleja del pecho mientras el core resiste la rotación que la polea intenta imponer. Con la polea, la tensión sobre la zona media se mantiene viva de principio a fin.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
@@ -181,10 +181,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea a la altura del pecho y cuerpo firme: llevas la cuerda al frente resistiendo el giro.",
-                    "El ejercicio que enseña a tu core a no girarse cuando no debe."
+                    "Con la polea, la tensión sobre la zona media se mantiene viva de principio a fin.",
+                    "El seguro anti-torsiones que sentadillas y pesos muertos agradecen cada semana."
                   ],
-                  "description": "Polea a la altura del pecho y cuerpo firme: llevas la cuerda al frente resistiendo el giro. El ejercicio que enseña a tu core a no girarse cuando no debe.",
+                  "description": "Con polea, la cuerda se aleja del pecho mientras el core resiste la rotación que la polea intenta imponer. Con la polea, la tensión sobre la zona media se mantiene viva de principio a fin.",
                   "technique": "Polea a la altura del pecho y cuerpo firme: llevas la cuerda al frente resistiendo el giro. La carga intenta girar el torso y el abdomen responde manteniendo el pecho orientado; la distancia al anclaje define la dificultad.",
                   "variantRationale": "Polea a la altura del pecho y cuerpo firme: llevas la cuerda al frente resistiendo el giro. El ejercicio que enseña a tu core a no girarse cuando no debe."
                 },
@@ -199,7 +199,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Pallof",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "core_press_pallof__default",
                   "definitionId": "core_press_pallof",
                   "familyId": "core_anti_rotation_trunk",
@@ -272,11 +272,11 @@
           }
         ],
         "defaultConfigurationId": "core_press_pallof__default",
-        "description": "De pie frente a la polea, llevas la cuerda de un lado a otro del pecho resistiendo el giro. Enseña a tu abdomen a frenar rotaciones, algo que pagas con creces en sentadillas y pesos muertos.",
+        "description": "El Press Pallof entrena lo que casi nadie entrena: la capacidad del core de resistir una rotación en vez de producirla. Se ejecuta de lado a la polea con la cuerda a la altura del pecho, alejando las manos del torso mientras la polea intenta girarte y tú no te mueves ni un grado. El abdomen colabora en esa muralla antirotación. El seguro anti-torsiones que sentadillas y pesos muertos agradecen cada semana.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -295,7 +295,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

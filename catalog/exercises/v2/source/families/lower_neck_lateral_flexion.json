@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren inferior · neck · neck lateral flexion",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#neck_flexion_lateral_cuello",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "De pie o acostado, inclinas la cabeza hacia el lado contra resistencia.",
-                "Los laterales del cuello trabajan para un cuello completo."
+                "El cuello trabaja con el disco, que añade lastre directo y simple.",
+                "El detalle que redondea un cuello fuerte por todos sus lados."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Usar velocidad, llevar la cabeza al extremo del recorrido o encoger los hombros."
               ],
-              "description": "De pie o acostado, inclinas la cabeza hacia el lado contra resistencia. Los laterales del cuello trabajan para un cuello completo.",
+              "description": "Con disco, la oreja busca el hombro contra la resistencia apoyada en el lateral de la cabeza. El cuello trabaja con el disco, que añade lastre directo y simple.",
               "efc": 2.0,
               "equipmentId": "plate",
               "executionCues": [
@@ -157,10 +157,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "De pie o acostado, inclinas la cabeza hacia el lado contra resistencia.",
-                    "Los laterales del cuello trabajan para un cuello completo."
+                    "El cuello trabaja con el disco, que añade lastre directo y simple.",
+                    "El detalle que redondea un cuello fuerte por todos sus lados."
                   ],
-                  "description": "De pie o acostado, inclinas la cabeza hacia el lado contra resistencia. Los laterales del cuello trabajan para un cuello completo.",
+                  "description": "Con disco, la oreja busca el hombro contra la resistencia apoyada en el lateral de la cabeza. El cuello trabaja con el disco, que añade lastre directo y simple.",
                   "technique": "De pie o acostado, inclinas la cabeza hacia el lado contra resistencia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "De pie o acostado, inclinas la cabeza hacia el lado contra resistencia. Los laterales del cuello trabajan para un cuello completo."
                 },
@@ -175,7 +175,7 @@
                 },
                 "identity": {
                   "canonicalName": "Flexión Lateral de Cuello",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "neck_flexion_lateral_cuello__default",
                   "definitionId": "neck_flexion_lateral_cuello",
                   "familyId": "lower_neck_lateral_flexion",
@@ -246,11 +246,11 @@
           }
         ],
         "defaultConfigurationId": "neck_flexion_lateral_cuello__default",
-        "description": "Inclinas la cabeza hacia el lado contra resistencia. Fortalece los laterales del cuello para un cuello completo y fuerte.",
+        "description": "La Flexión Lateral de Cuello inclina la cabeza llevando la oreja hacia el hombro contra la resistencia de un disco apoyado en el lateral. Se ejecuta con el tronco quieto y el movimiento puro en el plano lateral, sin rotar. Los músculos laterales del cuello rara vez reciben atención directa. El detalle que redondea un cuello fuerte por todos sus lados.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -269,7 +269,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

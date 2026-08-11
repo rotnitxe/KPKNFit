@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren inferior · tibialis anterior · ankle dorsiflexion",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#calves_tibial_anterior",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Con banda o disco sobre los pies: llevas la punta hacia arriba contra resistencia.",
-                "La espinilla trabaja a fondo para tobillos fuertes."
+                "Sin más carga que el propio cuerpo, la exigencia de la cara anterior de la espinilla es la justa.",
+                "El guardián contra las molestias de la espinilla y el complemento de unos gemelos completos."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
               ],
-              "description": "Con banda o disco sobre los pies: llevas la punta hacia arriba contra resistencia. La espinilla trabaja a fondo para tobillos fuertes.",
+              "description": "Con peso corporal, la punta del pie se eleva hacia la espinilla contra la resistencia. Sin más carga que el propio cuerpo, la exigencia de la cara anterior de la espinilla es la justa.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -180,10 +180,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Con banda o disco sobre los pies: llevas la punta hacia arriba contra resistencia.",
-                    "La espinilla trabaja a fondo para tobillos fuertes."
+                    "Sin más carga que el propio cuerpo, la exigencia de la cara anterior de la espinilla es la justa.",
+                    "El guardián contra las molestias de la espinilla y el complemento de unos gemelos completos."
                   ],
-                  "description": "Con banda o disco sobre los pies: llevas la punta hacia arriba contra resistencia. La espinilla trabaja a fondo para tobillos fuertes.",
+                  "description": "Con peso corporal, la punta del pie se eleva hacia la espinilla contra la resistencia. Sin más carga que el propio cuerpo, la exigencia de la cara anterior de la espinilla es la justa.",
                   "technique": "Con banda o disco sobre los pies: llevas la punta hacia arriba contra resistencia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Con banda o disco sobre los pies: llevas la punta hacia arriba contra resistencia. La espinilla trabaja a fondo para tobillos fuertes."
                 },
@@ -198,7 +198,7 @@
                 },
                 "identity": {
                   "canonicalName": "Tibial Anterior",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "calves_tibial_anterior__default",
                   "definitionId": "calves_tibial_anterior",
                   "familyId": "lower_ankle_dorsiflexion",
@@ -269,11 +269,11 @@
           }
         ],
         "defaultConfigurationId": "calves_tibial_anterior__default",
-        "description": "Parte frontal de la pierna: llevas la punta del pie hacia arriba contra resistencia. El músculo olvidado de la espinilla, clave para tobillos sanos y pantorrillas completas.",
+        "description": "El Tibial Anterior trabaja la cara frontal de la espinilla, ese músculo olvidado que levanta la punta del pie en cada paso. Se ejecuta elevando la punta hacia la espinilla contra la gravedad, de pie o sentado, con repeticiones pausadas y el peso corporal como única resistencia. Simple de montar en cualquier sitio. El guardián contra las molestias de la espinilla y el complemento de unos gemelos completos.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -292,7 +292,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

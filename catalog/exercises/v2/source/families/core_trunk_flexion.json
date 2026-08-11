@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Core · abdominals · trunk flexion",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#core_crunch_banco_declinado_lastrado_disco",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "En el banco declinado el abdomen trabaja contra la gravedad en cada crunch y el disco en el pecho añade el extra que quieras.",
-                "En el banco declinado el abdomen trabaja contra la gravedad en cada crunch y el disco en el pecho añade el extra que quieras."
+                "Con el disco, el lastre es simple y directo sobre el abdomen.",
+                "El crunch que da frutos cuando el suelo se quedó corto."
               ],
               "bodyRegion": "CORE",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
               ],
-              "description": "En el banco declinado el abdomen trabaja contra la gravedad en cada crunch y el disco en el pecho añade el extra que quieras.",
+              "description": "Con disco, en declive, el torso se encoge hacia arriba con el lastre sobre el pecho. Con el disco, el lastre es simple y directo sobre el abdomen.",
               "efc": 2.0,
               "equipmentId": "plate",
               "executionCues": [
@@ -177,10 +177,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "En el banco declinado el abdomen trabaja contra la gravedad en cada crunch y el disco en el pecho añade el extra que quieras.",
-                    "En el banco declinado el abdomen trabaja contra la gravedad en cada crunch y el disco en el pecho añade el extra que quieras."
+                    "Con el disco, el lastre es simple y directo sobre el abdomen.",
+                    "El crunch que da frutos cuando el suelo se quedó corto."
                   ],
-                  "description": "En el banco declinado el abdomen trabaja contra la gravedad en cada crunch y el disco en el pecho añade el extra que quieras.",
+                  "description": "Con disco, en declive, el torso se encoge hacia arriba con el lastre sobre el pecho. Con el disco, el lastre es simple y directo sobre el abdomen.",
                   "technique": "En el banco declinado el abdomen trabaja contra la gravedad en cada crunch y el disco en el pecho añade el extra que quieras. Las costillas se acercan a la pelvis sin tirar del cuello; la resistencia acompaña la flexión y la vuelta no se convierte en caída.",
                   "variantRationale": "En el banco declinado el abdomen trabaja contra la gravedad en cada crunch y el disco en el pecho añade el extra que quieras. En el banco declinado el abdomen trabaja contra la gravedad en cada crunch y el disco en el pecho añade el extra que quieras."
                 },
@@ -195,7 +195,7 @@
                 },
                 "identity": {
                   "canonicalName": "Crunch Abdominal en Banco Declinado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "core_crunch_banco_declinado_lastrado_disco__default",
                   "definitionId": "core_crunch_banco_declinado_lastrado_disco",
                   "familyId": "core_trunk_flexion",
@@ -267,11 +267,11 @@
           }
         ],
         "defaultConfigurationId": "core_crunch_banco_declinado_lastrado_disco__default",
-        "description": "Crunch en banco declinado: la cabeza queda más baja que las caderas y el recorrido del abdomen se alarga. Puedes añadir un disco en el pecho cuando quieras más.",
+        "description": "El Crunch Abdominal en Banco Declinado alarga el recorrido del encogimiento clásico: en declive, el abdomen trabaja desde una posición más estirada. Se ejecuta con las piernas sujetas en los rodillos y un disco sobre el pecho, encogiendo el tronco hasta arriba y bajando sin prisa. El disco permite progresar cuando la versión sin lastre ya no exige nada. El crunch que da frutos cuando el suelo se quedó corto.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -295,7 +295,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#core_crunch_en_polea_alta",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -306,16 +306,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "De rodillas frente a la polea alta, tiras de la cuerda desde la frente y crujes.",
-                "La tensión constante hace que el abdomen trabaje en la subida y en la vuelta."
+                "El abdomen trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                "La forma más precisa de dosificar el trabajo abdominal semana a semana."
               ],
               "bodyRegion": "CORE",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
               ],
-              "description": "De rodillas frente a la polea alta, tiras de la cuerda desde la frente y crujes. La tensión constante hace que el abdomen trabaje en la subida y en la vuelta.",
+              "description": "Con polea, de rodillas bajo la polea alta, el torso se encoge hacia las rodillas con tensión constante. El abdomen trabaja con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
@@ -460,10 +460,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "De rodillas frente a la polea alta, tiras de la cuerda desde la frente y crujes.",
-                    "La tensión constante hace que el abdomen trabaje en la subida y en la vuelta."
+                    "El abdomen trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+                    "La forma más precisa de dosificar el trabajo abdominal semana a semana."
                   ],
-                  "description": "De rodillas frente a la polea alta, tiras de la cuerda desde la frente y crujes. La tensión constante hace que el abdomen trabaje en la subida y en la vuelta.",
+                  "description": "Con polea, de rodillas bajo la polea alta, el torso se encoge hacia las rodillas con tensión constante. El abdomen trabaja con la polea, que mantiene la tensión constante en todo el arco.",
                   "technique": "De rodillas frente a la polea alta, tiras de la cuerda desde la frente y crujes. Las costillas se acercan a la pelvis sin tirar del cuello; la resistencia acompaña la flexión y la vuelta no se convierte en caída.",
                   "variantRationale": "De rodillas frente a la polea alta, tiras de la cuerda desde la frente y crujes. La tensión constante hace que el abdomen trabaje en la subida y en la vuelta."
                 },
@@ -478,7 +478,7 @@
                 },
                 "identity": {
                   "canonicalName": "Crunch Abdominal de Rodillas en Polea Alta",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "core_crunch_en_polea_alta__default",
                   "definitionId": "core_crunch_en_polea_alta",
                   "familyId": "core_trunk_flexion",
@@ -548,11 +548,11 @@
           }
         ],
         "defaultConfigurationId": "core_crunch_en_polea_alta__default",
-        "description": "Crunch de rodillas en polea alta: tiras de la cuerda desde la cabeza y crujes con tensión constante. El abdomen trabaja en todo el recorrido, no solo en la subida.",
+        "description": "El Crunch Abdominal de Rodillas en Polea Alta trae la resistencia desde arriba: la cuerda acompaña el encogimiento con una tensión constante que no existe en el suelo. Se ejecuta arrodillado frente a la torre, llevando el pecho hacia las rodillas con la cuerda pegada a la cabeza y volviendo sin despegar la cadera. El abdomen recibe carga regulable en todo el arco. La forma más precisa de dosificar el trabajo abdominal semana a semana.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -574,7 +574,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#core_crunch_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -585,16 +585,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Sentado en la máquina con el peso ajustado, crujes con el recorrido guiado.",
-                "Rápida de usar, cómoda para cargar y útil para acumular trabajo para el abdomen."
+                "El abdomen trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+                "La vía más cómoda para acumular series de abdomen con carga progresiva."
               ],
               "bodyRegion": "CORE",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
               ],
-              "description": "Sentado en la máquina con el peso ajustado, crujes con el recorrido guiado. Rápida de usar, cómoda para cargar y útil para acumular trabajo para el abdomen.",
+              "description": "Con máquina, sentado en el aparato, el torso se encoge contra la almohadilla con la carga ajustable. El abdomen trabaja en la máquina, con el recorrido guiado y sin distracciones.",
               "efc": 2.0,
               "equipmentId": "machine",
               "executionCues": [
@@ -739,10 +739,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Sentado en la máquina con el peso ajustado, crujes con el recorrido guiado.",
-                    "Rápida de usar, cómoda para cargar y útil para acumular trabajo para el abdomen."
+                    "El abdomen trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+                    "La vía más cómoda para acumular series de abdomen con carga progresiva."
                   ],
-                  "description": "Sentado en la máquina con el peso ajustado, crujes con el recorrido guiado. Rápida de usar, cómoda para cargar y útil para acumular trabajo para el abdomen.",
+                  "description": "Con máquina, sentado en el aparato, el torso se encoge contra la almohadilla con la carga ajustable. El abdomen trabaja en la máquina, con el recorrido guiado y sin distracciones.",
                   "technique": "Sentado en la máquina con el peso ajustado, crujes con el recorrido guiado. Las costillas se acercan a la pelvis sin tirar del cuello; la resistencia acompaña la flexión y la vuelta no se convierte en caída.",
                   "variantRationale": "Sentado en la máquina con el peso ajustado, crujes con el recorrido guiado. Rápida de usar, cómoda para cargar y útil para acumular trabajo para el abdomen."
                 },
@@ -757,7 +757,7 @@
                 },
                 "identity": {
                   "canonicalName": "Crunch Abdominal en Máquina",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "core_crunch_maquina__default",
                   "definitionId": "core_crunch_maquina",
                   "familyId": "core_trunk_flexion",
@@ -827,11 +827,11 @@
           }
         ],
         "defaultConfigurationId": "core_crunch_maquina__default",
-        "description": "Crunch en máquina: ajustas el peso, te sientas y crujes con el recorrido guiado. La forma más cómoda de meter volumen de abdomen sin distraerte con el equilibrio.",
+        "description": "El Crunch Abdominal en Máquina hace el encogimiento medible: el asiento y el respaldo guían el gesto mientras el peso se ajusta en placas. Se ejecuta sentado con los brazos sobre las almohadillas, encogiendo el torso y soltando el aire arriba, y regresando sin que la pila golpee. El abdomen trabaja sin distracciones de equilibrio. La vía más cómoda para acumular series de abdomen con carga progresiva.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -853,7 +853,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#core_crunch_suelo_peso_corporal",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -864,16 +864,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "El crunch básico del suelo: rodillas dobladas, mirada al techo y contracción limpia del abdomen.",
-                "La base de todo y el más difícil de hacer bien."
+                "El abdomen trabaja con el peso corporal como única carga.",
+                "La base donde se aprende a sentir el abdomen antes de pedirle cargas."
               ],
               "bodyRegion": "CORE",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
               ],
-              "description": "El crunch básico del suelo: rodillas dobladas, mirada al techo y contracción limpia del abdomen. La base de todo y el más difícil de hacer bien.",
+              "description": "Con peso corporal, tumbado con las rodillas dobladas, los hombros se despegan del suelo con el abdomen encogiéndose. El abdomen trabaja con el peso corporal como única carga.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -1018,10 +1018,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "El crunch básico del suelo: rodillas dobladas, mirada al techo y contracción limpia del abdomen.",
-                    "La base de todo y el más difícil de hacer bien."
+                    "El abdomen trabaja con el peso corporal como única carga.",
+                    "La base donde se aprende a sentir el abdomen antes de pedirle cargas."
                   ],
-                  "description": "El crunch básico del suelo: rodillas dobladas, mirada al techo y contracción limpia del abdomen. La base de todo y el más difícil de hacer bien.",
+                  "description": "Con peso corporal, tumbado con las rodillas dobladas, los hombros se despegan del suelo con el abdomen encogiéndose. El abdomen trabaja con el peso corporal como única carga.",
                   "technique": "El crunch básico del suelo: rodillas dobladas, mirada al techo y contracción limpia del abdomen. Las costillas se acercan a la pelvis sin tirar del cuello; la resistencia acompaña la flexión y la vuelta no se convierte en caída.",
                   "variantRationale": "El crunch básico del suelo: rodillas dobladas, mirada al techo y contracción limpia del abdomen. La base de todo y el más difícil de hacer bien."
                 },
@@ -1036,7 +1036,7 @@
                 },
                 "identity": {
                   "canonicalName": "Crunch Abdominal en Suelo",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "core_crunch_suelo_peso_corporal__default",
                   "definitionId": "core_crunch_suelo_peso_corporal",
                   "familyId": "core_trunk_flexion",
@@ -1107,11 +1107,11 @@
           }
         ],
         "defaultConfigurationId": "core_crunch_suelo_peso_corporal__default",
-        "description": "Crunch en el suelo: el ejercicio de abdomen más simple que existe y el que más gente domina mal. Rodillas dobladas, hombros hacia el techo y contracción limpia.",
+        "description": "El Crunch Abdominal en Suelo es el primer ejercicio de abdomen de casi todo el mundo, y conserva su utilidad si se hace bien. Tumbado con las rodillas dobladas, la ejecución pide despegar solo hombros y parte alta de la espalda mientras el abdomen se encoge, sin tirar del cuello. Solo el peso corporal, sin aparatos ni excusas. La base donde se aprende a sentir el abdomen antes de pedirle cargas.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1130,7 +1130,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

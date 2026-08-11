@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Core · abdominals · anti extension trunk",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#core_rueda_abdominal",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Rueda desde las rodillas o de pie: extiendes el cuerpo y vuelves con el abdomen cargado.",
-                "Un movimiento pequeño con un resultado enorme para la zona media."
+                "Con la rueda, el tronco no perdona ni un centímetro de descontrol.",
+                "Uno de los constructores de pared abdominal más exigentes que caben en una mochila."
               ],
               "bodyRegion": "CORE",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Arquear la espalda, girar con la carga o perder la tensión al final."
               ],
-              "description": "Rueda desde las rodillas o de pie: extiendes el cuerpo y vuelves con el abdomen cargado. Un movimiento pequeño con un resultado enorme para la zona media.",
+              "description": "Con rueda, la rueda se aleja de las rodillas estirando el cuerpo entero y regresa con el abdomen bajo tensión. Con la rueda, el tronco no perdona ni un centímetro de descontrol.",
               "efc": 2.0,
               "equipmentId": "ab_wheel",
               "executionCues": [
@@ -186,10 +186,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Rueda desde las rodillas o de pie: extiendes el cuerpo y vuelves con el abdomen cargado.",
-                    "Un movimiento pequeño con un resultado enorme para la zona media."
+                    "Con la rueda, el tronco no perdona ni un centímetro de descontrol.",
+                    "Uno de los constructores de pared abdominal más exigentes que caben en una mochila."
                   ],
-                  "description": "Rueda desde las rodillas o de pie: extiendes el cuerpo y vuelves con el abdomen cargado. Un movimiento pequeño con un resultado enorme para la zona media.",
+                  "description": "Con rueda, la rueda se aleja de las rodillas estirando el cuerpo entero y regresa con el abdomen bajo tensión. Con la rueda, el tronco no perdona ni un centímetro de descontrol.",
                   "technique": "Rueda desde las rodillas o de pie: extiendes el cuerpo y vuelves con el abdomen cargado. El cuerpo se alarga sin dejar que la zona lumbar se hunda; la resistencia se combate con costillas y pelvis organizadas.",
                   "variantRationale": "Rueda desde las rodillas o de pie: extiendes el cuerpo y vuelves con el abdomen cargado. Un movimiento pequeño con un resultado enorme para la zona media."
                 },
@@ -204,7 +204,7 @@
                 },
                 "identity": {
                   "canonicalName": "Rueda Abdominal",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "core_rueda_abdominal__default",
                   "definitionId": "core_rueda_abdominal",
                   "familyId": "core_anti_extension_trunk",
@@ -278,11 +278,11 @@
           }
         ],
         "defaultConfigurationId": "core_rueda_abdominal__default",
-        "description": "Con la rueda en las manos, ruedas hacia delante estirando el cuerpo entero y vuelves con el abdomen bajo una tensión intensa. Poco aparato, mucho control: uno de los ejercicios de core más exigentes.",
+        "description": "La Rueda Abdominal convierte un accesorio mínimo en una tortura elegante: el abdomen se estira y se contrae bajo tensión mientras el cuerpo se aleja de las rodillas. Se ejecuta de rodillas haciendo rodar la rueda hacia delante hasta donde el control lo permita y regresando sin que la cadera colapse. El dorsal ancho y el core acompañan el retorno en cada repetición. Uno de los constructores de pared abdominal más exigentes que caben en una mochila.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -301,7 +301,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

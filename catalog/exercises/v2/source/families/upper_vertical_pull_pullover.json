@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Pull Over",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_pullover",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuerna acostado llevándola detrás de la cabeza: el dorsal se estira a fondo.",
-                "La versión más utilizada del pullover; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Con mancuernas, cada lado ajusta su línea y el trabajo del pectoral se equilibra solo.",
+                "El expansor de la caja torácica con más historia del fisicoculturismo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Mancuerna acostado llevándola detrás de la cabeza: el dorsal se estira a fondo. La versión más utilizada del pullover.",
+              "description": "Con mancuernas, tumbado en la banca, la carga viaja con los brazos extendidos por detrás de la cabeza y regresa sobre el pecho. Con mancuernas, cada lado ajusta su línea y el trabajo del pectoral se equilibra solo.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -220,10 +220,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuerna acostado llevándola detrás de la cabeza: el dorsal se estira a fondo.",
-                    "La versión más utilizada del pullover; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Con mancuernas, cada lado ajusta su línea y el trabajo del pectoral se equilibra solo.",
+                    "El expansor de la caja torácica con más historia del fisicoculturismo."
                   ],
-                  "description": "Mancuerna acostado llevándola detrás de la cabeza: el dorsal se estira a fondo. La versión más utilizada del pullover.",
+                  "description": "Con mancuernas, tumbado en la banca, la carga viaja con los brazos extendidos por detrás de la cabeza y regresa sobre el pecho. Con mancuernas, cada lado ajusta su línea y el trabajo del pectoral se equilibra solo.",
                   "technique": "Mancuerna acostado llevándola detrás de la cabeza: el dorsal se estira a fondo. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
                   "variantRationale": "Mancuerna acostado llevándola detrás de la cabeza: el dorsal se estira a fondo. La versión más utilizada del pullover."
                 },
@@ -238,7 +238,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull Over en Banca",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "lying_pullover__dumbbells",
                   "definitionId": "lying_pullover",
                   "familyId": "upper_vertical_pull_pullover",
@@ -322,7 +322,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_pullover",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -333,16 +333,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Barra acostado detrás de la cabeza: el arco largo con carga completa.",
-                "El pullover tradicional con barra; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El pectoral trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+                "El expansor de la caja torácica con más historia del fisicoculturismo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Barra acostado detrás de la cabeza: el arco largo con carga completa. El pullover tradicional con barra.",
+              "description": "Con barra, tumbado en la banca, la carga viaja con los brazos extendidos por detrás de la cabeza y regresa sobre el pecho. El pectoral trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -530,10 +530,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra acostado detrás de la cabeza: el arco largo con carga completa.",
-                    "El pullover tradicional con barra; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El pectoral trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+                    "El expansor de la caja torácica con más historia del fisicoculturismo."
                   ],
-                  "description": "Barra acostado detrás de la cabeza: el arco largo con carga completa. El pullover tradicional con barra.",
+                  "description": "Con barra, tumbado en la banca, la carga viaja con los brazos extendidos por detrás de la cabeza y regresa sobre el pecho. El pectoral trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
                   "technique": "Barra acostado detrás de la cabeza: el arco largo con carga completa. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
                   "variantRationale": "Barra acostado detrás de la cabeza: el arco largo con carga completa. El pullover tradicional con barra."
                 },
@@ -548,7 +548,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull Over en Banca",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "lying_pullover__barbell",
                   "definitionId": "lying_pullover",
                   "familyId": "upper_vertical_pull_pullover",
@@ -632,7 +632,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_pullover",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -643,16 +643,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Kettlebell acostado detrás de la cabeza: la campana se perciben distinta en el arco.",
-                "Variante alternativa del pullover; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El pectoral trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+                "El expansor de la caja torácica con más historia del fisicoculturismo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Kettlebell acostado detrás de la cabeza: la campana se perciben distinta en el arco. Variante alternativa del pullover.",
+              "description": "Con kettlebell, tumbado en la banca, la carga viaja con los brazos extendidos por detrás de la cabeza y regresa sobre el pecho. El pectoral trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -840,10 +840,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Kettlebell acostado detrás de la cabeza: la campana se perciben distinta en el arco.",
-                    "Variante alternativa del pullover; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El pectoral trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+                    "El expansor de la caja torácica con más historia del fisicoculturismo."
                   ],
-                  "description": "Kettlebell acostado detrás de la cabeza: la campana se perciben distinta en el arco. Variante alternativa del pullover.",
+                  "description": "Con kettlebell, tumbado en la banca, la carga viaja con los brazos extendidos por detrás de la cabeza y regresa sobre el pecho. El pectoral trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
                   "technique": "Kettlebell acostado detrás de la cabeza: la campana se perciben distinta en el arco. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
                   "variantRationale": "Kettlebell acostado detrás de la cabeza: la campana se perciben distinta en el arco. Variante alternativa del pullover."
                 },
@@ -858,7 +858,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull Over en Banca",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "lying_pullover__kettlebell",
                   "definitionId": "lying_pullover",
                   "familyId": "upper_vertical_pull_pullover",
@@ -943,7 +943,7 @@
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_pullover",
                 "editorial:configuration:back_pullover__cable",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -954,16 +954,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea acostado: la tensión constante estira el dorsal en todo el recorrido.",
-                "La versión precisa del pullover; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Con la polea, la tensión sobre el pectoral se mantiene viva de principio a fin.",
+                "El expansor de la caja torácica con más historia del fisicoculturismo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Polea acostado: la tensión constante estira el dorsal en todo el recorrido. La versión precisa del pullover.",
+              "description": "Con polea, tumbado en la banca, la carga viaja con los brazos extendidos por detrás de la cabeza y regresa sobre el pecho. Con la polea, la tensión sobre el pectoral se mantiene viva de principio a fin.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -1151,10 +1151,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea acostado: la tensión constante estira el dorsal en todo el recorrido.",
-                    "La versión precisa del pullover; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Con la polea, la tensión sobre el pectoral se mantiene viva de principio a fin.",
+                    "El expansor de la caja torácica con más historia del fisicoculturismo."
                   ],
-                  "description": "Polea acostado: la tensión constante estira el dorsal en todo el recorrido. La versión precisa del pullover.",
+                  "description": "Con polea, tumbado en la banca, la carga viaja con los brazos extendidos por detrás de la cabeza y regresa sobre el pecho. Con la polea, la tensión sobre el pectoral se mantiene viva de principio a fin.",
                   "technique": "Polea acostado: la tensión constante estira el dorsal en todo el recorrido. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
                   "variantRationale": "Polea acostado: la tensión constante estira el dorsal en todo el recorrido. La versión precisa del pullover."
                 },
@@ -1169,7 +1169,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull Over en Banca",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "lying_pullover__cable",
                   "definitionId": "lying_pullover",
                   "familyId": "upper_vertical_pull_pullover",
@@ -1254,7 +1254,7 @@
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_pullover",
                 "editorial:configuration:back_pullover__machine",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1265,16 +1265,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina de pullover: el guiado acompaña el arco detrás de la cabeza.",
-                "La opción cómoda y estable del ejercicio."
+                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del pectoral.",
+                "El expansor de la caja torácica con más historia del fisicoculturismo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Máquina de pullover: el guiado acompaña el arco detrás de la cabeza. La opción cómoda y estable del ejercicio.",
+              "description": "Con máquina, tumbado en la banca, la carga viaja con los brazos extendidos por detrás de la cabeza y regresa sobre el pecho. En la máquina, la trayectoria guiada concentra todo el esfuerzo del pectoral.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -1462,10 +1462,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina de pullover: el guiado acompaña el arco detrás de la cabeza.",
-                    "La opción cómoda y estable del ejercicio."
+                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del pectoral.",
+                    "El expansor de la caja torácica con más historia del fisicoculturismo."
                   ],
-                  "description": "Máquina de pullover: el guiado acompaña el arco detrás de la cabeza. La opción cómoda y estable del ejercicio.",
+                  "description": "Con máquina, tumbado en la banca, la carga viaja con los brazos extendidos por detrás de la cabeza y regresa sobre el pecho. En la máquina, la trayectoria guiada concentra todo el esfuerzo del pectoral.",
                   "technique": "Máquina de pullover: el guiado acompaña el arco detrás de la cabeza. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
                   "variantRationale": "Máquina de pullover: el guiado acompaña el arco detrás de la cabeza. La opción cómoda y estable del ejercicio."
                 },
@@ -1480,7 +1480,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull Over en Banca",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "lying_pullover__machine",
                   "definitionId": "lying_pullover",
                   "familyId": "upper_vertical_pull_pullover",
@@ -1560,11 +1560,11 @@
           }
         ],
         "defaultConfigurationId": "lying_pullover__dumbbells",
-        "description": "Pullover en banca: acostado, llevas el peso por detrás de la cabeza y lo vuelves sobre el pecho. El dorsal se estira a fondo: el ejercicio tradicional de la espalda ancha.",
+        "description": "El Pull Over en Banca estira el pectoral y el dorsal en un arco por encima de la cabeza: tumbado, la carga viaja desde el pecho hasta atrás de la nuca y regresa. Se ejecuta con una mancuerna a dos manos, bajando hasta sentir el estiramiento en las costillas y subiendo sin doblar los codos de más. El tríceps y el dorsal asisten el retorno. El expansor de la caja torácica con más historia del fisicoculturismo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1592,7 +1592,7 @@
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_pullover",
                 "editorial:configuration:back_pullover__cable",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1603,16 +1603,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea alta con ambas manos: el arco largo deja el dorsal estirado a fondo.",
-                "El pullover de polea tradicional; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
+                "El aislador del dorsal que da amplitud sin necesidad de colgarse de nada."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Polea alta con ambas manos: el arco largo deja el dorsal estirado a fondo. El pullover de polea tradicional.",
+              "description": "Con polea y a dos lados, de pie o frente a la polea, el brazo baja por detrás del cuerpo extendido y regresa a la línea del torso. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -1801,10 +1801,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea alta con ambas manos: el arco largo deja el dorsal estirado a fondo.",
-                    "El pullover de polea tradicional; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
+                    "El aislador del dorsal que da amplitud sin necesidad de colgarse de nada."
                   ],
-                  "description": "Polea alta con ambas manos: el arco largo deja el dorsal estirado a fondo. El pullover de polea tradicional.",
+                  "description": "Con polea y a dos lados, de pie o frente a la polea, el brazo baja por detrás del cuerpo extendido y regresa a la línea del torso. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
                   "technique": "Polea alta con ambas manos: el arco largo deja el dorsal estirado a fondo. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
                   "variantRationale": "Polea alta con ambas manos: el arco largo deja el dorsal estirado a fondo. El pullover de polea tradicional."
                 },
@@ -1819,7 +1819,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull Over",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "pullover__bilateral__cable",
                   "definitionId": "pullover",
                   "familyId": "upper_vertical_pull_pullover",
@@ -1904,7 +1904,7 @@
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_pullover",
                 "editorial:configuration:back_pullover__cable",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1915,16 +1915,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea con una mano: cada dorsal trabaja por separado con tensión constante.",
-                "Útil para corregir desequilibrios; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del dorsal ancho se aísla y las asimetrías quedan al descubierto.",
+                "El aislador del dorsal que da amplitud sin necesidad de colgarse de nada."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Polea con una mano: cada dorsal trabaja por separado con tensión constante. Útil para corregir desequilibrios.",
+              "description": "Con polea y a un lado, de pie o frente a la polea, el brazo baja por detrás del cuerpo extendido y regresa a la línea del torso. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del dorsal ancho se aísla y las asimetrías quedan al descubierto.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -2113,10 +2113,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea con una mano: cada dorsal trabaja por separado con tensión constante.",
-                    "Útil para corregir desequilibrios; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del dorsal ancho se aísla y las asimetrías quedan al descubierto.",
+                    "El aislador del dorsal que da amplitud sin necesidad de colgarse de nada."
                   ],
-                  "description": "Polea con una mano: cada dorsal trabaja por separado con tensión constante. Útil para corregir desequilibrios.",
+                  "description": "Con polea y a un lado, de pie o frente a la polea, el brazo baja por detrás del cuerpo extendido y regresa a la línea del torso. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del dorsal ancho se aísla y las asimetrías quedan al descubierto.",
                   "technique": "Polea con una mano: cada dorsal trabaja por separado con tensión constante. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
                   "variantRationale": "Polea con una mano: cada dorsal trabaja por separado con tensión constante. Útil para corregir desequilibrios."
                 },
@@ -2131,7 +2131,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull Over",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "pullover__unilateral__cable",
                   "definitionId": "pullover",
                   "familyId": "upper_vertical_pull_pullover",
@@ -2216,7 +2216,7 @@
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_pullover",
                 "editorial:configuration:back_pullover__machine",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2227,16 +2227,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina con ambas manos: el guiado hace el arco estable y estable.",
-                "La opción cómoda del pullover; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
+                "El aislador del dorsal que da amplitud sin necesidad de colgarse de nada."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Máquina con ambas manos: el guiado hace el arco estable y estable. La opción cómoda del pullover.",
+              "description": "Con máquina y a dos lados, de pie o frente a la polea, el brazo baja por detrás del cuerpo extendido y regresa a la línea del torso. En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -2425,10 +2425,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina con ambas manos: el guiado hace el arco estable y estable.",
-                    "La opción cómoda del pullover; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
+                    "El aislador del dorsal que da amplitud sin necesidad de colgarse de nada."
                   ],
-                  "description": "Máquina con ambas manos: el guiado hace el arco estable y estable. La opción cómoda del pullover.",
+                  "description": "Con máquina y a dos lados, de pie o frente a la polea, el brazo baja por detrás del cuerpo extendido y regresa a la línea del torso. En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
                   "technique": "Máquina con ambas manos: el guiado hace el arco estable y estable. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
                   "variantRationale": "Máquina con ambas manos: el guiado hace el arco estable y estable. La opción cómoda del pullover."
                 },
@@ -2443,7 +2443,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull Over",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "pullover__bilateral__machine",
                   "definitionId": "pullover",
                   "familyId": "upper_vertical_pull_pullover",
@@ -2528,7 +2528,7 @@
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_pullover",
                 "editorial:configuration:back_pullover__machine",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2539,16 +2539,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina con un brazo: el hombro recorre su arco por separado y el aparato conserva una línea estable.",
-                "La variante ayuda a encontrar diferencias de movilidad y control entre ambos dorsales."
+                "El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo del dorsal ancho se hace en solitario y las diferencias salen a la vista.",
+                "El aislador del dorsal que da amplitud sin necesidad de colgarse de nada."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
               ],
-              "description": "Máquina con un brazo: el hombro recorre su arco por separado y el aparato conserva una línea estable. La variante ayuda a encontrar diferencias de movilidad y control entre ambos dorsales.",
+              "description": "Con máquina y a un lado, de pie o frente a la polea, el brazo baja por detrás del cuerpo extendido y regresa a la línea del torso. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo del dorsal ancho se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -2737,10 +2737,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina con un brazo: el hombro recorre su arco por separado y el aparato conserva una línea estable.",
-                    "La variante ayuda a encontrar diferencias de movilidad y control entre ambos dorsales."
+                    "El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo del dorsal ancho se hace en solitario y las diferencias salen a la vista.",
+                    "El aislador del dorsal que da amplitud sin necesidad de colgarse de nada."
                   ],
-                  "description": "Máquina con un brazo: el hombro recorre su arco por separado y el aparato conserva una línea estable. La variante ayuda a encontrar diferencias de movilidad y control entre ambos dorsales.",
+                  "description": "Con máquina y a un lado, de pie o frente a la polea, el brazo baja por detrás del cuerpo extendido y regresa a la línea del torso. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo del dorsal ancho se hace en solitario y las diferencias salen a la vista.",
                   "technique": "Máquina con un brazo: el hombro recorre su arco por separado y el aparato conserva una línea estable. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
                   "variantRationale": "Máquina con un brazo: el hombro recorre su arco por separado y el aparato conserva una línea estable. La variante ayuda a encontrar diferencias de movilidad y control entre ambos dorsales."
                 },
@@ -2755,7 +2755,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull Over",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "pullover__unilateral__machine",
                   "definitionId": "pullover",
                   "familyId": "upper_vertical_pull_pullover",
@@ -2835,11 +2835,11 @@
           }
         ],
         "defaultConfigurationId": "pullover__bilateral__cable",
-        "description": "Acostado o de pie en polea, llevas el brazo por detrás de la cabeza y vuelves. Dorsales y pecho trabajando en un arco largo y profundo.",
+        "description": "El Pull Over de pie trabaja el dorsal ancho en su función menos entrenada: llevar el brazo desde arriba hacia el cuerpo con el brazo extendido. Se ejecuta frente a la polea alta, bajando los brazos hasta los muslos sin doblar los codos y regresando con control. En la máquina de pull over el recorrido viene guiado. El aislador del dorsal que da amplitud sin necesidad de colgarse de nada.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -2862,7 +2862,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Press de Hombros Sentado",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_hombros_sentado",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Barra sentado con respaldo: el torso fijo y los hombros haciendo todo el empuje.",
-                "El press sentado tradicional con barra; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
+                "El press de hombro limpio para concentrarse solo en empujar."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Barra sentado con respaldo: el torso fijo y los hombros haciendo todo el empuje. El press sentado tradicional con barra.",
+              "description": "Con barra, sentado con el respaldo firme, el peso asciende desde la altura de los hombros hasta el bloqueo por encima de la cabeza. Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -207,10 +207,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra sentado con respaldo: el torso fijo y los hombros haciendo todo el empuje.",
-                    "El press sentado tradicional con barra; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
+                    "El press de hombro limpio para concentrarse solo en empujar."
                   ],
-                  "description": "Barra sentado con respaldo: el torso fijo y los hombros haciendo todo el empuje. El press sentado tradicional con barra.",
+                  "description": "Con barra, sentado con el respaldo firme, el peso asciende desde la altura de los hombros hasta el bloqueo por encima de la cabeza. Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
                   "technique": "Barra sentado con respaldo: el torso fijo y los hombros haciendo todo el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
                   "variantRationale": "Barra sentado con respaldo: el torso fijo y los hombros haciendo todo el empuje. El press sentado tradicional con barra."
                 },
@@ -225,7 +225,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Hombros Sentado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "seated_shoulder_press__barbell",
                   "definitionId": "seated_shoulder_press",
                   "familyId": "upper_vertical_push_seated_press",
@@ -306,7 +306,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_hombros_sentado",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -317,16 +317,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuernas sentado: el respaldo fija el torso y cada brazo trabaja sin ayuda del otro lado.",
-                "La versión más utilizada del press de hombros."
+                "Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
+                "El press de hombro limpio para concentrarse solo en empujar."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Mancuernas sentado: el respaldo fija el torso y cada brazo trabaja sin ayuda del otro lado. La versión más utilizada del press de hombros.",
+              "description": "Con mancuernas, sentado con el respaldo firme, el peso asciende desde la altura de los hombros hasta el bloqueo por encima de la cabeza. Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -501,10 +501,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas sentado: el respaldo fija el torso y cada brazo trabaja sin ayuda del otro lado.",
-                    "La versión más utilizada del press de hombros."
+                    "Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
+                    "El press de hombro limpio para concentrarse solo en empujar."
                   ],
-                  "description": "Mancuernas sentado: el respaldo fija el torso y cada brazo trabaja sin ayuda del otro lado. La versión más utilizada del press de hombros.",
+                  "description": "Con mancuernas, sentado con el respaldo firme, el peso asciende desde la altura de los hombros hasta el bloqueo por encima de la cabeza. Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
                   "technique": "Mancuernas sentado: el respaldo fija el torso y cada brazo trabaja sin ayuda del otro lado. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
                   "variantRationale": "Mancuernas sentado: el respaldo fija el torso y cada brazo trabaja sin ayuda del otro lado. La versión más utilizada del press de hombros."
                 },
@@ -519,7 +519,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Hombros Sentado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "seated_shoulder_press__dumbbells",
                   "definitionId": "seated_shoulder_press",
                   "familyId": "upper_vertical_push_seated_press",
@@ -600,7 +600,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_hombros_sentado",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -611,16 +611,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Smith sentado: barra guiada y respaldo firme, aislar el hombro es sencillo.",
-                "Cómoda para progresar con peso; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El deltoide trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+                "El press de hombro limpio para concentrarse solo en empujar."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Smith sentado: barra guiada y respaldo firme, aislar el hombro es sencillo. Cómoda para progresar con peso.",
+              "description": "Con máquina Smith, sentado con el respaldo firme, el peso asciende desde la altura de los hombros hasta el bloqueo por encima de la cabeza. El deltoide trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
               "efc": 2.5,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -795,10 +795,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith sentado: barra guiada y respaldo firme, aislar el hombro es sencillo.",
-                    "Cómoda para progresar con peso; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El deltoide trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+                    "El press de hombro limpio para concentrarse solo en empujar."
                   ],
-                  "description": "Smith sentado: barra guiada y respaldo firme, aislar el hombro es sencillo. Cómoda para progresar con peso.",
+                  "description": "Con máquina Smith, sentado con el respaldo firme, el peso asciende desde la altura de los hombros hasta el bloqueo por encima de la cabeza. El deltoide trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
                   "technique": "Smith sentado: barra guiada y respaldo firme, aislar el hombro es sencillo. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
                   "variantRationale": "Smith sentado: barra guiada y respaldo firme, aislar el hombro es sencillo. Cómoda para progresar con peso."
                 },
@@ -813,7 +813,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Hombros Sentado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "seated_shoulder_press__smith_machine",
                   "definitionId": "seated_shoulder_press",
                   "familyId": "upper_vertical_push_seated_press",
@@ -894,7 +894,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_hombros_sentado",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -905,16 +905,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina sentada: el guiado lleva el trabajo directo al hombro.",
-                "La opción más estable y cómoda del press sentado."
+                "El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+                "El press de hombro limpio para concentrarse solo en empujar."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Máquina sentada: el guiado lleva el trabajo directo al hombro. La opción más estable y cómoda del press sentado.",
+              "description": "Con máquina, sentado con el respaldo firme, el peso asciende desde la altura de los hombros hasta el bloqueo por encima de la cabeza. El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -1089,10 +1089,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina sentada: el guiado lleva el trabajo directo al hombro.",
-                    "La opción más estable y cómoda del press sentado."
+                    "El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+                    "El press de hombro limpio para concentrarse solo en empujar."
                   ],
-                  "description": "Máquina sentada: el guiado lleva el trabajo directo al hombro. La opción más estable y cómoda del press sentado.",
+                  "description": "Con máquina, sentado con el respaldo firme, el peso asciende desde la altura de los hombros hasta el bloqueo por encima de la cabeza. El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones.",
                   "technique": "Máquina sentada: el guiado lleva el trabajo directo al hombro. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
                   "variantRationale": "Máquina sentada: el guiado lleva el trabajo directo al hombro. La opción más estable y cómoda del press sentado."
                 },
@@ -1107,7 +1107,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Hombros Sentado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "seated_shoulder_press__machine",
                   "definitionId": "seated_shoulder_press",
                   "familyId": "upper_vertical_push_seated_press",
@@ -1188,7 +1188,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_hombros_sentado",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1199,16 +1199,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea sentado: la tensión constante mantiene el hombro activo en todo el empuje.",
-                "Variante precisa para terminar el día de hombro."
+                "Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
+                "El press de hombro limpio para concentrarse solo en empujar."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Polea sentado: la tensión constante mantiene el hombro activo en todo el empuje. Variante precisa para terminar el día de hombro.",
+              "description": "Con polea, sentado con el respaldo firme, el peso asciende desde la altura de los hombros hasta el bloqueo por encima de la cabeza. Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -1383,10 +1383,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea sentado: la tensión constante mantiene el hombro activo en todo el empuje.",
-                    "Variante precisa para terminar el día de hombro."
+                    "Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
+                    "El press de hombro limpio para concentrarse solo en empujar."
                   ],
-                  "description": "Polea sentado: la tensión constante mantiene el hombro activo en todo el empuje. Variante precisa para terminar el día de hombro.",
+                  "description": "Con polea, sentado con el respaldo firme, el peso asciende desde la altura de los hombros hasta el bloqueo por encima de la cabeza. Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
                   "technique": "Polea sentado: la tensión constante mantiene el hombro activo en todo el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
                   "variantRationale": "Polea sentado: la tensión constante mantiene el hombro activo en todo el empuje. Variante precisa para terminar el día de hombro."
                 },
@@ -1401,7 +1401,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Hombros Sentado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "seated_shoulder_press__cable",
                   "definitionId": "seated_shoulder_press",
                   "familyId": "upper_vertical_push_seated_press",
@@ -1482,7 +1482,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#deltoides_press_hombros_sentado",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1493,16 +1493,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Kettlebell sentado: el empuje inestable suma trabajo al core.",
-                "Variante exigente y con una demanda amplia."
+                "El deltoide trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+                "El press de hombro limpio para concentrarse solo en empujar."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
               ],
-              "description": "Kettlebell sentado: el empuje inestable suma trabajo al core. Variante exigente y con una demanda amplia.",
+              "description": "Con kettlebell, sentado con el respaldo firme, el peso asciende desde la altura de los hombros hasta el bloqueo por encima de la cabeza. El deltoide trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -1677,10 +1677,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Kettlebell sentado: el empuje inestable suma trabajo al core.",
-                    "Variante exigente y con una demanda amplia."
+                    "El deltoide trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+                    "El press de hombro limpio para concentrarse solo en empujar."
                   ],
-                  "description": "Kettlebell sentado: el empuje inestable suma trabajo al core. Variante exigente y con una demanda amplia.",
+                  "description": "Con kettlebell, sentado con el respaldo firme, el peso asciende desde la altura de los hombros hasta el bloqueo por encima de la cabeza. El deltoide trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
                   "technique": "Kettlebell sentado: el empuje inestable suma trabajo al core. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
                   "variantRationale": "Kettlebell sentado: el empuje inestable suma trabajo al core. Variante exigente y con una demanda amplia."
                 },
@@ -1695,7 +1695,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Hombros Sentado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "seated_shoulder_press__kettlebell",
                   "definitionId": "seated_shoulder_press",
                   "familyId": "upper_vertical_push_seated_press",
@@ -1772,11 +1772,11 @@
           }
         ],
         "defaultConfigurationId": "seated_shoulder_press__barbell",
-        "description": "El banco con respaldo fija el torso y concentra los hombros. La opción cómoda para cargar peso sin balancear el cuerpo.",
+        "description": "El Press de Hombros Sentado quita las piernas del empuje vertical: con el respaldo firme, el deltoide y el tríceps suben la carga sin rebote ni impulso de abajo. Se ejecuta en el banco, bajando la barra o las mancuernas hasta la altura de las orejas y empujando hasta arriba. La máquina o la Smith guían la trayectoria cuando la fatiga aprieta. El press de hombro limpio para concentrarse solo en empujar.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1799,7 +1799,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

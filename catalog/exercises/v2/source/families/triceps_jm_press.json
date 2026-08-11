@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "JM press",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#triceps_jm_press_barra_ez",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "benefits": [
-                "Barra hacia el mentón con los codos cerca: el tríceps inicia el empuje desde una posición intermedia entre press y extensión.",
-                "La barra permite comparar cargas, aunque exige precisión para que el hombro no robe el recorrido."
+                "La barra es la referencia para cargar el tríceps con peso de verdad.",
+                "El secreto de los grandes preseros para unos tríceps que empujen de verdad."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
               ],
-              "description": "Barra hacia el mentón con los codos cerca: el tríceps inicia el empuje desde una posición intermedia entre press y extensión. La barra permite comparar cargas, aunque exige precisión para que el hombro no robe el recorrido.",
+              "description": "Con barra, la carga baja hacia la zona entre mentón y pecho y el tríceps empuja en un recorrido corto. La barra es la referencia para cargar el tríceps con peso de verdad.",
               "efc": 2.2,
               "equipmentId": "barbell",
               "executionCues": [
@@ -191,10 +191,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra hacia el mentón con los codos cerca: el tríceps inicia el empuje desde una posición intermedia entre press y extensión.",
-                    "La barra permite comparar cargas, aunque exige precisión para que el hombro no robe el recorrido."
+                    "La barra es la referencia para cargar el tríceps con peso de verdad.",
+                    "El secreto de los grandes preseros para unos tríceps que empujen de verdad."
                   ],
-                  "description": "Barra hacia el mentón con los codos cerca: el tríceps inicia el empuje desde una posición intermedia entre press y extensión. La barra permite comparar cargas, aunque exige precisión para que el hombro no robe el recorrido.",
+                  "description": "Con barra, la carga baja hacia la zona entre mentón y pecho y el tríceps empuja en un recorrido corto. La barra es la referencia para cargar el tríceps con peso de verdad.",
                   "technique": "Barra hacia el mentón con los codos cerca: el tríceps inicia el empuje desde una posición intermedia entre press y extensión. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
                   "variantRationale": "Barra hacia el mentón con los codos cerca: el tríceps inicia el empuje desde una posición intermedia entre press y extensión. La barra permite comparar cargas, aunque exige precisión para que el hombro no robe el recorrido."
                 },
@@ -209,7 +209,7 @@
                 },
                 "identity": {
                   "canonicalName": "JM Press",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "jm_press__barbell",
                   "definitionId": "jm_press",
                   "familyId": "triceps_jm_press",
@@ -292,7 +292,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#triceps_jm_press_barra_ez",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -303,16 +303,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "benefits": [
-                "Barra EZ hacia el mentón: el ángulo de las manos reduce la rotación exigida a la muñeca mientras el tríceps continúa guiando el gesto.",
-                "Es una variante cómoda para repetir el patrón con control."
+                "Con la barra EZ, la muñeca viaja cómoda sin perder estímulo del tríceps.",
+                "El secreto de los grandes preseros para unos tríceps que empujen de verdad."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
               ],
-              "description": "Barra EZ hacia el mentón: el ángulo de las manos reduce la rotación exigida a la muñeca mientras el tríceps continúa guiando el gesto. Es una variante cómoda para repetir el patrón con control.",
+              "description": "Con barra EZ, la carga baja hacia la zona entre mentón y pecho y el tríceps empuja en un recorrido corto. Con la barra EZ, la muñeca viaja cómoda sin perder estímulo del tríceps.",
               "efc": 2.2,
               "equipmentId": "ez_bar",
               "executionCues": [
@@ -471,10 +471,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra EZ hacia el mentón: el ángulo de las manos reduce la rotación exigida a la muñeca mientras el tríceps continúa guiando el gesto.",
-                    "Es una variante cómoda para repetir el patrón con control."
+                    "Con la barra EZ, la muñeca viaja cómoda sin perder estímulo del tríceps.",
+                    "El secreto de los grandes preseros para unos tríceps que empujen de verdad."
                   ],
-                  "description": "Barra EZ hacia el mentón: el ángulo de las manos reduce la rotación exigida a la muñeca mientras el tríceps continúa guiando el gesto. Es una variante cómoda para repetir el patrón con control.",
+                  "description": "Con barra EZ, la carga baja hacia la zona entre mentón y pecho y el tríceps empuja en un recorrido corto. Con la barra EZ, la muñeca viaja cómoda sin perder estímulo del tríceps.",
                   "technique": "Barra EZ hacia el mentón: el ángulo de las manos reduce la rotación exigida a la muñeca mientras el tríceps continúa guiando el gesto. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
                   "variantRationale": "Barra EZ hacia el mentón: el ángulo de las manos reduce la rotación exigida a la muñeca mientras el tríceps continúa guiando el gesto. Es una variante cómoda para repetir el patrón con control."
                 },
@@ -489,7 +489,7 @@
                 },
                 "identity": {
                   "canonicalName": "JM Press",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "jm_press__ez_bar",
                   "definitionId": "jm_press",
                   "familyId": "triceps_jm_press",
@@ -572,7 +572,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#triceps_jm_press_barra_ez",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -583,16 +583,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "benefits": [
-                "Mancuernas hacia el mentón: cada brazo encuentra su propia línea y el codo puede permanecer más cómodo.",
-                "La independencia de las cargas ayuda a detectar cuándo un lado pierde la trayectoria."
+                "El tríceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                "El secreto de los grandes preseros para unos tríceps que empujen de verdad."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
               ],
-              "description": "Mancuernas hacia el mentón: cada brazo encuentra su propia línea y el codo puede permanecer más cómodo. La independencia de las cargas ayuda a detectar cuándo un lado pierde la trayectoria.",
+              "description": "Con mancuernas, la carga baja hacia la zona entre mentón y pecho y el tríceps empuja en un recorrido corto. El tríceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 2.2,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -751,10 +751,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas hacia el mentón: cada brazo encuentra su propia línea y el codo puede permanecer más cómodo.",
-                    "La independencia de las cargas ayuda a detectar cuándo un lado pierde la trayectoria."
+                    "El tríceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                    "El secreto de los grandes preseros para unos tríceps que empujen de verdad."
                   ],
-                  "description": "Mancuernas hacia el mentón: cada brazo encuentra su propia línea y el codo puede permanecer más cómodo. La independencia de las cargas ayuda a detectar cuándo un lado pierde la trayectoria.",
+                  "description": "Con mancuernas, la carga baja hacia la zona entre mentón y pecho y el tríceps empuja en un recorrido corto. El tríceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
                   "technique": "Mancuernas hacia el mentón: cada brazo encuentra su propia línea y el codo puede permanecer más cómodo. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
                   "variantRationale": "Mancuernas hacia el mentón: cada brazo encuentra su propia línea y el codo puede permanecer más cómodo. La independencia de las cargas ayuda a detectar cuándo un lado pierde la trayectoria."
                 },
@@ -769,7 +769,7 @@
                 },
                 "identity": {
                   "canonicalName": "JM Press",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "jm_press__dumbbells",
                   "definitionId": "jm_press",
                   "familyId": "triceps_jm_press",
@@ -852,7 +852,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#triceps_jm_press_barra_ez",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -863,16 +863,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "benefits": [
-                "Smith bajando al mentón: la barra guiada te permite cargar peso con estabilidad.",
-                "Este press de tríceps con el recorrido estable."
+                "El tríceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+                "El secreto de los grandes preseros para unos tríceps que empujen de verdad."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
               ],
-              "description": "Smith bajando al mentón: la barra guiada te permite cargar peso con estabilidad. Este press de tríceps con el recorrido estable.",
+              "description": "Con máquina Smith, la carga baja hacia la zona entre mentón y pecho y el tríceps empuja en un recorrido corto. El tríceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
               "efc": 2.2,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -1031,10 +1031,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith bajando al mentón: la barra guiada te permite cargar peso con estabilidad.",
-                    "Este press de tríceps con el recorrido estable."
+                    "El tríceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+                    "El secreto de los grandes preseros para unos tríceps que empujen de verdad."
                   ],
-                  "description": "Smith bajando al mentón: la barra guiada te permite cargar peso con estabilidad. Este press de tríceps con el recorrido estable.",
+                  "description": "Con máquina Smith, la carga baja hacia la zona entre mentón y pecho y el tríceps empuja en un recorrido corto. El tríceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
                   "technique": "Smith bajando al mentón: la barra guiada te permite cargar peso con estabilidad. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
                   "variantRationale": "Smith bajando al mentón: la barra guiada te permite cargar peso con estabilidad. Este press de tríceps con el recorrido estable."
                 },
@@ -1049,7 +1049,7 @@
                 },
                 "identity": {
                   "canonicalName": "JM Press",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "jm_press__smith_machine",
                   "definitionId": "jm_press",
                   "familyId": "triceps_jm_press",
@@ -1132,7 +1132,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#triceps_jm_press_barra_ez",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1143,16 +1143,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "benefits": [
-                "Polea hacia el mentón: la tensión acompaña el descenso y el ascenso sin depender de un punto muerto.",
-                "Es una opción útil para conservar el tríceps activo con menos inercia que una barra."
+                "Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin.",
+                "El secreto de los grandes preseros para unos tríceps que empujen de verdad."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
               ],
-              "description": "Polea hacia el mentón: la tensión acompaña el descenso y el ascenso sin depender de un punto muerto. Es una opción útil para conservar el tríceps activo con menos inercia que una barra.",
+              "description": "Con polea, la carga baja hacia la zona entre mentón y pecho y el tríceps empuja en un recorrido corto. Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin.",
               "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
@@ -1311,10 +1311,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea hacia el mentón: la tensión acompaña el descenso y el ascenso sin depender de un punto muerto.",
-                    "Es una opción útil para conservar el tríceps activo con menos inercia que una barra."
+                    "Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin.",
+                    "El secreto de los grandes preseros para unos tríceps que empujen de verdad."
                   ],
-                  "description": "Polea hacia el mentón: la tensión acompaña el descenso y el ascenso sin depender de un punto muerto. Es una opción útil para conservar el tríceps activo con menos inercia que una barra.",
+                  "description": "Con polea, la carga baja hacia la zona entre mentón y pecho y el tríceps empuja en un recorrido corto. Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin.",
                   "technique": "Polea hacia el mentón: la tensión acompaña el descenso y el ascenso sin depender de un punto muerto. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
                   "variantRationale": "Polea hacia el mentón: la tensión acompaña el descenso y el ascenso sin depender de un punto muerto. Es una opción útil para conservar el tríceps activo con menos inercia que una barra."
                 },
@@ -1329,7 +1329,7 @@
                 },
                 "identity": {
                   "canonicalName": "JM Press",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "jm_press__cable",
                   "definitionId": "jm_press",
                   "familyId": "triceps_jm_press",
@@ -1408,11 +1408,11 @@
           }
         ],
         "defaultConfigurationId": "jm_press__ez_bar",
-        "description": "Este press de tríceps: acostado, bajas la barra hasta el mentón con los codos pegados y empujas. Un híbrido entre press y francés que carga el tríceps con fuerza de tracción.",
+        "description": "El JM Press vive entre el press cerrado y el francés: la barra baja hacia la zona entre mentón y pecho y el tríceps empuja en un recorrido corto y brutal. Se ejecuta tumbado con los codos a medio camino, sin abrirlos del todo ni pegarlos. Inventado por JM Blakley para cargar el tríceps con peso serio. El secreto de los grandes preseros para unos tríceps que empujen de verdad.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1433,7 +1433,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Remo con Pecho Apoyado",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_pecho_apoyado_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuernas y agarre amplio con el pecho apoyado: los codos se separan para acercar las cargas a la parte alta del torso.",
-                "La trayectoria independiente facilita comparar la retracción escapular de ambos lados con la zona lumbar descargada."
+                "El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
+                "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Mancuernas y agarre amplio con el pecho apoyado: los codos se separan para acercar las cargas a la parte alta del torso. La trayectoria independiente facilita comparar la retracción escapular de ambos lados con la zona lumbar descargada.",
+              "description": "Con mancuernas y agarre amplio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -229,10 +229,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas y agarre amplio con el pecho apoyado: los codos se separan para acercar las cargas a la parte alta del torso.",
-                    "La trayectoria independiente facilita comparar la retracción escapular de ambos lados con la zona lumbar descargada."
+                    "El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
+                    "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
                   ],
-                  "description": "Mancuernas y agarre amplio con el pecho apoyado: los codos se separan para acercar las cargas a la parte alta del torso. La trayectoria independiente facilita comparar la retracción escapular de ambos lados con la zona lumbar descargada.",
+                  "description": "Con mancuernas y agarre amplio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
                   "technique": "Mancuernas y agarre amplio con el pecho apoyado: los codos se separan para acercar las cargas a la parte alta del torso. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso.",
                   "variantRationale": "Mancuernas y agarre amplio con el pecho apoyado: los codos se separan para acercar las cargas a la parte alta del torso. La trayectoria independiente facilita comparar la retracción escapular de ambos lados con la zona lumbar descargada."
                 },
@@ -247,7 +247,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "chest_supported_row__dumbbells__wide",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -333,7 +333,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_pecho_apoyado_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -344,16 +344,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Kettlebells y agarre amplio con el pecho apoyado: los codos se abren mientras el peso bajo el agarre exige estabilidad en cada mano.",
-                "La variante lleva la tracción hacia la espalda alta y hace especialmente importante no elevar los hombros."
+                "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del dorsal ancho. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
+                "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Kettlebells y agarre amplio con el pecho apoyado: los codos se abren mientras el peso bajo el agarre exige estabilidad en cada mano. La variante lleva la tracción hacia la espalda alta y hace especialmente importante no elevar los hombros.",
+              "description": "Con kettlebell y agarre amplio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del dorsal ancho. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -550,10 +550,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Kettlebells y agarre amplio con el pecho apoyado: los codos se abren mientras el peso bajo el agarre exige estabilidad en cada mano.",
-                    "La variante lleva la tracción hacia la espalda alta y hace especialmente importante no elevar los hombros."
+                    "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del dorsal ancho. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
+                    "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
                   ],
-                  "description": "Kettlebells y agarre amplio con el pecho apoyado: los codos se abren mientras el peso bajo el agarre exige estabilidad en cada mano. La variante lleva la tracción hacia la espalda alta y hace especialmente importante no elevar los hombros.",
+                  "description": "Con kettlebell y agarre amplio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del dorsal ancho. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
                   "technique": "Kettlebells y agarre amplio con el pecho apoyado: los codos se abren mientras el peso bajo el agarre exige estabilidad en cada mano. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso.",
                   "variantRationale": "Kettlebells y agarre amplio con el pecho apoyado: los codos se abren mientras el peso bajo el agarre exige estabilidad en cada mano. La variante lleva la tracción hacia la espalda alta y hace especialmente importante no elevar los hombros."
                 },
@@ -568,7 +568,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "chest_supported_row__kettlebell__wide",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -654,7 +654,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_pecho_apoyado_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -665,16 +665,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina y agarre amplio con el pecho apoyado: los codos se separan siguiendo un recorrido predeterminado hacia la espalda alta.",
-                "El apoyo y la guía reducen las compensaciones, pero obligan a respetar el arco que marca la estación."
+                "El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
+                "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Máquina y agarre amplio con el pecho apoyado: los codos se separan siguiendo un recorrido predeterminado hacia la espalda alta. El apoyo y la guía reducen las compensaciones, pero obligan a respetar el arco que marca la estación.",
+              "description": "Con máquina y agarre amplio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -871,10 +871,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina y agarre amplio con el pecho apoyado: los codos se separan siguiendo un recorrido predeterminado hacia la espalda alta.",
-                    "El apoyo y la guía reducen las compensaciones, pero obligan a respetar el arco que marca la estación."
+                    "El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
+                    "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
                   ],
-                  "description": "Máquina y agarre amplio con el pecho apoyado: los codos se separan siguiendo un recorrido predeterminado hacia la espalda alta. El apoyo y la guía reducen las compensaciones, pero obligan a respetar el arco que marca la estación.",
+                  "description": "Con máquina y agarre amplio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
                   "technique": "Máquina y agarre amplio con el pecho apoyado: los codos se separan siguiendo un recorrido predeterminado hacia la espalda alta. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso.",
                   "variantRationale": "Máquina y agarre amplio con el pecho apoyado: los codos se separan siguiendo un recorrido predeterminado hacia la espalda alta. El apoyo y la guía reducen las compensaciones, pero obligan a respetar el arco que marca la estación."
                 },
@@ -889,7 +889,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "chest_supported_row__machine__wide",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -975,7 +975,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_pecho_apoyado_polea",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -986,16 +986,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea alta y agarre amplio con el pecho apoyado: los codos se abren y la línea de tirón alcanza con mayor claridad la espalda alta.",
-                "El apoyo elimina la ayuda de la cadera, de modo que el ancho del agarre se traduce en una diferencia real de trayectoria."
+                "Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. El agarre amplio abre los codos y reparte el esfuerzo del dorsal ancho hacia la espalda alta. Desde polea alta, la tracción entra por arriba y alarga el recorrido del dorsal ancho.",
+                "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Polea alta y agarre amplio con el pecho apoyado: los codos se abren y la línea de tirón alcanza con mayor claridad la espalda alta. El apoyo elimina la ayuda de la cadera, de modo que el ancho del agarre se traduce en una diferencia real de trayectoria.",
+              "description": "Con agarre amplio y polea alta, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. El agarre amplio abre los codos y reparte el esfuerzo del dorsal ancho hacia la espalda alta. Desde polea alta, la tracción entra por arriba y alarga el recorrido del dorsal ancho.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -1193,10 +1193,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea alta y agarre amplio con el pecho apoyado: los codos se abren y la línea de tirón alcanza con mayor claridad la espalda alta.",
-                    "El apoyo elimina la ayuda de la cadera, de modo que el ancho del agarre se traduce en una diferencia real de trayectoria."
+                    "Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. El agarre amplio abre los codos y reparte el esfuerzo del dorsal ancho hacia la espalda alta. Desde polea alta, la tracción entra por arriba y alarga el recorrido del dorsal ancho.",
+                    "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
                   ],
-                  "description": "Polea alta y agarre amplio con el pecho apoyado: los codos se abren y la línea de tirón alcanza con mayor claridad la espalda alta. El apoyo elimina la ayuda de la cadera, de modo que el ancho del agarre se traduce en una diferencia real de trayectoria.",
+                  "description": "Con agarre amplio y polea alta, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. El agarre amplio abre los codos y reparte el esfuerzo del dorsal ancho hacia la espalda alta. Desde polea alta, la tracción entra por arriba y alarga el recorrido del dorsal ancho.",
                   "technique": "Polea alta y agarre amplio con el pecho apoyado: los codos se abren y la línea de tirón alcanza con mayor claridad la espalda alta. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso.",
                   "variantRationale": "Polea alta y agarre amplio con el pecho apoyado: los codos se abren y la línea de tirón alcanza con mayor claridad la espalda alta. El apoyo elimina la ayuda de la cadera, de modo que el ancho del agarre se traduce en una diferencia real de trayectoria."
                 },
@@ -1211,7 +1211,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "chest_supported_row__cable__high__wide",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -1298,7 +1298,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_pecho_apoyado_polea",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1309,16 +1309,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea media y agarre amplio con el pecho apoyado: la apertura de los codos desplaza el foco hacia romboides y trapecio medio.",
-                "La resistencia horizontal exige completar la retracción escapular sin elevar los hombros."
+                "Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta. Con la polea a media altura, la línea horizontal pide control del dorsal ancho.",
+                "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Polea media y agarre amplio con el pecho apoyado: la apertura de los codos desplaza el foco hacia romboides y trapecio medio. La resistencia horizontal exige completar la retracción escapular sin elevar los hombros.",
+              "description": "Con agarre amplio y polea media, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta. Con la polea a media altura, la línea horizontal pide control del dorsal ancho.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -1516,10 +1516,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea media y agarre amplio con el pecho apoyado: la apertura de los codos desplaza el foco hacia romboides y trapecio medio.",
-                    "La resistencia horizontal exige completar la retracción escapular sin elevar los hombros."
+                    "Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta. Con la polea a media altura, la línea horizontal pide control del dorsal ancho.",
+                    "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
                   ],
-                  "description": "Polea media y agarre amplio con el pecho apoyado: la apertura de los codos desplaza el foco hacia romboides y trapecio medio. La resistencia horizontal exige completar la retracción escapular sin elevar los hombros.",
+                  "description": "Con agarre amplio y polea media, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta. Con la polea a media altura, la línea horizontal pide control del dorsal ancho.",
                   "technique": "Polea media y agarre amplio con el pecho apoyado: la apertura de los codos desplaza el foco hacia romboides y trapecio medio. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso.",
                   "variantRationale": "Polea media y agarre amplio con el pecho apoyado: la apertura de los codos desplaza el foco hacia romboides y trapecio medio. La resistencia horizontal exige completar la retracción escapular sin elevar los hombros."
                 },
@@ -1534,7 +1534,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "chest_supported_row__cable__mid__wide",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -1621,7 +1621,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_pecho_apoyado_polea",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1632,16 +1632,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea baja y agarre amplio con el pecho apoyado: los codos se separan y la carga sube hacia la zona media del pecho.",
-                "La línea ascendente exige coordinar escápulas y espalda alta sin que la cadera contribuya al movimiento."
+                "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre amplio abre los codos y reparte el esfuerzo del dorsal ancho hacia la espalda alta. Desde polea baja, la tracción entra por abajo y cambia el ángulo del dorsal ancho.",
+                "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Polea baja y agarre amplio con el pecho apoyado: los codos se separan y la carga sube hacia la zona media del pecho. La línea ascendente exige coordinar escápulas y espalda alta sin que la cadera contribuya al movimiento.",
+              "description": "Con agarre amplio y polea baja, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre amplio abre los codos y reparte el esfuerzo del dorsal ancho hacia la espalda alta. Desde polea baja, la tracción entra por abajo y cambia el ángulo del dorsal ancho.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -1839,10 +1839,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea baja y agarre amplio con el pecho apoyado: los codos se separan y la carga sube hacia la zona media del pecho.",
-                    "La línea ascendente exige coordinar escápulas y espalda alta sin que la cadera contribuya al movimiento."
+                    "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre amplio abre los codos y reparte el esfuerzo del dorsal ancho hacia la espalda alta. Desde polea baja, la tracción entra por abajo y cambia el ángulo del dorsal ancho.",
+                    "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
                   ],
-                  "description": "Polea baja y agarre amplio con el pecho apoyado: los codos se separan y la carga sube hacia la zona media del pecho. La línea ascendente exige coordinar escápulas y espalda alta sin que la cadera contribuya al movimiento.",
+                  "description": "Con agarre amplio y polea baja, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre amplio abre los codos y reparte el esfuerzo del dorsal ancho hacia la espalda alta. Desde polea baja, la tracción entra por abajo y cambia el ángulo del dorsal ancho.",
                   "technique": "Polea baja y agarre amplio con el pecho apoyado: los codos se separan y la carga sube hacia la zona media del pecho. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso.",
                   "variantRationale": "Polea baja y agarre amplio con el pecho apoyado: los codos se separan y la carga sube hacia la zona media del pecho. La línea ascendente exige coordinar escápulas y espalda alta sin que la cadera contribuya al movimiento."
                 },
@@ -1857,7 +1857,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "chest_supported_row__cable__low__wide",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -1944,7 +1944,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_pecho_apoyado_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1955,16 +1955,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuernas y agarre medio con el pecho apoyado: la apertura moderada de los codos reparte la demanda entre dorsal y espalda media.",
-                "Cada mano puede corregir su ángulo, mientras el banco impide que el tronco convierta la serie en un balanceo."
+                "El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado.",
+                "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Mancuernas y agarre medio con el pecho apoyado: la apertura moderada de los codos reparte la demanda entre dorsal y espalda media. Cada mano puede corregir su ángulo, mientras el banco impide que el tronco convierta la serie en un balanceo.",
+              "description": "Con mancuernas y agarre medio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -2161,10 +2161,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas y agarre medio con el pecho apoyado: la apertura moderada de los codos reparte la demanda entre dorsal y espalda media.",
-                    "Cada mano puede corregir su ángulo, mientras el banco impide que el tronco convierta la serie en un balanceo."
+                    "El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado.",
+                    "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
                   ],
-                  "description": "Mancuernas y agarre medio con el pecho apoyado: la apertura moderada de los codos reparte la demanda entre dorsal y espalda media. Cada mano puede corregir su ángulo, mientras el banco impide que el tronco convierta la serie en un balanceo.",
+                  "description": "Con mancuernas y agarre medio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado.",
                   "technique": "Mancuernas y agarre medio con el pecho apoyado: la apertura moderada de los codos reparte la demanda entre dorsal y espalda media. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso.",
                   "variantRationale": "Mancuernas y agarre medio con el pecho apoyado: la apertura moderada de los codos reparte la demanda entre dorsal y espalda media. Cada mano puede corregir su ángulo, mientras el banco impide que el tronco convierta la serie en un balanceo."
                 },
@@ -2179,7 +2179,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "chest_supported_row__dumbbells__medium",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -2265,7 +2265,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_pecho_apoyado_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2276,16 +2276,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Kettlebells y agarre medio con el pecho apoyado: la carga desplazada obliga a organizar la muñeca cuando los codos retroceden.",
-                "La apertura intermedia distribuye el esfuerzo entre dorsal y espalda media sin permitir ayuda de la cadera."
+                "El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado.",
+                "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Kettlebells y agarre medio con el pecho apoyado: la carga desplazada obliga a organizar la muñeca cuando los codos retroceden. La apertura intermedia distribuye el esfuerzo entre dorsal y espalda media sin permitir ayuda de la cadera.",
+              "description": "Con kettlebell y agarre medio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -2482,10 +2482,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Kettlebells y agarre medio con el pecho apoyado: la carga desplazada obliga a organizar la muñeca cuando los codos retroceden.",
-                    "La apertura intermedia distribuye el esfuerzo entre dorsal y espalda media sin permitir ayuda de la cadera."
+                    "El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado.",
+                    "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
                   ],
-                  "description": "Kettlebells y agarre medio con el pecho apoyado: la carga desplazada obliga a organizar la muñeca cuando los codos retroceden. La apertura intermedia distribuye el esfuerzo entre dorsal y espalda media sin permitir ayuda de la cadera.",
+                  "description": "Con kettlebell y agarre medio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado.",
                   "technique": "Kettlebells y agarre medio con el pecho apoyado: la carga desplazada obliga a organizar la muñeca cuando los codos retroceden. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso.",
                   "variantRationale": "Kettlebells y agarre medio con el pecho apoyado: la carga desplazada obliga a organizar la muñeca cuando los codos retroceden. La apertura intermedia distribuye el esfuerzo entre dorsal y espalda media sin permitir ayuda de la cadera."
                 },
@@ -2500,7 +2500,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "chest_supported_row__kettlebell__medium",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -2586,7 +2586,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_pecho_apoyado_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2597,16 +2597,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina y agarre medio con el pecho apoyado: la guía fija una apertura moderada para repartir el tirón entre dorsal y espalda media.",
-                "La resistencia se puede progresar sin que el equilibrio o la cadera cambien la trayectoria."
+                "El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. El agarre medio equilibra el reparto del trabajo del dorsal ancho.",
+                "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Máquina y agarre medio con el pecho apoyado: la guía fija una apertura moderada para repartir el tirón entre dorsal y espalda media. La resistencia se puede progresar sin que el equilibrio o la cadera cambien la trayectoria.",
+              "description": "Con máquina y agarre medio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. El agarre medio equilibra el reparto del trabajo del dorsal ancho.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -2803,10 +2803,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina y agarre medio con el pecho apoyado: la guía fija una apertura moderada para repartir el tirón entre dorsal y espalda media.",
-                    "La resistencia se puede progresar sin que el equilibrio o la cadera cambien la trayectoria."
+                    "El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. El agarre medio equilibra el reparto del trabajo del dorsal ancho.",
+                    "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
                   ],
-                  "description": "Máquina y agarre medio con el pecho apoyado: la guía fija una apertura moderada para repartir el tirón entre dorsal y espalda media. La resistencia se puede progresar sin que el equilibrio o la cadera cambien la trayectoria.",
+                  "description": "Con máquina y agarre medio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. El agarre medio equilibra el reparto del trabajo del dorsal ancho.",
                   "technique": "Máquina y agarre medio con el pecho apoyado: la guía fija una apertura moderada para repartir el tirón entre dorsal y espalda media. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso.",
                   "variantRationale": "Máquina y agarre medio con el pecho apoyado: la guía fija una apertura moderada para repartir el tirón entre dorsal y espalda media. La resistencia se puede progresar sin que el equilibrio o la cadera cambien la trayectoria."
                 },
@@ -2821,7 +2821,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "chest_supported_row__machine__medium",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -2907,7 +2907,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_pecho_apoyado_polea",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2918,16 +2918,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea alta y agarre medio con el pecho apoyado: los codos bajan con una apertura moderada y combinan dorsal con espalda media.",
-                "La resistencia continua mantiene tensión durante el regreso sin permitir que el banco se despegue del pecho."
+                "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre medio equilibra el reparto del trabajo del dorsal ancho. Desde polea alta, la tracción entra por arriba y alarga el recorrido del dorsal ancho.",
+                "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Polea alta y agarre medio con el pecho apoyado: los codos bajan con una apertura moderada y combinan dorsal con espalda media. La resistencia continua mantiene tensión durante el regreso sin permitir que el banco se despegue del pecho.",
+              "description": "Con agarre medio y polea alta, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre medio equilibra el reparto del trabajo del dorsal ancho. Desde polea alta, la tracción entra por arriba y alarga el recorrido del dorsal ancho.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -3125,10 +3125,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea alta y agarre medio con el pecho apoyado: los codos bajan con una apertura moderada y combinan dorsal con espalda media.",
-                    "La resistencia continua mantiene tensión durante el regreso sin permitir que el banco se despegue del pecho."
+                    "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre medio equilibra el reparto del trabajo del dorsal ancho. Desde polea alta, la tracción entra por arriba y alarga el recorrido del dorsal ancho.",
+                    "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
                   ],
-                  "description": "Polea alta y agarre medio con el pecho apoyado: los codos bajan con una apertura moderada y combinan dorsal con espalda media. La resistencia continua mantiene tensión durante el regreso sin permitir que el banco se despegue del pecho.",
+                  "description": "Con agarre medio y polea alta, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre medio equilibra el reparto del trabajo del dorsal ancho. Desde polea alta, la tracción entra por arriba y alarga el recorrido del dorsal ancho.",
                   "technique": "Polea alta y agarre medio con el pecho apoyado: los codos bajan con una apertura moderada y combinan dorsal con espalda media. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso.",
                   "variantRationale": "Polea alta y agarre medio con el pecho apoyado: los codos bajan con una apertura moderada y combinan dorsal con espalda media. La resistencia continua mantiene tensión durante el regreso sin permitir que el banco se despegue del pecho."
                 },
@@ -3143,7 +3143,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "chest_supported_row__cable__high__medium",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -3230,7 +3230,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_pecho_apoyado_polea",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -3241,16 +3241,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea media y agarre medio con el pecho apoyado: los codos siguen una diagonal equilibrada entre el costado y la espalda alta.",
-                "El cable y el banco ofrecen una referencia constante para repartir el trabajo entre dorsal y romboides."
+                "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre medio equilibra el reparto del trabajo del dorsal ancho. Con la polea a media altura, la línea horizontal pide control del dorsal ancho.",
+                "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Polea media y agarre medio con el pecho apoyado: los codos siguen una diagonal equilibrada entre el costado y la espalda alta. El cable y el banco ofrecen una referencia constante para repartir el trabajo entre dorsal y romboides.",
+              "description": "Con agarre medio y polea media, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre medio equilibra el reparto del trabajo del dorsal ancho. Con la polea a media altura, la línea horizontal pide control del dorsal ancho.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -3448,10 +3448,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea media y agarre medio con el pecho apoyado: los codos siguen una diagonal equilibrada entre el costado y la espalda alta.",
-                    "El cable y el banco ofrecen una referencia constante para repartir el trabajo entre dorsal y romboides."
+                    "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre medio equilibra el reparto del trabajo del dorsal ancho. Con la polea a media altura, la línea horizontal pide control del dorsal ancho.",
+                    "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
                   ],
-                  "description": "Polea media y agarre medio con el pecho apoyado: los codos siguen una diagonal equilibrada entre el costado y la espalda alta. El cable y el banco ofrecen una referencia constante para repartir el trabajo entre dorsal y romboides.",
+                  "description": "Con agarre medio y polea media, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre medio equilibra el reparto del trabajo del dorsal ancho. Con la polea a media altura, la línea horizontal pide control del dorsal ancho.",
                   "technique": "Polea media y agarre medio con el pecho apoyado: los codos siguen una diagonal equilibrada entre el costado y la espalda alta. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso.",
                   "variantRationale": "Polea media y agarre medio con el pecho apoyado: los codos siguen una diagonal equilibrada entre el costado y la espalda alta. El cable y el banco ofrecen una referencia constante para repartir el trabajo entre dorsal y romboides."
                 },
@@ -3466,7 +3466,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "chest_supported_row__cable__mid__medium",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -3553,7 +3553,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_pecho_apoyado_polea",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -3564,16 +3564,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea baja y agarre medio con el pecho apoyado: la tracción asciende hacia el torso y los codos recorren una diagonal intermedia.",
-                "El cable mantiene resistencia al final del tirón mientras el apoyo limita el balanceo y la extensión lumbar."
+                "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado. Desde polea baja, la tracción entra por abajo y cambia el ángulo del dorsal ancho.",
+                "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Polea baja y agarre medio con el pecho apoyado: la tracción asciende hacia el torso y los codos recorren una diagonal intermedia. El cable mantiene resistencia al final del tirón mientras el apoyo limita el balanceo y la extensión lumbar.",
+              "description": "Con agarre medio y polea baja, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado. Desde polea baja, la tracción entra por abajo y cambia el ángulo del dorsal ancho.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -3771,10 +3771,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea baja y agarre medio con el pecho apoyado: la tracción asciende hacia el torso y los codos recorren una diagonal intermedia.",
-                    "El cable mantiene resistencia al final del tirón mientras el apoyo limita el balanceo y la extensión lumbar."
+                    "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado. Desde polea baja, la tracción entra por abajo y cambia el ángulo del dorsal ancho.",
+                    "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
                   ],
-                  "description": "Polea baja y agarre medio con el pecho apoyado: la tracción asciende hacia el torso y los codos recorren una diagonal intermedia. El cable mantiene resistencia al final del tirón mientras el apoyo limita el balanceo y la extensión lumbar.",
+                  "description": "Con agarre medio y polea baja, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado. Desde polea baja, la tracción entra por abajo y cambia el ángulo del dorsal ancho.",
                   "technique": "Polea baja y agarre medio con el pecho apoyado: la tracción asciende hacia el torso y los codos recorren una diagonal intermedia. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso.",
                   "variantRationale": "Polea baja y agarre medio con el pecho apoyado: la tracción asciende hacia el torso y los codos recorren una diagonal intermedia. El cable mantiene resistencia al final del tirón mientras el apoyo limita el balanceo y la extensión lumbar."
                 },
@@ -3789,7 +3789,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "chest_supported_row__cable__low__medium",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -3876,7 +3876,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_pecho_apoyado_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -3887,16 +3887,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Mancuernas y agarre cerrado con el pecho apoyado: los codos descienden junto al cuerpo y cada brazo conserva su propia trayectoria.",
-                "La libertad unilateral permite ajustar el recorrido a cada hombro sin devolver la carga a la zona lumbar."
+                "Con mancuernas, cada lado ajusta su línea y el trabajo del dorsal ancho se equilibra solo. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra.",
+                "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Mancuernas y agarre cerrado con el pecho apoyado: los codos descienden junto al cuerpo y cada brazo conserva su propia trayectoria. La libertad unilateral permite ajustar el recorrido a cada hombro sin devolver la carga a la zona lumbar.",
+              "description": "Con mancuernas y agarre cerrado, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. Con mancuernas, cada lado ajusta su línea y el trabajo del dorsal ancho se equilibra solo. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -4088,10 +4088,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas y agarre cerrado con el pecho apoyado: los codos descienden junto al cuerpo y cada brazo conserva su propia trayectoria.",
-                    "La libertad unilateral permite ajustar el recorrido a cada hombro sin devolver la carga a la zona lumbar."
+                    "Con mancuernas, cada lado ajusta su línea y el trabajo del dorsal ancho se equilibra solo. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra.",
+                    "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
                   ],
-                  "description": "Mancuernas y agarre cerrado con el pecho apoyado: los codos descienden junto al cuerpo y cada brazo conserva su propia trayectoria. La libertad unilateral permite ajustar el recorrido a cada hombro sin devolver la carga a la zona lumbar.",
+                  "description": "Con mancuernas y agarre cerrado, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. Con mancuernas, cada lado ajusta su línea y el trabajo del dorsal ancho se equilibra solo. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra.",
                   "technique": "Mancuernas y agarre cerrado con el pecho apoyado: los codos descienden junto al cuerpo y cada brazo conserva su propia trayectoria. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso.",
                   "variantRationale": "Mancuernas y agarre cerrado con el pecho apoyado: los codos descienden junto al cuerpo y cada brazo conserva su propia trayectoria. La libertad unilateral permite ajustar el recorrido a cada hombro sin devolver la carga a la zona lumbar."
                 },
@@ -4106,7 +4106,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "chest_supported_row__dumbbells__close",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -4191,7 +4191,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_pecho_apoyado_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -4202,16 +4202,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Kettlebells y agarre cerrado con el pecho apoyado: el peso cuelga bajo la mano y los codos permanecen cerca del costado.",
-                "La carga compacta aumenta la estabilización de muñeca mientras el banco mantiene fija la base del tirón."
+                "El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra.",
+                "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Kettlebells y agarre cerrado con el pecho apoyado: el peso cuelga bajo la mano y los codos permanecen cerca del costado. La carga compacta aumenta la estabilización de muñeca mientras el banco mantiene fija la base del tirón.",
+              "description": "Con kettlebell y agarre cerrado, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -4403,10 +4403,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Kettlebells y agarre cerrado con el pecho apoyado: el peso cuelga bajo la mano y los codos permanecen cerca del costado.",
-                    "La carga compacta aumenta la estabilización de muñeca mientras el banco mantiene fija la base del tirón."
+                    "El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra.",
+                    "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
                   ],
-                  "description": "Kettlebells y agarre cerrado con el pecho apoyado: el peso cuelga bajo la mano y los codos permanecen cerca del costado. La carga compacta aumenta la estabilización de muñeca mientras el banco mantiene fija la base del tirón.",
+                  "description": "Con kettlebell y agarre cerrado, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra.",
                   "technique": "Kettlebells y agarre cerrado con el pecho apoyado: el peso cuelga bajo la mano y los codos permanecen cerca del costado. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso.",
                   "variantRationale": "Kettlebells y agarre cerrado con el pecho apoyado: el peso cuelga bajo la mano y los codos permanecen cerca del costado. La carga compacta aumenta la estabilización de muñeca mientras el banco mantiene fija la base del tirón."
                 },
@@ -4421,7 +4421,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "chest_supported_row__kettlebell__close",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -4506,7 +4506,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_pecho_apoyado_mancuernas",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -4517,16 +4517,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina y agarre cerrado con el pecho apoyado: el recorrido guiado mantiene los codos junto al cuerpo y reduce la variación entre repeticiones.",
-                "La estación deja concentrar la serie en la aproximación de los brazos al torso con la zona lumbar descargada."
+                "El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
+                "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Máquina y agarre cerrado con el pecho apoyado: el recorrido guiado mantiene los codos junto al cuerpo y reduce la variación entre repeticiones. La estación deja concentrar la serie en la aproximación de los brazos al torso con la zona lumbar descargada.",
+              "description": "Con máquina y agarre cerrado, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -4718,10 +4718,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina y agarre cerrado con el pecho apoyado: el recorrido guiado mantiene los codos junto al cuerpo y reduce la variación entre repeticiones.",
-                    "La estación deja concentrar la serie en la aproximación de los brazos al torso con la zona lumbar descargada."
+                    "El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
+                    "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
                   ],
-                  "description": "Máquina y agarre cerrado con el pecho apoyado: el recorrido guiado mantiene los codos junto al cuerpo y reduce la variación entre repeticiones. La estación deja concentrar la serie en la aproximación de los brazos al torso con la zona lumbar descargada.",
+                  "description": "Con máquina y agarre cerrado, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
                   "technique": "Máquina y agarre cerrado con el pecho apoyado: el recorrido guiado mantiene los codos junto al cuerpo y reduce la variación entre repeticiones. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso.",
                   "variantRationale": "Máquina y agarre cerrado con el pecho apoyado: el recorrido guiado mantiene los codos junto al cuerpo y reduce la variación entre repeticiones. La estación deja concentrar la serie en la aproximación de los brazos al torso con la zona lumbar descargada."
                 },
@@ -4736,7 +4736,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "chest_supported_row__machine__close",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -4821,7 +4821,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_pecho_apoyado_polea",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -4832,16 +4832,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea alta y agarre cerrado con el pecho apoyado: la línea descendente lleva los codos cerca del costado y favorece la tracción del dorsal.",
-                "El banco descarga la zona lumbar para que la atención quede en el camino de las manos hacia el torso."
+                "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra. Con la polea alta, la línea de tracción cae desde arriba sobre el dorsal ancho.",
+                "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Polea alta y agarre cerrado con el pecho apoyado: la línea descendente lleva los codos cerca del costado y favorece la tracción del dorsal. El banco descarga la zona lumbar para que la atención quede en el camino de las manos hacia el torso.",
+              "description": "Con agarre cerrado y polea alta, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra. Con la polea alta, la línea de tracción cae desde arriba sobre el dorsal ancho.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -5034,10 +5034,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea alta y agarre cerrado con el pecho apoyado: la línea descendente lleva los codos cerca del costado y favorece la tracción del dorsal.",
-                    "El banco descarga la zona lumbar para que la atención quede en el camino de las manos hacia el torso."
+                    "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra. Con la polea alta, la línea de tracción cae desde arriba sobre el dorsal ancho.",
+                    "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
                   ],
-                  "description": "Polea alta y agarre cerrado con el pecho apoyado: la línea descendente lleva los codos cerca del costado y favorece la tracción del dorsal. El banco descarga la zona lumbar para que la atención quede en el camino de las manos hacia el torso.",
+                  "description": "Con agarre cerrado y polea alta, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra. Con la polea alta, la línea de tracción cae desde arriba sobre el dorsal ancho.",
                   "technique": "Polea alta y agarre cerrado con el pecho apoyado: la línea descendente lleva los codos cerca del costado y favorece la tracción del dorsal. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso.",
                   "variantRationale": "Polea alta y agarre cerrado con el pecho apoyado: la línea descendente lleva los codos cerca del costado y favorece la tracción del dorsal. El banco descarga la zona lumbar para que la atención quede en el camino de las manos hacia el torso."
                 },
@@ -5052,7 +5052,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "chest_supported_row__cable__high__close",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -5138,7 +5138,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_pecho_apoyado_polea",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -5149,16 +5149,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea media y agarre cerrado con el pecho apoyado: la empuñadura llega hacia la cintura con los codos recogidos.",
-                "La tensión sostenida permite evaluar el dorsal durante todo el recorrido, incluida la vuelta con los brazos extendidos."
+                "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso. Desde polea media, la línea horizontal pide control y mantiene el foco del dorsal ancho.",
+                "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Polea media y agarre cerrado con el pecho apoyado: la empuñadura llega hacia la cintura con los codos recogidos. La tensión sostenida permite evaluar el dorsal durante todo el recorrido, incluida la vuelta con los brazos extendidos.",
+              "description": "Con agarre cerrado y polea media, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso. Desde polea media, la línea horizontal pide control y mantiene el foco del dorsal ancho.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -5351,10 +5351,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea media y agarre cerrado con el pecho apoyado: la empuñadura llega hacia la cintura con los codos recogidos.",
-                    "La tensión sostenida permite evaluar el dorsal durante todo el recorrido, incluida la vuelta con los brazos extendidos."
+                    "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso. Desde polea media, la línea horizontal pide control y mantiene el foco del dorsal ancho.",
+                    "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
                   ],
-                  "description": "Polea media y agarre cerrado con el pecho apoyado: la empuñadura llega hacia la cintura con los codos recogidos. La tensión sostenida permite evaluar el dorsal durante todo el recorrido, incluida la vuelta con los brazos extendidos.",
+                  "description": "Con agarre cerrado y polea media, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso. Desde polea media, la línea horizontal pide control y mantiene el foco del dorsal ancho.",
                   "technique": "Polea media y agarre cerrado con el pecho apoyado: la empuñadura llega hacia la cintura con los codos recogidos. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso.",
                   "variantRationale": "Polea media y agarre cerrado con el pecho apoyado: la empuñadura llega hacia la cintura con los codos recogidos. La tensión sostenida permite evaluar el dorsal durante todo el recorrido, incluida la vuelta con los brazos extendidos."
                 },
@@ -5369,7 +5369,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "chest_supported_row__cable__mid__close",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -5455,7 +5455,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_remo_pecho_apoyado_polea",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -5466,16 +5466,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea baja y agarre cerrado con el pecho apoyado: las manos suben hacia la parte baja del torso mientras los codos permanecen próximos.",
-                "La combinación favorece una línea de dorsal larga y permite regular la carga sin perder el contacto con el banco."
+                "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso. Desde polea baja, la tracción entra por abajo y cambia el ángulo del dorsal ancho.",
+                "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
               ],
-              "description": "Polea baja y agarre cerrado con el pecho apoyado: las manos suben hacia la parte baja del torso mientras los codos permanecen próximos. La combinación favorece una línea de dorsal larga y permite regular la carga sin perder el contacto con el banco.",
+              "description": "Con agarre cerrado y polea baja, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso. Desde polea baja, la tracción entra por abajo y cambia el ángulo del dorsal ancho.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -5668,10 +5668,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea baja y agarre cerrado con el pecho apoyado: las manos suben hacia la parte baja del torso mientras los codos permanecen próximos.",
-                    "La combinación favorece una línea de dorsal larga y permite regular la carga sin perder el contacto con el banco."
+                    "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso. Desde polea baja, la tracción entra por abajo y cambia el ángulo del dorsal ancho.",
+                    "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
                   ],
-                  "description": "Polea baja y agarre cerrado con el pecho apoyado: las manos suben hacia la parte baja del torso mientras los codos permanecen próximos. La combinación favorece una línea de dorsal larga y permite regular la carga sin perder el contacto con el banco.",
+                  "description": "Con agarre cerrado y polea baja, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso. Desde polea baja, la tracción entra por abajo y cambia el ángulo del dorsal ancho.",
                   "technique": "Polea baja y agarre cerrado con el pecho apoyado: las manos suben hacia la parte baja del torso mientras los codos permanecen próximos. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso.",
                   "variantRationale": "Polea baja y agarre cerrado con el pecho apoyado: las manos suben hacia la parte baja del torso mientras los codos permanecen próximos. La combinación favorece una línea de dorsal larga y permite regular la carga sin perder el contacto con el banco."
                 },
@@ -5686,7 +5686,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "chest_supported_row__cable__low__close",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -5768,11 +5768,11 @@
           }
         ],
         "defaultConfigurationId": "chest_supported_row__dumbbells__medium",
-        "description": "El pecho queda apoyado en un banco y los brazos cuelgan libres para llevar la carga hacia el torso. El apoyo reduce la demanda de la zona lumbar y permite concentrar la serie en la trayectoria de los codos y la espalda alta.",
+        "description": "El Remo con Pecho Apoyado es la tracción horizontal sin trampas: con el torso pegado al banco, el dorsal ancho tira sin que la zona lumbar pueda robar ni un ápice del trabajo. Se ejecuta con el pecho sobre el banco inclinado y las mancuernas colgando, llevando los codos hacia atrás hasta juntar los omóplatos y bajando con el mismo control. En polea la tensión no se apaga en ningún punto del recorrido, una variante que conviene tener en el arsenal. La vía más honesta para construir una espalda alta sin pagarla con la espalda baja.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -5797,7 +5797,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

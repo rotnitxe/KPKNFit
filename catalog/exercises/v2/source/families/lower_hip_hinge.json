@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren inferior · hamstrings · hip hinge",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_peso_muerto_rumano_zercher",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 1.0,
               "benefits": [
-                "Barra en los codos bajando con las piernas casi rectas: el isquio se estira a fondo y el torso aguanta la carga al frente.",
-                "Exigente y con una demanda amplia; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "La barra es la referencia para cargar los isquiosurales con peso de verdad.",
+                "Una variante compacta que convierte un ejercicio de piernas en un reto de torso entero."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "Barra en los codos bajando con las piernas casi rectas: el isquio se estira a fondo y el torso aguanta la carga al frente. Exigente y con una demanda amplia.",
+              "description": "Con barra, con la carga abrazada entre los brazos, la cadera viaja atrás con las piernas casi rectas. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -214,10 +214,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra en los codos bajando con las piernas casi rectas: el isquio se estira a fondo y el torso aguanta la carga al frente.",
-                    "Exigente y con una demanda amplia; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "La barra es la referencia para cargar los isquiosurales con peso de verdad.",
+                    "Una variante compacta que convierte un ejercicio de piernas en un reto de torso entero."
                   ],
-                  "description": "Barra en los codos bajando con las piernas casi rectas: el isquio se estira a fondo y el torso aguanta la carga al frente. Exigente y con una demanda amplia.",
+                  "description": "Con barra, con la carga abrazada entre los brazos, la cadera viaja atrás con las piernas casi rectas. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
                   "technique": "Barra en los codos bajando con las piernas casi rectas: el isquio se estira a fondo y el torso aguanta la carga al frente. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Barra en los codos bajando con las piernas casi rectas: el isquio se estira a fondo y el torso aguanta la carga al frente. Exigente y con una demanda amplia."
                 },
@@ -232,7 +232,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano Zercher",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hams_peso_muerto_rumano_zercher__default",
                   "definitionId": "hams_peso_muerto_rumano_zercher",
                   "familyId": "lower_hip_hinge",
@@ -307,11 +307,11 @@
           }
         ],
         "defaultConfigurationId": "hams_peso_muerto_rumano_zercher__default",
-        "description": "La barra en los codos frente al pecho mientras bajas con las piernas casi rectas. El isquio se estira igual y el torso trabaja de extra.",
+        "description": "El Peso Muerto Rumano Zercher sostiene la barra en el hueco de los codos mientras la cadera viaja atrás con las piernas casi rectas. Los isquiosurales se estiran igual que en el rumano clásico, pero el core y los erectores trabajan el doble por sujetar la carga al frente. El agarre zercher acerca el peso al cuerpo y cambia la sensación por completo. Una variante compacta que convierte un ejercicio de piernas en un reto de torso entero.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -334,7 +334,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#hams_pull_through",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -345,16 +345,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "De espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera empuja atrás y adelante.",
-                "El ejercicio que enseña la cadera a trabajar con los isquios."
+                "Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco.",
+                "La vía amable para aprender el patrón que mueve todo lo demás."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
               ],
-              "description": "De espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera empuja atrás y adelante. El ejercicio que enseña la cadera a trabajar con los isquios.",
+              "description": "Con polea, de espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera se proyecta atrás y adelante. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
@@ -520,10 +520,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "De espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera empuja atrás y adelante.",
-                    "El ejercicio que enseña la cadera a trabajar con los isquios."
+                    "Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco.",
+                    "La vía amable para aprender el patrón que mueve todo lo demás."
                   ],
-                  "description": "De espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera empuja atrás y adelante. El ejercicio que enseña la cadera a trabajar con los isquios.",
+                  "description": "Con polea, de espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera se proyecta atrás y adelante. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco.",
                   "technique": "De espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera empuja atrás y adelante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "De espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera empuja atrás y adelante. El ejercicio que enseña la cadera a trabajar con los isquios."
                 },
@@ -538,7 +538,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull-Through",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hams_pull_through__default",
                   "definitionId": "hams_pull_through",
                   "familyId": "lower_hip_hinge",
@@ -609,11 +609,11 @@
           }
         ],
         "defaultConfigurationId": "hams_pull_through__default",
-        "description": "De espaldas a la polea baja, pasas la cuerda entre las piernas y empujas la cadera hacia atrás y adelante. El ejercicio que enseña a usar la cadera con los isquios de guía.",
+        "description": "El Pull-Through enseña la bisagra sin peso sobre la espalda: de espaldas a la polea baja, la cuerda pasa entre las piernas y la cadera se proyecta atrás y adelante con cada repetición. Los isquiosurales y los glúteos dirigen el vaivén mientras los brazos solo guían la cuerda. Es la escuela de la cadera para quien todavía no domina el peso muerto. La vía amable para aprender el patrón que mueve todo lo demás.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -632,7 +632,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

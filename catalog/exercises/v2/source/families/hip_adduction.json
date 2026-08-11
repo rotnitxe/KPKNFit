@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Aducciones de Pierna",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#adductors_plancha_copenhagen_dinamica",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Versión estática: pierna superior en el banco y cadera arriba todo el tiempo.",
-                "Los aductores acumulan fatiga local con una tensión que no se parece a nada."
+                "Los aductores trabajan con el peso corporal como única carga.",
+                "La plancha más dura por centímetro cuadrado y la mejor protección de ingle que existe."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
               ],
-              "description": "Versión estática: pierna superior en el banco y cadera arriba todo el tiempo. Los aductores acumulan fatiga local con una tensión que no se parece a nada.",
+              "description": "Con peso corporal, de lado con la pierna superior apoyada en el banco, los aductores sostienen la cadera en el aire. Los aductores trabajan con el peso corporal como única carga.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -186,10 +186,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Versión estática: pierna superior en el banco y cadera arriba todo el tiempo.",
-                    "Los aductores acumulan fatiga local con una tensión que no se parece a nada."
+                    "Los aductores trabajan con el peso corporal como única carga.",
+                    "La plancha más dura por centímetro cuadrado y la mejor protección de ingle que existe."
                   ],
-                  "description": "Versión estática: pierna superior en el banco y cadera arriba todo el tiempo. Los aductores acumulan fatiga local con una tensión que no se parece a nada.",
+                  "description": "Con peso corporal, de lado con la pierna superior apoyada en el banco, los aductores sostienen la cadera en el aire. Los aductores trabajan con el peso corporal como única carga.",
                   "technique": "Versión estática: pierna superior en el banco y cadera arriba todo el tiempo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Versión estática: pierna superior en el banco y cadera arriba todo el tiempo. Los aductores acumulan fatiga local con una tensión que no se parece a nada."
                 },
@@ -204,7 +204,7 @@
                 },
                 "identity": {
                   "canonicalName": "Plancha Copenhague",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "copenhagen_plank__default",
                   "definitionId": "copenhagen_plank",
                   "familyId": "hip_adduction",
@@ -278,11 +278,11 @@
           }
         ],
         "defaultConfigurationId": "copenhagen_plank__default",
-        "description": "Lateral apoyado en antebrazo con la pierna de arriba en el banco, aguantando la cadera elevada. Los aductores trabajan con una demanda sostenida de los aductores.",
+        "description": "La Plancha Copenhague convierte los aductores en el puente del cuerpo: de lado, con la pierna superior apoyada en un banco, la cara interna del muslo sostiene la cadera en el aire. Se ejecuta apoyando el antebrazo y aguantando la línea recta de cabeza a pies el mayor tiempo posible. El core asiste en la estabilidad lateral. La plancha más dura por centímetro cuadrado y la mejor protección de ingle que existe.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -306,7 +306,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#adductors_aduccion_cadera_sentado_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -317,16 +317,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina sentado con ambas piernas: cierras las almohadillas juntando los muslos y los aductores aumentan su tensión.",
-                "El tradicional del muslo interno; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Los aductores trabajan en la máquina, con el recorrido guiado y sin distracciones. Con ambos lados a la vez, el trabajo de los aductores se reparte. Sentado, el tronco queda fijo y el aislamiento de los aductores mejora.",
+                "Equilibrio muscular real para una cadera a prueba de giros."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
               ],
-              "description": "Máquina sentado con ambas piernas: cierras las almohadillas juntando los muslos y los aductores aumentan su tensión. El tradicional del muslo interno.",
+              "description": "Con máquina, a dos lados y sentado, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. Los aductores trabajan en la máquina, con el recorrido guiado y sin distracciones. Con ambos lados a la vez, el trabajo de los aductores se reparte. Sentado, el tronco queda fijo y el aislamiento de los aductores mejora.",
               "efc": 2.0,
               "equipmentId": "machine",
               "executionCues": [
@@ -478,10 +478,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina sentado con ambas piernas: cierras las almohadillas juntando los muslos y los aductores aumentan su tensión.",
-                    "El tradicional del muslo interno; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Los aductores trabajan en la máquina, con el recorrido guiado y sin distracciones. Con ambos lados a la vez, el trabajo de los aductores se reparte. Sentado, el tronco queda fijo y el aislamiento de los aductores mejora.",
+                    "Equilibrio muscular real para una cadera a prueba de giros."
                   ],
-                  "description": "Máquina sentado con ambas piernas: cierras las almohadillas juntando los muslos y los aductores aumentan su tensión. El tradicional del muslo interno.",
+                  "description": "Con máquina, a dos lados y sentado, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. Los aductores trabajan en la máquina, con el recorrido guiado y sin distracciones. Con ambos lados a la vez, el trabajo de los aductores se reparte. Sentado, el tronco queda fijo y el aislamiento de los aductores mejora.",
                   "technique": "Máquina sentado con ambas piernas: cierras las almohadillas juntando los muslos y los aductores aumentan su tensión. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo.",
                   "variantRationale": "Máquina sentado con ambas piernas: cierras las almohadillas juntando los muslos y los aductores aumentan su tensión. El tradicional del muslo interno."
                 },
@@ -496,7 +496,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hip_adduction__seated__machine__bilateral",
                   "definitionId": "hip_adduction",
                   "familyId": "hip_adduction",
@@ -578,7 +578,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#adductors_aduccion_cadera_sentado_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -589,16 +589,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Máquina sentado de un lado a la vez: cada aductor trabaja por separado y corriges desequilibrios.",
-                "Útil para piernas parejas; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Los aductores trabajan en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo de los aductores se aísla y las asimetrías quedan al descubierto. Sentado, el tronco queda fijo y el aislamiento de los aductores mejora.",
+                "Equilibrio muscular real para una cadera a prueba de giros."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
               ],
-              "description": "Máquina sentado de un lado a la vez: cada aductor trabaja por separado y corriges desequilibrios. Útil para piernas parejas.",
+              "description": "Con máquina, a un lado y sentado, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. Los aductores trabajan en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo de los aductores se aísla y las asimetrías quedan al descubierto. Sentado, el tronco queda fijo y el aislamiento de los aductores mejora.",
               "efc": 2.0,
               "equipmentId": "machine",
               "executionCues": [
@@ -750,10 +750,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina sentado de un lado a la vez: cada aductor trabaja por separado y corriges desequilibrios.",
-                    "Útil para piernas parejas; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Los aductores trabajan en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo de los aductores se aísla y las asimetrías quedan al descubierto. Sentado, el tronco queda fijo y el aislamiento de los aductores mejora.",
+                    "Equilibrio muscular real para una cadera a prueba de giros."
                   ],
-                  "description": "Máquina sentado de un lado a la vez: cada aductor trabaja por separado y corriges desequilibrios. Útil para piernas parejas.",
+                  "description": "Con máquina, a un lado y sentado, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. Los aductores trabajan en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo de los aductores se aísla y las asimetrías quedan al descubierto. Sentado, el tronco queda fijo y el aislamiento de los aductores mejora.",
                   "technique": "Máquina sentado de un lado a la vez: cada aductor trabaja por separado y corriges desequilibrios. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo.",
                   "variantRationale": "Máquina sentado de un lado a la vez: cada aductor trabaja por separado y corriges desequilibrios. Útil para piernas parejas."
                 },
@@ -768,7 +768,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hip_adduction__seated__machine__unilateral",
                   "definitionId": "hip_adduction",
                   "familyId": "hip_adduction",
@@ -850,7 +850,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#adductors_aduccion_cadera_sentado_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -861,16 +861,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea de pie con ambas piernas: juntas las piernas contra la tensión del cable.",
-                "Variante precisa que mantiene el aductor cargado."
+                "Con la polea, la tensión sobre los aductores se mantiene viva de principio a fin. A dos lados, el trabajo de los aductores admite más carga total. De pie, el equilibrio y la zona media participan más en el trabajo de los aductores.",
+                "Equilibrio muscular real para una cadera a prueba de giros."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
               ],
-              "description": "Polea de pie con ambas piernas: juntas las piernas contra la tensión del cable. Variante precisa que mantiene el aductor cargado.",
+              "description": "Con polea, a dos lados y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. Con la polea, la tensión sobre los aductores se mantiene viva de principio a fin. A dos lados, el trabajo de los aductores admite más carga total. De pie, el equilibrio y la zona media participan más en el trabajo de los aductores.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
@@ -1022,10 +1022,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea de pie con ambas piernas: juntas las piernas contra la tensión del cable.",
-                    "Variante precisa que mantiene el aductor cargado."
+                    "Con la polea, la tensión sobre los aductores se mantiene viva de principio a fin. A dos lados, el trabajo de los aductores admite más carga total. De pie, el equilibrio y la zona media participan más en el trabajo de los aductores.",
+                    "Equilibrio muscular real para una cadera a prueba de giros."
                   ],
-                  "description": "Polea de pie con ambas piernas: juntas las piernas contra la tensión del cable. Variante precisa que mantiene el aductor cargado.",
+                  "description": "Con polea, a dos lados y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. Con la polea, la tensión sobre los aductores se mantiene viva de principio a fin. A dos lados, el trabajo de los aductores admite más carga total. De pie, el equilibrio y la zona media participan más en el trabajo de los aductores.",
                   "technique": "Polea de pie con ambas piernas: juntas las piernas contra la tensión del cable. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo.",
                   "variantRationale": "Polea de pie con ambas piernas: juntas las piernas contra la tensión del cable. Variante precisa que mantiene el aductor cargado."
                 },
@@ -1040,7 +1040,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hip_adduction__standing__cable__bilateral",
                   "definitionId": "hip_adduction",
                   "familyId": "hip_adduction",
@@ -1122,7 +1122,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#adductors_aduccion_cadera_sentado_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1133,16 +1133,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Polea de pie con una pierna: el aductor trabaja concentrado con tensión constante.",
-                "Útil para centrarse en un lado; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Con la polea, la tensión sobre los aductores se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo de los aductores se aísla y las asimetrías quedan al descubierto. De pie, el equilibrio y la zona media participan más en el trabajo de los aductores.",
+                "Equilibrio muscular real para una cadera a prueba de giros."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
               ],
-              "description": "Polea de pie con una pierna: el aductor trabaja concentrado con tensión constante. Útil para centrarse en un lado.",
+              "description": "Con polea, a un lado y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. Con la polea, la tensión sobre los aductores se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo de los aductores se aísla y las asimetrías quedan al descubierto. De pie, el equilibrio y la zona media participan más en el trabajo de los aductores.",
               "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
@@ -1294,10 +1294,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea de pie con una pierna: el aductor trabaja concentrado con tensión constante.",
-                    "Útil para centrarse en un lado; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Con la polea, la tensión sobre los aductores se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo de los aductores se aísla y las asimetrías quedan al descubierto. De pie, el equilibrio y la zona media participan más en el trabajo de los aductores.",
+                    "Equilibrio muscular real para una cadera a prueba de giros."
                   ],
-                  "description": "Polea de pie con una pierna: el aductor trabaja concentrado con tensión constante. Útil para centrarse en un lado.",
+                  "description": "Con polea, a un lado y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. Con la polea, la tensión sobre los aductores se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo de los aductores se aísla y las asimetrías quedan al descubierto. De pie, el equilibrio y la zona media participan más en el trabajo de los aductores.",
                   "technique": "Polea de pie con una pierna: el aductor trabaja concentrado con tensión constante. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo.",
                   "variantRationale": "Polea de pie con una pierna: el aductor trabaja concentrado con tensión constante. Útil para centrarse en un lado."
                 },
@@ -1312,7 +1312,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hip_adduction__standing__cable__unilateral",
                   "definitionId": "hip_adduction",
                   "familyId": "hip_adduction",
@@ -1394,7 +1394,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#adductors_aduccion_cadera_sentado_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1405,16 +1405,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Banda de pie con ambas piernas: juntas las piernas contra la resistencia elástica.",
-                "Fácil de llevar a cualquier sitio; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Con la banda, la resistencia crece a medida que avanza el trabajo de los aductores. Con ambos lados a la vez, el trabajo de los aductores se reparte. En la posición de pie, el equilibrio y la zona media se suman al trabajo de los aductores.",
+                "Equilibrio muscular real para una cadera a prueba de giros."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
               ],
-              "description": "Banda de pie con ambas piernas: juntas las piernas contra la resistencia elástica. Fácil de llevar a cualquier sitio.",
+              "description": "Con banda elástica, a dos lados y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. Con la banda, la resistencia crece a medida que avanza el trabajo de los aductores. Con ambos lados a la vez, el trabajo de los aductores se reparte. En la posición de pie, el equilibrio y la zona media se suman al trabajo de los aductores.",
               "efc": 2.0,
               "equipmentId": "band",
               "executionCues": [
@@ -1566,10 +1566,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Banda de pie con ambas piernas: juntas las piernas contra la resistencia elástica.",
-                    "Fácil de llevar a cualquier sitio; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Con la banda, la resistencia crece a medida que avanza el trabajo de los aductores. Con ambos lados a la vez, el trabajo de los aductores se reparte. En la posición de pie, el equilibrio y la zona media se suman al trabajo de los aductores.",
+                    "Equilibrio muscular real para una cadera a prueba de giros."
                   ],
-                  "description": "Banda de pie con ambas piernas: juntas las piernas contra la resistencia elástica. Fácil de llevar a cualquier sitio.",
+                  "description": "Con banda elástica, a dos lados y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. Con la banda, la resistencia crece a medida que avanza el trabajo de los aductores. Con ambos lados a la vez, el trabajo de los aductores se reparte. En la posición de pie, el equilibrio y la zona media se suman al trabajo de los aductores.",
                   "technique": "Banda de pie con ambas piernas: juntas las piernas contra la resistencia elástica. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo.",
                   "variantRationale": "Banda de pie con ambas piernas: juntas las piernas contra la resistencia elástica. Fácil de llevar a cualquier sitio."
                 },
@@ -1584,7 +1584,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hip_adduction__standing__band__bilateral",
                   "definitionId": "hip_adduction",
                   "familyId": "hip_adduction",
@@ -1666,7 +1666,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#adductors_aduccion_cadera_sentado_maquina",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1677,16 +1677,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Banda en una pierna: aducciones contra la banda lado a lado.",
-                "Útil para activar el muslo interno antes de las sentadillas."
+                "Con la banda, la resistencia crece a medida que avanza el trabajo de los aductores. A un lado, el trabajo de los aductores se hace en solitario y las diferencias salen a la vista. En la posición de pie, el equilibrio y la zona media se suman al trabajo de los aductores.",
+                "Equilibrio muscular real para una cadera a prueba de giros."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
               ],
-              "description": "Banda en una pierna: aducciones contra la banda lado a lado. Útil para activar el muslo interno antes de las sentadillas.",
+              "description": "Con banda elástica, a un lado y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. Con la banda, la resistencia crece a medida que avanza el trabajo de los aductores. A un lado, el trabajo de los aductores se hace en solitario y las diferencias salen a la vista. En la posición de pie, el equilibrio y la zona media se suman al trabajo de los aductores.",
               "efc": 2.0,
               "equipmentId": "band",
               "executionCues": [
@@ -1838,10 +1838,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Banda en una pierna: aducciones contra la banda lado a lado.",
-                    "Útil para activar el muslo interno antes de las sentadillas."
+                    "Con la banda, la resistencia crece a medida que avanza el trabajo de los aductores. A un lado, el trabajo de los aductores se hace en solitario y las diferencias salen a la vista. En la posición de pie, el equilibrio y la zona media se suman al trabajo de los aductores.",
+                    "Equilibrio muscular real para una cadera a prueba de giros."
                   ],
-                  "description": "Banda en una pierna: aducciones contra la banda lado a lado. Útil para activar el muslo interno antes de las sentadillas.",
+                  "description": "Con banda elástica, a un lado y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. Con la banda, la resistencia crece a medida que avanza el trabajo de los aductores. A un lado, el trabajo de los aductores se hace en solitario y las diferencias salen a la vista. En la posición de pie, el equilibrio y la zona media se suman al trabajo de los aductores.",
                   "technique": "Banda en una pierna: aducciones contra la banda lado a lado. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo.",
                   "variantRationale": "Banda en una pierna: aducciones contra la banda lado a lado. Útil para activar el muslo interno antes de las sentadillas."
                 },
@@ -1856,7 +1856,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "hip_adduction__standing__band__unilateral",
                   "definitionId": "hip_adduction",
                   "familyId": "hip_adduction",
@@ -1934,11 +1934,11 @@
           }
         ],
         "defaultConfigurationId": "hip_adduction__seated__machine__bilateral",
-        "description": "Juntas la pierna hacia el centro contra resistencia y los aductores del muslo interno aumentan su tensión. Clave para piernas equilibradas y una cadera estable.",
+        "description": "Las Aducciones de Pierna llevan la pierna hacia el centro contra resistencia y cargan la cara interna del muslo, esa zona que la sentadilla roza pero no termina de tocar. Se ejecutan en la máquina de aducción, cerrando las piernas con control y soltando despacio. La polea baja y la banda ofrecen el mismo trabajo de pie o en casa. Equilibrio muscular real para una cadera a prueba de giros.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1966,7 +1966,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#adductors_plancha_copenhagen_dinamica",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1977,16 +1977,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Versión dinámica: subes y bajas la cadera con ritmo entre el banco y el suelo.",
-                "El movimiento añade trabajo extra a los aductores y al core."
+                "Sin más carga que el propio cuerpo, la exigencia de los aductores es la justa.",
+                "La progresión para quien la versión estática ya respira tranquila."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 1.5,
               "commonMistakes": [
                 "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
               ],
-              "description": "Versión dinámica: subes y bajas la cadera con ritmo entre el banco y el suelo. El movimiento añade trabajo extra a los aductores y al core.",
+              "description": "Con peso corporal, en la posición lateral del banco, la cadera baja y sube con ritmo desafiando el equilibrio. Sin más carga que el propio cuerpo, la exigencia de los aductores es la justa.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -2140,10 +2140,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Versión dinámica: subes y bajas la cadera con ritmo entre el banco y el suelo.",
-                    "El movimiento añade trabajo extra a los aductores y al core."
+                    "Sin más carga que el propio cuerpo, la exigencia de los aductores es la justa.",
+                    "La progresión para quien la versión estática ya respira tranquila."
                   ],
-                  "description": "Versión dinámica: subes y bajas la cadera con ritmo entre el banco y el suelo. El movimiento añade trabajo extra a los aductores y al core.",
+                  "description": "Con peso corporal, en la posición lateral del banco, la cadera baja y sube con ritmo desafiando el equilibrio. Sin más carga que el propio cuerpo, la exigencia de los aductores es la justa.",
                   "technique": "Versión dinámica: subes y bajas la cadera con ritmo entre el banco y el suelo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Versión dinámica: subes y bajas la cadera con ritmo entre el banco y el suelo. El movimiento añade trabajo extra a los aductores y al core."
                 },
@@ -2158,7 +2158,7 @@
                 },
                 "identity": {
                   "canonicalName": "Plancha Copenhague Dinámica",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "copenhagen_plank_dynamic__default",
                   "definitionId": "copenhagen_plank_dynamic",
                   "familyId": "hip_adduction",
@@ -2232,11 +2232,11 @@
           }
         ],
         "defaultConfigurationId": "copenhagen_plank_dynamic__default",
-        "description": "Como la tradicional, pero bajando y subiendo la cadera con ritmo. La versión con movimiento que aumenta la fatiga local de los aductores aún más rápido.",
+        "description": "La Plancha Copenhague Dinámica mete movimiento en la postura lateral: con la pierna arriba apoyada, la cadera baja y sube sin tocar el suelo. Los aductores trabajan ahora en acortamiento y estiramiento, no solo en isometría, y la fatiga llega el doble de rápido. Se ejecuta con el antebrazo firme y el ritmo lento. La progresión para quien la versión estática ya respira tranquila.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -2256,7 +2256,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren superior · trapezius · scapular elevation",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_encogimientos",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "benefits": [
-                "Mancuernas a los costados y hombros hacia arriba: el encogimiento tradicional.",
-                "La forma más utilizada de trabajar los trapecios."
+                "El trapecio trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                "Trapecios que se ven desde lejos, construidos un centímetro cada vez."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Encoger el cuello, doblar los codos o balancear el tronco."
               ],
-              "description": "Mancuernas a los costados y hombros hacia arriba: el encogimiento tradicional. La forma más utilizada de trabajar los trapecios.",
+              "description": "Con mancuernas, los hombros se elevan hacia las orejas y descienden de forma controlada sin rotar el tronco. El trapecio trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -187,10 +187,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Mancuernas a los costados y hombros hacia arriba: el encogimiento tradicional.",
-                    "La forma más utilizada de trabajar los trapecios."
+                    "El trapecio trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                    "Trapecios que se ven desde lejos, construidos un centímetro cada vez."
                   ],
-                  "description": "Mancuernas a los costados y hombros hacia arriba: el encogimiento tradicional. La forma más utilizada de trabajar los trapecios.",
+                  "description": "Con mancuernas, los hombros se elevan hacia las orejas y descienden de forma controlada sin rotar el tronco. El trapecio trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
                   "technique": "Mancuernas a los costados y hombros hacia arriba: el encogimiento tradicional. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Mancuernas a los costados y hombros hacia arriba: el encogimiento tradicional. La forma más utilizada de trabajar los trapecios."
                 },
@@ -205,7 +205,7 @@
                 },
                 "identity": {
                   "canonicalName": "Encogimientos",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "back_encogimientos__dumbbells",
                   "definitionId": "back_encogimientos",
                   "familyId": "upper_scapular_elevation",
@@ -290,7 +290,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_encogimientos",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -301,16 +301,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "benefits": [
-                "Smith con los hombros libres: la guía permite cargar más sin tener que equilibrar la barra.",
-                "La referencia vertical facilita repetir el encogimiento y concentrar la tensión en el trapecio."
+                "El trapecio trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+                "Trapecios que se ven desde lejos, construidos un centímetro cada vez."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Encoger el cuello, doblar los codos o balancear el tronco."
               ],
-              "description": "Smith con los hombros libres: la guía permite cargar más sin tener que equilibrar la barra. La referencia vertical facilita repetir el encogimiento y concentrar la tensión en el trapecio.",
+              "description": "Con máquina Smith, los hombros se elevan hacia las orejas y descienden de forma controlada sin rotar el tronco. El trapecio trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
               "efc": 2.5,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -465,10 +465,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith con los hombros libres: la guía permite cargar más sin tener que equilibrar la barra.",
-                    "La referencia vertical facilita repetir el encogimiento y concentrar la tensión en el trapecio."
+                    "El trapecio trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+                    "Trapecios que se ven desde lejos, construidos un centímetro cada vez."
                   ],
-                  "description": "Smith con los hombros libres: la guía permite cargar más sin tener que equilibrar la barra. La referencia vertical facilita repetir el encogimiento y concentrar la tensión en el trapecio.",
+                  "description": "Con máquina Smith, los hombros se elevan hacia las orejas y descienden de forma controlada sin rotar el tronco. El trapecio trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
                   "technique": "Smith con los hombros libres: la guía permite cargar más sin tener que equilibrar la barra. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Smith con los hombros libres: la guía permite cargar más sin tener que equilibrar la barra. La referencia vertical facilita repetir el encogimiento y concentrar la tensión en el trapecio."
                 },
@@ -483,7 +483,7 @@
                 },
                 "identity": {
                   "canonicalName": "Encogimientos",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "back_encogimientos__smith_machine",
                   "definitionId": "back_encogimientos",
                   "familyId": "upper_scapular_elevation",
@@ -568,7 +568,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_encogimientos",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -579,16 +579,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "benefits": [
-                "Polea y hombros hacia arriba: la tensión constante mantiene el trapecio cargado.",
-                "La versión precisa del encogimiento; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Con la polea, la tensión sobre el trapecio se mantiene viva de principio a fin.",
+                "Trapecios que se ven desde lejos, construidos un centímetro cada vez."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Encoger el cuello, doblar los codos o balancear el tronco."
               ],
-              "description": "Polea y hombros hacia arriba: la tensión constante mantiene el trapecio cargado. La versión precisa del encogimiento.",
+              "description": "Con polea, los hombros se elevan hacia las orejas y descienden de forma controlada sin rotar el tronco. Con la polea, la tensión sobre el trapecio se mantiene viva de principio a fin.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -743,10 +743,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea y hombros hacia arriba: la tensión constante mantiene el trapecio cargado.",
-                    "La versión precisa del encogimiento; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Con la polea, la tensión sobre el trapecio se mantiene viva de principio a fin.",
+                    "Trapecios que se ven desde lejos, construidos un centímetro cada vez."
                   ],
-                  "description": "Polea y hombros hacia arriba: la tensión constante mantiene el trapecio cargado. La versión precisa del encogimiento.",
+                  "description": "Con polea, los hombros se elevan hacia las orejas y descienden de forma controlada sin rotar el tronco. Con la polea, la tensión sobre el trapecio se mantiene viva de principio a fin.",
                   "technique": "Polea y hombros hacia arriba: la tensión constante mantiene el trapecio cargado. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Polea y hombros hacia arriba: la tensión constante mantiene el trapecio cargado. La versión precisa del encogimiento."
                 },
@@ -761,7 +761,7 @@
                 },
                 "identity": {
                   "canonicalName": "Encogimientos",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "back_encogimientos__cable",
                   "definitionId": "back_encogimientos",
                   "familyId": "upper_scapular_elevation",
@@ -846,7 +846,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_encogimientos",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -857,16 +857,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "benefits": [
-                "Kettlebells a los costados: el peso colgante obliga a fijar la escápula mientras los hombros suben.",
-                "La carga repartida en cada mano añade una exigencia de agarre que no aparece igual con una barra."
+                "El trapecio trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+                "Trapecios que se ven desde lejos, construidos un centímetro cada vez."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Encoger el cuello, doblar los codos o balancear el tronco."
               ],
-              "description": "Kettlebells a los costados: el peso colgante obliga a fijar la escápula mientras los hombros suben. La carga repartida en cada mano añade una exigencia de agarre que no aparece igual con una barra.",
+              "description": "Con kettlebell, los hombros se elevan hacia las orejas y descienden de forma controlada sin rotar el tronco. El trapecio trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -1021,10 +1021,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Kettlebells a los costados: el peso colgante obliga a fijar la escápula mientras los hombros suben.",
-                    "La carga repartida en cada mano añade una exigencia de agarre que no aparece igual con una barra."
+                    "El trapecio trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+                    "Trapecios que se ven desde lejos, construidos un centímetro cada vez."
                   ],
-                  "description": "Kettlebells a los costados: el peso colgante obliga a fijar la escápula mientras los hombros suben. La carga repartida en cada mano añade una exigencia de agarre que no aparece igual con una barra.",
+                  "description": "Con kettlebell, los hombros se elevan hacia las orejas y descienden de forma controlada sin rotar el tronco. El trapecio trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
                   "technique": "Kettlebells a los costados: el peso colgante obliga a fijar la escápula mientras los hombros suben. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Kettlebells a los costados: el peso colgante obliga a fijar la escápula mientras los hombros suben. La carga repartida en cada mano añade una exigencia de agarre que no aparece igual con una barra."
                 },
@@ -1039,7 +1039,7 @@
                 },
                 "identity": {
                   "canonicalName": "Encogimientos",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "back_encogimientos__kettlebell",
                   "definitionId": "back_encogimientos",
                   "familyId": "upper_scapular_elevation",
@@ -1124,7 +1124,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_encogimientos",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1135,16 +1135,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.3,
               "benefits": [
-                "Barra al frente y hombros hacia arriba: el encogimiento tradicional con barra.",
-                "Facilita progresar con cargas altas; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Con la barra, la carga sube al máximo y la progresión del trapecio se mide sin trampa.",
+                "Trapecios que se ven desde lejos, construidos un centímetro cada vez."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Encoger el cuello, doblar los codos o balancear el tronco."
               ],
-              "description": "Barra al frente y hombros hacia arriba: el encogimiento tradicional con barra. Facilita progresar con cargas altas.",
+              "description": "Con barra, los hombros se elevan hacia las orejas y descienden de forma controlada sin rotar el tronco. Con la barra, la carga sube al máximo y la progresión del trapecio se mide sin trampa.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -1299,10 +1299,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra al frente y hombros hacia arriba: el encogimiento tradicional con barra.",
-                    "Facilita progresar con cargas altas; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Con la barra, la carga sube al máximo y la progresión del trapecio se mide sin trampa.",
+                    "Trapecios que se ven desde lejos, construidos un centímetro cada vez."
                   ],
-                  "description": "Barra al frente y hombros hacia arriba: el encogimiento tradicional con barra. Facilita progresar con cargas altas.",
+                  "description": "Con barra, los hombros se elevan hacia las orejas y descienden de forma controlada sin rotar el tronco. Con la barra, la carga sube al máximo y la progresión del trapecio se mide sin trampa.",
                   "technique": "Barra al frente y hombros hacia arriba: el encogimiento tradicional con barra. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Barra al frente y hombros hacia arriba: el encogimiento tradicional con barra. Facilita progresar con cargas altas."
                 },
@@ -1317,7 +1317,7 @@
                 },
                 "identity": {
                   "canonicalName": "Encogimientos",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "back_encogimientos__barbell",
                   "definitionId": "back_encogimientos",
                   "familyId": "upper_scapular_elevation",
@@ -1398,11 +1398,11 @@
           }
         ],
         "defaultConfigurationId": "back_encogimientos__dumbbells",
-        "description": "Subes los hombros hacia las orejas con el peso en las manos. El ejercicio directo de los trapecios, simple y efectivo.",
+        "description": "Los Encogimientos elevan los hombros hacia las orejas contra carga: el trapecio superior trabaja en el gesto más simple del gimnasio. Se ejecutan con mancuernas a los lados o barra al frente, subiendo en vertical y bajando sin rodar los hombros hacia delante. En polea baja o con kettlebells el gesto se monta con otro agarre. Trapecios que se ven desde lejos, construidos un centímetro cada vez.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -1429,7 +1429,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_encogimientos_kelso",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1440,16 +1440,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "benefits": [
-                "Barra por detrás del cuerpo: el Kelso shrug tradicional con los brazos atrás.",
-                "El trapecio trabaja desde un ángulo distinto."
+                "La barra es la referencia para cargar el trapecio con peso de verdad.",
+                "El encogimiento para quien quiere grosor en la espalda alta, no solo cuello."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Encoger el cuello, doblar los codos o balancear el tronco."
               ],
-              "description": "Barra por detrás del cuerpo: el Kelso shrug tradicional con los brazos atrás. El trapecio trabaja desde un ángulo distinto.",
+              "description": "Con barra, con el torso inclinado, los hombros se retraen hacia atrás y arriba mientras la carga cuelga. La barra es la referencia para cargar el trapecio con peso de verdad.",
               "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
@@ -1604,10 +1604,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Barra por detrás del cuerpo: el Kelso shrug tradicional con los brazos atrás.",
-                    "El trapecio trabaja desde un ángulo distinto."
+                    "La barra es la referencia para cargar el trapecio con peso de verdad.",
+                    "El encogimiento para quien quiere grosor en la espalda alta, no solo cuello."
                   ],
-                  "description": "Barra por detrás del cuerpo: el Kelso shrug tradicional con los brazos atrás. El trapecio trabaja desde un ángulo distinto.",
+                  "description": "Con barra, con el torso inclinado, los hombros se retraen hacia atrás y arriba mientras la carga cuelga. La barra es la referencia para cargar el trapecio con peso de verdad.",
                   "technique": "Barra por detrás del cuerpo: el Kelso shrug tradicional con los brazos atrás. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Barra por detrás del cuerpo: el Kelso shrug tradicional con los brazos atrás. El trapecio trabaja desde un ángulo distinto."
                 },
@@ -1622,7 +1622,7 @@
                 },
                 "identity": {
                   "canonicalName": "Kelso Shrugs",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "back_encogimientos_kelso__barbell",
                   "definitionId": "back_encogimientos_kelso",
                   "familyId": "upper_scapular_elevation",
@@ -1706,7 +1706,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_encogimientos_kelso",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1717,16 +1717,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "benefits": [
-                "Máquina con los brazos detrás: el guiado hace el recorrido estable.",
-                "La opción cómoda del Kelso shrug; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del trapecio.",
+                "El encogimiento para quien quiere grosor en la espalda alta, no solo cuello."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Encoger el cuello, doblar los codos o balancear el tronco."
               ],
-              "description": "Máquina con los brazos detrás: el guiado hace el recorrido estable. La opción cómoda del Kelso shrug.",
+              "description": "Con máquina, con el torso inclinado, los hombros se retraen hacia atrás y arriba mientras la carga cuelga. En la máquina, la trayectoria guiada concentra todo el esfuerzo del trapecio.",
               "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
@@ -1881,10 +1881,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Máquina con los brazos detrás: el guiado hace el recorrido estable.",
-                    "La opción cómoda del Kelso shrug; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del trapecio.",
+                    "El encogimiento para quien quiere grosor en la espalda alta, no solo cuello."
                   ],
-                  "description": "Máquina con los brazos detrás: el guiado hace el recorrido estable. La opción cómoda del Kelso shrug.",
+                  "description": "Con máquina, con el torso inclinado, los hombros se retraen hacia atrás y arriba mientras la carga cuelga. En la máquina, la trayectoria guiada concentra todo el esfuerzo del trapecio.",
                   "technique": "Máquina con los brazos detrás: el guiado hace el recorrido estable. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Máquina con los brazos detrás: el guiado hace el recorrido estable. La opción cómoda del Kelso shrug."
                 },
@@ -1899,7 +1899,7 @@
                 },
                 "identity": {
                   "canonicalName": "Kelso Shrugs",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "back_encogimientos_kelso__machine",
                   "definitionId": "back_encogimientos_kelso",
                   "familyId": "upper_scapular_elevation",
@@ -1983,7 +1983,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_encogimientos_kelso",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -1994,16 +1994,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "benefits": [
-                "Polea por detrás: la tensión constante acompaña el encogimiento trasero.",
-                "La versión precisa del Kelso; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Con la polea, la tensión sobre el trapecio se mantiene viva de principio a fin.",
+                "El encogimiento para quien quiere grosor en la espalda alta, no solo cuello."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Encoger el cuello, doblar los codos o balancear el tronco."
               ],
-              "description": "Polea por detrás: la tensión constante acompaña el encogimiento trasero. La versión precisa del Kelso.",
+              "description": "Con polea, con el torso inclinado, los hombros se retraen hacia atrás y arriba mientras la carga cuelga. Con la polea, la tensión sobre el trapecio se mantiene viva de principio a fin.",
               "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
@@ -2158,10 +2158,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Polea por detrás: la tensión constante acompaña el encogimiento trasero.",
-                    "La versión precisa del Kelso; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Con la polea, la tensión sobre el trapecio se mantiene viva de principio a fin.",
+                    "El encogimiento para quien quiere grosor en la espalda alta, no solo cuello."
                   ],
-                  "description": "Polea por detrás: la tensión constante acompaña el encogimiento trasero. La versión precisa del Kelso.",
+                  "description": "Con polea, con el torso inclinado, los hombros se retraen hacia atrás y arriba mientras la carga cuelga. Con la polea, la tensión sobre el trapecio se mantiene viva de principio a fin.",
                   "technique": "Polea por detrás: la tensión constante acompaña el encogimiento trasero. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Polea por detrás: la tensión constante acompaña el encogimiento trasero. La versión precisa del Kelso."
                 },
@@ -2176,7 +2176,7 @@
                 },
                 "identity": {
                   "canonicalName": "Kelso Shrugs",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "back_encogimientos_kelso__cable",
                   "definitionId": "back_encogimientos_kelso",
                   "familyId": "upper_scapular_elevation",
@@ -2260,7 +2260,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_encogimientos_kelso",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2271,16 +2271,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "benefits": [
-                "Kettlebells por detrás: el agarre suma trabajo y el trapecio aumenta su tensión.",
-                "Variante completa del Kelso shrug; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del trapecio.",
+                "El encogimiento para quien quiere grosor en la espalda alta, no solo cuello."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Encoger el cuello, doblar los codos o balancear el tronco."
               ],
-              "description": "Kettlebells por detrás: el agarre suma trabajo y el trapecio aumenta su tensión. Variante completa del Kelso shrug.",
+              "description": "Con kettlebell, con el torso inclinado, los hombros se retraen hacia atrás y arriba mientras la carga cuelga. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del trapecio.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
@@ -2435,10 +2435,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Kettlebells por detrás: el agarre suma trabajo y el trapecio aumenta su tensión.",
-                    "Variante completa del Kelso shrug; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del trapecio.",
+                    "El encogimiento para quien quiere grosor en la espalda alta, no solo cuello."
                   ],
-                  "description": "Kettlebells por detrás: el agarre suma trabajo y el trapecio aumenta su tensión. Variante completa del Kelso shrug.",
+                  "description": "Con kettlebell, con el torso inclinado, los hombros se retraen hacia atrás y arriba mientras la carga cuelga. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del trapecio.",
                   "technique": "Kettlebells por detrás: el agarre suma trabajo y el trapecio aumenta su tensión. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Kettlebells por detrás: el agarre suma trabajo y el trapecio aumenta su tensión. Variante completa del Kelso shrug."
                 },
@@ -2453,7 +2453,7 @@
                 },
                 "identity": {
                   "canonicalName": "Kelso Shrugs",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "back_encogimientos_kelso__kettlebell",
                   "definitionId": "back_encogimientos_kelso",
                   "familyId": "upper_scapular_elevation",
@@ -2537,7 +2537,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_encogimientos_kelso",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2548,16 +2548,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.2,
               "benefits": [
-                "Smith por detrás: la barra guiada con los brazos atrás y mucha carga.",
-                "Estable y útil para acumular trabajo para el trapecio."
+                "El trapecio trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+                "El encogimiento para quien quiere grosor en la espalda alta, no solo cuello."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Encoger el cuello, doblar los codos o balancear el tronco."
               ],
-              "description": "Smith por detrás: la barra guiada con los brazos atrás y mucha carga. Estable y útil para acumular trabajo para el trapecio.",
+              "description": "Con máquina Smith, con el torso inclinado, los hombros se retraen hacia atrás y arriba mientras la carga cuelga. El trapecio trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
               "efc": 2.5,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -2712,10 +2712,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Smith por detrás: la barra guiada con los brazos atrás y mucha carga.",
-                    "Estable y útil para acumular trabajo para el trapecio."
+                    "El trapecio trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+                    "El encogimiento para quien quiere grosor en la espalda alta, no solo cuello."
                   ],
-                  "description": "Smith por detrás: la barra guiada con los brazos atrás y mucha carga. Estable y útil para acumular trabajo para el trapecio.",
+                  "description": "Con máquina Smith, con el torso inclinado, los hombros se retraen hacia atrás y arriba mientras la carga cuelga. El trapecio trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
                   "technique": "Smith por detrás: la barra guiada con los brazos atrás y mucha carga. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Smith por detrás: la barra guiada con los brazos atrás y mucha carga. Estable y útil para acumular trabajo para el trapecio."
                 },
@@ -2730,7 +2730,7 @@
                 },
                 "identity": {
                   "canonicalName": "Kelso Shrugs",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "back_encogimientos_kelso__smith_machine",
                   "definitionId": "back_encogimientos_kelso",
                   "familyId": "upper_scapular_elevation",
@@ -2810,11 +2810,11 @@
           }
         ],
         "defaultConfigurationId": "back_encogimientos_kelso__barbell",
-        "description": "Encogimientos con los brazos por detrás del cuerpo, pegados a la espalda. La variante que aumenta la tensión del trapecio desde un ángulo distinto.",
+        "description": "Los Kelso Shrugs son el encogimiento inteligente: con el torso inclinado hacia delante, los hombros se retraen hacia atrás y arriba trabajando el trapecio medio además del superior. Se ejecutan con barra, máquina o polea, juntando los omóplatos mientras la carga cuelga. La posición inclinada cambia el objetivo del gesto. El encogimiento para quien quiere grosor en la espalda alta, no solo cuello.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -2840,7 +2840,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_y_raises",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -2851,16 +2851,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Subes los brazos en forma de Y desde el suelo: la espalda alta y el hombro trabajan con elegancia.",
-                "Un ejercicio preciso para la postura; una diferencia concreta para repartir el esfuerzo durante la serie."
+                "El trapecio trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                "La pieza de postura que completa los hombros sanos."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Encoger el cuello, doblar los codos o balancear el tronco."
               ],
-              "description": "Subes los brazos en forma de Y desde el suelo: la espalda alta y el hombro trabajan con elegancia. Un ejercicio preciso para la postura.",
+              "description": "Con mancuernas, inclinado hacia delante, los brazos suben en diagonal hasta formar una Y. El trapecio trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
@@ -3029,10 +3029,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Subes los brazos en forma de Y desde el suelo: la espalda alta y el hombro trabajan con elegancia.",
-                    "Un ejercicio preciso para la postura; una diferencia concreta para repartir el esfuerzo durante la serie."
+                    "El trapecio trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+                    "La pieza de postura que completa los hombros sanos."
                   ],
-                  "description": "Subes los brazos en forma de Y desde el suelo: la espalda alta y el hombro trabajan con elegancia. Un ejercicio preciso para la postura.",
+                  "description": "Con mancuernas, inclinado hacia delante, los brazos suben en diagonal hasta formar una Y. El trapecio trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
                   "technique": "Subes los brazos en forma de Y desde el suelo: la espalda alta y el hombro trabajan con elegancia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Subes los brazos en forma de Y desde el suelo: la espalda alta y el hombro trabajan con elegancia. Un ejercicio preciso para la postura."
                 },
@@ -3047,7 +3047,7 @@
                 },
                 "identity": {
                   "canonicalName": "Y-Raises",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "back_y_raises__default",
                   "definitionId": "back_y_raises",
                   "familyId": "upper_scapular_elevation",
@@ -3122,11 +3122,11 @@
           }
         ],
         "defaultConfigurationId": "back_y_raises__default",
-        "description": "Subes los brazos en forma de Y desde el suelo o el banco. La espalda alta y los hombros trabajando con un movimiento preciso y elegante.",
+        "description": "Los Y-Raises elevan los brazos en diagonal hasta formar una Y con el torso inclinado: el trapecio inferior y el dorsal ancho trabajan la parte baja de la espalda alta que casi nadie entrena. Se ejecutan con mancuernas ligeras, subiendo despacio y aguantando un segundo arriba. La espalda se siente reorganizada al terminar. La pieza de postura que completa los hombros sanos.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -3145,7 +3145,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"

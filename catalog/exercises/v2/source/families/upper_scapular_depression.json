@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-08-c",
+  "catalogRevision": "v2-approved-2026-08-10-c",
   "family": {
     "canonicalName": "Tren superior · latissimus dorsi · scapular depression",
     "definitions": [
@@ -12,7 +12,7 @@
               "confidence": "MEDIUM",
               "evidenceRefs": [
                 "legacy:exercise_database.json#back_dominadas_escapulares",
-                "editorial:catalog-v6-dedicated-copy-2026-08-08"
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
               "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
@@ -23,16 +23,16 @@
               "automationEligible": true,
               "axialLoadFactor": 0.0,
               "benefits": [
-                "Colgado de la barra moviendo solo los omóplatos: la espalda se activa sin doblarte.",
-                "El ejercicio de preparación que puede utilizarse para preparar la tracción escapular."
+                "Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa.",
+                "La activación que enseña de qué va de verdad colgarse."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-08-c",
+              "catalogRevision": "v2-approved-2026-08-10-c",
               "cnc": 2.0,
               "commonMistakes": [
                 "Encoger el cuello, doblar los codos o balancear el tronco."
               ],
-              "description": "Colgado de la barra moviendo solo los omóplatos: la espalda se activa sin doblarte. El ejercicio de preparación que puede utilizarse para preparar la tracción escapular.",
+              "description": "Con peso corporal, colgado con los brazos extendidos, los omóplatos se hunden y se elevan sin flexionar los codos. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
@@ -195,10 +195,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Colgado de la barra moviendo solo los omóplatos: la espalda se activa sin doblarte.",
-                    "El ejercicio de preparación que puede utilizarse para preparar la tracción escapular."
+                    "Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa.",
+                    "La activación que enseña de qué va de verdad colgarse."
                   ],
-                  "description": "Colgado de la barra moviendo solo los omóplatos: la espalda se activa sin doblarte. El ejercicio de preparación que puede utilizarse para preparar la tracción escapular.",
+                  "description": "Con peso corporal, colgado con los brazos extendidos, los omóplatos se hunden y se elevan sin flexionar los codos. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa.",
                   "technique": "Colgado de la barra moviendo solo los omóplatos: la espalda se activa sin doblarte. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
                   "variantRationale": "Colgado de la barra moviendo solo los omóplatos: la espalda se activa sin doblarte. El ejercicio de preparación que puede utilizarse para preparar la tracción escapular."
                 },
@@ -213,7 +213,7 @@
                 },
                 "identity": {
                   "canonicalName": "Dominadas Escapulares",
-                  "catalogRevision": "v2-approved-2026-08-08-c",
+                  "catalogRevision": "v2-approved-2026-08-10-c",
                   "configurationId": "back_dominadas_escapulares__default",
                   "definitionId": "back_dominadas_escapulares",
                   "familyId": "upper_scapular_depression",
@@ -287,11 +287,11 @@
           }
         ],
         "defaultConfigurationId": "back_dominadas_escapulares__default",
-        "description": "Te cuelgas de la barra y solo mueves los omóplatos, sin doblar los codos. El ejercicio de activación de la espalda útil para preparar la tracción escapular.",
+        "description": "Las Dominadas Escapulares son el primer escalón de la tracción: colgado de la barra fija, los omóplatos se hunden y se elevan sin flexionar los codos. Se ejecutan con los brazos rectos, bajando los hombros de las orejas y subiendo el pecho unos centímetros con solo la espalda. El dorsal ancho aprende a encenderse aquí. La activación que enseña de qué va de verdad colgarse.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v6-dedicated-copy-2026-08-08"
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
           "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
@@ -309,7 +309,7 @@
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
-        "editorial:catalog-v6-dedicated-copy-2026-08-08"
+        "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
       "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
