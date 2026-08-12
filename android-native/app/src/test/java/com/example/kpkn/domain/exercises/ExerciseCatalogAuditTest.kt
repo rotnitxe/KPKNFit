@@ -62,6 +62,32 @@ class ExerciseCatalogAuditTest {
     }
 
     @Test
+    fun open_family_queries_prioritize_base_movements_but_specific_queries_prioritize_exact_variant() {
+        val resolver = ExerciseCatalogV2Resolver(catalog)
+
+        assertEquals(
+            listOf("conventional_deadlift", "romanian_deadlift", "sumo_deadlift"),
+            resolver.search("peso muerto").take(3).map { it.definitionId },
+        )
+        assertEquals(
+            "romanian_deadlift",
+            resolver.search("peso muerto rumano").first().definitionId,
+        )
+        assertEquals(
+            "conventional_deadlift",
+            resolver.search("peso muerto convencional smith").first().definitionId,
+        )
+        assertEquals(
+            listOf("high_bar_back_squat", "low_bar_back_squat", "front_squat"),
+            resolver.search("sentadilla").take(3).map { it.definitionId },
+        )
+        assertEquals(
+            listOf("bench_press", "incline_bench_press", "decline_bench_press"),
+            resolver.search("press").take(3).map { it.definitionId },
+        )
+    }
+
+    @Test
     fun specialties_remain_outside_parent_chip_matrices() {
         val byId = definitions.associateBy { it.id }
         assertTrue(byId.getValue("biceps_curl_zottman").optionAxes.isEmpty())

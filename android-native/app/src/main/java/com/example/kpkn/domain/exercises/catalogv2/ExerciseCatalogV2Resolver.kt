@@ -28,6 +28,12 @@ class ExerciseCatalogV2Resolver(
         val familyName: String,
     )
 
+    private data class ConfigurationMatch(
+        val configuration: ExerciseConfigurationV2?,
+        val score: Int,
+        val order: Int = 0,
+    )
+
     private val definitionIndex: Map<String, SearchIndex> =
         catalog.families.flatMap { family ->
             family.definitions.map { definition ->
@@ -99,8 +105,12 @@ class ExerciseCatalogV2Resolver(
         filters: ExerciseSearchFiltersV2 = ExerciseSearchFiltersV2(),
     ): List<ExerciseSearchHitV2> {
         val normalizedQuery = ExerciseMatchLexicon.normalize(query)
-        val rawTerms = normalizedQuery.split(' ').filter(String::isNotBlank)
+        val queryTerms = normalizedQuery.split(' ').filter(String::isNotBlank)
+        val rawTerms = queryTerms
+            .filterNot { it in SEARCH_STOP_WORDS }
+            .ifEmpty { queryTerms }
         if (rawTerms.isEmpty()) return emptyList()
+        val openQuery = isOpenQuery(normalizedQuery)
 
         return definitionsById.values
             .filter { definition ->
@@ -122,13 +132,27 @@ class ExerciseCatalogV2Resolver(
                 // term ("curl bayesiano"). The parent satisfies the full query,
                 // while the configuration term selects one explicit config. It
                 // must never synthesize a configuration from the remaining axes.
-                val configuration = definition.configurations
-                    .firstOrNull { config ->
-                        val configText = ExerciseMatchLexicon.normalize(buildConfigText(config))
-                        rawTerms.any { term -> term.length >= 4 && textMatchesTerm(configText, term) }
-                    }
-                val phraseBonus =
-                    if (normalizedQuery.length >= 4 && index.name.contains(normalizedQuery)) 60 else 0
+                val configurationMatch = bestConfigurationMatch(
+                    definition = definition,
+                    normalizedQuery = normalizedQuery,
+                    terms = rawTerms,
+                )
+                val exactNameBonus = if (index.name == normalizedQuery) 180 else 0
+                val exactAliasBonus = if (
+                    definition.searchTerms.any { ExerciseMatchLexicon.normalize(it) == normalizedQuery }
+                ) {
+                    150
+                } else {
+                    0
+                }
+                val phraseBonus = if (normalizedQuery.length >= 4 && index.name.contains(normalizedQuery)) 60 else 0
+                val allNameTermsBonus = if (rawTerms.all { term ->
+                    index.nameTokens.any { token -> token == term || token.startsWith(term) }
+                }) {
+                    40
+                } else {
+                    0
+                }
                 val score = rawTerms.sumOf { term ->
                     val name = index.name
                     val nameTokens = index.nameTokens
@@ -144,12 +168,13 @@ class ExerciseCatalogV2Resolver(
                         index.text.contains(term) -> 12
                         else -> 6
                     }
-                } + phraseBonus + if (rawTerms.all { index.name.contains(it) }) 20 else 0
+                } + exactNameBonus + exactAliasBonus + phraseBonus + allNameTermsBonus +
+                    configurationMatch.score + if (openQuery) openQueryPriorityBonus(definition, normalizedQuery) else 0
 
                 ExerciseSearchHitV2(
                     definitionId = definition.id,
-                    suggestedConfigurationId = configuration?.id,
-                    matchedTerm = rawTerms.joinToString(" "),
+                    suggestedConfigurationId = configurationMatch.configuration?.id,
+                    matchedTerm = normalizedQuery,
                     score = score,
                 )
             }
@@ -230,6 +255,54 @@ class ExerciseCatalogV2Resolver(
         return term.length >= 3 && text.contains(term)
     }
 
+    private fun bestConfigurationMatch(
+        definition: ExerciseDefinitionV2,
+        normalizedQuery: String,
+        terms: List<String>,
+    ): ConfigurationMatch {
+        val candidates = definition.configurations.mapIndexedNotNull { order, configuration ->
+            val configText = ExerciseMatchLexicon.normalize(buildConfigText(configuration))
+            val matchedTerms = terms.count { term ->
+                term.length >= 3 && textMatchesTerm(configText, term)
+            }
+            if (matchedTerms == 0) return@mapIndexedNotNull null
+            val phraseBonus = if (normalizedQuery.length >= 4 && configText.contains(normalizedQuery)) 48 else 0
+            ConfigurationMatch(
+                configuration = configuration,
+                score = matchedTerms * 36 + phraseBonus,
+                order = order,
+            )
+        }
+        return candidates.maxWithOrNull(
+            compareBy<ConfigurationMatch> { it.score }
+                .thenBy { it.configuration?.id == definition.defaultConfigurationId }
+                .thenBy { -it.order },
+        ) ?: ConfigurationMatch(null, score = 0)
+    }
+
+    /**
+     * A curated ordering is only appropriate for a family-level query. Once a
+     * user adds a variant, implement, stance, grip or machine term, the normal
+     * name/alias/configuration match score must decide the order.
+     */
+    private fun isOpenQuery(normalizedQuery: String): Boolean =
+        normalizedQuery in OPEN_QUERY_ALIASES || definitionsById.values.any {
+            ExerciseMatchLexicon.normalize(it.canonicalName) == normalizedQuery
+        }
+
+    private fun openQueryPriorityBonus(
+        definition: ExerciseDefinitionV2,
+        normalizedQuery: String,
+    ): Int {
+        val curatedOrder = OPEN_QUERY_PRIORITY[normalizedQuery]
+        val rank = curatedOrder?.indexOf(definition.id) ?: -1
+        return when {
+            rank >= 0 -> 10_000 - rank * 100
+            definition.kind == ExerciseDefinitionKindV2.PARENT -> 500
+            else -> 0
+        }
+    }
+
     private fun localizedMuscleTerms(ids: List<String>): String = ids.joinToString(" ") { id ->
         when (id) {
             "pectoralis" -> "pectoral pectorales pecho chest"
@@ -258,7 +331,7 @@ class ExerciseCatalogV2Resolver(
     }
 
     private fun localizedCatalogTerms(value: String): String = when (value.lowercase()) {
-        "barbell" -> "barra"
+        "barbell" -> "barra barra libre barra recta"
         "band" -> "banda banda elastica"
         "cable" -> "polea cable"
         "dumbbells" -> "mancuerna mancuernas"
@@ -266,6 +339,9 @@ class ExerciseCatalogV2Resolver(
         "bodyweight" -> "peso corporal"
         "plate" -> "disco"
         "safety_bar" -> "barra de seguridad safety bar"
+        "smith_machine" -> "smith maquina máquina"
+        "hex_bar" -> "barra hexagonal trap bar hex bar"
+        "kettlebell" -> "kettlebell pesa rusa"
         "standing" -> "de pie parado"
         "seated" -> "sentado"
         "pec_deck" -> "pec deck"
@@ -274,5 +350,139 @@ class ExerciseCatalogV2Resolver(
         "pronated" -> "prono"
         "neutral" -> "neutro"
         else -> value
+    }
+
+    private companion object {
+        private val SEARCH_STOP_WORDS = setOf("de", "del", "la", "el", "en", "con", "para", "por")
+
+        private val OPEN_QUERY_ALIASES = setOf(
+            "peso muerto",
+            "deadlift",
+            "sentadilla",
+            "sentadillas",
+            "squat",
+            "press",
+            "push",
+            "press banca",
+            "press de banca",
+            "remo",
+            "row",
+            "curl",
+            "apertura",
+            "aperturas",
+            "fly",
+            "elevacion",
+            "elevaciones",
+            "jalon",
+            "jalones",
+            "pulldown",
+            "dominada",
+            "dominadas",
+            "pull up",
+            "zancada",
+            "zancadas",
+            "lunge",
+            "prensa",
+            "leg press",
+            "hip thrust",
+        )
+
+        private val OPEN_QUERY_PRIORITY = mapOf(
+            "peso muerto" to listOf(
+                "conventional_deadlift",
+                "romanian_deadlift",
+                "sumo_deadlift",
+                "stiff_leg_deadlift",
+                "romanian_sumo_deadlift",
+            ),
+            "deadlift" to listOf(
+                "conventional_deadlift",
+                "romanian_deadlift",
+                "sumo_deadlift",
+                "stiff_leg_deadlift",
+                "romanian_sumo_deadlift",
+            ),
+            "sentadilla" to listOf(
+                "high_bar_back_squat",
+                "low_bar_back_squat",
+                "front_squat",
+                "sumo_squat",
+                "belt_squat",
+                "pendulum_squat",
+                "quads_sentadilla_hack",
+                "sissy_squat",
+                "bulgarian_split_squat",
+            ),
+            "sentadillas" to listOf(
+                "high_bar_back_squat",
+                "low_bar_back_squat",
+                "front_squat",
+                "sumo_squat",
+                "belt_squat",
+                "pendulum_squat",
+                "quads_sentadilla_hack",
+                "sissy_squat",
+                "bulgarian_split_squat",
+            ),
+            "squat" to listOf(
+                "high_bar_back_squat",
+                "low_bar_back_squat",
+                "front_squat",
+                "sumo_squat",
+                "belt_squat",
+                "pendulum_squat",
+                "quads_sentadilla_hack",
+                "sissy_squat",
+                "bulgarian_split_squat",
+            ),
+            "press" to listOf(
+                "bench_press",
+                "incline_bench_press",
+                "decline_bench_press",
+                "military_press",
+                "seated_shoulder_press",
+                "floor_press",
+                "arnold_press",
+                "z_press",
+                "california_press",
+                "triceps_press_frances",
+            ),
+            "push" to listOf(
+                "bench_press",
+                "incline_bench_press",
+                "decline_bench_press",
+                "military_press",
+                "seated_shoulder_press",
+                "floor_press",
+                "arnold_press",
+                "z_press",
+            ),
+            "press banca" to listOf(
+                "bench_press",
+                "incline_bench_press",
+                "decline_bench_press",
+            ),
+            "press de banca" to listOf(
+                "bench_press",
+                "incline_bench_press",
+                "decline_bench_press",
+            ),
+            "remo" to listOf(
+                "back_conventional_row",
+                "back_pendlay_row",
+                "back_chest_supported_row",
+                "back_t_bar_row",
+                "back_seal_row",
+                "back_gironda_row",
+            ),
+            "row" to listOf(
+                "back_conventional_row",
+                "back_pendlay_row",
+                "back_chest_supported_row",
+                "back_t_bar_row",
+                "back_seal_row",
+                "back_gironda_row",
+            ),
+        )
     }
 }

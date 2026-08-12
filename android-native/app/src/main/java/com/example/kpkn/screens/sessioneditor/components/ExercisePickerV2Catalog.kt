@@ -1,13 +1,18 @@
 package com.example.kpkn.screens.sessioneditor.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -15,11 +20,13 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -69,17 +76,22 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.kpkn.R
 import com.example.kpkn.data.exercises.catalogv2.toLegacySelection
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.models.ExerciseMuscleInfo
@@ -119,11 +131,362 @@ import com.example.kpkn.ui.components.LocalHazeState
 import com.example.kpkn.ui.components.kpknGlassOrFallback
 import dev.chrisbanes.haze.HazeState
 
+private const val FLAT_BENCH_PRESS_DEFINITION_ID = "bench_press"
+private const val HIGH_BAR_BACK_SQUAT_DEFINITION_ID = "high_bar_back_squat"
+private const val LOW_BAR_BACK_SQUAT_DEFINITION_ID = "low_bar_back_squat"
+private const val CONVENTIONAL_DEADLIFT_DEFINITION_ID = "conventional_deadlift"
+
+private data class CatalogExerciseImageVariant(
+    val implementation: String,
+    val imageResId: Int,
+    val label: String,
+)
+
+private data class CatalogSearchResultState(
+    val committedQuery: String = "",
+    val filteredHits: List<ExerciseSearchHitV2> = emptyList(),
+    val globalHits: List<ExerciseSearchHitV2> = emptyList(),
+    val isSettled: Boolean = false,
+)
+
+internal fun catalogSearchResultsAreCurrent(
+    query: String,
+    committedQuery: String,
+    isSettled: Boolean,
+): Boolean = query == committedQuery && isSettled
+
+internal fun toggleCatalogDefinitionExpansion(
+    currentDefinitionId: String?,
+    tappedDefinitionId: String,
+): String? = if (currentDefinitionId == tappedDefinitionId) null else tappedDefinitionId
+
+internal fun shouldShowCatalogCreateSuggestion(
+    query: String,
+    searchSettled: Boolean,
+    visibleCatalogResultCount: Int,
+    globalCatalogResultCount: Int,
+    customResultCount: Int,
+): Boolean = query.isNotBlank() &&
+    searchSettled &&
+    visibleCatalogResultCount == 0 &&
+    globalCatalogResultCount == 0 &&
+    customResultCount == 0
+
+private fun exerciseCatalogImageVariants(definitionId: String): List<CatalogExerciseImageVariant> = when (definitionId) {
+    HIGH_BAR_BACK_SQUAT_DEFINITION_ID -> listOf(
+        CatalogExerciseImageVariant(
+            implementation = "barbell",
+            imageResId = R.drawable.exercise_sentadilla_trasera_barra_alta,
+            label = "Barra Libre",
+        ),
+        CatalogExerciseImageVariant(
+            implementation = "smith_machine",
+            imageResId = R.drawable.exercise_sentadilla_trasera_barra_alta_smith,
+            label = "Máquina Smith",
+        ),
+        CatalogExerciseImageVariant(
+            implementation = "safety_bar",
+            imageResId = R.drawable.exercise_sentadilla_trasera_barra_alta_safety_bar,
+            label = "Barra de Seguridad",
+        ),
+    )
+    LOW_BAR_BACK_SQUAT_DEFINITION_ID -> listOf(
+        CatalogExerciseImageVariant(
+            implementation = "barbell",
+            imageResId = R.drawable.exercise_sentadilla_trasera_barra_baja,
+            label = "Barra Libre",
+        ),
+        CatalogExerciseImageVariant(
+            implementation = "smith_machine",
+            imageResId = R.drawable.exercise_sentadilla_trasera_barra_baja_smith,
+            label = "Máquina Smith",
+        ),
+    )
+    CONVENTIONAL_DEADLIFT_DEFINITION_ID -> listOf(
+        CatalogExerciseImageVariant(
+            implementation = "barbell",
+            imageResId = R.drawable.exercise_peso_muerto_convencional,
+            label = "Barra Libre",
+        ),
+        CatalogExerciseImageVariant(
+            implementation = "smith_machine",
+            imageResId = R.drawable.exercise_peso_muerto_convencional_smith,
+            label = "Máquina Smith",
+        ),
+        CatalogExerciseImageVariant(
+            implementation = "hex_bar",
+            imageResId = R.drawable.exercise_peso_muerto_convencional_hex_bar,
+            label = "Barra Hexagonal",
+        ),
+        CatalogExerciseImageVariant(
+            implementation = "dumbbells",
+            imageResId = R.drawable.exercise_peso_muerto_convencional_mancuernas,
+            label = "Mancuernas",
+        ),
+        CatalogExerciseImageVariant(
+            implementation = "kettlebell",
+            imageResId = R.drawable.exercise_peso_muerto_convencional_kettlebell,
+            label = "Kettlebell",
+        ),
+    )
+    FLAT_BENCH_PRESS_DEFINITION_ID -> listOf(
+        CatalogExerciseImageVariant(
+            implementation = "barbell",
+            imageResId = R.drawable.exercise_press_de_banca_plano,
+            label = "Barra",
+        ),
+        CatalogExerciseImageVariant(
+            implementation = "dumbbells",
+            imageResId = R.drawable.exercise_press_de_banca_plano_mancuernas,
+            label = "Mancuernas",
+        ),
+        CatalogExerciseImageVariant(
+            implementation = "smith_machine",
+            imageResId = R.drawable.exercise_press_de_banca_plano_smith,
+            label = "Máquina Smith",
+        ),
+        CatalogExerciseImageVariant(
+            implementation = "machine",
+            imageResId = R.drawable.exercise_press_de_banca_plano_maquina_convergente,
+            label = "Máquina",
+        ),
+        CatalogExerciseImageVariant(
+            implementation = "cable",
+            imageResId = R.drawable.exercise_press_de_banca_plano_polea,
+            label = "Polea",
+        ),
+        CatalogExerciseImageVariant(
+            implementation = "kettlebell",
+            imageResId = R.drawable.exercise_press_de_banca_plano_kettlebell,
+            label = "Kettlebell",
+        ),
+    )
+    else -> emptyList()
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun CatalogExerciseImageCarousel(
+    definitionId: String,
+    selectedImplementation: String?,
+    expanded: Boolean,
+    modifier: Modifier = Modifier,
+    onImplementationSettled: (String) -> Unit,
+) {
+    val variants = remember(definitionId) { exerciseCatalogImageVariants(definitionId) }
+    if (variants.isEmpty()) return
+
+    val selectedIndex = variants.indexOfFirst { it.implementation == selectedImplementation }
+        .takeIf { it >= 0 }
+        ?: 0
+    val pagerState = rememberPagerState(initialPage = selectedIndex) { variants.size }
+    val currentSelectedImplementation by rememberUpdatedState(selectedImplementation)
+    val currentOnImplementationSettled by rememberUpdatedState(onImplementationSettled)
+
+    LaunchedEffect(selectedIndex) {
+        pagerState.scrollToPage(selectedIndex)
+    }
+    LaunchedEffect(pagerState, variants) {
+        snapshotFlow { pagerState.settledPage }.collectLatest { page ->
+            variants.getOrNull(page)?.implementation?.let { implementation ->
+                if (implementation != currentSelectedImplementation) {
+                    currentOnImplementationSettled(implementation)
+                }
+            }
+        }
+    }
+
+    val shape = RoundedCornerShape(if (expanded) 16.dp else 12.dp)
+
+    Box(
+        modifier = modifier
+            .clip(shape)
+            .background(Color.Black.copy(alpha = 0.22f))
+            .border(1.dp, Color.White.copy(alpha = 0.12f), shape),
+        contentAlignment = Alignment.Center,
+    ) {
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(shape),
+            userScrollEnabled = variants.size > 1,
+            pageSpacing = 0.dp,
+        ) { page ->
+            val variant = variants[page]
+            Image(
+                painter = painterResource(variant.imageResId),
+                contentDescription = "${if (expanded) "Ilustración" else "Miniatura"} del ejercicio con ${variant.label}",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(if (expanded) 4.dp else 2.dp),
+                contentScale = ContentScale.Fit,
+            )
+        }
+        if (variants.size > 1) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = if (expanded) 8.dp else 5.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                variants.forEachIndexed { index, _ ->
+                    Box(
+                        modifier = Modifier
+                            .size(if (pagerState.currentPage == index) 7.dp else 5.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (pagerState.currentPage == index) {
+                                    Color.White.copy(alpha = 0.95f)
+                                } else {
+                                    Color.White.copy(alpha = 0.42f)
+                                },
+                            ),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CatalogFoldedVariantChips(
+    definitionId: String,
+    values: List<String>,
+    selectedValue: String?,
+    singleLine: Boolean,
+) {
+    if (values.isEmpty()) return
+
+    val orderedValues = remember(values, selectedValue) {
+        buildList {
+            selectedValue?.takeIf(values::contains)?.let(::add)
+            values.filterNot { it == selectedValue }.forEach(::add)
+        }
+    }
+
+    @Composable
+    fun VariantChip(value: String, selected: Boolean) {
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(999.dp))
+                .background(
+                    if (selected) Color.White.copy(alpha = 0.92f)
+                    else Color.White.copy(alpha = 0.10f),
+                )
+                .padding(horizontal = 8.dp, vertical = 3.dp),
+        ) {
+            Text(
+                exerciseCatalogVariantTagLabel(value, definitionId),
+                color = if (selected) Color(0xFF101214) else Color.White.copy(alpha = 0.82f),
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                style = MaterialTheme.typography.labelSmall,
+                maxLines = 1,
+            )
+        }
+    }
+
+    if (!singleLine) {
+        val visibleValues = orderedValues.take(4)
+        val extraCount = (orderedValues.size - visibleValues.size).coerceAtLeast(0)
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            visibleValues.forEach { value ->
+                VariantChip(value = value, selected = value == selectedValue)
+            }
+            if (extraCount > 0) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(Color.White.copy(alpha = 0.06f))
+                        .padding(horizontal = 8.dp, vertical = 3.dp),
+                ) {
+                    Text(
+                        "+$extraCount",
+                        color = Color.White.copy(alpha = 0.60f),
+                        style = MaterialTheme.typography.labelSmall,
+                        maxLines = 1,
+                    )
+                }
+            }
+        }
+        return
+    }
+
+    // Las tarjetas con imagen tienen una sola fila. Se reserva el ancho del
+    // contador antes de añadir cada chip para que el +N siempre quede visible.
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val textMeasurer = rememberTextMeasurer()
+        val density = LocalDensity.current
+        val chipStyle = MaterialTheme.typography.labelSmall
+        val gapPx = with(density) { 6.dp.roundToPx() }
+        val horizontalPaddingPx = with(density) { 16.dp.roundToPx() }
+        val availableWidthPx = with(density) { maxWidth.roundToPx() }
+
+        fun measuredWidth(text: String): Int =
+            textMeasurer.measure(AnnotatedString(text), style = chipStyle).size.width + horizontalPaddingPx
+
+        val visibleCount = remember(orderedValues, definitionId, availableWidthPx) {
+            var usedWidth = 0
+            var count = 0
+            for (index in orderedValues.indices) {
+                val value = orderedValues[index]
+                val remainingAfter = orderedValues.size - index - 1
+                val leadingGap = if (count == 0) 0 else gapPx
+                val overflowWidth = if (remainingAfter > 0) measuredWidth("+$remainingAfter") else 0
+                val overflowGap = if (remainingAfter > 0) gapPx else 0
+                val requiredWidth = leadingGap + measuredWidth(
+                    exerciseCatalogVariantTagLabel(value, definitionId),
+                ) + overflowGap + overflowWidth
+                if (count == 0 || usedWidth + requiredWidth <= availableWidthPx) {
+                    usedWidth += leadingGap + measuredWidth(
+                        exerciseCatalogVariantTagLabel(value, definitionId),
+                    )
+                    count++
+                } else {
+                    break
+                }
+            }
+            count
+        }
+        val visibleValues = orderedValues.take(visibleCount)
+        val extraCount = (orderedValues.size - visibleValues.size).coerceAtLeast(0)
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            visibleValues.forEach { value ->
+                VariantChip(value = value, selected = value == selectedValue)
+            }
+            if (extraCount > 0) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(Color.White.copy(alpha = 0.06f))
+                        .padding(horizontal = 8.dp, vertical = 3.dp),
+                ) {
+                    Text(
+                        "+$extraCount",
+                        color = Color.White.copy(alpha = 0.60f),
+                        style = MaterialTheme.typography.labelSmall,
+                        maxLines = 1,
+                    )
+                }
+            }
+        }
+    }
+}
+
 /**
  * The only runtime exercise picker. It deliberately has no legacy fallback:
  * while v2 is loading we show a stable loading surface, never the old catalog.
  */
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 @Composable
 internal fun ExercisePickerV2Catalog(
     repository: ExerciseCatalogRepositoryV2,
@@ -174,35 +537,12 @@ internal fun ExercisePickerV2Catalog(
                 .padding(horizontal = if (opaqueSurface) 16.dp else 12.dp, vertical = if (opaqueSurface) 14.dp else 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            if (opaqueSurface) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color.White)
-                    }
-                    Text(
-                        "CATÁLOGO DE EJERCICIOS",
-                        fontWeight = FontWeight.Black,
-                        color = Color.White,
-                        modifier = Modifier.weight(1f),
-                        textAlign = TextAlign.Center,
-                    )
-                    Spacer(Modifier.width(48.dp))
-                }
-            } else {
-                Text(
-                    "CATÁLOGO DE EJERCICIOS",
-                    fontWeight = FontWeight.Black,
-                    color = Color.White,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center,
-                )
-            }
-
             // Search is intentionally always visible as a floating pill at the
             // bottom. It must not be hidden behind an icon or disappear while the
             // asset is being decoded.
             when (val current = state) {
                 ExerciseCatalogStateV2.Loading -> {
+                    if (opaqueSurface) CatalogBackOnlyHeader(onDismiss = onDismiss)
                     Box(Modifier.fillMaxWidth().weight(1f)) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -221,6 +561,7 @@ internal fun ExercisePickerV2Catalog(
                 }
 
                 is ExerciseCatalogStateV2.Error -> {
+                    if (opaqueSurface) CatalogBackOnlyHeader(onDismiss = onDismiss)
                     Box(Modifier.fillMaxWidth().weight(1f)) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Column(
@@ -268,7 +609,134 @@ internal fun ExercisePickerV2Catalog(
                         initialCatalogDefinitionId = initialCatalogDefinitionId,
                         initialCatalogConfigurationId = initialCatalogConfigurationId,
                         dismissAfterMultiSelect = dismissAfterMultiSelect,
+                        opaqueSurface = opaqueSurface,
                         hazeState = glassHaze,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CatalogBackOnlyHeader(onDismiss: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        IconButton(onClick = onDismiss) {
+            Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color.White)
+        }
+        Spacer(Modifier.weight(1f))
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CatalogFilterHeader(
+    opaqueSurface: Boolean,
+    onDismiss: () -> Unit,
+    filterRegion: String?,
+    filterMuscle: String?,
+    muscleFilterExpanded: Boolean,
+    onClearFilters: () -> Unit,
+    onToggleUpper: () -> Unit,
+    onToggleLower: () -> Unit,
+    onToggleMuscle: () -> Unit,
+    onToggleMuscleId: (String) -> Unit,
+    hazeState: HazeState?,
+) {
+    val filterScrollState = rememberScrollState()
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .kpknGlassOrFallback(
+                hazeState = hazeState,
+                shape = RoundedCornerShape(16.dp),
+                additionalScrim = Color.Black.copy(alpha = 0.12f),
+            )
+            .padding(8.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (opaqueSurface) {
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.size(40.dp),
+                ) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color.White)
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clipToBounds(),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(filterScrollState)
+                        .padding(start = if (opaqueSurface) 8.dp else 0.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    FilterChip(
+                        selected = filterRegion == null && filterMuscle == null,
+                        onClick = onClearFilters,
+                        label = { Text("Todos") },
+                        colors = catalogFilterChipColors(),
+                    )
+                    FilterChip(
+                        selected = filterRegion == "UPPER",
+                        onClick = onToggleUpper,
+                        label = { Text("Tren Superior") },
+                        colors = catalogFilterChipColors(),
+                    )
+                    FilterChip(
+                        selected = filterRegion == "LOWER",
+                        onClick = onToggleLower,
+                        label = { Text("Tren Inferior") },
+                        colors = catalogFilterChipColors(),
+                    )
+                    FilterChip(
+                        selected = muscleFilterExpanded || filterMuscle != null,
+                        onClick = onToggleMuscle,
+                        label = { Text(filterMuscle?.let(::exerciseCatalogMuscleLabel) ?: "Músculo") },
+                        colors = catalogFilterChipColors(),
+                    )
+                }
+                if (opaqueSurface && filterScrollState.value > 0) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.CenterStart)
+                            // Keep the fade constrained to the chip row. Using
+                            // fillMaxHeight here lets a horizontal scroll expand
+                            // the whole header to the screen height.
+                            .height(48.dp)
+                            .width(26.dp)
+                            .background(
+                                Brush.horizontalGradient(
+                                    listOf(Color.Black.copy(alpha = 0.92f), Color.Transparent),
+                                ),
+                            ),
+                    )
+                }
+            }
+        }
+        if (muscleFilterExpanded) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                CATALOG_FILTER_MUSCLE_IDS.forEach { muscleId ->
+                    FilterChip(
+                        selected = filterMuscle == muscleId,
+                        onClick = { onToggleMuscleId(muscleId) },
+                        label = { Text(exerciseCatalogMuscleLabel(muscleId)) },
+                        colors = catalogFilterChipColors(),
                     )
                 }
             }
@@ -311,6 +779,56 @@ private fun FloatingCatalogSearch(
     }
 }
 
+@Composable
+private fun IntegratedCatalogAddButton(
+    selectedCount: Int,
+    expanded: Boolean,
+    onAdd: () -> Unit,
+    onToggle: () -> Unit,
+) {
+    val shape = if (expanded) {
+        RoundedCornerShape(bottomStart = 14.dp, bottomEnd = 14.dp)
+    } else {
+        RoundedCornerShape(14.dp)
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp)
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.primary)
+            .border(BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.18f)), shape),
+    ) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .clickable(onClick = onAdd),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                "Agregar $selectedCount ejercicio(s)",
+                color = MaterialTheme.colorScheme.onPrimary,
+                fontWeight = FontWeight.Black,
+            )
+        }
+        Box(
+            modifier = Modifier
+                .width(52.dp)
+                .fillMaxHeight()
+                .background(Color.Black.copy(alpha = 0.12f))
+                .clickable(onClick = onToggle),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = if (expanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
+                contentDescription = if (expanded) "Ocultar ejercicios seleccionados" else "Mostrar ejercicios seleccionados",
+                tint = MaterialTheme.colorScheme.onPrimary,
+            )
+        }
+    }
+}
+
 @OptIn(ExperimentalLayoutApi::class, FlowPreview::class)
 @Composable
 private fun ColumnScope.CatalogReadyContent(
@@ -329,6 +847,7 @@ private fun ColumnScope.CatalogReadyContent(
     initialCatalogDefinitionId: String?,
     initialCatalogConfigurationId: String?,
     dismissAfterMultiSelect: Boolean,
+    opaqueSurface: Boolean,
     hazeState: HazeState?,
 ) {
     val scope = rememberCoroutineScope()
@@ -352,29 +871,51 @@ private fun ColumnScope.CatalogReadyContent(
     }
     // Debounced search: one fuzzy pass per ~150 ms pause on Dispatchers.Default
     // instead of a synchronous stemming pass on the main thread per keystroke.
+    // Keep the query that produced the hits alongside them; otherwise a new
+    // keystroke can render stale cards and the create prompt before the search
+    // for the new text has completed.
     val currentQuery by rememberUpdatedState(query)
-    val searchHits by produceState<List<ExerciseSearchHitV2>>(
-        initialValue = emptyList(),
+    val searchState by produceState<CatalogSearchResultState>(
+        initialValue = CatalogSearchResultState(),
         repository,
         searchFilters,
     ) {
         snapshotFlow { currentQuery }
             .debounce(150)
             .collectLatest { committedQuery ->
-                value = if (committedQuery.isBlank()) {
-                    emptyList()
+                if (committedQuery.isBlank()) {
+                    value = CatalogSearchResultState(
+                        committedQuery = committedQuery,
+                        isSettled = true,
+                    )
                 } else {
-                    withContext(Dispatchers.Default) {
-                        repository.search(committedQuery, searchFilters)
+                    val (filteredHits, globalHits) = withContext(Dispatchers.Default) {
+                        repository.search(committedQuery, searchFilters) to
+                            repository.search(committedQuery)
                     }
+                    value = CatalogSearchResultState(
+                        committedQuery = committedQuery,
+                        filteredHits = filteredHits,
+                        globalHits = globalHits,
+                        isSettled = true,
+                    )
                 }
             }
     }
-    val definitions = remember(catalog, query, searchHits, filterRegion, filterMuscle) {
-        if (query.isBlank()) {
+    val searchSettled = query.isBlank() || catalogSearchResultsAreCurrent(
+        query = query,
+        committedQuery = searchState.committedQuery,
+        isSettled = searchState.isSettled,
+    )
+    val searchHits = if (searchSettled) searchState.filteredHits else emptyList()
+    val globalSearchHits = if (searchSettled) searchState.globalHits else emptyList()
+    val definitions = remember(catalog, query, searchHits, searchSettled, filterRegion, filterMuscle) {
+        if (query.isBlank() || !searchSettled) {
             catalog.families
                 .flatMap { it.definitions }
                 .filter(::definitionMatchesFilter)
+                .takeIf { query.isBlank() }
+                .orEmpty()
                 .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.canonicalName })
         } else {
             // The repository search already orders hits by relevance. Keep that order
@@ -438,24 +979,21 @@ private fun ColumnScope.CatalogReadyContent(
         // recompondría y el reorden no se vería.
         mutableStateOf<Map<String, ExerciseMuscleInfo>>(emptyMap(), neverEqualPolicy())
     }
+    var selectedListExpanded by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(selectedRows.value.isEmpty()) {
+        if (selectedRows.value.isEmpty()) selectedListExpanded = false
+    }
     var expandedDefinitionId by rememberSaveable { mutableStateOf(initialCatalogDefinitionId) }
     val customExercises by CustomExerciseRepository.customExercises.collectAsStateWithLifecycle()
     val editingCustomExercise = remember { mutableStateOf<ExerciseMuscleInfo?>(null) }
     val deletingCustomExercise = remember { mutableStateOf<ExerciseMuscleInfo?>(null) }
-    val visibleCustomExercises = remember(customExercises, query) {
+    val normalizedCustomQuery = remember(query) { ExerciseMatchLexicon.normalize(query) }
+    val visibleCustomExercises = remember(customExercises, normalizedCustomQuery) {
         customExercises.filter {
-            query.isBlank() ||
-                it.name.contains(query, ignoreCase = true) ||
-                it.id.contains(query, ignoreCase = true)
+            normalizedCustomQuery.isBlank() || listOf(it.name, it.id, it.alias.orEmpty()).any { value ->
+                ExerciseMatchLexicon.normalize(value).contains(normalizedCustomQuery)
+            }
         }
-    }
-
-    val exactMatch = remember(query, definitionsById, customExercises) {
-        ExerciseMatchLexicon.hasExactMatch(
-            query = query,
-            definitions = definitionsById.values.toList(),
-            customExercises = customExercises,
-        )
     }
 
     val editing = editingCustomExercise.value
@@ -479,43 +1017,54 @@ private fun ColumnScope.CatalogReadyContent(
         if (query.isNotBlank()) listState.scrollToItem(0)
     }
 
-    var filterBarHeight by remember { mutableStateOf(0) }
-    var selectionPanelHeight by remember { mutableStateOf(84) }
+    var bottomPanelHeight by remember { mutableStateOf(152) }
     val density = LocalDensity.current
 
-    LaunchedEffect(expandedDefinitionId, definitions, visibleCustomExercises, filterBarHeight, selectionPanelHeight) {
+    CatalogFilterHeader(
+        opaqueSurface = opaqueSurface,
+        onDismiss = onDismiss,
+        filterRegion = filterRegion,
+        filterMuscle = filterMuscle,
+        muscleFilterExpanded = muscleFilterExpanded,
+        onClearFilters = {
+            filterRegion = null
+            filterMuscle = null
+            muscleFilterExpanded = false
+        },
+        onToggleUpper = {
+            filterRegion = if (filterRegion == "UPPER") null else "UPPER"
+            filterMuscle = null
+        },
+        onToggleLower = {
+            filterRegion = if (filterRegion == "LOWER") null else "LOWER"
+            filterMuscle = null
+        },
+        onToggleMuscle = { muscleFilterExpanded = !muscleFilterExpanded },
+        onToggleMuscleId = { muscleId ->
+            filterMuscle = if (filterMuscle == muscleId) null else muscleId
+        },
+        hazeState = hazeState,
+    )
+
+    LaunchedEffect(expandedDefinitionId, definitions, visibleCustomExercises, bottomPanelHeight) {
         val targetId = expandedDefinitionId ?: return@LaunchedEffect
         val customOffset = if (visibleCustomExercises.isNotEmpty()) visibleCustomExercises.size + 1 else 0
         val indexInDefinitions = definitions.indexOfFirst { it.id == targetId }
         if (indexInDefinitions < 0) return@LaunchedEffect
         val targetIndex = 1 + customOffset + indexInDefinitions
-        // First snap the card into view instantly, then settle it in the visible
-        // region that sits below the fixed filter overlay with a single smooth
-        // pass, so the options never hide behind the filters or stick to the
-        // bottom edge. Chaining animated scrolls here (animateScrollToItem +
-        // animateScrollBy) made the card jump up and then down again — that's
-        // the unstable motion we avoid.
-        listState.scrollToItem(targetIndex)
-        val itemInfo = listState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
-            ?: return@LaunchedEffect
-        val viewportHeight = listState.layoutInfo.viewportSize.height
-        val visibleTop = filterBarHeight + 18
-        val visibleBottom = viewportHeight - selectionPanelHeight
-        val visibleHeight = (visibleBottom - visibleTop).coerceAtLeast(itemInfo.size)
-        val desiredTop = visibleTop + (visibleHeight / 3) - (itemInfo.size / 2)
-        val delta = itemInfo.offset - desiredTop
-        if (delta != 0) listState.animateScrollBy(delta.toFloat())
+        // Keep the expanded card header below the fixed catalog header. A
+        // size-based centering pass can place the title behind that header as
+        // soon as the card contains a medium-sized image and long accordions.
+        listState.scrollToItem(targetIndex, scrollOffset = -8)
     }
     Box(Modifier.fillMaxWidth().weight(1f)) {
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(10.dp),
-            // Reserve the measured filter height so the fixed filter surface never
-            // darkens the result count or clips the first card.
             contentPadding = PaddingValues(
-                top = with(density) { (filterBarHeight + 18).toDp() },
-                bottom = with(density) { selectionPanelHeight.toDp() },
+                top = 8.dp,
+                bottom = with(density) { bottomPanelHeight.toDp() },
             ),
         ) {
             item("result-count") {
@@ -581,10 +1130,13 @@ private fun ColumnScope.CatalogReadyContent(
                 exactInfo(catalog, definition, resolvedConfigurationId)
             }
             val isSelected = definition.id in selectedRows.value ||
-                selectedConfigurationId?.let { it in selectedExercisesIds } == true
+                selectedConfigurationId?.let { it in selectedExercisesIds } == true ||
+                effectiveExerciseInfo?.id?.let { it in selectedExercisesIds } == true
             val isExpanded = expandedDefinitionId == definition.id
             val hasOptions = definition.optionAxes.isNotEmpty()
             val defaultMuscles = remember(default) { default?.profile?.primaryMuscles.orEmpty() }
+            val imageVariants = remember(definition) { exerciseCatalogImageVariants(definition.id) }
+            val selectedImplementation = effectiveSelectedOptions["implement"]
             val firstAxis = definition.optionAxes.firstOrNull()
             val variantValues = remember(definition, firstAxis) {
                 if (firstAxis == null) emptyList()
@@ -592,8 +1144,15 @@ private fun ColumnScope.CatalogReadyContent(
                     .mapNotNull { it.selectedOptions[firstAxis] }
                     .distinct()
             }
-            val visibleVariants = variantValues.take(4)
-            val extraVariantCount = (variantValues.size - visibleVariants.size).coerceAtLeast(0)
+            val selectOption: (axis: String, value: String) -> Unit = { axis, value ->
+                val newDraft = draftAfterAxisSelection(
+                    definition = definition,
+                    selectedOptions = selectedOptions,
+                    axis = axis,
+                    value = value,
+                )
+                draftByDefinition.value = draftByDefinition.value + (definition.id to newDraft)
+            }
 
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color.Transparent),
@@ -614,153 +1173,140 @@ private fun ColumnScope.CatalogReadyContent(
                         },
                     )
                     .clickable {
-                        when {
-                            isExpanded -> {
-                                expandedDefinitionId = null
-                                if (editingExisting) {
-                                    exactInfo(catalog, definition, selectedConfigurationId)?.let(onSelect)
-                                }
-                            }
-                            isSelected -> {
-                                // Deseleccionar con un toque.
-                                val next = selectedRows.value - definition.id
-                                selectedRows.value = next
-                                onSelectionChange(next.values.toList())
-                            }
-                            editingExisting -> expandedDefinitionId = definition.id
-                            !hasOptions || definition.id in suggestedDrafts -> {
-                                // 2B/2C: sin opciones o ya pre-configurado por la búsqueda
-                                // → se agrega al instante, sin pasar por opciones.
-                                exactInfo(catalog, definition, resolvedConfigurationId)?.let { info ->
-                                    val next = selectedRows.value + (definition.id to info)
-                                    selectedRows.value = next
-                                    onSelectionChange(next.values.toList())
-                                }
-                            }
-                            else -> expandedDefinitionId = definition.id
-                        }
+                        // La tarjeta solo controla la expansión. La selección queda
+                        // reservada al botón inferior, incluso para ejercicios sin ejes.
+                        expandedDefinitionId = toggleCatalogDefinitionExpansion(
+                            currentDefinitionId = expandedDefinitionId,
+                            tappedDefinitionId = definition.id,
+                        )
                     },
             ) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    definition.canonicalName,
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                    style = MaterialTheme.typography.titleSmall,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier.weight(1f, fill = false),
-                                )
-                                // Chips del título: opciones coincidentes de la búsqueda,
-                                // pequeñas y de-duplicadas (solo la más específica).
-                                if (!isExpanded && query.isNotBlank()) {
-                                    val searchChips = searchMatchChips[definition.id].orEmpty()
-                                    if (searchChips.isNotEmpty()) {
-                                        Spacer(Modifier.width(6.dp))
-                                        Row(
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .horizontalScroll(rememberScrollState()),
-                                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                        ) {
-                                            searchChips.take(3).forEach { label ->
-                                                Box(
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment = Alignment.Top,
+                    ) {
+                        if (!isExpanded && imageVariants.isNotEmpty()) {
+                            CatalogExerciseImageCarousel(
+                                definitionId = definition.id,
+                                selectedImplementation = selectedImplementation,
+                                expanded = false,
+                                modifier = Modifier.size(132.dp),
+                                onImplementationSettled = { implementation ->
+                                    selectOption("implement", implementation)
+                                },
+                            )
+                        }
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.Top,
+                            ) {
+                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            definition.canonicalName,
+                                            color = Color.White,
+                                            fontWeight = FontWeight.Bold,
+                                            style = MaterialTheme.typography.titleSmall,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier.weight(1f, fill = false),
+                                        )
+                                        // Chips del título: opciones coincidentes de la búsqueda,
+                                        // pequeñas y de-duplicadas (solo la más específica).
+                                        if (!isExpanded && query.isNotBlank()) {
+                                            val searchChips = searchMatchChips[definition.id].orEmpty()
+                                            if (searchChips.isNotEmpty()) {
+                                                Spacer(Modifier.width(6.dp))
+                                                Row(
                                                     modifier = Modifier
-                                                        .clip(RoundedCornerShape(6.dp))
-                                                        .background(Color.White.copy(alpha = 0.14f))
-                                                        .padding(horizontal = 5.dp, vertical = 1.dp),
+                                                        .weight(1f)
+                                                        .horizontalScroll(rememberScrollState()),
+                                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                                    verticalAlignment = Alignment.CenterVertically,
                                                 ) {
-                                                    Text(
-                                                        label,
-                                                        color = Color.White.copy(alpha = 0.92f),
-                                                        style = MaterialTheme.typography.titleSmall,
-                                                        maxLines = 1,
-                                                    )
+                                                    searchChips.take(3).forEach { label ->
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .clip(RoundedCornerShape(6.dp))
+                                                                .background(Color.White.copy(alpha = 0.14f))
+                                                                .padding(horizontal = 5.dp, vertical = 1.dp),
+                                                        ) {
+                                                            Text(
+                                                                label,
+                                                                color = Color.White.copy(alpha = 0.92f),
+                                                                style = MaterialTheme.typography.titleSmall,
+                                                                maxLines = 1,
+                                                            )
+                                                        }
+                                                    }
+                                                    if (searchChips.size > 3) {
+                                                        Text(
+                                                            "+${searchChips.size - 3}",
+                                                            color = Color.White.copy(alpha = 0.55f),
+                                                            style = MaterialTheme.typography.labelSmall,
+                                                        )
+                                                    }
                                                 }
                                             }
-                                            if (searchChips.size > 3) {
-                                                Text(
-                                                    "+${searchChips.size - 3}",
-                                                    color = Color.White.copy(alpha = 0.55f),
-                                                    style = MaterialTheme.typography.labelSmall,
-                                                )
-                                            }
+                                        }
+                                        if (isSelected) {
+                                            Spacer(Modifier.width(6.dp))
+                                            Icon(
+                                                Icons.Default.Check,
+                                                contentDescription = "Seleccionado",
+                                                tint = Color(0xFF4ADE80),
+                                                modifier = Modifier.size(16.dp),
+                                            )
                                         }
                                     }
                                 }
-                                if (isSelected) {
-                                    Spacer(Modifier.width(6.dp))
-                                    Icon(
-                                        Icons.Default.Check,
-                                        contentDescription = "Seleccionado",
-                                        tint = Color(0xFF4ADE80),
-                                        modifier = Modifier.size(16.dp),
+                                if (defaultMuscles.isNotEmpty()) {
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(
+                                        defaultMuscles.joinToString(" · ") { exerciseCatalogMuscleLabel(it) },
+                                        color = Color.White.copy(alpha = 0.55f),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
                                     )
                                 }
                             }
-                        }
-                        if (defaultMuscles.isNotEmpty()) {
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                defaultMuscles.joinToString(" · ") { exerciseCatalogMuscleLabel(it) },
-                                color = Color.White.copy(alpha = 0.55f),
-                                style = MaterialTheme.typography.labelSmall,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                    }
 
-                    if (!isExpanded) {
-                        Text(
-                            definition.description,
-                            color = Color.White.copy(alpha = 0.62f),
-                            style = MaterialTheme.typography.bodySmall,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        if (visibleVariants.isNotEmpty()) {
-                            FlowRow(
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                verticalArrangement = Arrangement.spacedBy(6.dp),
-                            ) {
-                                visibleVariants.forEach { value ->
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(999.dp))
-                                            .background(Color.White.copy(alpha = 0.10f))
-                                            .padding(horizontal = 8.dp, vertical = 3.dp),
-                                    ) {
-                                        Text(
-                                            exerciseCatalogVariantTagLabel(value, definition.id),
-                                            color = Color.White.copy(alpha = 0.82f),
-                                            style = MaterialTheme.typography.labelSmall,
-                                        )
-                                    }
-                                }
-                                if (extraVariantCount > 0) {
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(999.dp))
-                                            .background(Color.White.copy(alpha = 0.06f))
-                                            .padding(horizontal = 8.dp, vertical = 3.dp),
-                                    ) {
-                                        Text(
-                                            "+$extraVariantCount",
-                                            color = Color.White.copy(alpha = 0.60f),
-                                            style = MaterialTheme.typography.labelSmall,
-                                        )
-                                    }
-                                }
+                            if (!isExpanded) {
+                                Text(
+                                    definition.description,
+                                    color = Color.White.copy(alpha = 0.62f),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    maxLines = 3,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                                CatalogFoldedVariantChips(
+                                    definitionId = definition.id,
+                                    values = variantValues,
+                                    selectedValue = firstAxis?.let(effectiveSelectedOptions::get),
+                                    singleLine = imageVariants.isNotEmpty(),
+                                )
                             }
                         }
                     }
 
                     if (isExpanded) {
+                        if (imageVariants.isNotEmpty()) {
+                            CatalogExerciseImageCarousel(
+                                definitionId = definition.id,
+                                selectedImplementation = selectedImplementation,
+                                expanded = true,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(176.dp),
+                                onImplementationSettled = { implementation ->
+                                    selectOption("implement", implementation)
+                                },
+                            )
+                        }
                         if (hasOptions) {
                             Text(
                                 "Selecciona las opciones",
@@ -771,15 +1317,6 @@ private fun ColumnScope.CatalogReadyContent(
                             val axesWithOptions = compatibility.axes.map { axis ->
                                 axis to axis.options
                                     .filter { it.enabled || effectiveSelectedOptions[axis.axis] == it.value }
-                            }
-                            val selectOption: (axis: String, value: String) -> Unit = { axis, value ->
-                                val newDraft = draftAfterAxisSelection(
-                                    definition = definition,
-                                    selectedOptions = selectedOptions,
-                                    axis = axis,
-                                    value = value,
-                                )
-                                draftByDefinition.value = draftByDefinition.value + (definition.id to newDraft)
                             }
                             axesWithOptions.forEachIndexed { axisIndex, (axis, visibleOptions) ->
                                 Column(
@@ -813,6 +1350,7 @@ private fun ColumnScope.CatalogReadyContent(
                         CatalogDescription(
                             definition = definition,
                             configuration = effectiveConfiguration,
+                            initiallyExpanded = !hasOptions,
                         )
 
                         CatalogInvolvementAccordions(
@@ -833,18 +1371,20 @@ private fun ColumnScope.CatalogReadyContent(
                         // Selección explícita: el usuario elige opciones y confirma.
                         Button(
                             onClick = {
-                                val info = if (editingExisting) {
-                                    exactInfo(catalog, definition, selectedConfigurationId)
+                                if (isSelected) {
+                                    val next = selectedRows.value - definition.id
+                                    selectedRows.value = next
+                                    onSelectionChange(next.values.toList())
                                 } else {
-                                    exactInfo(catalog, definition, resolvedConfigurationId)
-                                }
-                                if (info != null) {
-                                    if (editingExisting) {
-                                        onSelect(info)
-                                    } else {
-                                        val next = selectedRows.value + (definition.id to info)
-                                        selectedRows.value = next
-                                        onSelectionChange(next.values.toList())
+                                    val info = exactInfo(catalog, definition, resolvedConfigurationId)
+                                    if (info != null) {
+                                        if (editingExisting) {
+                                            onSelect(info)
+                                        } else {
+                                            val next = selectedRows.value + (definition.id to info)
+                                            selectedRows.value = next
+                                            onSelectionChange(next.values.toList())
+                                        }
                                     }
                                 }
                                 expandedDefinitionId = null
@@ -852,18 +1392,28 @@ private fun ColumnScope.CatalogReadyContent(
                             enabled = resolvedConfigurationId != null || !hasOptions,
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            Text(if (editingExisting) "Usar este ejercicio" else "Seleccionar ejercicio")
+                            Text(if (isSelected) "Deseleccionar ejercicio" else "Seleccionar ejercicio")
                         }
                     }
                 }
             }
         }
 
-        if (query.isNotBlank() && !exactMatch) {
+        // Creation is a terminal empty-state action, never a banner for a
+        // merely non-exact query. Use the unfiltered catalog result so an
+        // active body/muscle filter cannot suggest duplicating an exercise that
+        // exists elsewhere in the catalog.
+        if (shouldShowCatalogCreateSuggestion(
+                query = query,
+                searchSettled = searchSettled,
+                visibleCatalogResultCount = definitions.size,
+                globalCatalogResultCount = globalSearchHits.size,
+                customResultCount = visibleCustomExercises.size,
+            )
+        ) {
             item("smart-create") {
                 SmartCreateSuggestion(
                     query = query,
-                    hasPartialResults = definitions.isNotEmpty() || visibleCustomExercises.isNotEmpty(),
                     onCreate = { info ->
                         if (editingExisting) {
                             onSelect(info)
@@ -878,136 +1428,90 @@ private fun ColumnScope.CatalogReadyContent(
         }
         item { Spacer(Modifier.height(4.dp)) }
         }
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .fillMaxWidth()
-                .height(with(density) { filterBarHeight.toDp() + 18.dp })
-                .background(
-                    Brush.verticalGradient(
-                        0f to Color.Black.copy(alpha = 0.94f),
-                        0.72f to Color.Black.copy(alpha = 0.62f),
-                        1f to Color.Transparent,
-                    ),
-                ),
-        )
+        // Search stays above the selection action. Opening the attached list
+        // increases the dock upwards, so the search field moves up with it.
         Column(
             modifier = Modifier
-                .align(Alignment.TopCenter)
+                .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .onSizeChanged { filterBarHeight = it.height }
-                .kpknGlassOrFallback(
-                    hazeState = hazeState,
-                    shape = RoundedCornerShape(16.dp),
-                    additionalScrim = Color.Black.copy(alpha = 0.12f),
-                )
-                .padding(8.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+                .navigationBarsPadding()
+                .onSizeChanged { bottomPanelHeight = it.height },
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                FilterChip(filterRegion == null && filterMuscle == null, {
-                    filterRegion = null; filterMuscle = null; muscleFilterExpanded = false
-                }, label = { Text("Todos") }, colors = catalogFilterChipColors())
-                FilterChip(filterRegion == "UPPER", {
-                    filterRegion = if (filterRegion == "UPPER") null else "UPPER"; filterMuscle = null
-                }, label = { Text("Tren Superior") }, colors = catalogFilterChipColors())
-                FilterChip(filterRegion == "LOWER", {
-                    filterRegion = if (filterRegion == "LOWER") null else "LOWER"; filterMuscle = null
-                }, label = { Text("Tren Inferior") }, colors = catalogFilterChipColors())
-                FilterChip(muscleFilterExpanded || filterMuscle != null, {
-                    muscleFilterExpanded = !muscleFilterExpanded
-                }, label = { Text(filterMuscle?.let(::exerciseCatalogMuscleLabel) ?: "Músculo") }, colors = catalogFilterChipColors())
-            }
-            if (muscleFilterExpanded) {
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    CATALOG_FILTER_MUSCLE_IDS.forEach { muscleId ->
-                        FilterChip(filterMuscle == muscleId, {
-                            filterMuscle = if (filterMuscle == muscleId) null else muscleId
-                        }, label = { Text(exerciseCatalogMuscleLabel(muscleId)) }, colors = catalogFilterChipColors())
-                    }
-                }
-            }
-        }
-
-    // Franja flotante de seleccionados + buscador, anclados al borde inferior.
-    Column(
-        modifier = Modifier
-            .align(Alignment.BottomCenter)
-            .fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        if (!editingExisting && selectedRows.value.isNotEmpty()) {
-            SelectedExercisesAccordion(
-                selected = selectedRows.value.entries.toList(),
-                modifier = Modifier.onSizeChanged { selectionPanelHeight = it.height + 16 },
-                onRemove = { id ->
-                    val next = selectedRows.value - id
-                    selectedRows.value = next
-                    onSelectionChange(next.values.toList())
-                },
-                onMove = { index, delta ->
-                    val ids = selectedRows.value.keys.toMutableList()
-                    val toIndex = (index + delta).coerceIn(0, ids.lastIndex)
-                    if (toIndex == index) return@SelectedExercisesAccordion
-                    val moved = ids.removeAt(index)
-                    ids.add(toIndex, moved)
-                    selectedRows.value = ids.associateWith { selectedRows.value.getValue(it) }
-                    onSelectionChange(selectedRows.value.values.toList())
-                },
-                onTap = { id ->
-                    val customOffset = if (visibleCustomExercises.isNotEmpty()) visibleCustomExercises.size + 1 else 0
-                    val indexInDefinitions = definitions.indexOfFirst { it.id == id }
-                    if (indexInDefinitions >= 0) {
-                        scope.launch {
-                            listState.animateScrollToItem(1 + customOffset + indexInDefinitions)
+            FloatingCatalogSearch(
+                value = query,
+                onValueChange = onSearch,
+                hazeState = hazeState,
+            )
+            if (!editingExisting && selectedRows.value.isNotEmpty()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 18.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.Bottom,
+                ) {
+                    if (selectedRows.value.size >= 2 && onCreateSuperset != null) {
+                        Button(
+                            onClick = {
+                                onCreateSuperset(selectedRows.value.values.toList())
+                                selectedRows.value = emptyMap()
+                                onSelectionChange(emptyList())
+                                onDismiss()
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(50.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.White.copy(alpha = 0.14f),
+                                contentColor = Color.White,
+                            ),
+                        ) {
+                            Text("Crear superserie", fontWeight = FontWeight.Black)
                         }
                     }
-                },
-            )
-        }
-        FloatingCatalogSearch(
-            value = query,
-            onValueChange = onSearch,
-            hazeState = hazeState,
-        )
-    }
-    }
-
-    if (!editingExisting && selectedRows.value.isNotEmpty()) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (selectedRows.value.size >= 2 && onCreateSuperset != null) {
-                Button(
-                    onClick = {
-                        onCreateSuperset(selectedRows.value.values.toList())
-                        selectedRows.value = emptyMap()
-                        onSelectionChange(emptyList())
-                        onDismiss()
-                    },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White.copy(alpha = 0.14f),
-                        contentColor = Color.White,
-                    ),
-                ) {
-                    Text("Crear superserie", fontWeight = FontWeight.Black)
+                    Column(modifier = Modifier.weight(1f)) {
+                        if (selectedListExpanded) {
+                            SelectedExercisesAppendix(
+                                selected = selectedRows.value.entries.toList(),
+                                onRemove = { id ->
+                                    val next = selectedRows.value - id
+                                    selectedRows.value = next
+                                    onSelectionChange(next.values.toList())
+                                },
+                                onMove = { index, delta ->
+                                    val ids = selectedRows.value.keys.toMutableList()
+                                    val toIndex = (index + delta).coerceIn(0, ids.lastIndex)
+                                    if (toIndex == index) return@SelectedExercisesAppendix
+                                    val moved = ids.removeAt(index)
+                                    ids.add(toIndex, moved)
+                                    selectedRows.value = ids.associateWith { selectedRows.value.getValue(it) }
+                                    onSelectionChange(selectedRows.value.values.toList())
+                                },
+                                onTap = { id ->
+                                    val customOffset = if (visibleCustomExercises.isNotEmpty()) visibleCustomExercises.size + 1 else 0
+                                    val indexInDefinitions = definitions.indexOfFirst { it.id == id }
+                                    if (indexInDefinitions >= 0) {
+                                        scope.launch {
+                                            listState.animateScrollToItem(1 + customOffset + indexInDefinitions)
+                                        }
+                                    }
+                                },
+                            )
+                        }
+                        IntegratedCatalogAddButton(
+                            selectedCount = selectedRows.value.size,
+                            expanded = selectedListExpanded,
+                            onAdd = {
+                                val ids = onMultiSelect(selectedRows.value.values.toList())
+                                if (ids.isNotEmpty() && dismissAfterMultiSelect) onDismiss()
+                            },
+                            onToggle = { selectedListExpanded = !selectedListExpanded },
+                        )
+                    }
                 }
             }
-            Button(
-                onClick = {
-                    val ids = onMultiSelect(selectedRows.value.values.toList())
-                    if (ids.isNotEmpty() && dismissAfterMultiSelect) onDismiss()
-                },
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(14.dp),
-            ) { Text("Agregar ${selectedRows.value.size} ejercicio(s)", fontWeight = FontWeight.Black) }
         }
     }
     deletingCustomExercise.value?.let { deleting ->
@@ -1053,18 +1557,17 @@ private val CATALOG_FILTER_MUSCLE_IDS = listOf(
 )
 
 @Composable
-private fun CatalogDescription(
+internal fun CatalogDescription(
     definition: ExerciseDefinitionV2,
     configuration: com.example.kpkn.domain.exercises.catalogv2.ExerciseConfigurationV2?,
+    initiallyExpanded: Boolean = false,
 ) {
     val configurationId = configuration?.id
-    var descriptionExpanded by remember(definition.id, configurationId) { mutableStateOf(false) }
-    // v7: la descripción principal es la de la definición (estructura 3 frases
-    // con veredicto dedicado). El matiz de la variante seleccionada se muestra
-    // como texto secundario si existe y difiere de la definición.
+    var descriptionExpanded by remember(definition.id, configurationId, initiallyExpanded) {
+        mutableStateOf(initiallyExpanded)
+    }
+    // La descripción principal de la definición es la única copia visible.
     val definitionDescription = definition.description
-    val variantDescription = configuration?.profile?.description
-        ?.takeIf { it.isNotBlank() && it.trim() != definitionDescription.trim() }
 
     Column(
         modifier = Modifier
@@ -1082,14 +1585,6 @@ private fun CatalogDescription(
                 color = Color.White.copy(alpha = 0.82f),
                 style = MaterialTheme.typography.bodySmall,
             )
-            if (variantDescription != null) {
-                Text(
-                    variantDescription,
-                    color = Color.White.copy(alpha = 0.68f),
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(top = 8.dp),
-                )
-            }
         }
     }
 }
@@ -1099,7 +1594,7 @@ private fun CatalogDescription(
  * con el muscular primero y el articular debajo, para ahorrar espacio.
  */
 @Composable
-private fun CatalogInvolvementAccordions(
+internal fun CatalogInvolvementAccordions(
     info: ExerciseMuscleInfo?,
     joints: List<JointInvolvementV2>,
 ) {
@@ -1414,6 +1909,7 @@ private fun CustomExerciseCard(
     onEdit: () -> Unit = {},
     onDelete: () -> Unit = {},
 ) {
+    var expanded by rememberSaveable(exercise.id) { mutableStateOf(false) }
     val primaryMuscles = remember(exercise) {
         exercise.involvedMuscles
             .filter { it.role == MuscleRole.PRIMARY }
@@ -1439,7 +1935,7 @@ private fun CustomExerciseCard(
                     Color.Transparent
                 },
             )
-            .clickable { if (editingExisting) onSelect() else onToggle() },
+            .clickable { expanded = !expanded },
     ) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1518,18 +2014,36 @@ private fun CustomExerciseCard(
                 }
             }
 
-            exercise.description?.takeIf { it.isNotBlank() }?.let { desc ->
-                Text(
-                    desc,
-                    color = Color.White.copy(alpha = 0.62f),
-                    style = MaterialTheme.typography.bodySmall,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+            if (expanded) {
+                exercise.description?.takeIf { it.isNotBlank() }?.let { desc ->
+                    Text(
+                        desc,
+                        color = Color.White.copy(alpha = 0.62f),
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
 
-            if (exercise.involvedMuscles.isNotEmpty()) {
-                MuscleInvolvementSection(exercise)
+                if (exercise.involvedMuscles.isNotEmpty()) {
+                    MuscleInvolvementSection(exercise)
+                }
+
+                Button(
+                    onClick = {
+                        if (selected) {
+                            onToggle()
+                        } else if (editingExisting) {
+                            onSelect()
+                        } else {
+                            onToggle()
+                        }
+                        expanded = false
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(if (selected) "Deseleccionar ejercicio" else "Seleccionar ejercicio")
+                }
             }
         }
     }
@@ -1595,127 +2109,93 @@ private fun searchMatchChipLabels(
         .distinct()
 }
 
-/** Lista flotante de los ejercicios seleccionados, plegable tipo acordeón:
- *  quitar, reordenar con flechas y tocar para ir al ejercicio. Ahorra espacio
- *  porque por defecto queda colapsada en una barra compacta. */
+/** Apéndice de selección unido visualmente al botón de agregar. */
 @Composable
-private fun SelectedExercisesAccordion(
+private fun SelectedExercisesAppendix(
     selected: List<Map.Entry<String, ExerciseMuscleInfo>>,
     onRemove: (String) -> Unit,
     onMove: (Int, Int) -> Unit,
     onTap: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var expanded by remember { mutableStateOf(false) }
+    val shape = RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp)
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            // This panel sits over the scrolling catalog; keep it fully
-            // opaque so exercise names never dissolve into the cards below.
+            .clip(shape)
             .background(Color(0xFF1B222B))
             .border(
                 BorderStroke(1.dp, Color.White.copy(alpha = 0.22f)),
-                RoundedCornerShape(14.dp),
+                shape,
             )
-            .padding(5.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+            .padding(horizontal = 5.dp, vertical = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        Surface(
-            shape = RoundedCornerShape(14.dp),
-            color = Color(0xFF242C36),
-            border = null,
-            shadowElevation = 0.dp,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { expanded = !expanded },
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Text(
-                    "${selected.size} seleccionado${if (selected.size == 1) "" else "s"}",
-                    color = Color.White,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f),
-                )
-                Icon(
-                    if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    contentDescription = if (expanded) "Plegar seleccionados" else "Desplegar seleccionados",
-                    tint = Color.White.copy(alpha = 0.75f),
-                    modifier = Modifier.size(16.dp),
-                )
-            }
-        }
-
-        if (expanded) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(0.dp),
-            ) {
-                selected.forEachIndexed { index, (id, info) ->
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        Row(
-                            modifier = Modifier.padding(start = 4.dp, end = 4.dp, top = 2.dp, bottom = 2.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(2.dp),
-                        ) {
-                            IconButton(
-                                onClick = { onMove(index, -1) },
-                                enabled = index > 0,
-                                modifier = Modifier.size(30.dp),
-                            ) {
-                                Icon(
-                                    Icons.Default.KeyboardArrowUp,
-                                    contentDescription = "Subir en el orden",
-                                    tint = Color.White.copy(alpha = 0.75f),
-                                    modifier = Modifier.size(15.dp),
-                                )
-                            }
-                            IconButton(
-                                onClick = { onMove(index, 1) },
-                                enabled = index < selected.lastIndex,
-                                modifier = Modifier.size(30.dp),
-                            ) {
-                                Icon(
-                                    Icons.Default.KeyboardArrowDown,
-                                    contentDescription = "Bajar en el orden",
-                                    tint = Color.White.copy(alpha = 0.75f),
-                                    modifier = Modifier.size(15.dp),
-                                )
-                            }
-                            Text(
-                                info.name,
-                                color = Color.White,
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .clickable { onTap(id) }
-                                    .padding(vertical = 8.dp),
-                            )
-                            IconButton(
-                                onClick = { onRemove(id) },
-                                modifier = Modifier.size(30.dp),
-                            ) {
-                                Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = "Quitar seleccionado",
-                                    tint = Color.White.copy(alpha = 0.85f),
-                                    modifier = Modifier.size(15.dp),
-                                )
-                            }
-                        }
-                        if (index < selected.lastIndex) {
-                            androidx.compose.material3.Divider(color = Color.White.copy(alpha = 0.08f))
-                        }
+        Text(
+            "Orden de selección",
+            color = Color.White.copy(alpha = 0.65f),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+        )
+        selected.forEachIndexed { index, (id, info) ->
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.padding(start = 4.dp, end = 4.dp, top = 2.dp, bottom = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    IconButton(
+                        onClick = { onMove(index, -1) },
+                        enabled = index > 0,
+                        modifier = Modifier.size(30.dp),
+                    ) {
+                        Icon(
+                            Icons.Default.KeyboardArrowUp,
+                            contentDescription = "Subir en el orden",
+                            tint = Color.White.copy(alpha = 0.75f),
+                            modifier = Modifier.size(15.dp),
+                        )
                     }
+                    IconButton(
+                        onClick = { onMove(index, 1) },
+                        enabled = index < selected.lastIndex,
+                        modifier = Modifier.size(30.dp),
+                    ) {
+                        Icon(
+                            Icons.Default.KeyboardArrowDown,
+                            contentDescription = "Bajar en el orden",
+                            tint = Color.White.copy(alpha = 0.75f),
+                            modifier = Modifier.size(15.dp),
+                        )
+                    }
+                    Text(
+                        info.name,
+                        color = Color.White,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { onTap(id) }
+                            .padding(vertical = 8.dp),
+                    )
+                    IconButton(
+                        onClick = { onRemove(id) },
+                        modifier = Modifier.size(30.dp),
+                    ) {
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Quitar seleccionado",
+                            tint = Color.White.copy(alpha = 0.85f),
+                            modifier = Modifier.size(15.dp),
+                        )
+                    }
+                }
+                if (index < selected.lastIndex) {
+                    androidx.compose.material3.Divider(color = Color.White.copy(alpha = 0.08f))
                 }
             }
         }
@@ -2100,7 +2580,6 @@ internal fun SmartExerciseForm(
 @Composable
 private fun SmartCreateSuggestion(
     query: String,
-    hasPartialResults: Boolean = false,
     onCreate: (ExerciseMuscleInfo) -> Unit,
 ) {
     var creating by remember { mutableStateOf(false) }
@@ -2113,7 +2592,7 @@ private fun SmartCreateSuggestion(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
-            if (hasPartialResults) "\"$query\" no coincide exactamente con ningún ejercicio" else "\"$query\" no está en el catálogo",
+            "\"$query\" no está en el catálogo",
             color = Color.White.copy(alpha = 0.72f),
         )
         Button(
