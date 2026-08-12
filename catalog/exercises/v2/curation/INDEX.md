@@ -1,8 +1,8 @@
 # Índice del catálogo de ejercicios v2
 
 Revisión: `v2-approved-2026-08-10-c` · Ontología: `wikilab-v3-2026-08-08`
-96 familias · 196 definiciones · 518 configuraciones
-Hash canónico: `20ecd23cb4766c34…`
+96 familias · 196 definiciones · 517 configuraciones
+Hash canónico: `2ca8794efe1955e4…`
 
 Artefacto informativo generado por `scripts/merge_catalog_v2_families.py`.
 No editar a mano: se regenera en cada merge.
@@ -86,7 +86,7 @@ No editar a mano: se regenera en cada merge.
 | lower_isometric_grip | forearms_paseo_del_granjero | Paseo del Granjero | implement | 4 |
 | lower_knee_dominant | front_squat | Sentadilla Frontal | implement | 5 |
 | lower_knee_dominant | high_bar_back_squat | Sentadilla Trasera con Barra Alta | implement | 3 |
-| lower_knee_dominant | low_bar_back_squat | Sentadilla Trasera con Barra Baja | implement | 3 |
+| lower_knee_dominant | low_bar_back_squat | Sentadilla Trasera con Barra Baja | implement | 2 |
 | lower_knee_dominant | quads_prensa_piernas | Prensa de Piernas | laterality | 2 |
 | lower_knee_dominant | quads_sentadilla_anderson | Sentadilla Anderson |  | 1 |
 | lower_knee_dominant | quads_sentadilla_anderson_frontal_barra_recta | Sentadilla Anderson Frontal |  | 1 |
