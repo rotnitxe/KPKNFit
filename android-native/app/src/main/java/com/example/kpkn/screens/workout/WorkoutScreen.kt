@@ -1128,7 +1128,7 @@ fun WorkoutScreen(
             onChosen = { mode ->
                 viewModel.setVoiceCaptureMode(mode)
                 viewModel.hideVoiceCaptureModeDialog()
-                viewModel.enableVoice()
+                viewModel.enableVoice(mode)
             },
         )
     }

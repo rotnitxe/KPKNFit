@@ -44,6 +44,8 @@ class WorkoutStepNavigator(
         fun openFinishSheet()
         fun speakCurrentStepAnnouncementIfEnabled()
         fun isRecordingBusy(): Boolean
+        /** Prompt de feedback de un ejercicio completado antes de avanzar al siguiente. */
+        fun announcePostExerciseFeedback(exerciseIds: List<String>)
         /** Prompt de voz del feedback final (último descanso, pendingPostExerciseIdx = -2). */
         fun announceFinalPostExerciseFeedback(exerciseIds: List<String>)
     }
@@ -379,24 +381,6 @@ class WorkoutStepNavigator(
             val feedbackTarget = buildPostExerciseFeedbackTargetInternal(state, currentEx)
             val shouldShowFeedback = feedbackTarget.unrecordedFeedbackExerciseIds(state).isNotEmpty()
             if (shouldShowFeedback) {
-                if (state.voiceSessionEnabled) {
-                    val pendingFeedbackIds = feedbackTarget.unrecordedFeedbackExerciseIds(state).toSet()
-                    updateState {
-                        it.copy(
-                            currentExerciseIdx = nextExerciseIdx,
-                            currentSetIdx = nextSetIdx,
-                            activeStepKey = nextStep.stepKey,
-                            showPostExerciseSheet = false,
-                            postExerciseTargetIdx = -1,
-                            postExerciseFeedbackTarget = null,
-                            pendingPostExerciseIdx = -1,
-                            voicePendingFeedbackExerciseIds = it.voicePendingFeedbackExerciseIds + pendingFeedbackIds,
-                            editingState = ports.buildEditingStateForPosition(it.completedSets, nextExercise, nextSetIdx),
-                        )
-                    }
-                    ports.persistOngoingState()
-                    return
-                }
                 val transitionTarget = state.session?.let {
                     buildWorkoutContinuityTransitionTarget(
                         session = it,
@@ -413,6 +397,11 @@ class WorkoutStepNavigator(
                         continuityTransitionTarget = transitionTarget,
                         continuityFeedbackExerciseId = null,
                     )
+                }
+                if (state.voiceSessionEnabled) {
+                    ports.persistOngoingState()
+                    ports.announcePostExerciseFeedback(feedbackTarget.unrecordedFeedbackExerciseIds(state))
+                    return
                 }
             } else {
                 updateState {

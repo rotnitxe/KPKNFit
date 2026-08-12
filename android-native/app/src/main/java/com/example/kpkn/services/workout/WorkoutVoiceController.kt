@@ -111,6 +111,8 @@ class WorkoutVoiceController(
     private var lastAnnouncedSessionSummaryText: String? = null
     /** User wants continuous voice on; survives async TTS init without clobbering LISTENING. */
     private var sessionWanted = false
+    /** Captura elegida en el diálogo inicial; se consume al arrancar el motor. */
+    private var pendingCaptureModeOverride: com.example.kpkn.data.models.VoiceCaptureMode? = null
     private var announcedVoiceOn = false
     /** True mientras el fénix está reintentando la reconexión del motor de voz. */
     private var recovering = false
@@ -282,12 +284,19 @@ class WorkoutVoiceController(
         )
     }
 
-    fun enable() {
+    fun enable(captureModeOverride: com.example.kpkn.data.models.VoiceCaptureMode? = null) {
+        if (captureModeOverride != null) pendingCaptureModeOverride = captureModeOverride
         fallbackTriggerPolicy.recordResolved()
         sessionWanted = true
         announcedVoiceOn = false
         when (WorkoutVoiceSessionGate.enableAction(_state.value.stage)) {
-            WorkoutVoiceSessionGate.EnableAction.NOOP_ALREADY_ACTIVE -> return
+            WorkoutVoiceSessionGate.EnableAction.NOOP_ALREADY_ACTIVE -> {
+                pendingCaptureModeOverride?.let { mode ->
+                    continuousEngine.updateCaptureMode(mode)
+                    pendingCaptureModeOverride = null
+                }
+                return
+            }
             WorkoutVoiceSessionGate.EnableAction.START_LISTENING -> {
                 startListening()
                 updateStage(VoicePipelineStage.RECONNECTING)
@@ -301,6 +310,7 @@ class WorkoutVoiceController(
         fallbackTriggerPolicy.recordResolved()
         val shouldAnnounce = sessionWanted && ttsManager.isInitialized
         sessionWanted = false
+        pendingCaptureModeOverride = null
         announcedVoiceOn = false
         abortPhoenix("disabled")
         speechBus.clear()
@@ -440,8 +450,6 @@ class WorkoutVoiceController(
             if (!allows(VoiceAnnouncementKind.ESSENTIAL)) return
             speakWhilePaused {
                 ttsManager.speakAskTechnicalQuality()
-                ttsManager.speakAskDiscomfort()
-                ttsManager.speakFeedbackSaveHint()
             }
         } else {
             if (announcedPostFeedbackPrompt) return
@@ -449,7 +457,6 @@ class WorkoutVoiceController(
             if (!allows(VoiceAnnouncementKind.ESSENTIAL)) return
             speakWhilePaused {
                 ttsManager.speakAskTechnicalQuality()
-                ttsManager.speakAskDiscomfort()
             }
         }
     }
@@ -614,6 +621,20 @@ class WorkoutVoiceController(
     fun speakFeedbackUpdated(message: String) {
         speakWhilePaused {
             ttsManager.speakError(message)
+        }
+    }
+
+    /** Confirma un dato y deja abierta una ventana real para responder la siguiente pregunta. */
+    fun speakFeedbackUpdatedAndAskDiscomfort(message: String) {
+        speakWhilePaused {
+            ttsManager.speakError("$message. ¿Sientes alguna molestia o dolor?")
+        }
+    }
+
+    /** Confirma la molestia y deja abierta la ventana final para decir "guardar". */
+    fun speakFeedbackUpdatedAndAskSave(message: String) {
+        speakWhilePaused {
+            ttsManager.speakError("$message. Di guardar cuando termines.")
         }
     }
 
@@ -3562,16 +3583,23 @@ class WorkoutVoiceController(
         if (!continuousEngine.isActive) {
             startEngineWithPersistedMode(activeScope)
         } else {
+            pendingCaptureModeOverride?.let { mode ->
+                continuousEngine.updateCaptureMode(mode)
+                pendingCaptureModeOverride = null
+            }
             continuousEngine.resumeDecoderAfterTts(0L)
         }
     }
 
     private fun startEngineWithPersistedMode(scope: CoroutineScope) {
+        val captureMode = pendingCaptureModeOverride
+            ?: captureModeProvider?.invoke()
+            ?: com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE
+        pendingCaptureModeOverride = null
         continuousEngine.start(
             scope = scope,
             holdMicRouteAcrossPause = true,
-            captureMode = captureModeProvider?.invoke()
-                ?: com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE,
+            captureMode = captureMode,
         )
         continuousEngine.updateMusicAec(musicAecProvider?.invoke() == true)
     }

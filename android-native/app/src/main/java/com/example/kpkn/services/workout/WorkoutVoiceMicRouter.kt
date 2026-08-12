@@ -408,6 +408,7 @@ class WorkoutVoiceMicRouter(
         if (communicationModeApplied) return
         runCatching {
             val before = am.mode
+            previousAudioMode = before
             am.mode = AudioManager.MODE_IN_COMMUNICATION
             val after = am.mode
             communicationModeApplied = true

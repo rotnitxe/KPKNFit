@@ -13,6 +13,7 @@ import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.VoiceTimedSetState
 import com.example.kpkn.data.models.PostExerciseFeedback
 import com.example.kpkn.data.models.TrainingMode
+import com.example.kpkn.data.models.VoiceCaptureMode
 import com.example.kpkn.data.models.discomfortLabel
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.voice.VoiceState
@@ -356,7 +357,7 @@ class WorkoutVoiceCommandHandler(
         }
     }
 
-    fun enableVoice() {
+    fun enableVoice(captureModeOverride: VoiceCaptureMode? = null) {
         val capability = WorkoutVoicePermissionHelper.checkVoiceCapability(appContext)
         if (!capability.canUseVoice) {
             updateState {
@@ -380,7 +381,7 @@ class WorkoutVoiceCommandHandler(
         }
         // Android 14+: crear el FGS de micrófono mientras la Activity aún es visible.
         WorkoutVoiceForegroundService.start(appContext)
-        voiceController.enable()
+        voiceController.enable(captureModeOverride)
         val controllerState = voiceController.state.value
         if (!voiceController.isEnabled() ||
             controllerState.stage == VoicePipelineStage.DISABLED
@@ -1005,7 +1006,12 @@ class WorkoutVoiceCommandHandler(
                 )
             }
             val targetLabel = if (target is PostExerciseFeedbackTarget.SupersetGroup) "${spokenWorkoutExerciseName(targetExercise)}: " else ""
-            voiceController.speakFeedbackUpdated("$targetLabel${updates.joinToString(", ")}")
+            val message = "$targetLabel${updates.joinToString(", ")}"
+            if (command.discomfortId == null) {
+                voiceController.speakFeedbackUpdatedAndAskDiscomfort(message)
+            } else {
+                voiceController.speakFeedbackUpdatedAndAskSave(message)
+            }
         }
     }
 

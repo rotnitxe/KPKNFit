@@ -373,6 +373,8 @@ class WorkoutViewModel(
                 override fun openFinishSheet() = this@WorkoutViewModel.openFinishSheet()
                 override fun speakCurrentStepAnnouncementIfEnabled() = voiceCommandHandler.speakCurrentStepAnnouncementIfEnabled()
                 override fun isRecordingBusy() = recordingGate.isBusy()
+                override fun announcePostExerciseFeedback(exerciseIds: List<String>) =
+                    voiceController.onVoicePendingFeedbackPrompt(exerciseIds.toSet())
                 override fun announceFinalPostExerciseFeedback(exerciseIds: List<String>) =
                     voiceController.onVoicePendingFinalFeedbackPrompt(exerciseIds.toSet())
             },
@@ -1523,8 +1525,8 @@ class WorkoutViewModel(
     }
 
 
-    fun enableVoice() = run {
-        if (!repository.settings.value.hasChosenVoiceCaptureMode) {
+    fun enableVoice(captureModeOverride: VoiceCaptureMode? = null) = run {
+        if (!repository.settings.value.hasChosenVoiceCaptureMode && captureModeOverride == null) {
             _uiState.update { it.copy(showVoiceCaptureModeDialog = true) }
             return@run
         }
@@ -1536,7 +1538,7 @@ class WorkoutViewModel(
                 WorkoutVoiceDiagnosticLogger.runtimeStateFields(appContext),
         )
         WorkoutVoiceDiagnosticLogger.event("voice_enable_requested")
-        voiceCommandHandler.enableVoice()
+        voiceCommandHandler.enableVoice(captureModeOverride)
         WorkoutVoiceDiagnosticLogger.event("voice_enable_result", mapOf("enabled" to voiceController.isEnabled()))
         if (voiceController.isEnabled()) {
             repository.updateSettings {
@@ -3404,16 +3406,23 @@ class WorkoutViewModel(
         }
     }
 
-    fun savePostExerciseFeedback(feedback: PostExerciseFeedback) =
+    fun savePostExerciseFeedback(feedback: PostExerciseFeedback) {
         feedbackController.savePostExerciseFeedback(feedback)
+        voiceController.completeVoiceFeedbackPrompt()
+    }
 
-    fun savePostExerciseFeedbacks(feedbacks: List<PostExerciseFeedback>) =
+    fun savePostExerciseFeedbacks(feedbacks: List<PostExerciseFeedback>) {
         feedbackController.savePostExerciseFeedbacks(feedbacks)
+        voiceController.completeVoiceFeedbackPrompt()
+    }
 
     fun dismissExecutionErrorDiscomfortSheet(discomfortIds: List<String>) =
         feedbackController.dismissExecutionErrorDiscomfortSheet(discomfortIds)
 
-    fun dismissPostExerciseSheet() = feedbackController.dismissPostExerciseSheet()
+    fun dismissPostExerciseSheet() {
+        feedbackController.dismissPostExerciseSheet()
+        voiceController.completeVoiceFeedbackPrompt()
+    }
 
     fun saveReadinessAdjustments(
         neural: Int?,
