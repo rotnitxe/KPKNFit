@@ -422,7 +422,9 @@ private fun LooseExerciseItem(
             partId = partId,
             isCompetitionMovement = exercise.matchesCompetitionMovement(competitionMovementIds),
             modifier = Modifier.fillMaxWidth(),
-            enableDrag = !exercise.isCardio,
+            // Cardio uses the same folded card contract as strength: its only
+            // intentional header difference is the missing goal star.
+            enableDrag = true,
             isDragging = draggingExerciseId == exercise.id,
             dragOffset = if (draggingExerciseId == exercise.id) draggingExerciseOffset else Offset.Zero,
             isDropTarget = (
@@ -506,7 +508,9 @@ private fun PartExerciseItem(
             partId = part.id,
             isCompetitionMovement = exercise.matchesCompetitionMovement(competitionMovementIds),
             modifier = Modifier.fillMaxWidth(),
-            enableDrag = !exercise.isCardio,
+            // Cardio uses the same folded card contract as strength: its only
+            // intentional header difference is the missing goal star.
+            enableDrag = true,
             isDragging = draggingExerciseId == exercise.id,
             dragOffset = if (draggingExerciseId == exercise.id) draggingExerciseOffset else Offset.Zero,
             isDropTarget = (
@@ -615,9 +619,11 @@ private fun LooseSupersetItem(
         onRemoveRound = { roundIndex -> viewModel.removeSupersetRound(supersetGroup.id, null, roundIndex) },
         relationshipAnchorName = { member -> resolveRelationshipAnchorName(session, member) },
         onOpenRelationshipPicker = { exerciseId -> viewModel.openRelationshipPicker(null, exerciseId) },
-        onClearRelationship = { exerciseId -> viewModel.linkExerciseRelativeTo(null, exerciseId, null) },
-        onRemoveFromSuperset = { groupId, exerciseId -> viewModel.removeExerciseFromSupersetGroup(groupId, null, exerciseId) },
-        onDissolve = viewModel::dissolveSupersetGroup,
+         onClearRelationship = { exerciseId -> viewModel.linkExerciseRelativeTo(null, exerciseId, null) },
+         onRemoveFromSuperset = { groupId, exerciseId -> viewModel.removeExerciseFromSupersetGroup(groupId, null, exerciseId) },
+         onDeleteExerciseFromSuperset = { groupId, exerciseId -> viewModel.deleteExerciseFromSupersetGroup(groupId, null, exerciseId) },
+         onDissolve = viewModel::dissolveSupersetGroup,
+         onDeleteGroup = viewModel::deleteSupersetGroup,
         onAddRound = {
             val nextRound = ((supersetGroup.rounds ?: supersetMembers.maxOfOrNull { it.sets.size } ?: 0) + 1).coerceAtLeast(1)
             viewModel.updateSupersetRest(supersetGroup.id, null, null, nextRound)
@@ -636,7 +642,9 @@ private fun LooseSupersetItem(
                     partId = partId,
                     isCompetitionMovement = member.matchesCompetitionMovement(competitionMovementIds),
                     modifier = Modifier.fillMaxWidth(),
-                    enableDrag = !member.isCardio,
+                    // Superset members, including cardio, remain draggable
+                    // through the shared exercise-card interaction.
+                    enableDrag = true,
                     isDragging = draggingExerciseId == member.id,
                     dragOffset = if (draggingExerciseId == member.id) draggingExerciseOffset else Offset.Zero,
                     isDropTarget = (
@@ -749,7 +757,9 @@ private fun PartSupersetItem(
         onOpenRelationshipPicker = { exerciseId -> viewModel.openRelationshipPicker(part.id, exerciseId) },
         onClearRelationship = { exerciseId -> viewModel.linkExerciseRelativeTo(part.id, exerciseId, null) },
         onRemoveFromSuperset = { groupId, exerciseId -> viewModel.removeExerciseFromSupersetGroup(groupId, part.id, exerciseId) },
+        onDeleteExerciseFromSuperset = { groupId, exerciseId -> viewModel.deleteExerciseFromSupersetGroup(groupId, part.id, exerciseId) },
         onDissolve = viewModel::dissolveSupersetGroup,
+        onDeleteGroup = viewModel::deleteSupersetGroup,
         onAddRound = {
             val nextRound = ((supersetGroup.rounds ?: supersetMembers.maxOfOrNull { it.sets.size } ?: 0) + 1).coerceAtLeast(1)
             viewModel.updateSupersetRest(supersetGroup.id, null, null, nextRound)
@@ -768,7 +778,9 @@ private fun PartSupersetItem(
                     partId = part.id,
                     isCompetitionMovement = member.matchesCompetitionMovement(competitionMovementIds),
                     modifier = Modifier.fillMaxWidth(),
-                    enableDrag = !member.isCardio,
+                    // Superset members, including cardio, remain draggable
+                    // through the shared exercise-card interaction.
+                    enableDrag = true,
                     isDragging = draggingExerciseId == member.id,
                     dragOffset = if (draggingExerciseId == member.id) draggingExerciseOffset else Offset.Zero,
                     isDropTarget = (

@@ -47,6 +47,29 @@ class SessionListItemsTest {
     }
 
     @Test
+    fun buildSessionListItems_keepsCardioAtItsInsertionPositionInsidePart() {
+        val part = SessionPart(
+            id = "p1",
+            name = "Cardio y fuerza",
+            exercises = listOf(
+                Exercise(id = "e1", name = "Press", exerciseDbId = "press"),
+                Exercise(
+                    id = "c1",
+                    name = "Bicicleta",
+                    cardioDetails = CardioDetails(type = CardioType.BIKE_STATIONARY),
+                ),
+                Exercise(id = "e2", name = "Remo", exerciseDbId = "row"),
+            ),
+        )
+        val items = buildSessionListItems(Session(id = "s1", name = "Pull", parts = listOf(part)))
+
+        assertEquals(
+            listOf("e1", "c1", "e2"),
+            items.filterIsInstance<SessionListItem.PartExercise>().map { it.exerciseId },
+        )
+    }
+
+    @Test
     fun buildSessionListItems_collapsedPartSkipsExercisesAndAddButton() {
         val part = SessionPart(
             id = "p1",

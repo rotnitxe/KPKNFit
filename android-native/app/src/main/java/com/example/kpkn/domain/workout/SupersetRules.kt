@@ -351,6 +351,55 @@ object SupersetRules {
         ))
     }
 
+    /**
+     * Deletes a member from the session instead of merely taking it out of the
+     * superset. The group is kept when at least two members remain and is
+     * dissolved automatically when the deletion leaves fewer than two.
+     */
+    fun deleteExercise(session: Session, groupId: String, exerciseId: String): Session {
+        val group = session.allSupersetGroups().firstOrNull { it.id == groupId } ?: return session
+        val memberIds = orderedMembers(session, groupId).map { it.id }
+            .ifEmpty { group.exerciseOrder }
+        if (exerciseId !in memberIds) return session
+
+        val remainingIds = memberIds.filterNot { it == exerciseId }
+        val updatedGroups = if (remainingIds.size < 2) {
+            session.supersetGroups.filterNot { it.id == groupId }
+        } else {
+            session.supersetGroups.map { current ->
+                if (current.id == groupId) current.copy(exerciseOrder = remainingIds) else current
+            }
+        }
+
+        return normalizeSession(
+            session.copy(
+                exercises = session.exercises.filterNot { it.id == exerciseId },
+                parts = session.parts.map { part ->
+                    part.copy(exercises = part.exercises.filterNot { it.id == exerciseId })
+                },
+                supersetGroups = updatedGroups,
+            ),
+        )
+    }
+
+    /** Deletes the superset and every exercise that belongs to it. */
+    fun deleteGroup(session: Session, groupId: String): Session {
+        val group = session.allSupersetGroups().firstOrNull { it.id == groupId } ?: return session
+        val memberIds = orderedMembers(session, groupId).map { it.id }
+            .ifEmpty { group.exerciseOrder }
+            .toSet()
+
+        return normalizeSession(
+            session.copy(
+                exercises = session.exercises.filterNot { it.id in memberIds },
+                parts = session.parts.map { part ->
+                    part.copy(exercises = part.exercises.filterNot { it.id in memberIds })
+                },
+                supersetGroups = session.supersetGroups.filterNot { it.id == groupId },
+            ),
+        )
+    }
+
     fun dissolve(session: Session, groupId: String): Session {
         val group = session.allSupersetGroups().firstOrNull { it.id == groupId }
         val copiedRoundRest = group?.restAfterSuperset?.takeIf { it > 0 }

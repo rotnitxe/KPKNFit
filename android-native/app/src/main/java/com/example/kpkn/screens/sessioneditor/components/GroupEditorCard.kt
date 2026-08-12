@@ -78,7 +78,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -355,7 +354,6 @@ internal fun GroupEditorCard(
     onDrag: (Float) -> Unit,
     onDragEnd: () -> Unit,
     onAddExercise: () -> Unit,
-    onToggleMobilityGroup: () -> Unit = {},
     onOpenMobilityPicker: () -> Unit = {},
     onRemoveMobility: (String) -> Unit = {},
     onUpdateMobility: (String, (MobilitySeries) -> MobilitySeries) -> Unit = { _, _ -> },
@@ -571,20 +569,6 @@ internal fun GroupEditorCard(
                                 )
                             }
                         }
-                    }
-                }
-
-                if (!part.isMobilityGroup && part.exercises.isEmpty()) {
-                    FilledTonalButton(
-                        onClick = onToggleMobilityGroup,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 6.dp),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 7.dp),
-                    ) {
-                        Icon(Icons.Default.FitnessCenter, null, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text("Convertir en grupo global de movilidad", fontWeight = FontWeight.Bold)
                     }
                 }
 

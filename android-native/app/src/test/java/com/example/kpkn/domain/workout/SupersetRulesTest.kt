@@ -91,6 +91,79 @@ class SupersetRulesTest {
     }
 
     @Test
+    fun deleteExercise_removesOnlyMemberAndKeepsRemainingSuperset() {
+        val session = SupersetRules.createSuperset(
+            session = Session(
+                id = "s",
+                name = "Sesion",
+                exercises = listOf(
+                    Exercise(id = "a", name = "A"),
+                    Exercise(id = "b", name = "B"),
+                    Exercise(id = "c", name = "C"),
+                ),
+            ),
+            groupId = "ss-1",
+            exerciseIds = listOf("a", "b", "c"),
+            restBetweenExercises = 45,
+            restAfterSuperset = 120,
+        )
+
+        val updated = SupersetRules.deleteExercise(session, "ss-1", "b")
+
+        assertEquals(listOf("a", "c"), updated.exercises.map { it.id })
+        assertEquals(listOf("a", "c"), updated.supersetGroups.single().exerciseOrder)
+        assertEquals(setOf("ss-1"), updated.exercises.mapNotNull { it.supersetGroupRef }.toSet())
+    }
+
+    @Test
+    fun deleteExercise_dissolvesGroupWhenDeletingOneOfTwo() {
+        val session = SupersetRules.createSuperset(
+            session = Session(
+                id = "s",
+                name = "Sesion",
+                exercises = listOf(
+                    Exercise(id = "a", name = "A"),
+                    Exercise(id = "b", name = "B"),
+                ),
+            ),
+            groupId = "ss-1",
+            exerciseIds = listOf("a", "b"),
+            restBetweenExercises = 45,
+            restAfterSuperset = 120,
+        )
+
+        val updated = SupersetRules.deleteExercise(session, "ss-1", "a")
+
+        assertEquals(listOf("b"), updated.exercises.map { it.id })
+        assertEquals(emptyList<Any>(), updated.supersetGroups)
+        assertNull(updated.exercises.single().supersetGroupRef)
+    }
+
+    @Test
+    fun deleteGroup_removesAllMembersAndGroup() {
+        val session = SupersetRules.createSuperset(
+            session = Session(
+                id = "s",
+                name = "Sesion",
+                exercises = listOf(
+                    Exercise(id = "a", name = "A"),
+                    Exercise(id = "b", name = "B"),
+                    Exercise(id = "outside", name = "Outside"),
+                ),
+            ),
+            groupId = "ss-1",
+            exerciseIds = listOf("a", "b"),
+            restBetweenExercises = 45,
+            restAfterSuperset = 120,
+        )
+
+        val updated = SupersetRules.deleteGroup(session, "ss-1")
+
+        assertEquals(listOf("outside"), updated.exercises.map { it.id })
+        assertEquals(0, updated.supersetGroups.size)
+    }
+
+    @Test
     fun createSuperset_removesMovedExercisesFromPreviousGroups() {
         val initial = Session(
             id = "s",

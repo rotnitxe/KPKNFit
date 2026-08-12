@@ -60,6 +60,7 @@ fun SwipeToDeleteCard(
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
     shape: Shape = RoundedCornerShape(28.dp),
+    animateDeletion: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     val density = LocalDensity.current
@@ -73,6 +74,7 @@ fun SwipeToDeleteCard(
     var revealed by remember { mutableStateOf(false) }
     var armed by remember { mutableStateOf(false) }
     var deleting by remember { mutableStateOf(false) }
+    val deleteRevealProgress = (-offsetX.value / maxReveal).coerceIn(0f, 1f)
 
     LaunchedEffect(deleting) {
         if (!deleting) return@LaunchedEffect
@@ -92,23 +94,21 @@ fun SwipeToDeleteCard(
                 .matchParentSize()
                 .offset { IntOffset((offsetX.value * 0.35f).roundToInt(), 0) }
                 .background(
-                    if (armed) {
-                        Brush.horizontalGradient(
-                            colors = listOf(
+                    Brush.horizontalGradient(
+                        colors = (if (armed) {
+                            listOf(
                                 Color(0xFF2A0A0F),
                                 Color(0xFF8A2030),
                                 MaterialTheme.colorScheme.error,
-                            ),
-                        )
-                    } else {
-                        Brush.horizontalGradient(
-                            colors = listOf(
+                            )
+                        } else {
+                            listOf(
                                 Color(0xFF21090D),
                                 Color(0xFF641722),
                                 MaterialTheme.colorScheme.error.copy(alpha = 0.94f),
-                            ),
-                        )
-                    }
+                            )
+                        }).map { color -> color.copy(alpha = color.alpha * deleteRevealProgress) },
+                    ),
                 ),
             contentAlignment = Alignment.CenterEnd,
         ) {
@@ -176,13 +176,25 @@ fun SwipeToDeleteCard(
                     },
                     onDragStopped = {
                         if (offsetX.value <= -deleteThreshold) {
-                            revealed = true
-                            deleting = true
-                            scope.launch {
-                                offsetX.animateTo(
-                                    targetValue = -maxReveal * 1.35f,
-                                    animationSpec = spring(dampingRatio = 0.6f, stiffness = 400f),
-                                )
+                            if (animateDeletion) {
+                                revealed = true
+                                deleting = true
+                                scope.launch {
+                                    offsetX.animateTo(
+                                        targetValue = -maxReveal * 1.35f,
+                                        animationSpec = spring(dampingRatio = 0.6f, stiffness = 400f),
+                                    )
+                                }
+                            } else {
+                                revealed = false
+                                armed = false
+                                scope.launch {
+                                    offsetX.animateTo(
+                                        targetValue = 0f,
+                                        animationSpec = spring(dampingRatio = 0.75f, stiffness = 650f),
+                                    )
+                                }
+                                onDelete()
                             }
                         } else {
                             revealed = false

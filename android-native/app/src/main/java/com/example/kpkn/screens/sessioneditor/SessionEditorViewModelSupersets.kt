@@ -276,6 +276,14 @@ fun SessionEditorViewModel.removeExerciseFromSupersetGroup(groupId: String, part
     SupersetRules.removeExercise(session, groupId, exerciseId)
 }
 
+fun SessionEditorViewModel.deleteExerciseFromSupersetGroup(groupId: String, partId: String?, exerciseId: String) = updateSession { session ->
+    SupersetRules.deleteExercise(session, groupId, exerciseId)
+}
+
+fun SessionEditorViewModel.deleteSupersetGroup(groupId: String) = updateSession { session ->
+    SupersetRules.deleteGroup(session, groupId)
+}
+
 fun SessionEditorViewModel.dissolveSupersetGroup(groupId: String) = updateSession { session ->
     SupersetRules.dissolve(session, groupId)
 }

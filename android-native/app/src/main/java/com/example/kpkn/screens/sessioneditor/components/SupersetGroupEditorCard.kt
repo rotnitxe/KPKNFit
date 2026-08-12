@@ -71,7 +71,10 @@ import com.example.kpkn.screens.sessioneditor.resolvePartAccent
 import com.example.kpkn.screens.sessioneditor.exerciseCardBrush
 import com.example.kpkn.screens.sessioneditor.DarkEditorSurface
 import com.example.kpkn.screens.sessioneditor.DarkChoiceChip
+import com.example.kpkn.ui.components.KpknAlertConfirmButton
+import com.example.kpkn.ui.components.KpknAlertDismissButton
 import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.SwipeToDeleteCard
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 
@@ -102,17 +105,24 @@ internal fun SupersetGroupEditorCard(
     onOpenRelationshipPicker: (String) -> Unit = {},
     onClearRelationship: (String) -> Unit = {},
     onRemoveFromSuperset: (String, String) -> Unit,
+    onDeleteExerciseFromSuperset: (String, String) -> Unit = { _, _ -> },
     onDissolve: (String) -> Unit,
+    onDeleteGroup: (String) -> Unit = {},
     onAddRound: () -> Unit,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     var expanded by rememberSaveable(group.id) { mutableStateOf(false) }
     var configExerciseId by rememberSaveable(group.id) { mutableStateOf<String?>(null) }
     var showOptionalInfo by rememberSaveable(group.id) { mutableStateOf(false) }
+    var pendingRemovalExerciseId by rememberSaveable(group.id) { mutableStateOf<String?>(null) }
+    var showDeleteGroupDialog by rememberSaveable(group.id) { mutableStateOf(false) }
     val accent = remember(accentHex) { resolvePartAccent(accentHex) }
     val accentColor = accent.primary
     val rounds = (group.rounds ?: exercises.maxOfOrNull { it.sets.size } ?: 1).coerceAtLeast(1)
     val totalSets = exercises.sumOf { it.sets.size }
+    val pendingRemovalExercise = pendingRemovalExerciseId?.let { id ->
+        exercises.firstOrNull { it.id == id }
+    }
 
     Column(
         modifier = modifier
@@ -134,13 +144,23 @@ internal fun SupersetGroupEditorCard(
                 .height(1.dp)
                 .background(accentColor.copy(alpha = if (expanded) 0.85f else 0.30f)),
         )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        SwipeToDeleteCard(
+            onDelete = { showDeleteGroupDialog = true },
+            modifier = Modifier.fillMaxWidth(),
+            shape = if (expanded) {
+                RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+            } else {
+                RoundedCornerShape(16.dp)
+            },
+            animateDeletion = false,
         ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
             Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
                 Icon(
                     imageVector = Icons.Default.DragHandle,
@@ -209,6 +229,7 @@ internal fun SupersetGroupEditorCard(
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.clickable { expanded = !expanded },
             )
+            }
         }
 
         AnimatedVisibility(visible = expanded) {
@@ -239,9 +260,8 @@ internal fun SupersetGroupEditorCard(
                                 modifier = Modifier.widthIn(max = 170.dp),
                             )
                             IconButton(
-                                onClick = { onRemoveFromSuperset(group.id, exercise.id) },
+                                onClick = { pendingRemovalExerciseId = exercise.id },
                                 modifier = Modifier.size(24.dp),
-                                enabled = exercises.size > 2,
                             ) {
                                 Icon(Icons.Default.Close, contentDescription = "Quitar de superserie", modifier = Modifier.size(14.dp))
                             }
@@ -402,6 +422,95 @@ internal fun SupersetGroupEditorCard(
             dismissButton = {
                 TextButton(onClick = { showOptionalInfo = false }) {
                     Text("Cancelar")
+                }
+            },
+        )
+    }
+
+    pendingRemovalExercise?.let { exercise ->
+        KpknAlertDialog(
+            onDismissRequest = { pendingRemovalExerciseId = null },
+            title = { Text("Eliminar ejercicio de la superserie", fontWeight = FontWeight.Black) },
+            text = {
+                Text(
+                    if (exercises.size == 2) {
+                        "Esta superserie tiene 2 ejercicios. Si conservas «${exercise.displayNameWithSelectedChips()}», " +
+                            "la superserie se disolverá y ambos quedarán como ejercicios independientes. " +
+                            "También puedes borrarlo de la sesión."
+                    } else {
+                        "¿Qué quieres hacer con «${exercise.displayNameWithSelectedChips()}»? Puedes conservarlo " +
+                            "como ejercicio individual o borrarlo de la sesión."
+                    },
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            },
+            confirmButton = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    KpknAlertConfirmButton(
+                        text = "Borrar ejercicio",
+                        onClick = {
+                            pendingRemovalExerciseId = null
+                            onDeleteExerciseFromSuperset(group.id, exercise.id)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    KpknAlertDismissButton(
+                        text = "Conservar como individual",
+                        onClick = {
+                            pendingRemovalExerciseId = null
+                            onRemoveFromSuperset(group.id, exercise.id)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    KpknAlertDismissButton(
+                        text = "Cancelar",
+                        onClick = { pendingRemovalExerciseId = null },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            },
+        )
+    }
+
+    if (showDeleteGroupDialog) {
+        KpknAlertDialog(
+            onDismissRequest = { showDeleteGroupDialog = false },
+            title = { Text("Eliminar superserie", fontWeight = FontWeight.Black) },
+            text = {
+                Text(
+                    "Puedes conservar sus ${exercises.size} ejercicios como individuales o borrarlos también de la sesión.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            },
+            confirmButton = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    KpknAlertDismissButton(
+                        text = "Conservar ejercicios",
+                        onClick = {
+                            showDeleteGroupDialog = false
+                            onDissolve(group.id)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    KpknAlertConfirmButton(
+                        text = "Borrar superserie y ejercicios",
+                        onClick = {
+                            showDeleteGroupDialog = false
+                            onDeleteGroup(group.id)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    KpknAlertDismissButton(
+                        text = "Cancelar",
+                        onClick = { showDeleteGroupDialog = false },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                 }
             },
         )
