@@ -39,7 +39,7 @@ data class ResolvedTag(
     val oilApplied: Boolean = false,
     /** R1: candidatos alternativos para revisión (top-4 del resolver). */
     val reviewCandidates: List<FoodItem> = emptyList(),
-    /** D2: instrucción del ejemplo más similar del dataset ("Entendí: …"). */
+    /** D2 legacy: no se expone texto libre del dataset como identidad interpretada. */
     val interpretation: String? = null,
     val canonicalFamily: String? = null,
     val foodState: FoodState = FoodState.UNKNOWN,
@@ -157,6 +157,10 @@ class TagResolver(private val port: FoodResolutionPort) {
                     (smartResult.decision == SmartFoodResolver.Decision.AUTO_SELECT &&
                         smartCandidate?.source == "LOCAL")
                 )
+            // Los rangos semánticos describen ejemplos del dataset, no la fila local
+            // ya seleccionada. La evidencia todavía puede aportar una porción por defecto,
+            // pero nunca debe invalidar ni reinterpretar los macros autoritativos.
+            val retrievalForMacroValidation = retrievalResult.takeUnless { localAuthority }
             val preferAiLoggedFood = effectiveFood == null && shouldUseAiLoggedFood(item)
             val canonicalFamily = FoodIdentity.familyFor(effectiveFood?.name ?: item.tag)
             val foodState = effectiveFood?.let { FoodIdentity.stateFor(it) }
@@ -182,15 +186,11 @@ class TagResolver(private val port: FoodResolutionPort) {
                 effectiveFood != null -> NutritionSourceKind.VERIFIED_GLOBAL
                 else -> NutritionSourceKind.HEURISTIC_ESTIMATE
             }
-            // D2: el ejemplo más similar del dataset como interpretación
-            val interpretation = retrievalResult.matches
-                .firstOrNull()
-                ?.takeIf {
-                    retrievalResult.confidence >= 0.35 &&
-                        !needsClarify &&
-                        FoodIdentity.familyFor(item.tag) == null
-                }
-                ?.instruction
+            // D2: las instrucciones del dataset son evidencia de recuperación, no una
+            // interpretación fiable de la identidad. Un vecino como "Completo con
+            // champiñones salteados" puede ser una comida distinta aunque comparta un
+            // token; no debe llegar al usuario como si la app hubiera entendido eso.
+            val interpretation: String? = null
             // R1: candidatos alternativos cuando hay revisión pendiente
             val reviewCandidates = if (requiresCandidateReview && !needsClarify) {
                 smartResult.candidates
@@ -226,7 +226,7 @@ class TagResolver(private val port: FoodResolutionPort) {
                         carbs = logged.carbs,
                         fats = logged.fats
                     ),
-                    retrievalResult = retrievalResult,
+                    retrievalResult = retrievalForMacroValidation,
                     portionGrams = logged.amount
                 )
 
@@ -339,7 +339,7 @@ class TagResolver(private val port: FoodResolutionPort) {
                         carbs = logged.carbs,
                         fats = logged.fats,
                     ),
-                    retrievalResult = retrievalResult,
+                    retrievalResult = retrievalForMacroValidation,
                     portionGrams = logged.amount,
                 )
                 val finalLogged = if (validated.wasAdjusted) {

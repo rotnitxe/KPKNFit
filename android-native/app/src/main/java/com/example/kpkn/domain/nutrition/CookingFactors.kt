@@ -75,17 +75,7 @@ fun applyCookingToMacros(
  */
 fun isLikelyLiquid(foodName: String, category: String? = null): Boolean {
     val lower = foodName.lowercase().trim()
-    val liquidKeywords = listOf(
-        "agua", "jugo", "zumo", "leche", "bebida", "refresco", "gaseosa",
-        "café", "cafe", "té", "te", "cerveza", "vino", "licor", "ron", "whisky",
-        "aceite", "vinagre", "salsa de soya", "salsa de soja", "caldo", "sopa",
-        "batido", "smoothie", "malteada", "horchata", "ponche", "néctar", "nectar",
-        "energética", "energetica", "isotónica", "isotonica", "cóctel", "coctel",
-        "champán", "champagne", "sidra", "cava", "prosecco",
-        "yogurt", "yogur", "kéfir", "kefir",
-    )
-    val liquidRegex = LIQUID_KEYWORD_REGEX
-    if (liquidRegex.containsMatchIn(lower)) return true
+    if (LIQUID_TERMS.any { lower.containsWholePhrase(it) }) return true
     if (category != null) {
         val liquidCategories = listOf("beverage", "bebida", "drink", "dairy drink", "juice")
         if (liquidCategories.any { category.lowercase().contains(it) }) return true
@@ -93,23 +83,29 @@ fun isLikelyLiquid(foodName: String, category: String? = null): Boolean {
     return false
 }
 
-private val LIQUID_KEYWORD_REGEX: Regex by lazy {
-    val keywords = listOf(
-        "agua", "jugo", "zumo", "leche", "bebida", "refresco", "gaseosa",
-        "café", "cafe", "té", "te", "cerveza", "vino", "licor", "ron", "whisky",
-        "aceite", "vinagre", "salsa de soya", "salsa de soja", "caldo", "sopa",
-        "batido", "smoothie", "malteada", "horchata", "ponche", "néctar", "nectar",
-        "energética", "energetica", "isotónica", "isotonica", "cóctel", "coctel",
-        "champán", "champagne", "sidra", "cava", "prosecco",
-        "yogurt", "yogur", "kéfir", "kefir",
-    )
-    Regex(
-        // (?U): sin UNICODE_CHARACTER_CLASS, \b trata "é"/"ñ" como no-palabra y
-        // \bté\b jamás matchea (B10).
-        "(?U)" + keywords.joinToString("|") { "\\b${Regex.escape(it)}\\b" },
-        RegexOption.IGNORE_CASE,
-    )
+private val LIQUID_TERMS = listOf(
+    "agua", "jugo", "zumo", "leche", "bebida", "refresco", "gaseosa",
+    "café", "cafe", "té", "te", "cerveza", "vino", "licor", "ron", "whisky",
+    "aceite", "vinagre", "salsa de soya", "salsa de soja", "caldo", "sopa",
+    "batido", "smoothie", "malteada", "horchata", "ponche", "néctar", "nectar",
+    "energética", "energetica", "isotónica", "isotonica", "cóctel", "coctel",
+    "champán", "champagne", "sidra", "cava", "prosecco",
+    "yogurt", "yogur", "kéfir", "kefir",
+)
+
+private fun String.containsWholePhrase(phrase: String): Boolean {
+    var startIndex = indexOf(phrase)
+    while (startIndex >= 0) {
+        val endIndex = startIndex + phrase.length
+        val startsAtBoundary = startIndex == 0 || !isWordCharacter(this[startIndex - 1])
+        val endsAtBoundary = endIndex == length || !isWordCharacter(this[endIndex])
+        if (startsAtBoundary && endsAtBoundary) return true
+        startIndex = indexOf(phrase, startIndex + 1)
+    }
+    return false
 }
+
+private fun isWordCharacter(value: Char): Boolean = value.isLetterOrDigit() || value == '_'
 
 data class Quadruple(
     val calories: Double,

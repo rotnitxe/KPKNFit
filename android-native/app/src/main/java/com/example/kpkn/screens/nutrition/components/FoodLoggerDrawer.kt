@@ -351,6 +351,15 @@ fun FoodLoggerDrawer(
         val newTags = result.first
         val mergedTags = mergeTagsPreservingManualEdits(tags, newTags)
         tags = mergedTags
+        // El rango del dataset es una referencia de ejemplos, no una objeción
+        // contra macros ya autoritativos. Si todos los alimentos quedaron
+        // resueltos desde filas locales, no lo mostramos en el total.
+        if (mergedTags.isNotEmpty() && mergedTags.all {
+                it.isResolved && it.nutritionSource == NutritionSourceKind.CURATED_LOCAL
+            }
+        ) {
+            analysisKcalRange = null
+        }
         reviewRequired = mergedTags.any { !it.isExcluded && !it.isResolved }
     }
 
@@ -506,6 +515,7 @@ fun FoodLoggerDrawer(
         isUsingAiRoute = forceApi
 
         analysisNotice = null
+        analysisKcalRange = null
         analysisStage = if (useApi) ParseStage.ESTIMATING else ParseStage.INTERPRETING
         analysisStartedAtMs = System.currentTimeMillis()
         analysisElapsedMs = 0L

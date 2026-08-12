@@ -142,6 +142,11 @@ class CookingFactorsTest {
         assert(isLikelyLiquid("leche descremada"))
     }
 
+    @Test
+    fun `B10 regression porcion grande papas fritas no lanza ni es liquido`() {
+        assert(!isLikelyLiquid("porción grande papas fritas"))
+    }
+
     // ─── IT3: absorción de aceite y factor de cocción por categoría ─────────
 
     @Test

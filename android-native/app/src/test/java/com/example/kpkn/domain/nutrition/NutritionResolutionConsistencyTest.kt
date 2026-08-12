@@ -32,6 +32,16 @@ class NutritionResolutionConsistencyTest {
     }
 
     @Test
+    fun `meal description keeps champinones as its own component`() {
+        val parsed = parseMealDescription("arroz con pollo, champiñones y salsa de yogurt")
+
+        assertEquals(
+            listOf("arroz con pollo", "champiñones", "salsa de yogurt"),
+            parsed.items.map { it.tag },
+        )
+    }
+
+    @Test
     fun `parser separates fideos from salsa de tomate but protects the sauce`() {
         val result = parseMealDescription("200g fideos con 80g salsa de tomate")
 
@@ -131,6 +141,92 @@ class NutritionResolutionConsistencyTest {
         assertTrue(tags.single().isResolved)
         assertEquals(FoodResolutionStatus.AUTO, tags.single().resolutionStatus)
         assertEquals(32.0, tags.single().loggedFood?.calories)
+    }
+
+    @Test
+    fun `local exact food ignores unrelated dataset interpretation and macro range`() = runBlocking {
+        val mushrooms = findFoodByNormalized("champiñones")!!
+        val misleadingRetrieval = SemanticPortionRetriever.RetrievalResult(
+            query = "champiñones",
+            matches = listOf(
+                SemanticPortionRetriever.DatasetMatch(
+                    docId = 15549,
+                    instruction = "Completo con champiñones salteados",
+                    score = 0.482,
+                    type = "GENERAL",
+                ),
+            ),
+            contextDetected = emptyList(),
+            portionPriors = emptyMap(),
+            macroRange = SemanticPortionRetriever.MacroRangeEstimate(
+                kcalMin = 93.0,
+                kcalMax = 158.0,
+                kcalMedian = 117.0,
+                proteinMin = 3.0,
+                proteinMax = 11.0,
+                proteinMedian = 5.0,
+                fatsMin = 0.0,
+                fatsMax = 5.0,
+                fatsMedian = 1.0,
+                carbsMin = 15.0,
+                carbsMax = 19.0,
+                carbsMedian = 18.0,
+                sampleCount = 4,
+                sourceDocumentIds = listOf(15549),
+            ),
+            confidence = 0.9,
+            elapsedMs = 0,
+        )
+        val port = RecordingPort(
+            staticFood = mushrooms,
+            staticExact = false,
+            smart = SmartFoodResolver.ResolutionResult(
+                query = "champiñones",
+                candidates = listOf(
+                    SmartFoodResolver.ResolutionCandidate(
+                        foodId = mushrooms.id,
+                        name = mushrooms.name,
+                        brand = mushrooms.brand,
+                        score = 1.0,
+                        confidence = SmartFoodResolver.Confidence.HIGH,
+                        source = "LOCAL",
+                        calories = mushrooms.calories,
+                        protein = mushrooms.protein,
+                        carbs = mushrooms.carbs,
+                        fats = mushrooms.fats,
+                        fiber = 0.0,
+                        trace = listOf("local"),
+                    ),
+                ),
+                decision = SmartFoodResolver.Decision.AUTO_SELECT,
+                resolvedFoodId = mushrooms.id,
+                semanticRetrieval = misleadingRetrieval,
+            ),
+        )
+
+        val (tags, _) = TagResolver(port).resolveAll(
+            ParsedMealDescription(
+                items = listOf(
+                    ParsedMealItem(
+                        tag = "champiñones",
+                        amountGrams = 100.0,
+                        amountIntent = AmountIntent.EXPLICIT_MASS,
+                    ),
+                ),
+                rawDescription = "100g champiñones",
+            ),
+        )
+
+        val tag = tags.single()
+        assertEquals("gen038", tag.foodItem?.id)
+        assertEquals(FoodResolutionStatus.AUTO, tag.resolutionStatus)
+        assertTrue(tag.isResolved)
+        assertEquals(22.0, tag.loggedFood?.calories ?: -1.0, 0.01)
+        assertNull(tag.interpretation)
+        assertTrue(tag.statusText.isBlank())
+        assertFalse(tag.statusText.contains("Entendí", ignoreCase = true))
+        assertFalse(tag.statusText.contains("Completo", ignoreCase = true))
+        assertFalse(tag.statusText.contains("fuera de rango", ignoreCase = true))
     }
 
     @Test
