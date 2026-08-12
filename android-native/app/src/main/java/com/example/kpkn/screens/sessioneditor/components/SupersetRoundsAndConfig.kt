@@ -1,7 +1,5 @@
 package com.example.kpkn.screens.sessioneditor.components
 
-import android.app.TimePickerDialog
-import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -32,7 +30,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -48,7 +45,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,7 +54,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -90,6 +85,7 @@ import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.KpknRestPickerChain
 
 @Composable
 internal fun SupersetExerciseConfigOverlay(
@@ -361,7 +357,7 @@ internal fun SupersetRoundsCarousel(
     onAddRound: () -> Unit,
     onRemoveRound: (Int) -> Unit,
 ) {
-    val context = LocalContext.current
+    var restPickerRound by remember { mutableStateOf<Int?>(null) }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("Rondas", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
         Row(
@@ -383,25 +379,13 @@ internal fun SupersetRoundsCarousel(
                     Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text("Ronda ${roundIndex + 1}", modifier = Modifier.weight(1f), fontWeight = FontWeight.Black, color = accentColor)
-                            IconButton(onClick = { onRemoveRound(roundIndex) }, enabled = rounds > 1, modifier = Modifier.size(32.dp)) {
-                                Icon(Icons.Default.Delete, contentDescription = "Eliminar ronda", modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.error)
-                            }
                         }
                         SupersetRestPickerButton(
                             restBetweenSeconds = roundRestBetween,
                             restAfterSeconds = roundRestAfter,
                             accentColor = accentColor,
                             modifier = Modifier.fillMaxWidth(),
-                            onClick = {
-                                launchNativeRestPickers(
-                                    context = context,
-                                    betweenSeconds = roundRestBetween,
-                                    afterSeconds = roundRestAfter,
-                                    onResult = { between, after ->
-                                        onUpdateRoundRest(roundIndex, between, after)
-                                    },
-                                )
-                            },
+                            onClick = { restPickerRound = roundIndex },
                         )
                         exercises.forEach { exercise ->
                             val set = exercise.sets.getOrNull(roundIndex)
@@ -426,6 +410,21 @@ internal fun SupersetRoundsCarousel(
                     }
                 }
             }
+        }
+        restPickerRound?.let { roundIndex ->
+            val roundRestBetween = group.roundRestBetweenExercises[roundIndex] ?: group.restBetweenExercises
+            val roundRestAfter = group.roundRestAfterSuperset[roundIndex] ?: group.restAfterSuperset
+            KpknRestPickerChain(
+                primaryTitle = "Descanso entre ejercicios",
+                primarySeconds = roundRestBetween,
+                secondaryTitle = "Descanso al final de la ronda",
+                secondarySeconds = roundRestAfter,
+                onConfirm = { between, after ->
+                    onUpdateRoundRest(roundIndex, between, after ?: roundRestAfter)
+                    restPickerRound = null
+                },
+                onDismiss = { restPickerRound = null },
+            )
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -719,77 +718,6 @@ private fun RoundMissingSetCard(
     }
 }
 
-private fun launchNativeRestPickers(
-    context: Context,
-    betweenSeconds: Int,
-    afterSeconds: Int,
-    onResult: (Int, Int) -> Unit,
-    onCancel: () -> Unit = {},
-) {
-    TimePickerDialog(
-        context,
-        { _, hour, minute ->
-            val chosenBetween = hour * 60 + minute
-            TimePickerDialog(
-                context,
-                { _, hour2, minute2 ->
-                    onResult(chosenBetween, hour2 * 60 + minute2)
-                },
-                afterSeconds / 60,
-                afterSeconds % 60,
-                true,
-            ).apply {
-                setMessage("Descanso al final de la ronda")
-                setOnCancelListener { onCancel() }
-            }.show()
-        },
-        betweenSeconds / 60,
-        betweenSeconds % 60,
-        true,
-    ).apply {
-        setMessage("Descanso entre ejercicios")
-        setOnCancelListener { onCancel() }
-    }.show()
-}
-
-internal fun launchNativeRestPickerChain(
-    context: Context,
-    primaryLabel: String,
-    primarySeconds: Int,
-    sideSeconds: Int?,
-    onResult: (Int, Int?) -> Unit,
-    onCancel: () -> Unit,
-) {
-    TimePickerDialog(
-        context,
-        { _, hour, minute ->
-            val primary = hour * 60 + minute
-            if (sideSeconds != null) {
-                TimePickerDialog(
-                    context,
-                    { _, hour2, minute2 ->
-                        onResult(primary, hour2 * 60 + minute2)
-                    },
-                    sideSeconds / 60,
-                    sideSeconds % 60,
-                    true,
-                ).apply {
-                    setMessage("Descanso entre lados")
-                    setOnCancelListener { onCancel() }
-                }.show()
-            } else {
-                onResult(primary, null)
-            }
-        },
-        primarySeconds / 60,
-        primarySeconds % 60,
-        true,
-    ).apply {
-        setMessage(primaryLabel)
-        setOnCancelListener { onCancel() }
-    }.show()
-}
-
 @Composable
 internal fun SupersetRestPickerDialog(
     initialRestBetweenSeconds: Int,
@@ -798,14 +726,12 @@ internal fun SupersetRestPickerDialog(
     onDismiss: () -> Unit,
     onConfirm: (Int, Int) -> Unit,
 ) {
-    val context = LocalContext.current
-    LaunchedEffect(Unit) {
-        launchNativeRestPickers(
-            context = context,
-            betweenSeconds = initialRestBetweenSeconds,
-            afterSeconds = initialRestAfterSeconds,
-            onResult = onConfirm,
-            onCancel = onDismiss,
-        )
-    }
+    KpknRestPickerChain(
+        primaryTitle = "Descanso entre ejercicios",
+        primarySeconds = initialRestBetweenSeconds,
+        secondaryTitle = "Descanso al final de la ronda",
+        secondarySeconds = initialRestAfterSeconds,
+        onConfirm = { between, after -> onConfirm(between, after ?: initialRestAfterSeconds) },
+        onDismiss = onDismiss,
+    )
 }

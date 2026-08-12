@@ -59,7 +59,6 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.font.FontWeight
@@ -71,7 +70,6 @@ import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.min
 import com.example.kpkn.screens.sessioneditor.components.InlineSetRow
-import com.example.kpkn.screens.sessioneditor.components.launchNativeRestPickerChain
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.example.kpkn.ui.components.KpknAlertDialog
@@ -146,17 +144,14 @@ internal fun RestBundleDialog(
     onDismiss: () -> Unit,
     onConfirm: (Int, Int?) -> Unit,
 ) {
-    val context = LocalContext.current
-    LaunchedEffect(Unit) {
-        launchNativeRestPickerChain(
-            context = context,
-            primaryLabel = primaryLabel,
-            primarySeconds = initialPrimarySeconds,
-            sideSeconds = initialSideSeconds,
-            onResult = { primary, side -> onConfirm(primary, side) },
-            onCancel = onDismiss,
-        )
-    }
+    com.example.kpkn.ui.components.KpknRestPickerChain(
+        primaryTitle = primaryLabel,
+        primarySeconds = initialPrimarySeconds,
+        secondaryTitle = initialSideSeconds?.let { "Descanso entre lados" },
+        secondarySeconds = initialSideSeconds,
+        onConfirm = { primary, side -> onConfirm(primary, side) },
+        onDismiss = onDismiss,
+    )
 }
 
 @Composable

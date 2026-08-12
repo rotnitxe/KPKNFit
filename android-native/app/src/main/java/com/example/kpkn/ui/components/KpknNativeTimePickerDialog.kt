@@ -105,3 +105,61 @@ fun KpknNativeTimePickerDialog(
         },
     )
 }
+
+/**
+ * Rest picker composed entirely inside the KPKN glass host.
+ *
+ * The second picker is shown only after the first value is confirmed. This
+ * preserves the old two-step rest flow without creating platform windows that
+ * cannot sample the editor blur surface.
+ */
+@Composable
+fun KpknRestPickerChain(
+    primaryTitle: String,
+    primarySeconds: Int,
+    secondaryTitle: String? = null,
+    secondarySeconds: Int? = null,
+    onConfirm: (primarySeconds: Int, secondarySeconds: Int?) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val hasSecondary = secondaryTitle != null && secondarySeconds != null
+    var step by remember(primaryTitle, primarySeconds, secondaryTitle, secondarySeconds) {
+        mutableStateOf(0)
+    }
+    var chosenPrimarySeconds by remember(primaryTitle, primarySeconds, secondaryTitle, secondarySeconds) {
+        mutableStateOf<Int?>(null)
+    }
+
+    if (step == 0) {
+        KpknNativeTimePickerDialog(
+            title = primaryTitle,
+            initialHour = (primarySeconds.coerceAtLeast(0) / 60).coerceIn(0, 23),
+            initialMinute = (primarySeconds.coerceAtLeast(0) % 60).coerceIn(0, 59),
+            hint = "Minutos : segundos",
+            onConfirm = { minutes, seconds ->
+                val selected = (minutes * 60 + seconds).coerceAtLeast(0)
+                if (hasSecondary) {
+                    chosenPrimarySeconds = selected
+                    step = 1
+                } else {
+                    onConfirm(selected, null)
+                }
+            },
+            onDismiss = onDismiss,
+        )
+    } else {
+        KpknNativeTimePickerDialog(
+            title = secondaryTitle.orEmpty(),
+            initialHour = (secondarySeconds.orZero() / 60).coerceIn(0, 23),
+            initialMinute = (secondarySeconds.orZero() % 60).coerceIn(0, 59),
+            hint = "Minutos : segundos",
+            onConfirm = { minutes, seconds ->
+                val selected = (minutes * 60 + seconds).coerceAtLeast(0)
+                onConfirm(chosenPrimarySeconds ?: primarySeconds.coerceAtLeast(0), selected)
+            },
+            onDismiss = onDismiss,
+        )
+    }
+}
+
+private fun Int?.orZero(): Int = this ?: 0
